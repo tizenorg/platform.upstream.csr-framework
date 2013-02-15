@@ -189,8 +189,7 @@ typedef enum
 	TWP_OverallRiskHigh = 130,			
 	TWP_OverallRiskMedium = 131,		
 	TWP_OverallRiskMinimal = 132,		
-	TWP_OverallRiskUnverified = 137,	
-	TWP_OverallMcAfeeSecure = 138,		
+	TWP_OverallRiskUnverified = 137,
 	TWP_LastAttributePlaceholder = 160,	
 } TWPCategories;
 

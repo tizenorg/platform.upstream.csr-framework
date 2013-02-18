@@ -33,7 +33,7 @@ OUTDIR = lib
 TARGET = $(OUTDIR)/libsecfw.so
 SRCDIR = framework
 INCLUDE = -I. $(TCS_INC) -I../plugin
-LD_FLAGS := $(LD_FLAGS) -ldl
+LD_FLAGS := $(LD_FLAGS) -ldl -lc
 
 ifeq ($(TCS_CC), )
 	CC = gcc
@@ -63,16 +63,11 @@ SOURCES = $(SRCDIR)/TCSImpl.c $(SRCDIR)/TWPImpl.c
 
 OBJECTS = $(OUTDIR)/TCSImpl.o $(OUTDIR)/TWPImpl.o
 
-MKDEP = mkdep -f .depend
-
 
 $(OUTDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -o $(OUTDIR)/$*.o -c $(SRCDIR)/$*.c
 
-all: $(OUTDIR) .depend $(TARGET)
-
-.depend: $(SOURCES)
-	$(MKDEP) $(CFLAGS) $(SOURCES)
+all: $(OUTDIR) $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	$(LD) -shared,-Wl,-zdefs -o $(TARGET) $(OBJECTS) $(LD_FLAGS)
@@ -91,5 +86,4 @@ clean:
 	@rm -f $(OBJECTS) *~
 	@rm -f *.bb *.bbg *.da *.gcov
 
--include .depend
 

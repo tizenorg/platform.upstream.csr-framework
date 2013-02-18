@@ -8,7 +8,6 @@ Source: %{name}-%{version}.tar.gz
 License: BSD
 Group: System/Libraries
 URL: http://tizen.org
-BuildRequires: pmake
 
 %description
 

@@ -3,6 +3,7 @@ Name: csr-framework
 Version: 1.0.0
 Release: 1
 
+
 Source: %{name}-%{version}.tar.gz
 
 License: BSD
@@ -22,7 +23,8 @@ make all
 %install
 rm -rf %{buildroot}
 
-install -D lib/libsecfw.so %{buildroot}/%{_libdir}/
+install -d %{buildroot}%{_libdir}
+install lib/libsecfw.so %{buildroot}%{_libdir}
 
 %post -p /sbin/ldconfig
 

@@ -1,5 +1,6 @@
 * Wed Feb 20 2013 Ryan Ware <ware@linux.intel.com> - 1.0.0
 - Remove dependency on pmake.
+- Fix spec file
 
 * Mon Feb 11 2013 Ryan Ware <ryan.r.ware@intel.com> - 1.0.0
 - This is the initial checkin and spec file for csf-framework

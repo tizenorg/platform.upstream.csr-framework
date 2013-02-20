@@ -3,7 +3,6 @@ Name: csr-framework
 Version: 1.0.0
 Release: 1
 
-
 Source: %{name}-%{version}.tar.gz
 
 License: BSD

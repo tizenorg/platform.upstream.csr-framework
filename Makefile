@@ -70,9 +70,7 @@ $(OUTDIR)/%.o: $(SRCDIR)/%.c
 all: $(OUTDIR) $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	$(LD) -shared,-Wl,-zdefs -o $(TARGET) $(OBJECTS) $(LD_FLAGS)
-
-#	$(AR) -cr $(TARGET) $(OBJECTS)
+	$(CC) -shared -Wl,-soname,libsecfw.so -o $(TARGET) $(OBJECTS) $(LD_FLAGS)
 
 $(OUTDIR):
 	@mkdir $(OUTDIR)

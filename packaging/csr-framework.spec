@@ -21,8 +21,8 @@ make all
 
 %install
 rm -rf %{buildroot}
-
-install -D lib/libsecfw.so %{buildroot}/%{_libdir}/
+mkdir -p %{buildroot}%{_libdir}/
+install -D lib/libsecfw.so %{buildroot}%{_libdir}/
 
 %post -p /sbin/ldconfig
 

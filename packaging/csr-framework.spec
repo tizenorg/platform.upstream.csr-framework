@@ -1,9 +1,9 @@
 
-Summary: A general purpose content screening and reputation solution
+Summary: Content Security Framework
 Name: csr-framework
 Version: 1.0.0
 Release: 1
-License: BSD
+License: BSD-3-Clause
 Group: Security/Libraries
 URL: http://tizen.org
 Source: %{name}-%{version}.tar.gz

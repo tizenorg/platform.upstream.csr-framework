@@ -7,12 +7,14 @@ License: BSD-3-Clause
 Group: Security/Libraries
 URL: http://tizen.org
 Source: %{name}-%{version}.tar.gz
+Source1001: 	csr-framework.manifest
 
 %description
 A general purpose content screening and reputation solution. 
 
 %prep
 %setup -q
+cp %{SOURCE1001} .
 
 %build 
 
@@ -28,5 +30,6 @@ install -D lib/libsecfw.so %{buildroot}%{_libdir}/
 %postun -p /sbin/ldconfig
 
 %files 
+%manifest %{name}.manifest
 %{_libdir}/libsecfw.so
 

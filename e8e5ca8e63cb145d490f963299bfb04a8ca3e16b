@@ -1,0 +1,8 @@
+Change-Id: Ie8e5ca8e63cb145d490f963299bfb04a8ca3e16b
+Code-Review+2: Ryan Ware <ware@linux.intel.com>
+Verified+1: Ryan Ware <ware@linux.intel.com>
+Submitted-by: Ryan Ware <ware@linux.intel.com>
+Submitted-at: Mon, 08 Jul 2013 10:05:27 -0700
+Reviewed-on: https://review.tizen.org/gerrit/4692
+Project: platform/upstream/csr-framework
+Branch: refs/heads/tizen

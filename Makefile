@@ -33,7 +33,7 @@ OUTDIR = lib
 TARGET = $(OUTDIR)/libsecfw.so
 SRCDIR = framework
 INCLUDE = -I. $(TCS_INC) -I../plugin
-LD_FLAGS := $(LD_FLAGS) -ldl -lc
+LD_FLAGS := $(LD_FLAGS) -ldl
 
 ifeq ($(TCS_CC), )
 	CC = gcc
@@ -70,7 +70,7 @@ $(OUTDIR)/%.o: $(SRCDIR)/%.c
 all: $(OUTDIR) $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	$(LD) -shared,-Wl,-zdefs -o $(TARGET) $(OBJECTS) $(LD_FLAGS)
+	$(CC) -shared -Wl,-zdefs -o $(TARGET) $(OBJECTS) $(LD_FLAGS)
 
 #	$(AR) -cr $(TARGET) $(OBJECTS)
 

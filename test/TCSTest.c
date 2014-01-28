@@ -35,6 +35,10 @@
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
+
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #include "TCSImpl.h"
 #include "TCSErrorCodes.h"
 
@@ -259,6 +263,16 @@ static void TestCases(void)
 }
 
 
+static void TCSRemovePlugin(void)
+{
+    char *pszCommand;
+
+    asprintf(&pszCommand, "rm -f %s", PLUGIN_PATH);
+    CallSys(pszCommand);
+    free(pszCommand);
+}
+
+
 static void TCSLibraryOpen_0001(void)
 {
     TestCase TestCtx;
@@ -280,7 +294,7 @@ static void TCSLibraryOpen_0002(void)
     TESTCASECTOR(&TestCtx, __FUNCTION__, 0, 0, 0, NULL);
 
     BackupEngine();
-    system("rm -f /opt/usr/share/sec_plugin/libengine.so");
+    TCSRemovePlugin();
 
     TEST_ASSERT((hLib = TCSLibraryOpen()) == INVALID_TCSLIB_HANDLE);
     iErr = TCSGetLastError(hLib);
@@ -298,7 +312,7 @@ static void TCSGetLastError_0001(void)
     TestCase TestCtx;
 
     BackupEngine();
-    system("rm -f /opt/usr/share/sec_plugin/libengine.so");
+    TCSRemovePlugin();
 
     TESTCASECTOR(&TestCtx, __FUNCTION__, 0, 0, 0, NULL);
     iErr = TCSGetLastError(INVALID_TCSLIB_HANDLE);
@@ -317,7 +331,7 @@ static void TCSScanData_0052(void)
     TCSScanResult SR= {0};
 
     BackupEngine();
-    system("rm -f /opt/usr/share/sec_plugin/libengine.so");
+    TCSRemovePlugin();
 
     SP.iAction = TCS_SA_SCANONLY;
     SP.iDataType = TCS_DTYPE_UNKNOWN;
@@ -1059,7 +1073,7 @@ static void TCSLibraryOpen_0003(void)
     TESTCASECTOR(&TestCtx, __FUNCTION__, 0, 0, 0, NULL);
     /* pre-condition is stub library */
     BackupEngine();
-    system("rm -f /opt/usr/share/sec_plugin/libengine.so");
+    TCSRemovePlugin();
 
     TEST_ASSERT((hLib = TCSLibraryOpen()) == INVALID_TCSLIB_HANDLE);
     RestoreEngine();
@@ -1080,7 +1094,7 @@ static void TCSLibraryOpen_0004(void)
     TEST_ASSERT((hLib = TCSLibraryOpen()) != INVALID_TCSLIB_HANDLE);
 
     BackupEngine();
-    system("rm -f /opt/usr/share/sec_plugin/libengine.so");
+    TCSRemovePlugin();
     TCSLibraryClose(hLib);
 
     TEST_ASSERT((hLib = TCSLibraryOpen()) == INVALID_TCSLIB_HANDLE);

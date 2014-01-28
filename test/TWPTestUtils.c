@@ -38,6 +38,10 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <errno.h>
+
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #include "TWPImpl.h"
 #include "XMHttp.h"
 #include "TWPTest.h"
@@ -51,6 +55,8 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
+#define PLUGIN_PATH tzplatform_mkpath(TZ_USER_SHARE, "sec_plugin/libengine.so")
+#define PLUGIN_DIR tzplatform_mkpath(TZ_USER_SHARE, "sec_plugin/")
 
 static void ReportTestCase(TestCase *pCtx);
 static void CallSys(const char *pszCmd);
@@ -130,7 +136,7 @@ void BackupEngine()
         CallSys(pszCommand);
         free(pszCommand);
 
-        asprintf(&pszCommand, "cp -f /opt/usr/share/sec_plugin/libwpengine.so %s/backup", pszRoot);
+        asprintf(&pszCommand, "cp -f %s %s/backup", PLUGIN_PATH, pszRoot);
         CallSys(pszCommand);
         free(pszCommand);
 
@@ -145,7 +151,7 @@ void RestoreEngine()
 
     if (pszRoot != NULL)
     {
-        asprintf(&pszCommand, "cp -f %s/backup/libwpengine.so /opt/usr/share/sec_plugin/", pszRoot);
+        asprintf(&pszCommand, "cp -f %s/backup/libwpengine.so %s", pszRoot, PLUGIN_DIR);
         CallSys(pszCommand);
         free(pszCommand);
 
@@ -161,7 +167,7 @@ void RemoveEngine()
     BackupEngine();
     if (pszRoot != NULL)
     {
-        asprintf(&pszCommand, "rm -f /opt/usr/share/sec_plugin/libwpengine.so");
+        asprintf(&pszCommand, "rm -f %s", PLUGIN_PATH);
         CallSys(pszCommand);
         free(pszCommand);
     }

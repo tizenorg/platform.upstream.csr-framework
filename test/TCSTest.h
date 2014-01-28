@@ -5,6 +5,9 @@
 #include <setjmp.h>
 
 
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #ifdef __cplusplus 
 extern "C" {
 #endif
@@ -68,6 +71,8 @@ extern "C" {
 
 #define TEST_CONSTRUCT_ERRCODE(m, e) (((m) << 24) | (e))
 
+#define PLUGIN_PATH tzplatform_mkpath(TZ_USER_SHARE, "sec_plugin/libengine.so")
+#define PLUGIN_DIR tzplatform_mkpath(TZ_USER_SHARE, "sec_plugin/")
 
 /* Test content file types */
 enum ENUM_MALWARE_TEST_TYPES

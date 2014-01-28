@@ -34,10 +34,13 @@
 #include <dlfcn.h>
 #include <malloc.h>
 
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #include "TWPImpl.h"
 
 
-#define SITE_PLUGIN_PATH "/opt/usr/share/sec_plugin/libwpengine.so"
+#define SITE_PLUGIN_PATH tzplatform_mkpath(TZ_USER_SHARE, "sec_plugin/libwpengine.so")
 
 #if defined(DEBUG)
 #define DEBUG_LOG(_fmt_, _param_...)    { \

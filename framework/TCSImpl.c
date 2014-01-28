@@ -34,6 +34,9 @@
 #include <dlfcn.h>
 #include <malloc.h>
 
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #include "TCSImpl.h"
 #include "TCSErrorCodes.h"
 
@@ -49,7 +52,7 @@
 #endif
 
 
-#define PLUGIN_PATH "/opt/usr/share/sec_plugin/libengine.so"
+#define PLUGIN_PATH tzplatform_mkpath(TZ_USER_SHARE, "sec_plugin/libengine.so")
 
 
 typedef TCSLIB_HANDLE (*FuncLibraryOpen)(void);

@@ -50,13 +50,13 @@ struct TWPLibHandle_struct {int iDummy;};
 typedef struct TWPLibHandle_struct *TWPLIB_HANDLE;
 
 #define TWPAPI_VERSION 1 /* SDK version */
-	
+
 #define TWPCONFIG_VERSION 1 /* Configure version */
-	
+
 #define TWPREQUEST_VERSION 1 /* Request version */
 
 #define INVALID_TWPLIB_HANDLE ((TWPLIB_HANDLE) 0) /* Invalid web protection library interface handle. */
-	
+
 /**
  * Result code used by TWP_RESULT
  */

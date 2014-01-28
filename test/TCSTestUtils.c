@@ -38,6 +38,10 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <errno.h>
+
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #include "TCSErrorCodes.h"
 #include "TCSImpl.h"
 #include "TCSTest.h"
@@ -2072,7 +2076,7 @@ void BackupEngine()
         CallSys(pszCommand);
         free(pszCommand);
 
-        asprintf(&pszCommand, "cp -f /opt/usr/share/sec_plugin/libengine.so %s/backup", pszRoot);
+        asprintf(&pszCommand, "cp -f %s %s/backup", PLUGIN_PATH, pszRoot);
         CallSys(pszCommand);
         free(pszCommand);
 
@@ -2087,7 +2091,7 @@ void RestoreEngine()
 
     if (pszRoot != NULL)
     {
-        asprintf(&pszCommand, "cp -f %s/backup/libengine.so /opt/usr/share/sec_plugin/", pszRoot);
+        asprintf(&pszCommand, "cp -f %s/backup/libengine.so %s", pszRoot, PLUGIN_DIR);
         CallSys(pszCommand);
         free(pszCommand);
 

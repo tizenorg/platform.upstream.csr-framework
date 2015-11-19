@@ -36,18 +36,11 @@
 
 #include <tzplatform_config.h>
 
+#include "CsrLog.h"
 #include "TWPImpl.h"
 
 
 #define SITE_PLUGIN_PATH tzplatform_mkpath(TZ_USER_SHARE, "sec_plugin/libwpengine.so")
-
-#if defined(DEBUG)
-#define DEBUG_LOG(_fmt_, _param_...)    { \
-                                            printf("[TCS] %s,%d: " _fmt_, __FILE__, __LINE__, ##_param_); \
-                                        }
-#else
-#define DEBUG_LOG(_fmt_, _param_...)
-#endif
 
 
 typedef TWP_RESULT (*FuncInitLibrary)(TWPAPIInit *pApiInit);
@@ -338,7 +331,7 @@ static SitePluginContext *LoadPlugin(void)
 {
     SitePluginContext *pCtx = NULL;
     void *pTmp = dlopen(SITE_PLUGIN_PATH, RTLD_LAZY);
-    DEBUG_LOG("%s", "load site plugin\n");
+    SLOGD("load site plugin");
     if (pTmp != NULL)
     {
         FuncUninitLibrary TmpUninitLibrary;
@@ -365,181 +358,181 @@ static SitePluginContext *LoadPlugin(void)
         do
         {
             TmpInitLibrary = dlsym(pTmp, "TWPPInitLibrary");
-            DEBUG_LOG("%s", "load api TWPPInitLibrary\n");
+            SLOGD("load api TWPPInitLibrary");
             if (TmpInitLibrary == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPInitLibrary in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPInitLibrary in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpUninitLibrary = dlsym(pTmp, "TWPPUninitLibrary");
-            DEBUG_LOG("%s", "load api TWPPUninitLibrary\n");
+            SLOGD("load api TWPPUninitLibrary");
             if (TmpUninitLibrary == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPUninitLibrary in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPUninitLibrary in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpConfigurationCreate = dlsym(pTmp, "TWPPConfigurationCreate");
-            DEBUG_LOG("%s", "load api TWPPConfigurationCreate\n");
+            SLOGD("load api TWPPConfigurationCreate");
             if (TmpConfigurationCreate == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPConfigurationCreate in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPConfigurationCreate in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpConfigurationDestroy = dlsym(pTmp, "TWPPConfigurationDestroy");
-            DEBUG_LOG("%s", "load api TWPPConfigurationDestroy\n");
+            SLOGD("load api TWPPConfigurationDestroy");
             if (TmpConfigurationDestroy == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPConfigurationDestroy in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPConfigurationDestroy in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpLookupUrls = dlsym(pTmp, "TWPPLookupUrls");
-            DEBUG_LOG("%s", "load api TWPPLookupUrls\n");
+            SLOGD("load api TWPPLookupUrls");
             if (TmpLookupUrls == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPLookupUrls in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPLookupUrls in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpResponseWrite = dlsym(pTmp, "TWPPResponseWrite");
-            DEBUG_LOG("%s", "load api TWPPResponseWrite\n");
+            SLOGD("load api TWPPResponseWrite");
             if (TmpResponseWrite == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPResponseWrite in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPResponseWrite in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpResponseGetUrlRatingByIndex = dlsym(pTmp, "TWPPResponseGetUrlRatingByIndex");
-            DEBUG_LOG("%s", "load api TWPPResponseGetUrlRatingByIndex\n");
+            SLOGD("load api TWPPResponseGetUrlRatingByIndex");
             if (TmpResponseGetUrlRatingByIndex == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPResponseGetUrlRatingByIndex in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPResponseGetUrlRatingByIndex in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpResponseGetUrlRatingByUrl = dlsym(pTmp, "TWPPResponseGetUrlRatingByUrl");
-            DEBUG_LOG("%s", "load api TWPPResponseGetUrlRatingByUrl\n");
+            SLOGD("load api TWPPResponseGetUrlRatingByUrl");
             if (TmpResponseGetUrlRatingByUrl == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPResponseGetUrlRatingByUrl in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPResponseGetUrlRatingByUrl in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpResponseGetRedirUrlFor = dlsym(pTmp, "TWPPResponseGetRedirUrlFor");
-            DEBUG_LOG("%s", "load api TWPPResponseGetRedirUrlFor\n");
+            SLOGD("load api TWPPResponseGetRedirUrlFor");
             if (TmpResponseGetRedirUrlFor == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPResponseGetRedirUrlFor in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPResponseGetRedirUrlFor in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpResponseGetUrlRatingsCount = dlsym(pTmp, "TWPPResponseGetUrlRatingsCount");
-            DEBUG_LOG("%s", "load api TWPPResponseGetUrlRatingsCount\n");
+            SLOGD("load api TWPPResponseGetUrlRatingsCount");
             if (TmpResponseGetUrlRatingsCount == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPResponseGetUrlRatingsCount in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPResponseGetUrlRatingsCount in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpResponseDestroy = dlsym(pTmp, "TWPPResponseDestroy");
-            DEBUG_LOG("%s", "load api TWPPResponseDestroy\n");
+            SLOGD("load api TWPPResponseDestroy");
             if (TmpResponseDestroy == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPResponseDestroy in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPResponseDestroy in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpPolicyCreate = dlsym(pTmp, "TWPPPolicyCreate");
-            DEBUG_LOG("%s", "load api TWPPPolicyCreate\n");
+            SLOGD("load api TWPPPolicyCreate");
             if (TmpPolicyCreate == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPPolicyCreate in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPPolicyCreate in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpPolicyValidate = dlsym(pTmp, "TWPPPolicyValidate");
-            DEBUG_LOG("%s", "load api TWPPPolicyValidate\n");
+            SLOGD("load api TWPPPolicyValidate");
             if (TmpPolicyValidate == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPPolicyValidate in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPPolicyValidate in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpPolicyGetViolations = dlsym(pTmp, "TWPPPolicyGetViolations");
-            DEBUG_LOG("%s", "load api TWPPPolicyGetViolations\n");
+            SLOGD("load api TWPPPolicyGetViolations");
             if (TmpPolicyGetViolations == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPPolicyGetViolations in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPPolicyGetViolations in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpPolicyDestroy = dlsym(pTmp, "TWPPPolicyDestroy");
-            DEBUG_LOG("%s", "load api TWPPPolicyDestroy\n");
+            SLOGD("load api TWPPPolicyDestroy");
             if (TmpPolicyDestroy == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPPolicyDestroy in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPPolicyDestroy in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpUrlRatingGetScore = dlsym(pTmp, "TWPPUrlRatingGetScore");
-            DEBUG_LOG("%s", "load api TWPPUrlRatingGetScore\n");
+            SLOGD("load api TWPPUrlRatingGetScore");
             if (TmpUrlRatingGetScore == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPUrlRatingGetScore in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPUrlRatingGetScore in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpUrlRatingGetUrl = dlsym(pTmp, "TWPPUrlRatingGetUrl");
-            DEBUG_LOG("%s", "load api TWPPUrlRatingGetUrl\n");
+            SLOGD("load api TWPPUrlRatingGetUrl");
             if (TmpUrlRatingGetUrl == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPUrlRatingGetUrl in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPUrlRatingGetUrl in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpUrlRatingGetDLAUrl = dlsym(pTmp, "TWPPUrlRatingGetDLAUrl");
-            DEBUG_LOG("%s", "load api TWPPUrlRatingGetDLAUrl\n");
+            SLOGD("load api TWPPUrlRatingGetDLAUrl");
             if (TmpUrlRatingGetDLAUrl == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPUrlRatingGetDLAUrl in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPUrlRatingGetDLAUrl in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpUrlRatingHasCategory = dlsym(pTmp, "TWPPUrlRatingHasCategory");
-            DEBUG_LOG("%s", "load api TWPPUrlRatingHasCategory\n");
+            SLOGD("load api TWPPUrlRatingHasCategory");
             if (TmpUrlRatingHasCategory == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPUrlRatingHasCategory in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPUrlRatingHasCategory in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
 
             TmpUrlRatingGetCategories = dlsym(pTmp, "TWPPUrlRatingGetCategories");
-            DEBUG_LOG("%s", "load api TWPPUrlRatingGetCategories\n");
+            SLOGD("load api TWPPUrlRatingGetCategories");
             if (TmpUrlRatingGetCategories == NULL)
             {
-                DEBUG_LOG("Failed to load TWPPUrlRatingGetCategories in %s\n", SITE_PLUGIN_PATH);
+                SLOGE("Failed to load TWPPUrlRatingGetCategories in %s", SITE_PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
@@ -576,7 +569,7 @@ static SitePluginContext *LoadPlugin(void)
     }
     else
     {
-        DEBUG_LOG("No plugin found.\n");
+        SLOGE("No plugin found.");
     }
 
     return pCtx;

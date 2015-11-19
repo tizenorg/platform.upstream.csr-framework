@@ -36,21 +36,12 @@
 
 #include <tzplatform_config.h>
 
+#include "CsrLog.h"
 #include "TCSImpl.h"
 #include "TCSErrorCodes.h"
 
 
 #define TCS_CONSTRUCT_ERRCODE(m, e) (((m) << 24) | (e))
-
-#if defined(DEBUG)
-#define DEBUG_LOG(_fmt_, _param_...)    { \
-                                            printf("[TCS] %s,%d: " _fmt_, __FILE__, __LINE__, ##_param_); \
-                                        }
-#else
-#define DEBUG_LOG(_fmt_, _param_...)
-#endif
-
-
 #define PLUGIN_PATH tzplatform_mkpath(TZ_USER_SHARE, "sec_plugin/libengine.so")
 
 
@@ -81,7 +72,7 @@ TCSLIB_HANDLE TCSLibraryOpen(void)
 {
     PluginContext *pCtx = NULL;
 
-    DEBUG_LOG("%s", "tcs lib open\n");
+    SLOGD("%s", "tcs lib open\n");
     pCtx = LoadPlugin();
     if (pCtx != NULL)
     {
@@ -90,11 +81,11 @@ TCSLIB_HANDLE TCSLibraryOpen(void)
             free(pCtx);
             return INVALID_TCSLIB_HANDLE;
         }
-        DEBUG_LOG("%s", "call to TCSPLibraryOpen\n");
+        SLOGD("%s", "call to TCSPLibraryOpen\n");
         pCtx->hLib = (*pCtx->pfLibraryOpen)();
         if (pCtx->hLib == INVALID_TCSLIB_HANDLE)
         {
-            DEBUG_LOG("%s", "failed to open engine\n");
+            SLOGD("%s", "failed to open engine\n");
             if (pCtx->pPlugin != NULL)
                 dlclose(pCtx->pPlugin);
             free(pCtx);
@@ -172,7 +163,7 @@ static PluginContext *LoadPlugin(void)
 {
     PluginContext *pCtx = NULL;
     void *pTmp = dlopen(PLUGIN_PATH, RTLD_LAZY);
-    DEBUG_LOG("%s", "load plugin\n");
+    SLOGD("load plugin");
     if (pTmp != NULL)
     {
         FuncLibraryOpen TmpLibraryOpen;
@@ -184,10 +175,10 @@ static PluginContext *LoadPlugin(void)
         do
         {
             TmpLibraryOpen = dlsym(pTmp, "TCSPLibraryOpen");
-            DEBUG_LOG("%s", "load api TCSPLibraryOpen\n");
+            SLOGD("load api TCSPLibraryOpen");
             if (TmpLibraryOpen == NULL)
             {
-                DEBUG_LOG("Failed to load TCSPLibraryOpen in %s\n", PLUGIN_PATH);
+                SLOGE("Failed to load TCSPLibraryOpen in %s", PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
@@ -195,7 +186,7 @@ static PluginContext *LoadPlugin(void)
             TmpLibraryClose = dlsym(pTmp, "TCSPLibraryClose");
             if (TmpLibraryClose == NULL)
             {
-                DEBUG_LOG("Failed to load TCSPLibraryClose in %s\n", PLUGIN_PATH);
+                SLOGE("Failed to load TCSPLibraryClose in %s", PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
@@ -203,7 +194,7 @@ static PluginContext *LoadPlugin(void)
             TmpGetLastError = dlsym(pTmp, "TCSPGetLastError");
             if (TmpGetLastError == NULL)
             {
-                DEBUG_LOG("Failed to load TCSPGetLastError in %s\n", PLUGIN_PATH);
+                SLOGE("Failed to load TCSPGetLastError in %s", PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
@@ -211,7 +202,7 @@ static PluginContext *LoadPlugin(void)
             TmpScanData = dlsym(pTmp, "TCSPScanData");
             if (TmpScanData == NULL)
             {
-                DEBUG_LOG("Failed to load TCSPScanData in %s\n", PLUGIN_PATH);
+                SLOGE("Failed to load TCSPScanData in %s", PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
@@ -219,7 +210,7 @@ static PluginContext *LoadPlugin(void)
             TmpScanFile = dlsym(pTmp, "TCSPScanFile");
             if (TmpScanFile == NULL)
             {
-                DEBUG_LOG("Failed to load TCSPScanFile in %s\n", PLUGIN_PATH);
+                SLOGE("Failed to load TCSPScanFile in %s", PLUGIN_PATH);
                 dlclose(pTmp);
                 break;
             }
@@ -240,7 +231,7 @@ static PluginContext *LoadPlugin(void)
     }
     else
     {
-        DEBUG_LOG("No plugin found.\n");
+        SLOGE("No plugin found.");
     }
 
     return pCtx;

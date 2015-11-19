@@ -143,7 +143,6 @@ static int InfectedFile(TestCase *pCtx, const char *pszPath);
 static void TestCaseCtorEx(TestCase *pCtx, const char *pszAPI, int iTestType,
                            int iPolarity, int iAction, int iCompressFlag,
                            PFScan pfCallback);
-static void CallSys(const char *pszCmd);
 
 /* Concurrency test functions. */
 static char *ConGetSampleDir(int iCid);
@@ -2096,7 +2095,7 @@ void RestoreEngine()
 }
 
 
-static void CallSys(const char *pszCmd)
+void CallSys(const char *pszCmd)
 {
     int iRet = system(pszCmd);
     if (iRet != 0)

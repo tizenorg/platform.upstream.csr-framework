@@ -37,68 +37,129 @@ extern "C" {
 #endif
 
 /**
- * \file TCSImpl.h
- * \brief TCS Header File
- *  
- * This file provides the Tizen Content Screen API functions.
+ * @addtogroup CAPI_CSRFW_TCS_MODULE
+ * @{
  */
 
-#define TCS_SA_SCANONLY 1 /* Instructs the scan functions to perform scanning only. */
+/**
+ * @brief Instructs the scan functions to perform scanning only.
+ * @since_tizen 2.3
+ * */
+#define TCS_SA_SCANONLY 1
 
-#define TCS_SA_SCANREPAIR 2 /* Instructs the scan functions to carry out both
-                                                                    scanning and repair/removal of detected malware. */
+/**
+ * @brief Instructs the scan functions to carry out both scanning and repair/removal of detected malware.
+ * @since_tizen 2.3
+ */
+#define TCS_SA_SCANREPAIR 2
 
-#define TCS_CB_DETECTED 1 /* Informs the caller a malicious code has been
-                                                              detected in the scan target. The callback data
-                                                              argument pParam is set to point to a TCSDetected
-                                                              structure. */
+/**
+ * @brief Informs the caller a malicious code has been detected in the scan target. \n
+ * The callback data argument pParam is set to point to a TCSDetected structure.
+ * @since_tizen 2.3
+ */
+#define TCS_CB_DETECTED 1
 
-#define TCS_DTYPE_UNKNOWN 0 /* Scan for malicious content in an unknown data
-                                                                    type. This data type should be used when the
-                                                                    other types are not appropriate. */
+/**
+ * @brief Scan for malicious content in an unknown data type. \n
+ * This data type should be used when the other types are not appropriate.
+ * @since_tizen 2.3
+ */
+#define TCS_DTYPE_UNKNOWN 0
 
-#define TCS_DTYPE_HTML 1 /* Scan for malicious content in HTML. */
+/**
+ * @brief Scan for malicious content in HTML.
+ * @since_tizen 2.3
+ */
+#define TCS_DTYPE_HTML 1
 
-#define TCS_DTYPE_URL 2 /* Scan for URL with malicious content.
-                                                            url-string format should conform to the
-                                                            Uniform Resource Locators (RFC 1738)
-                                                            specification. */
+/**
+ * @brief Scan for URL with malicious content. url-string format should conform to the \n
+ * Uniform Resource Locators (RFC 1738) specification.
+ * @since_tizen 2.3
+ */
+#define TCS_DTYPE_URL 2
 
-#define TCS_DTYPE_EMAIL 3 /* Scan for email-address with malicious intent.
-                                                                  email-string format should conform with
-                                                                  the Internet E-mail address format
-                                                                  (RFC 822) specification. */
+/**
+ * @brief Scan for email-address with malicious intent. \n
+ * email-string format should conform with the Internet E-mail address format \n
+ * (RFC 822) specification.
+ * @since_tizen 2.3
+ */
+#define TCS_DTYPE_EMAIL 3
 
-#define TCS_DTYPE_PHONE 4 /* Scan for phone number with malicious intent.
-                                                              phone-number string consists of the numeric
-                                                              characters '0' through '9', and the
-                                                              '#' and '*' characters. */
+/**
+ * @brief Scan for phone number with malicious intent.\n
+ * phone-number string consists of the numeric characters '0' through '9', \n
+ * and the '#' and '*' characters.
+ * @since_tizen 2.3
+ */
+#define TCS_DTYPE_PHONE 4
 
-#define TCS_DTYPE_JAVA 5 /* Scan for malicious Java code. */
+/**
+ * @brief Scan for malicious Java code.
+ * @since_tizen 2.3
+ */
+#define TCS_DTYPE_JAVA 5
 
-#define TCS_DTYPE_JAVAS 6 /* Scan for malicious Java code. */
+/**
+ * @brief Scan for malicious Java code.
+ * @since_tizen 2.3
+ */
+#define TCS_DTYPE_JAVAS 6
 
-#define TCS_DTYPE_TEXT 7 /* Scan text data for malicious content. */
+/**
+ * @brief Scan text data for malicious content.
+ * @since_tizen 2.3
+ */
+#define TCS_DTYPE_TEXT 7
 
-#define TCS_VTYPE_MALWARE 1 /* Malware type. */
+/**
+ * @brief  Malware type.
+ * @since_tizen 2.3
+ */
+#define TCS_VTYPE_MALWARE 1
 
-#define TCS_SC_USER 1 /* Detected malware is harmful to the user. */
+/**
+ * @brief Detected malware is harmful to the user.
+ * @since_tizen 2.3
+ */
+#define TCS_SC_USER 1
 
-#define TCS_SC_TERMINAL 2 /* Detected malware is harmful to the terminal. */
+/**
+ * @brief Detected malware is harmful to the terminal.
+ * @since_tizen 2.3
+ */
+#define TCS_SC_TERMINAL 2
 
-#define TCS_BC_LEVEL0 0 /* Process with a warning. This severity level may
-                                                          be assigned to data previously considered malicious. */
+/**
+ * @brief Process with a warning. This severity level may be assigned to data previously considered malicious.
+ * @since_tizen 2.3
+ */
+#define TCS_BC_LEVEL0 0
 
-#define TCS_BC_LEVEL1 1 /* Prompt the user before processing. Ask the user
-                                                            if they want the application to process the data. */
+/**
+ * @brief Prompt the user before processing. Ask the user if they want the application to process the data.
+ * @since_tizen 2.3
+ */
+#define TCS_BC_LEVEL1 1
+/**
+ * @brief Do not process the data.
+ * @since_tizen 2.3
+ */
+#define TCS_BC_LEVEL2 2
 
-#define TCS_BC_LEVEL2 2 /* Do not process the data. */
-
-#define TCS_BC_LEVEL3 3 /* Do not process the data and prompt user for removal.
-                                                        If the content is stored on the terminal,
-                                                        prompt the user for permission before removal. */
-
-#define TCS_BC_LEVEL4 4 /* Do not process the data and automatically remove if stored. */
+/**
+ * @brief SDo not process the data and prompt user for removal.\n
+ * If the content is stored on the terminal, prompt the user for permission before removal.
+ * @since_tizen 2.3
+ */
+#define TCS_BC_LEVEL3 3
+/**
+ * @brief Do not process the data and automatically remove if stored.
+ * @since_tizen 2.3
+ */
+#define TCS_BC_LEVEL4 4
 
 
 /*==================================================================================================
@@ -106,12 +167,14 @@ extern "C" {
 ==================================================================================================*/
 
 /**
- * Helper macro to get error module.
+ * @brief Helper macro to get error module.
+ * @since_tizen 2.3
  */
 #define TCS_ERRMODULE(e) (((e) >> 24) & 0xff)
 
 /**
- * Helper macro to get error code.
+ * @brief Helper macro to get error code.
+ * @since_tizen 2.3
  */
 #define TCS_ERRCODE(e) ((e) & 0x00ffffff)
 
@@ -120,29 +183,37 @@ extern "C" {
 ==================================================================================================*/
 
 /**
- * Dummy data structure to avoid unexpected data type casting.
+ * @brief Dummy data structure to avoid unexpected data type casting.
+ * @since_tizen 2.3
  */
 struct TCSLibHandle_struct {int iDummy;};
 
 /**
- * TCS library handle type.
+ * @brief TCS library handle type.
+ * @since_tizen 2.3
  */
 typedef struct TCSLibHandle_struct *TCSLIB_HANDLE;
 
-#define INVALID_TCSLIB_HANDLE ((TCSLIB_HANDLE) 0) /* Invalid Content Screening library interface handle. */
+/**
+ * @brief Invalid Content Screening library interface handle.
+ * @since_tizen 2.3
+ */
+#define INVALID_TCSLIB_HANDLE ((TCSLIB_HANDLE) 0)
 
 /**
- * error code type.
+ * @brief error code type.
+ * @since_tizen 2.3
  */
 typedef unsigned long TCSErrorCode;
 
 /**
- * Support 64 bits data / file locating
+ * @brief Support 64 bits data / file locating
+ * @since_tizen 2.3
  */
 typedef long long TCSOffset;
 
 /**
- * The calling application specifies scan
+ * @brief The calling application specifies scan
  * parameters using the TCSScanParam structure. The information
  * contained in the structure provides the scan functions with:
  * - scan action type (iAction)
@@ -154,22 +225,23 @@ typedef long long TCSOffset;
  *     block of scan data (pfRead)
  * - callback function used to write to the scan data (pfWrite)
  * - callback function for status/progress reporting (pfCallBack)
+ * @since_tizen 2.3
  */
 typedef struct TCSScanParam_struct
 {
-    int iAction; /* The scan-action specifies the type of scanning to be performed on supplied scan data. */
+    int iAction; /**< The scan-action specifies the type of scanning to be performed on supplied scan data. */
 
-    int iDataType; /* The calling application specifies the data type/format of the data to be scanned using this variable. */
+    int iDataType; /**< The calling application specifies the data type/format of the data to be scanned using this variable. */
 
-    int iCompressFlag; /* 0 - decompression disabled, 1 - decompression enabled. */
+    int iCompressFlag; /**< 0 - decompression disabled, 1 - decompression enabled. */
 
-    void *pPrivate; /* Pointer (or handle) to an application object being scanned.
+    void *pPrivate; /**< Pointer (or handle) to an application object being scanned.
                        The scan functions do not perform direct memory I/O using this data
                        pointer/handle. The data pointer/handle is simply passed back to the caller when
                        performing data read/write using caller specified I/O functions. Also the private
                        data is passed back to the caller using the pfCallback function if it is set. */
 
-    TCSOffset (*pfGetSize)(void *pPrivate); /* Used by the scan functions
+    TCSOffset (*pfGetSize)(void *pPrivate); /**< Used by the scan functions
                                                to obtain the scan target data size (in bytes) from the caller.
                                                                                                             
                                                This is a synchronous API.
@@ -179,7 +251,7 @@ typedef struct TCSScanParam_struct
                                                The size (in bytes) of the data to be scanned.
                                                */
 
-    int (*pfSetSize)(void *pPrivate, TCSOffset uSize); /* Called by the scan
+    int (*pfSetSize)(void *pPrivate, TCSOffset uSize); /**< Called by the scan
                                                           functions to resize the scanned data to a given size (in bytes) during
                                                           repair/clean. The resize function pointer needs to be set if the scan-action
                                                           (iAction) is set to TCS_SA_SCANREPAIR.
@@ -195,7 +267,7 @@ typedef struct TCSScanParam_struct
                                                           */
 
     unsigned int (*pfRead)(void *pPrivate, TCSOffset uOffset, void *pBuffer,
-                           unsigned int uCount); /* Used for reading a specified
+                           unsigned int uCount); /**< Used for reading a specified
                                                     amount of application data during scanning/analysis.
                                                                                                                     
                                                     This is a synchronous API.
@@ -211,7 +283,7 @@ typedef struct TCSScanParam_struct
                                                     */
 
     unsigned int (*pfWrite)(void *pPrivate, TCSOffset uOffset, void const *pBuffer,
-                            unsigned int uCount); /* The scan functions use the
+                            unsigned int uCount); /**< The scan functions use the
                                                      given function to write a specified amount of data to the scanned object as a part
                                                      of the repair process. The function pointer needs to be set if the scan action
                                                      (iAction) is set to TCS_SA_SCANREPAIR.
@@ -228,7 +300,7 @@ typedef struct TCSScanParam_struct
                                                      Not equal to the value of uCount indicating this call fails.
                                                      */
 
-    int (*pfCallBack)(void *pPrivate, int iReason, void *pParam); /* This callback
+    int (*pfCallBack)(void *pPrivate, int iReason, void *pParam); /**< This callback
                                                                      function is set by the caller to be notified to each detected malware while
                                                                      scanning is in process. If specified (not NULL), the scan functions call the
                                                                      specified function with the information (e.g. TCS_CB_DETECTED) for each malware
@@ -248,14 +320,15 @@ typedef struct TCSScanParam_struct
 } TCSScanParam;
 
 /**
- * Detected malicious code/content information structure.
+ * @brief Detected malicious code/content information structure.
+ * @since_tizen 2.3
  */
 typedef struct TCSDetected_struct
 {
-    struct TCSDetected_struct *pNext; /* Pointer to next malware found, NULL if at the end of list. */
+    struct TCSDetected_struct *pNext; /**< Pointer to next malware found, NULL if at the end of list. */
 
-    char const *pszName; /* Detected malware name. */
-    char const *pszVariant; /* Detected malware's variant name. pszName and
+    char const *pszName; /**< Detected malware name. */
+    char const *pszVariant; /**< Detected malware's variant name. pszName and
                                pszVariant report detected malicious code/content and variant names. The maximum
                                string length for both strings is 64 characters and each is terminated by a null
                                character ('\\0') - the maximum buffer size for both strings is 65 bytes.
@@ -263,8 +336,8 @@ typedef struct TCSDetected_struct
                                pszVariant is set to an empty string ("\0") if the detected malware is not a
                                variant. */
 
-    unsigned int uType; /* Detected malware type. \see TCS_VTYPE_MALWARE */
-    unsigned int uAction; /* Bit-field specifying severity, class and behavior level.
+    unsigned int uType; /**< Detected malware type. \see TCS_VTYPE_MALWARE */
+    unsigned int uAction; /**< Bit-field specifying severity, class and behavior level.
 
                              Included in the TCSDetected structure is a bit-field variable containing malware
                              severity flags and client application behavior levels.
@@ -282,7 +355,7 @@ typedef struct TCSDetected_struct
                              For example, if both TCS_BC_LEVEL0 and TCS_BC_LEVEL3 were reported, the application
                              would need to take on TCS_BC_LEVEL3 action. */
 
-    char const *pszFileName; /* Path of the infected file. The pszFileName field
+    char const *pszFileName; /**< Path of the infected file. The pszFileName field
                                 report, if not NULL, the complete file path of the infected content. If the scan
                                 functions have the ability to scan/analyze inside archives, then the path
                                 reported in pszFileName would be composed of multiple paths separated by the '|'
@@ -294,7 +367,7 @@ typedef struct TCSDetected_struct
 } TCSDetected;
 
 /**
- * Detected malware information is returned to the caller in the TCSScanResult 
+ * @brief Detected malware information is returned to the caller in the TCSScanResult
  * structure provided by the caller. The TCSScanResult structure contains a pointer 
  * to a structure that contains scan result information and a pointer to a function 
  * used to remove the scan result resource. The memory used to hold the scan result 
@@ -303,7 +376,8 @@ typedef struct TCSDetected_struct
  * information which had been reported via the callback (pfCallback) function during
  * scanning.
  *
- * \code
+ * @since_tizen 2.3
+ * @code
  * int ScanAppData( ... )
  * {
  *     TCSScanResult scanResult;
@@ -318,20 +392,20 @@ typedef struct TCSDetected_struct
  *     .
  *     .
  * }
- * \endcode
+ * @endcode
  */
 typedef struct TCSScanResult_struct
 {
-    int iNumDetected; /* Number of malware found. */
-    TCSDetected *pDList; /* Detected malware list. */
-    void (*pfFreeResult)(struct TCSScanResult_struct *pResult); /* Function pointer
+    int iNumDetected; /**< Number of malware found. */
+    TCSDetected *pDList; /**< Detected malware list. */
+    void (*pfFreeResult)(struct TCSScanResult_struct *pResult); /**< Function pointer
                                                                    used to free reported scan result.
                                                                                                                                                 
                                                                    This is a synchronous API.
-                                                                   \param[in] pResult Pointer to data structure in which detected scan result
+                                                                   @param[in] pResult Pointer to data structure in which detected scan result
                                                                    information is stored.
 
-                                                                   \return None
+                                                                   @return None
                                                                    */
 } TCSScanResult;
 
@@ -340,107 +414,116 @@ typedef struct TCSScanResult_struct
 ==================================================================================================*/
 
 /**
- * \brief Initializes and returns a Tizen Content Screening library
- * interface handle.
- *
- * A Content Screening library interface handle (or TCS library handle) is
- * obtained using the TCSLibraryOpen() function. The library handle is required for
- * subsequent TCS API calls. The TCSLibraryClose() function releases/closes the library
- * handle. Multiple library handles can be obtained using TCSLibraryOpen().
- *
+ * @brief Initializes and returns a Tizen Content Screening library interface handle.
+ * @details A Content Screening library interface handle (or TCS library handle) is \n
+ * obtained using the TCSLibraryOpen() function. The library handle is required for \n
+ * subsequent TCS API calls. The TCSLibraryClose() function releases/closes the library \n
+ * handle. Multiple library handles can be obtained using TCSLibraryOpen(). \n
+ *  \n
  * This is a synchronous API.
  *
- * \return Return Type (TCSLIB_HANDLE) \n
- * TCS library interface handle - on success. \n
- * INVALID_TCSLIB_HANDLE - on failure. \n
+ * @since_tizen 2.3
+ *
+ * @return TCS library interface handle on success, otherwise #INVALID_TCSLIB_HANDLE.
+ * @see TCSLibraryClose()
  */
 TCSLIB_HANDLE TCSLibraryOpen(void);
 
 /**
- * \brief Releases system resources associated with an TCS API library
- * handle returned by the TCSLibraryOpen() function.
+ * @brief Releases system resources associated with an TCS API library
+ * @details handle returned by the TCSLibraryOpen() function. \n
+ * \n
+ * This is a synchronous API. \n
  *
- * This is a synchronous API.
+ * @since_tizen 2.3
  *
- * \param[in] hLib TCS library handle returned by TCSLibraryOpen().
+ * @param[in] hLib TCS library handle returned by TCSLibraryOpen().
  *
- * \return Return Type (int) \n
- * 0 - on success. \n
- * -1 - on failure. \n
+ * @return 0 on success, otherwise -1.
+ * @see TCSLibraryOpen()
  */
 int TCSLibraryClose(TCSLIB_HANDLE hLib);
 
 /**
- * \brief Returns the last error code associated with the given
- * TCS library handle.
+ * @brief Returns the last error code associated with the given TCS library handle.
+ * @details Once the TCS library handle has been successfully obtained from TCSLibraryOpen(), \n
+ * TCSGetLastError() can be used to retrieve the last TCS error that occurred. All TCS \n
+ * API functions return zero (= 0) or a valid object pointer if successful, and -1 \n
+ * or a null object handle (e.g. INVALID_TCSSCAN_HANDLE) in case of an error. The \n
+ * TCSGetLastError() function is used to retrieve error information when a TCS \n
+ * function fails. \n
+ * \n
+ * This is a synchronous API. \n
  *
- * Once the TCS library handle has been successfully obtained from TCSLibraryOpen(),
- * TCSGetLastError() can be used to retrieve the last TCS error that occurred. All TCS
- * API functions return zero (= 0) or a valid object pointer if successful, and -1
- * or a null object handle (e.g. INVALID_TCSSCAN_HANDLE) in case of an error. The
- * TCSGetLastError() function is used to retrieve error information when a TCS
- * function fails.
+ * @since_tizen 2.3
  *
- * This is a synchronous API.
+ * @param[in] hLib TCS library handle returned by TCSLibraryOpen().
  *
- * \param[in] hLib TCS library handle returned by TCSLibraryOpen().
- *
- * \return Return Type (TCSErrorCode) \n
- * Last error code set by the TCS library. The TCSErrorCode data type is defined as a
- * 32-bit unsigned integer which contains both component and an error code (see
- * Figure about TCS Error Code Format). Two macros are available to extract the error
- * module and the error code. Call TCS_ERRMODULE(error-code) to get the error module,
- * and TCS_ERRCODE(error-code) to get the error code (where error-code is the value
- * returned by TCSGetLastError()).
- *
- * TCS library call sequence with a call to the TCSGetLastError() function:
- *
+ * @return Last error code set by the TCS library. The TCSErrorCode data type is defined as a \n
+ * 32-bit unsigned integer which contains both component and an error code (see \n
+ * Figure about TCS Error Code Format). Two macros are available to extract the error \n
+ * module and the error code. Call TCS_ERRMODULE(error-code) to get the error module, \n
+ * and TCS_ERRCODE(error-code) to get the error code (where error-code is the value \n
+ * returned by TCSGetLastError()). \n
+ * \n
+ * TCS library call sequence with a call to the TCSGetLastError() function: \n
+ * @see TCSErrorCodes.h
  */
 TCSErrorCode TCSGetLastError(TCSLIB_HANDLE hLib);
 
 /**
- * \brief TCSScanData() is used to scan a data buffer for malware. The caller
- * specifies a scanner action, scan target data type, set I/O functions to access
- * the data, and an optional callback function for information retrieval. The result
- * of the data scanning is returned in a caller provided data structure.
+ * @brief TCSScanData() is used to scan a data buffer for malware.
+ * @details The caller specifies a scanner action, scan target data type, set I/O functions to access \n
+ * the data, and an optional callback function for information retrieval. The result \n
+ * of the data scanning is returned in a caller provided data structure. \n
+ * \n
+ * This is a synchronous API. \n
  *
- * This is a synchronous API.
- *
- * \param[in] hLib instance handle obtained from a call to the TCSLibraryOpen()
+ * @since_tizen 2.3
+ * @param[in] hLib instance handle obtained from a call to the TCSLibraryOpen() \n
  * function.
- * \param[in] pParam Pointer to a structure containing data scan parameters.
- * \param[out] pResult Pointer to a structure containing data scan
- * results.
+ * @param[in] pParam Pointer to a structure containing data scan parameters.
+ * @param[out] pResult Pointer to a structure containing data scan results.
  *
- * \return Return Type (int) \n
- * 0 - on success. \n
- * -1 - on failure and error code is set. \n
- *
+ * @return 0 on success, otherwise -1 and error code is set.
+ * @see #TCSScanParam
+ * @see #TCSScanResult
+ * @see #TCSDetected
+ * @see TCSScanFile()
+ * @see TCSLibraryClose()
  */
 int TCSScanData(TCSLIB_HANDLE hLib, TCSScanParam *pParam, TCSScanResult *pResult);
 
 /**
- * \brief TCSScanFile() is used to scan a file for malware. The caller specifies a
- * file name, a scanner action, and scan target data type. The scan result is
- * returned in a caller provided data structure.
+ * @brief TCSScanFile() is used to scan a file for malware.
+ * @details The caller specifies a file name, a scanner action, and scan target data type. The scan result is \n
+ * returned in a caller provided data structure. \n
+ * \n
+ * This is a synchronous API. \n
  *
- * This is a synchronous API.
- *
- * \param[in] hLib instance handle obtained from a call to the
+ * @since_tizen 2.3
+ * @param[in] hLib instance handle obtained from a call to the  \n
  * TCSLibraryOpen() function.
- * \param[in] pszFileName Name of file to scan. The file name must include the
+ * @param[in] pszFileName Name of file to scan. The file name must include the \n
  * absolute path.
- * \param[in] iDataType Type of data contained in the file. This is used to
+ * @param[in] iDataType Type of data contained in the file. This is used to \n
  * perform data type specific scans on files.
- * \param[in] iAction Type of scanning to perform on file.
- * \param[out] pResult Pointer to a structure containing data scan results.
+ * @param[in] iAction Type of scanning to perform on file.
+ * @param[in] iCompressFlag Flag of decompression
+ * @param[out] pResult Pointer to a structure containing data scan results.
  *
- * \return Return Type (int) \n
- * 0 - on success. \n
- * -1 - on failure and error code is set. \n
+ * @return 0 on success, otherwise -1 and error code is set.
+ * @see #TCSScanResult
+ * @see #TCSDetected
+ * @see TCSScanData()
+ * @see TCSLibraryClose()
  */
-int TCSScanFile(TCSLIB_HANDLE hLib, char const *pszFileName, int iDataType,
-                int iAction, int iCompressFlag, TCSScanResult *pResult);
+int TCSScanFile(TCSLIB_HANDLE hLib, char const *pszFileName, int iDataType, int iAction, int iCompressFlag, TCSScanResult *pResult);
+
+/**
+ * @}
+ */
+
 
 #ifdef __cplusplus
 }

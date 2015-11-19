@@ -165,6 +165,7 @@ extern int IsStubTest();
 extern int IsTestRepair();
 extern void RestoreEngine();
 extern void BackupEngine();
+extern void CallSys(const char *pszCmd);
 
 extern jmp_buf JmpBuf;
 

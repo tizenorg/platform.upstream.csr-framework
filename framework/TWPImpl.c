@@ -34,7 +34,6 @@
 #include <dlfcn.h>
 #include <malloc.h>
 
-/* For multi-user support */
 #include <tzplatform_config.h>
 
 #include "TWPImpl.h"

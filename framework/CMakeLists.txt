@@ -1,0 +1,41 @@
+PKG_CHECK_MODULES(${TARGET_LIB}_DEP
+    REQUIRED
+    dlog
+    libtzplatform-config
+    )
+
+SET(${TARGET_LIB}_SRCS
+    TCSImpl.c
+    TWPImpl.c
+    )
+
+INCLUDE_DIRECTORIES(
+    SYSTEM
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${${TARGET_LIB}_DEP_INCLUDE_DIRS}
+    )
+
+ADD_LIBRARY(${TARGET_LIB} SHARED ${${TARGET_LIB}_SRCS})
+
+SET_TARGET_PROPERTIES(${TARGET_LIB}
+    PROPERTIES
+        COMPILE_FLAGS "-D_GNU_SOURCE -fPIC -fvisibility=default"
+        SOVERSION ${SO_VERSION}
+        VERSION ${VERSION}
+    )
+
+TARGET_LINK_LIBRARIES(${TARGET_LIB}
+    ${${TARGET_LIB}_DEP_LIBRARIES}
+    -ldl
+    -lpthread
+    )
+
+INSTALL(TARGETS ${TARGET_LIB} DESTINATION ${LIB_INSTALL_DIR})
+
+INSTALL(
+    FILES
+        TCSErrorCodes.h
+        TCSImpl.h
+        TWPImpl.h
+    DESTINATION ${INCLUDEDIR}
+    )

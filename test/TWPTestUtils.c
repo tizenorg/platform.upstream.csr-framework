@@ -59,7 +59,6 @@
 #define PLUGIN_DIR tzplatform_mkpath(TZ_USER_SHARE, "sec_plugin/")
 
 static void ReportTestCase(TestCase *pCtx);
-static void CallSys(const char *pszCmd);
 static void PutTestRoot(char *pszRoot);
 static char *GetTestRoot(void);
 static char *GetBackupDir(void);
@@ -299,7 +298,7 @@ TWP_RESULT CbRecv(struct TWPRequest *pRequest, void *pBuffer, unsigned int uBuff
 }
 
 
-static void CallSys(const char *pszCmd)
+void CallSys(const char *pszCmd)
 {
     int iRet = 0;
     iRet = system(pszCmd);

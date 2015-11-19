@@ -1,0 +1,12 @@
+
+# Package Information for pkg-config
+
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=@LIB_INSTALL_DIR@
+includedir=@INCLUDEDIR@
+
+Name: @CMAKE_PROJECT_NAME@
+Description: @CMAKE_PROJECT_NAME@
+Version: @VERSION@
+Libs: -L${libdir} @PC_LDFLAGS@
+Cflags: -I${includedir}

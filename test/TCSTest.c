@@ -264,7 +264,7 @@ static void TCSRemovePlugin(void)
     char *pszCommand;
 
     asprintf(&pszCommand, "rm -f %s", PLUGIN_PATH);
-    CallSys(pszCommand);
+//    CallSys(pszCommand);
     free(pszCommand);
 }
 

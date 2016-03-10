@@ -1,37 +1,59 @@
+# Copyright (c) 2016 Samsung Electronics Co., Ltd All Rights Reserved
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+# @file        CMakeLists.txt
+# @author      Kyungwook Tak (k.tak@samsung.com)
+# @brief       csr-framework project cmake file on the top
+#
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-PROJECT(csr-framework)
+PROJECT(${SERVICE_NAME})
 
 INCLUDE(FindPkgConfig)
 
-STRING(REGEX MATCH "([^.]*)" SO_VERSION "${VERSION}")
+SET(CMAKE_C_FLAGS_PROFILING    "-g -O0 -pg -Wp,-U_FORTIFY_SOURCE")
+SET(CMAKE_CXX_FLAGS_PROFILING  "-g -std=c++0x -O0 -pg -Wp,-U_FORTIFY_SOURCE")
+SET(CMAKE_C_FLAGS_DEBUG        "-g -O0 -ggdb -Wp,-U_FORTIFY_SOURCE")
+SET(CMAKE_CXX_FLAGS_DEBUG      "-g -std=c++0x -O0 -ggdb -Wp,-U_FORTIFY_SOURCE")
+SET(CMAKE_C_FLAGS_RELEASE      "-g -O2")
+SET(CMAKE_CXX_FLAGS_RELEASE    "-g -std=c++0x -O2")
+SET(CMAKE_C_FLAGS_CCOV         "-g -O2 --coverage")
+SET(CMAKE_CXX_FLAGS_CCOV       "-g -std=c++0x -O2 --coverage")
 
-SET(TARGET_LIB secfw)
-SET(TARGET_TCS_TEST tcstest)
-SET(TARGET_TWP_TEST twptest)
-
-SET(GC_SECTIONS_FLAGS         "-fdata-sections -ffunction-sections -Wl,--gc-sections")
-SET(CMAKE_C_FLAGS             "${CMAKE_C_FLAGS} ${GC_SECTIONS_FLAGS}")
-SET(CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} ${GC_SECTIONS_FLAGS}")
-SET(CMAKE_C_FLAGS_RELEASE     "-g -O2")
-SET(CMAKE_CXX_FLAGS_RELEASE   "-g -std=c++0x -O2")
-SET(CMAKE_C_FLAGS_DEBUG       "-g -O0 -Wp,-U_FORTIFY_SOURCE")
-SET(CMAKE_CXX_FLAGS_DEBUG     "-g -std=c++0x -O0 -Wp,-U_FORTIFY_SOURCE")
-SET(CMAKE_C_FLAGS_CCOV        "-g -O2 --coverage")
-SET(CMAKE_CXX_FLAGS_CCOV      "-g -std=c++0x -O2 --coverage")
-SET(CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed")
-SET(CMAKE_EXE_LINKER_FLAGS    "-Wl,--as-needed")
-SET(CMAKE_SKIP_RPATH          "TRUE")
-
+ADD_DEFINITIONS("-fPIC")
 ADD_DEFINITIONS("-Werror")
 ADD_DEFINITIONS("-Wall")
+ADD_DEFINITIONS("-Wextra")
 
-SET(PC_LDFLAGS -l${TARGET_LIB})
+STRING(REGEX MATCH "([^.]*)" API_VERSION "${VERSION}")
+ADD_DEFINITIONS("-DSERVICE_NAME=\"${SERVICE_NAME}\"")
+ADD_DEFINITIONS("-DCLIENT_NAME=\"${CLIENT_NAME}\"")
+ADD_DEFINITIONS("-DINCLUDE_INSTALL_DIR=\"${INCLUDE_INSTALL_DIR}\"")
 
-CONFIGURE_FILE(${CMAKE_PROJECT_NAME}.pc.in ${CMAKE_PROJECT_NAME}.pc @ONLY)
-INSTALL(FILES ${CMAKE_PROJECT_NAME}.pc DESTINATION ${LIB_INSTALL_DIR}/pkgconfig)
+IF (CMAKE_BUILD_TYPE MATCHES "DEBUG")
+    ADD_DEFINITIONS("-DTIZEN_DEBUG_ENABLE")
+    ADD_DEFINITIONS("-DBUILD_TYPE_DEBUG")
+ENDIF (CMAKE_BUILD_TYPE MATCHES "DEBUG")
 
-ADD_SUBDIRECTORY(framework)
+SET(TARGET_CSR_SERVER "csr")
+#SET(TARGET_CSR_CLIENT "csr-client")
+SET(TARGET_CSR_CLIENT ${CLIENT_NAME}) # for backward-compatibility.
+SET(TARGET_CSR_COMMON "csr-common")
 
-IF (DEFINED CSR_TEST_BUILD)
-ADD_SUBDIRECTORY(test)
-ENDIF (DEFINED CSR_TEST_BUILD)
+ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(pkgconfig)
+
+IF (DEFINED CSR_FW_TEST_BUILD)
+    SET(TARGET_CSR_TEST   "csr-test")
+    ADD_SUBDIRECTORY(test)
+ENDIF (DEFINED CSR_FW_TEST_BUILD)

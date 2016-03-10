@@ -1,57 +1,77 @@
-%define csr_test_build 0
+%global csr_fw_server_build 0
+%global csr_fw_common_Build 0
+%global csr_fw_test_build 0
 
-Name: csr-framework
 Summary: A general purpose content screening and reputation solution
-Version: 1.1.0
-Release: 2
-Group: System/Libraries
+Name: csr-framework
+Version: 2.0.0
+Release: 0
+Source: %{name}-%{version}.tar.gz
 License: BSD-2.0
+Group: Security/Service
 URL: http://tizen.org
-Source0: %{name}-%{version}.tar.gz
-Source1001: %{name}.manifest
 BuildRequires: cmake
 BuildRequires: pkgconfig(dlog)
-BuildRequires: pkgconfig(libtzplatform-config)
 
 %description
-csr-framework
+General purpose content screening and reputation solution. Can scan
+file contents and checking url to prevent malicious items.
+
+%package -n lib%{name}-client
+Summary: Client library package for %{name}
+License: BSD-2.0
+Group:   Security/Libraries
+Requires: %{name} = %{version}-%{release}
+
+%description -n lib%{name}-client
+csr-framework client library package.
 
 %package devel
-Summary:    Development files for csr-framework
-Group:      Development/Libraries
-Requires:   %{name} = %{version}-%{release}
+Summary:    Development files for %{name}
+Group:      Security/Development
+Requires:   %{name} = %{version}
 
 %description devel
-csr-framework (development files)
+csr-framework developemnt files including headers and pkgconfig file.
 
-%if 0%{?csr_test_build}
+%if 0%{?csr_fw_test_build}
 %package test
-Summary:    test program for csr-framework
+Summary:    test program for %{name}
 Group:      Security/Testing
-Requires:   %{name} = %{version}-%{release}
+Requires:   %{name} = %{version}
 
 %description test
 Comaptilibty test program
 %endif
 
-
 %prep
 %setup -q
-cp -a %SOURCE1001 .
 
+# assign client name as secfw to support backward compatibility
+%global client_name secfw
+%global bin_dir %{_bindir}
 
 %build
-%{!?build_type:%define build_type "Release"}
 %cmake . \
+    -DCMAKE_BUILD_TYPE=%{?build_type:%build_type}%{!?build_type:RELEASE} \
+    -DCMAKE_VERBOSE_MAKEFILE=ON \
     -DCMAKE_INSTALL_PREFIX=%{_prefix} \
-    -DINCLUDEDIR=%{_includedir}/csf \
-    -DCMAKE_BUILD_TYPE=%build_type \
-%if 0%{?csr_test_build}
-    -DCSR_TEST_BUILD=1 \
+%if 0%{?csr_fw_server_build}
+    -DCSR_FW_COMMON_BUILD=1 \
 %endif
-    -DVERSION=%{version}
+%if 0%{?csr_fw_server_build}
+    -DCSR_FW_SERVER_BUILD=1 \
+%endif
+%if 0%{?csr_fw_test_build}
+    -DCSR_FW_TEST_BUILD=1 \
+%endif
+    -DSERVICE_NAME=%{name} \
+    -DVERSION=%{version} \
+    -DINCLUDE_INSTALL_DIR:PATH=%{_includedir} \
+    -DBIN_DIR:PATH=%{bin_dir} \
+    -DCLIENT_NAME=%{client_name}
 
-make %{?_smp_mflags}
+make %{?jobs:-j%jobs}
 
 %install
 %make_install
@@ -59,22 +79,32 @@ make %{?_smp_mflags}
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
 
-
 %files
-%manifest %name.manifest
+%defattr(-,root,root,-)
 %license LICENSE
-%{_libdir}/libsecfw.so.*
+%if 0%{?csr_fw_server_build}
+# TODO: list up server files here
+%endif
+%if 0%{?csr_fw_common_build}
+# TODO: list up common library files here
+%endif
+
+%files -n lib%{name}-client
+%defattr(-,root,root,-)
+%license LICENSE
+%{_libdir}/lib%{client_name}.so.*
 
 %files devel
 %doc README
 %doc doc/
-%{_includedir}/csf/TCSErrorCodes.h
-%{_includedir}/csf/TCSImpl.h
-%{_includedir}/csf/TWPImpl.h
-%{_libdir}/pkgconfig/*.pc
-%{_libdir}/libsecfw.so
+%{_includedir}/TCSErrorCodes.h
+%{_includedir}/TCSImpl.h
+%{_includedir}/TWPImpl.h
+%{_libdir}/pkgconfig/%{name}.pc
+%{_libdir}/lib%{client_name}.so
 
-%if 0%{?csr_test_build}
+%if 0%{?csr_fw_test_build}
 %files test
-%{_bindir}/*
+%defattr(-,root,root,-)
+%{bin_dir}/csr-test
 %endif

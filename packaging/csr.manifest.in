@@ -1,0 +1,16 @@
+<manifest>
+	<define>
+		<domain name="@SERVICE_NAME@" />
+		<request>
+			<smack request="device::sys_logging" type="rw" />
+			<smack request="device::app_logging" type="rw" />
+			<smack request="sys-assert::core" type="rwxat" />
+			<smack request="systemd" type="rx" />
+		</request>
+		<permit>
+		</permit>
+	</define>
+	<request>
+		<domain name="@SERVICE_NAME@" />
+	</request>
+</manifest>

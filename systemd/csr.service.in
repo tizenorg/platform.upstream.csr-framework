@@ -1,0 +1,13 @@
+[Unit]
+Description=Content Screening and Reputation service
+Requires=@SERVICE_NAME@.socket
+
+[Service]
+User=system
+Group=system
+SmackProcessLabel=@SERVICE_NAME@
+ExecStart=@BIN_DIR@/@SERVICE_NAME@-server
+Sockets=@SERVICE_NAME@.socket
+
+[Install]
+WantedBy=multi-user.target

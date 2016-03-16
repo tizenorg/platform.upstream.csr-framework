@@ -17,10 +17,9 @@
 # @brief       install headers to be built with clients
 #
 INSTALL(
-    FILES
-        csr/TCSErrorCodes.h
-        csr/TCSImpl.h
-        csr/TWPImpl.h
-    DESTINATION
-        ${INCLUDE_INSTALL_DIR}
+	FILES
+		csr/api.h
+		csr/error.h
+	DESTINATION
+		${INCLUDE_INSTALL_DIR}/csr/csr
 )

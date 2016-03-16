@@ -16,34 +16,38 @@
 # @author      Kyungwook Tak (k.tak@samsung.com)
 # @brief       Make common library for both of server and client
 #
-
-IF (DEFINED CSR_FW_COMMON_BUILD)
-
 PKG_CHECK_MODULES(${TARGET_CSR_COMMON}_DEP
-    REQUIRED
+	REQUIRED
+	dlog
+	libsystemd-daemon
 )
 
 SET(${TARGET_CSR_COMMON}_SRCS
+	common/binary-queue.cpp
+	common/connection.cpp
+	common/message-buffer.cpp
+	common/socket.cpp
+	common/audit/console-sink.cpp
+	common/audit/dlog-sink.cpp
+	common/audit/logger.cpp
 )
 
 INCLUDE_DIRECTORIES(
-    common/include
-    ${${TARGET_CSR_COMMON}_DEP_INCLUDE_DIRS}
+	common
+	${${TARGET_CSR_COMMON}_DEP_INCLUDE_DIRS}
 )
 
 ADD_LIBRARY(${TARGET_CSR_COMMON} SHARED ${${TARGET_CSR_COMMON}_SRCS})
 
 SET_TARGET_PROPERTIES(${TARGET_CSR_COMMON}
-    PROPERTIES
-        COMPILE_FLAGS "-D_GNU_SOURCE -fvisibility=hidden"
-        SOVERSION ${API_VERSION}
-        VERSION ${VERSION}
+	PROPERTIES
+		COMPILE_FLAGS "-D_GNU_SOURCE -fvisibility=default" # TODO: visibility hidden
+		SOVERSION ${API_VERSION}
+		VERSION ${VERSION}
 )
 
 TARGET_LINK_LIBRARIES(${TARGET_CSR_COMMON}
-    ${${TARGET_CSR_COMMON}_DEP_LIBRARIES}
+	${${TARGET_CSR_COMMON}_DEP_LIBRARIES}
 )
 
-INSTALL(TARGETS ${TARGET_CSR_COMMON} DESTINATION ${LIB_ISNTALL_DIR})
-
-ENDIF (DEFINED CSR_FW_COMMON_BUILD)
+INSTALL(TARGETS ${TARGET_CSR_COMMON} DESTINATION ${LIB_INSTALL_DIR})

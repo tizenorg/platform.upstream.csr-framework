@@ -17,85 +17,82 @@
 # @brief       Make server daemon and client library
 #
 
-IF (DEFINED CSR_FW_SERVER_BUILD)
-
 ###############     SERVER     ###################
 PKG_CHECK_MODULES(${TARGET_CSR_SERVER}_DEP
-    REQUIRED
+	REQUIRED
 )
 
 SET(${TARGET_CSR_SERVER}_SRCS
+	framework/main/csr-main.cpp
+	framework/main/mainloop.cpp
+	framework/service/logic.cpp
+	framework/service/service.cpp
 )
 
 INCLUDE_DIRECTORIES(
-    framework/service/include
-    framework/common/include
-    ${${TARGET_CSR_SERVER}_DEP_INCLUDED_DIRS}
+	framework/common
+	framework/main
+	framework/service
+	${${TARGET_CSR_SERVER}_DEP_INCLUDED_DIRS}
 )
 
 SET_SOURCE_FILES_PROPERTIES(${${TARGET_CSR_SERVER}_SRCS}
-    PROPERTIES
-        COMPILE_FLAGS "-D_GNU_SOURCE -fPIE"
+	PROPERTIES
+		COMPILE_FLAGS "-D_GNU_SOURCE -fPIE"
 )
 
 ADD_EXECUTABLE(${TARGET_CSR_SERVER} ${${TARGET_CSR_SERVER}_SRCS})
 
 SET(${TARGET_CSR_SERVER}_LIST_LINK_LIBRARIES
-    ${${TARGET_CSR_SERVER}_DEP_LIBRARIES}
-    -ldl     # for dynamic loading engine library
-    -pthread
-    -pie
+	${${TARGET_CSR_SERVER}_DEP_LIBRARIES}
+	-ldl     # for dynamic loading engine library
+	-pthread
+	-pie
 )
 
-IF (DEFINED CSR_FW_COMMON_BUILD)
 SET(${TARGET_CSR_SERVER}_LIST_LINK_LIBRARIES
-    ${${TARGET_CSR_SERVER}_LIST_LINK_LIBRARIES}
-    ${TARGET_CSR_COMMON}
+	${${TARGET_CSR_SERVER}_LIST_LINK_LIBRARIES}
+	${TARGET_CSR_COMMON}
 )
-ENDIF (DEFINED CSR_FW_COMMON_BUILD)
 
 TARGET_LINK_LIBRARIES(${TARGET_CSR_SERVER} ${${TARGET_CSR_SERVER}_LIST_LINK_LIBRARIES})
 
 INSTALL(TARGETS ${TARGET_CSR_SERVER} DESTINATION ${BIN_DIR})
 
-ENDIF (DEFINED CSR_FW_SERVER_BUILD)
-
 ###############      CLIENT     ###################
 PKG_CHECK_MODULES(${TARGET_CSR_CLIENT}_DEP
-    REQUIRED
+	REQUIRED
+	capi-base-common
 )
 
 SET(${TARGET_CSR_CLIENT}_SRCS
-    framework/client/TCSImpl.c
-    framework/client/TWPImpl.c
+	framework/client/api.cpp
 )
 
 INCLUDE_DIRECTORIES(
-    framework/common/include
-    framework/client/include
-    ${PROJECT_SOURCE_DIR}/src/include/csr
-    ${${TARGET_CSR_CLIENT}_DEP_INCLUDE_DIRS}
+	framework/common
+	framework/client
+	${PROJECT_SOURCE_DIR}/src/include
+	${${TARGET_CSR_CLIENT}_DEP_INCLUDE_DIRS}
 )
 
 ADD_LIBRARY(${TARGET_CSR_CLIENT} SHARED ${${TARGET_CSR_CLIENT}_SRCS})
 
 SET_TARGET_PROPERTIES(${TARGET_CSR_CLIENT}
-    PROPERTIES
-        COMPILE_FLAGS "-D_GNU_SOURCE -fvisibility=hidden"
-        SOVERSION ${API_VERSION}
-        VERSION ${VERSION}
+	PROPERTIES
+		COMPILE_FLAGS "-D_GNU_SOURCE -fvisibility=hidden"
+		SOVERSION ${API_VERSION}
+		VERSION ${VERSION}
 )
 
 SET(${TARGET_CSR_CLIENT}_LIST_LINK_LIBRARIES
-    ${${TARGET_CSR_CLIENT}_DEP_LIBRARIES}
+	${${TARGET_CSR_CLIENT}_DEP_LIBRARIES}
 )
 
-IF (DEFINED CSR_FW_COMMON_BUILD)
 SET(${TARGET_CSR_CLIENT}_LIST_LINK_LIBRARIES
-    ${${TARGET_CSR_CLIENT}_LIST_LINK_LIBRARIES}
-    ${TARGET_CSR_COMMON}
+	${${TARGET_CSR_CLIENT}_LIST_LINK_LIBRARIES}
+	${TARGET_CSR_COMMON}
 )
-ENDIF (DEFINED CSR_FW_COMMON_BUILD)
 
 TARGET_LINK_LIBRARIES(${TARGET_CSR_CLIENT} ${${TARGET_CSR_CLIENT}_LIST_LINK_LIBRARIES})
 

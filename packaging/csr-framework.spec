@@ -1,110 +1,160 @@
-%global csr_fw_server_build 0
-%global csr_fw_common_Build 0
-%global csr_fw_test_build 0
-
 Summary: A general purpose content screening and reputation solution
 Name: csr-framework
 Version: 2.0.0
 Release: 0
 Source: %{name}-%{version}.tar.gz
-License: BSD-2.0
+License: Apache-2.0 and BSL-1.0
 Group: Security/Service
 URL: http://tizen.org
 BuildRequires: cmake
 BuildRequires: pkgconfig(dlog)
+BuildRequires: pkgconfig(libsystemd-daemon)
+Requires:      lib%{name}-common = %{version}-%{release}
+%{?systemd_requires}
 
 %description
 General purpose content screening and reputation solution. Can scan
 file contents and checking url to prevent malicious items.
 
+%global service_name csr
+%global bin_dir      %{_bindir}
+%global sbin_dir     /sbin
+%global ro_data_dir  %{_datadir}
+
+%package -n lib%{name}-common
+Summary: Common library package for %{name}
+License: Apache-2.0
+Group:   Security/Libraries
+Requires: %{sbin_dir}/ldconfig
+Requires: %{sbin_dir}/ldconfig
+
+%description -n lib%{name}-common
+csr-framework common library package.
+
 %package -n lib%{name}-client
 Summary: Client library package for %{name}
-License: BSD-2.0
+License: Apache-2.0
 Group:   Security/Libraries
+BuildRequires: pkgconfig(capi-base-common)
 Requires: %{name} = %{version}-%{release}
+Requires: %{sbin_dir}/ldconfig
+Requires: %{sbin_dir}/ldconfig
 
 %description -n lib%{name}-client
 csr-framework client library package.
 
 %package devel
-Summary:    Development files for %{name}
-Group:      Security/Development
-Requires:   %{name} = %{version}
+Summary: Development files for %{name}
+LICENSE: Apache-2.0
+Group:   Security/Development
+BuildRequires: pkgconfig(capi-base-common)
+Requires:      %{name} = %{version}-%{release}
 
 %description devel
 csr-framework developemnt files including headers and pkgconfig file.
 
-%if 0%{?csr_fw_test_build}
 %package test
-Summary:    test program for %{name}
-Group:      Security/Testing
-Requires:   %{name} = %{version}
+Summary: test program for %{name}
+License: Apache-2.0 and BSL-1.0
+Group:   Security/Testing
+BuildRequires: boost-devel
+Requires:      %{name} = %{version}
 
 %description test
-Comaptilibty test program
-%endif
+test program of csr-framework
 
 %prep
 %setup -q
-
-# assign client name as secfw to support backward compatibility
-%global client_name secfw
-%global bin_dir %{_bindir}
 
 %build
 %cmake . \
     -DCMAKE_BUILD_TYPE=%{?build_type:%build_type}%{!?build_type:RELEASE} \
     -DCMAKE_VERBOSE_MAKEFILE=ON \
     -DCMAKE_INSTALL_PREFIX=%{_prefix} \
-%if 0%{?csr_fw_server_build}
-    -DCSR_FW_COMMON_BUILD=1 \
-%endif
-%if 0%{?csr_fw_server_build}
-    -DCSR_FW_SERVER_BUILD=1 \
-%endif
-%if 0%{?csr_fw_test_build}
-    -DCSR_FW_TEST_BUILD=1 \
-%endif
-    -DSERVICE_NAME=%{name} \
+    -DSERVICE_NAME=%{service_name} \
     -DVERSION=%{version} \
     -DINCLUDE_INSTALL_DIR:PATH=%{_includedir} \
     -DBIN_DIR:PATH=%{bin_dir} \
-    -DCLIENT_NAME=%{client_name}
+    -DSYSTEMD_UNIT_DIR=%{_unitdir}
 
 make %{?jobs:-j%jobs}
 
 %install
 %make_install
+mkdir -p %{buildroot}%{_unitdir}/multi-user.target.wants
+mkdir -p %{buildroot}%{_unitdir}/sockets.target.wants
+ln -s ../%{service_name}.service %{buildroot}%{_unitdir}/multi-user.target.wants/%{service_name}.service
+ln -s ../%{service_name}.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}.socket
 
-%post -p /sbin/ldconfig
-%postun -p /sbin/ldconfig
+mkdir -p %{buildroot}%{ro_data_dir}/license
+cp LICENSE %{buildroot}%{ro_data_dir}/license/%{name}
+cp LICENSE.BSL-1.0 %{buildroot}%{ro_data_dir}/license/%{name}.BSL-1.0
+cp LICENSE %{buildroot}%{ro_data_dir}/license/lib%{name}-client
+cp LICENSE %{buildroot}%{ro_data_dir}/license/lib%{name}-common
+cp LICENSE %{buildroot}%{ro_data_dir}/license/%{name}-test
+cp LICENSE.BSL-1.0 %{buildroot}%{ro_data_dir}/license/%{name}-test.BSL-1.0
+
+%post
+systemctl daemon-reload
+if [ $1 = 1 ]; then
+    systemctl start %{service_name}.socket
+    systemctl start %{service_name}.service
+fi
+
+if [ $1 = 2 ]; then
+    systemctl restart %{service_name}.socket
+    systemctl restart %{service_name}.service
+fi
+
+%preun
+if [ $1 = 0 ]; then
+    systemctl stop %{service_name}.service
+    systemctl stop %{service_name}.socket
+fi
+
+%postun
+if [ $1 = 0 ]; then
+    systemctl daemon-reload
+fi
+
+%post -n lib%{name}-common -p %{sbin_dir}/ldconfig
+%post -n lib%{name}-client -p %{sbin_dir}/ldconfig
+%postun -n lib%{name}-common -p %{sbin_dir}/ldconfig
+%postun -n lib%{name}-client -p %{sbin_dir}/ldconfig
 
 %files
 %defattr(-,root,root,-)
-%license LICENSE
-%if 0%{?csr_fw_server_build}
-# TODO: list up server files here
-%endif
-%if 0%{?csr_fw_common_build}
-# TODO: list up common library files here
-%endif
+%manifest %{service_name}.manifest
+%{ro_data_dir}/license/%{name}
+%{ro_data_dir}/license/%{name}.BSL-1.0
+%{bin_dir}/%{service_name}-server
+%{_unitdir}/multi-user.target.wants/%{service_name}.service
+%{_unitdir}/%{service_name}.service
+%{_unitdir}/sockets.target.wants/%{service_name}.socket
+%{_unitdir}/%{service_name}.socket
+
+%files -n lib%{name}-common
+%defattr(-,root,root,-)
+%manifest %{service_name}-common.manifest
+%{ro_data_dir}/license/lib%{name}-common
+%{_libdir}/lib%{service_name}-common.so.*
 
 %files -n lib%{name}-client
 %defattr(-,root,root,-)
-%license LICENSE
-%{_libdir}/lib%{client_name}.so.*
+%manifest %{service_name}-client.manifest
+%{ro_data_dir}/license/lib%{name}-client
+%{_libdir}/lib%{service_name}-client.so.*
 
 %files devel
-%doc README
-%doc doc/
-%{_includedir}/TCSErrorCodes.h
-%{_includedir}/TCSImpl.h
-%{_includedir}/TWPImpl.h
-%{_libdir}/pkgconfig/%{name}.pc
-%{_libdir}/lib%{client_name}.so
+%defattr(-,root,root,-)
+%{_includedir}/csr/csr/api.h
+%{_includedir}/csr/csr/error.h
+%{_libdir}/pkgconfig/%{service_name}.pc
+%{_libdir}/lib%{service_name}-client.so
+%{_libdir}/lib%{service_name}-common.so
 
-%if 0%{?csr_fw_test_build}
 %files test
 %defattr(-,root,root,-)
-%{bin_dir}/csr-test
-%endif
+%{ro_data_dir}/license/%{name}-test
+%{ro_data_dir}/license/%{name}-test.BSL-1.0
+%{bin_dir}/%{service_name}-test

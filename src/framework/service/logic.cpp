@@ -23,7 +23,7 @@
 
 #include <string>
 #include <utility>
-#include <iostream>
+#include <stdexcept>
 
 #include "audit/logger.h"
 #include "csr/error.h"
@@ -45,22 +45,24 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 	INFO("Request dispatch! CommandId: " << static_cast<int>(info.first));
 
 	switch (info.first) {
-	case CommandId::FILE_SCAN: {
+	case CommandId::SCAN_FILE: {
 		std::string filepath;
+		// csr-cs handle deserialize
 		info.second.Deserialize(filepath);
-		return fileScan(filepath);
+		return scanFile(filepath);
 	}
 
-	case CommandId::FILE_JUDGE: {
-		std::string filepath;
-		int judge;
-		info.second.Deserialize(filepath, judge);
-		return fileJudge(filepath, judge);
+	/* TODO: should we separate command->logic mapping of CS and WP ? */
+	case CommandId::CHECK_URL: {
+		std::string url;
+		// csr-wp handle deserialize
+		info.second.Deserialize(url);
+		return checkUrl(url);
 	}
 
 	default:
-		/* TODO: throw request info broken exception */
-		return RawBuffer();
+		throw std::range_error(FORMAT("Command id[" << static_cast<int>(info.first)
+			<< "] isn't in range."));
 	}
 }
 
@@ -75,18 +77,15 @@ std::pair<CommandId, MessageBuffer> Logic::getRequestInfo(const RawBuffer &data)
 	return std::make_pair(id, std::move(msgbuffer));
 }
 
-RawBuffer Logic::fileScan(const std::string &filepath)
+RawBuffer Logic::scanFile(const std::string &filepath)
 {
-	DEBUG("Do filescan through engine with filepath: " << filepath);
-
+	DEBUG("Scan file[" << filepath << "] by engine");
 	return MessageBuffer::Serialize(CSR_ERROR_NONE).pop();
 }
 
-RawBuffer Logic::fileJudge(const std::string &filepath, int judge)
+RawBuffer Logic::checkUrl(const std::string &url)
 {
-	DEBUG("Do filejudge through engine with filepath: " << filepath
-		<< " and judge: " << judge);
-
+	DEBUG("CHeck url[" << url << "] by engine");
 	return MessageBuffer::Serialize(CSR_ERROR_NONE).pop();
 }
 

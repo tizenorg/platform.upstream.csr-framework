@@ -14,34 +14,38 @@
  *  limitations under the License
  */
 /*
- * @file        logic.h
+ * @file        client-common.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       client common for both of cs / wp
  */
 #pragma once
 
+#include <functional>
 #include <string>
-#include <utility>
 
-#include "command-id.h"
-#include "raw-buffer.h"
+#include "csr/error.h"
 #include "message-buffer.h"
 
+
 namespace Csr {
+namespace Client {
 
-class Logic {
-public:
-	Logic();
-	virtual ~Logic();
+/* Encode parameters which is Command ID specific */
+using Encoder = std::function<Csr::MessageBuffer(void)>;
 
-	RawBuffer dispatch(const RawBuffer &);
+/* Decode parameters which is Command ID specific */
+using Decoder = std::function<csr_error_e(Csr::MessageBuffer &&)>;
 
-private:
-	std::pair<CommandId, MessageBuffer> getRequestInfo(const RawBuffer &);
+inline std::string toStlString(const char *cstr)
+{
+	return (cstr == nullptr) ? std::string() : std::string(cstr);
+}
 
-	RawBuffer scanFile(const std::string &filepath);
-	RawBuffer checkUrl(const std::string &url);
-};
+/* post request to server with given encoder/decoder
+ * If decoder isn't assigned, default decoder do only deserialize
+ * return code(csr_error_e) from message buffer and return it */
+int post(Encoder &&encoder, Decoder &&decoder = nullptr);
 
+}
 }

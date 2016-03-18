@@ -66,7 +66,11 @@ PKG_CHECK_MODULES(${TARGET_CSR_CLIENT}_DEP
 )
 
 SET(${TARGET_CSR_CLIENT}_SRCS
-	framework/client/api.cpp
+	framework/client/client-common.cpp
+	framework/client/content-screening.cpp
+	framework/client/engine-manager.cpp
+	framework/client/error.cpp
+	framework/client/web-protection.cpp
 )
 
 INCLUDE_DIRECTORIES(

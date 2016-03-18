@@ -14,26 +14,19 @@
  *  limitations under the License
  */
 /*
- * @file        api.cpp
+ * @file        client-common.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       csr client C APIs
+ * @brief       client common for both of cs / wp
  */
-#include "csr/api.h"
-#include "csr/error.h"
+#include "client-common.h"
 
-#include <functional>
-#include <string>
 #include <exception>
 
+#include "audit/logger.h"
 #include "raw-buffer.h"
-#include "message-buffer.h"
 #include "connection.h"
 #include "socket.h"
-#include "command-id.h"
-#include "audit/logger.h"
-
-#define API __attribute__((visibility("default")))
 
 static void init_lib(void) __attribute__((constructor));
 static void init_lib(void)
@@ -41,6 +34,8 @@ static void init_lib(void)
 	// TODO: set log tag more gently? like singleton
 	Csr::Audit::Logger::setTag("CSR_CLIENT");
 }
+
+namespace Csr {
 
 namespace {
 
@@ -63,8 +58,9 @@ inline Csr::RawBuffer dispatch(const Csr::Connection &connection, const Csr::Raw
 	return connection.receive();
 }
 
-using Encoder = std::function<Csr::MessageBuffer(void)>;
-using Decoder = std::function<csr_error_e(Csr::MessageBuffer &&)>;
+} // namespace Csr::anonymous
+
+namespace Client {
 
 auto defaultDecoder = [](Csr::MessageBuffer &&msg) {
 	csr_error_e retcode = CSR_ERROR_NONE;
@@ -72,7 +68,8 @@ auto defaultDecoder = [](Csr::MessageBuffer &&msg) {
 	return retcode;
 };
 
-auto post = [](Encoder &&encoder, Decoder &&decoder = defaultDecoder) {
+int post(Encoder &&encoder, Decoder &&decoder)
+{
 	try {
 		auto conn = makeConnection();
 
@@ -85,7 +82,7 @@ auto post = [](Encoder &&encoder, Decoder &&decoder = defaultDecoder) {
 		Csr::MessageBuffer msg;
 		msg.push(response);
 
-		return decoder(std::move(msg));
+		return decoder ? decoder(std::move(msg)) : defaultDecoder(std::move(msg));
 	} catch (const std::exception &e) {
 		ERROR("std exception occured: " << e.what());
 		/* TODO: divide error codes per exception respectively */
@@ -94,29 +91,8 @@ auto post = [](Encoder &&encoder, Decoder &&decoder = defaultDecoder) {
 		ERROR("Unhandled excpeion occured in post!");
 		return CSR_ERROR_UNKNOWN;
 	}
-};
-
-inline std::string toStlString(const char *cstr)
-{
-	return (cstr == nullptr) ? std::string() : std::string(cstr);
 }
 
-} // namespace anonymous
+} // namespace Csr::Client
 
-API
-int csr_file_scan(const char *filepath)
-{
-	DEBUG("csr_file_scan API start!");
-	return post([&]() {
-			return Csr::MessageBuffer::Serialize(Csr::CommandId::FILE_SCAN, toStlString(filepath));
-		});
-}
-
-API
-int csr_file_judge(const char *filepath, int judge)
-{
-	DEBUG("csr_file_judge API start!");
-	return post([&]() {
-			return Csr::MessageBuffer::Serialize(Csr::CommandId::FILE_JUDGE, toStlString(filepath), judge);
-		});
-}
+} // namespace Csr

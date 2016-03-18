@@ -14,26 +14,23 @@
  *  limitations under the License
  */
 /*
- * @file        api.h
+ * @file        error.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
  * @brief
  */
-#ifndef __CSR_API_H_
-#define __CSR_API_H_
-
 #include "csr/error.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "audit/logger.h"
 
-int csr_file_scan(const char *filepath);
+#define API __attribute__((visibility("default")))
 
-int csr_file_judge(const char *filepath, int judge);
+API
+int csr_get_error_string(int error_code, char** string)
+{
+	(void) error_code;
+	(void) string;
 
-#ifdef __cplusplus
+	DEBUG("start");
+	return CSR_ERROR_NONE;
 }
-#endif
-
-#endif

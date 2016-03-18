@@ -15,12 +15,12 @@
  */
 /*
  * @file        error.h
- * @author      Kyungwook Tak (k.tak@samsung.com)
+ * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
- * @brief       csr error codes
+ * @brief
  */
-#ifndef __TIZEN_CORE_CSR_ERROR_H_
-#define __TIZEN_CORE_CSR_ERROR_H_
+#ifndef __CSR_ERROR_H_
+#define __CSR_ERROR_H_
 
 #include <tizen.h>
 
@@ -28,21 +28,45 @@
 extern "C" {
 #endif
 
+/* define it temporary until this code goes into capi-base-common package */
+#ifndef TIZEN_ERROR_CSR
 #define TIZEN_ERROR_CSR 0x60 // 0110 0000
+#endif
 
+
+/**
+ * @brief Enumeration for CSR Errors.
+ */
 typedef enum {
-	CSR_ERROR_NONE              = TIZEN_ERROR_NONE,              /**< Success */
-	CSR_ERROR_INVALID_PARAMETER = TIZEN_ERROR_INVALID_PARAMETER, /**< Invalid function parameter */
-	CSR_ERROR_OUT_OF_MEMORY     = TIZEN_ERROR_OUT_OF_MEMORY,     /**< Out of memory */
-	CSR_ERROR_PERMISSION_DEINED = TIZEN_ERROR_PERMISSION_DENIED, /**< Permission denied */
-	CSR_ERROR_SOCKET            = TIZEN_ERROR_CSR | 0x01,        /**< Socket error between client and csr-server */
-	CSR_ERROR_BAD_REQUEST       = TIZEN_ERROR_CSR | 0x02,        /**< Invalid request from client */
-	CSR_ERROR_BAD_RESPONSE      = TIZEN_ERROR_CSR | 0x03,        /**< Invalid response from csr-server */
-	CSR_ERROR_SEND_FAILED       = TIZEN_ERROR_CSR | 0x04,        /**< Transmitting request failed */
-	CSR_ERROR_RECV_FAILED       = TIZEN_ERROR_CSR | 0x05,        /**< Receiving response failed */
-	CSR_ERROR_SERVER            = TIZEN_ERROR_CSR | 0x06,        /**< csr-server has been failed for some reason */
-	CSR_ERROR_UNKNOWN           = TIZEN_ERROR_CSR | 0xFF         /**< Unknown reason */
+	CSR_ERROR_NONE                  = TIZEN_ERROR_NONE,              /**< Successful */
+	CSR_ERROR_INVALID_PARAMETER     = TIZEN_ERROR_INVALID_PARAMETER, /**< Invalid function parameter */
+	CSR_ERROR_OUT_OF_MEMORY         = TIZEN_ERROR_OUT_OF_MEMORY,     /**< Out of memory */
+	CSR_ERROR_PERMISSION_DENIED     = TIZEN_ERROR_PERMISSION_DENIED, /**< Permission denied */
+	CSR_ERROR_SOCKET                = TIZEN_ERROR_CSR | 0x01,        /**< Socket error between client and server */
+	CSR_ERROR_INVALID_HANDLE        = TIZEN_ERROR_CSR | 0x02,        /**< The given handle is invalid */
+	CSR_ERROR_SERVER                = TIZEN_ERROR_CSR | 0x03,        /**< Server has been failed for some reason */
+	CSR_ERROR_NO_TASK               = TIZEN_ERROR_CSR | 0x04,        /**< No Task exists*/
+	CSR_ERROR_ENGINE_PERMISSION     = TIZEN_ERROR_CSR | 0x11,        /**< Insufficient permission of engine */
+	CSR_ERROR_ENGINE_NOT_SELECTED   = TIZEN_ERROR_CSR | 0x12,        /**< No engine is selected*/
+	CSR_ERROR_ENGINE_NOT_ACTIVATED  = TIZEN_ERROR_CSR | 0x13,        /**< Engine is not activated*/
+	CSR_ERROR_ENGINE_INTERNAL       = TIZEN_ERROR_CSR | 0x19,        /**< Engine Internal error*/
+	CSR_ERROR_UNKNOWN               = TIZEN_ERROR_CSR | 0xFF,        /**< The error with unknown reason */
 } csr_error_e;
+
+/**
+ * @brief get the error string for a given error code.
+ *
+ * @param[in]  error_code  An error code.
+ * @param[out] string      A pointer of the error string. A caller should not free it.
+ *
+ * @return #CSR_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSR_ERROR_NONE                 Successful
+ * @retval #CSR_ERROR_INVALID_PARAMETER    error_code or error_string is invalid
+ * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ */
+int csr_get_error_string(int error_code, char** string);
+
 
 #ifdef __cplusplus
 }

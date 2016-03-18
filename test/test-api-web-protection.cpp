@@ -14,36 +14,44 @@
  *  limitations under the License
  */
 /*
- * @file        test-api.cpp
+ * @file        test-api-web-protection.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       CSR Web protection API test
  */
-#define BOOST_TEST_MODULE CSR_API_TEST
-#include <csr/api.h>
+#include <csr/web-protection.h>
 
 #include <string>
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(API_TEST)
+BOOST_AUTO_TEST_SUITE(API_WEB_PROTECTION)
 
-BOOST_AUTO_TEST_CASE(FILE_SCAN)
+BOOST_AUTO_TEST_CASE(context_create_destroy)
 {
-	std::string filepath = "this is not real file path";
+	csr_wp_context_h handle;
 	int ret = CSR_ERROR_UNKNOWN;
 
-	BOOST_REQUIRE_NO_THROW(ret = csr_file_scan(filepath.c_str()));
+	BOOST_REQUIRE_NO_THROW(ret = csr_wp_context_create(&handle));
+	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
+
+	BOOST_REQUIRE_NO_THROW(ret = csr_wp_context_destroy(handle));
 	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
 }
 
-BOOST_AUTO_TEST_CASE(FILE_JUDGE)
+BOOST_AUTO_TEST_CASE(check_url)
 {
-	std::string filepath = "this is not real file path";
+	csr_wp_context_h handle;
 	int ret = CSR_ERROR_UNKNOWN;
-	int judge = 1;
 
-	BOOST_REQUIRE_NO_THROW(ret = csr_file_judge(filepath.c_str(), judge));
+	BOOST_REQUIRE_NO_THROW(ret = csr_wp_context_create(&handle));
+	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
+
+	csr_wp_check_result_h result;
+	BOOST_REQUIRE_NO_THROW(ret = csr_wp_check_url(handle, "dummy/url/test", &result));
+	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
+
+	BOOST_REQUIRE_NO_THROW(ret = csr_wp_context_destroy(handle));
 	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
 }
 

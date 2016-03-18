@@ -24,9 +24,11 @@ PKG_CHECK_MODULES(${TARGET_CSR_TEST}_DEP
 )
 
 SET(${TARGET_CSR_TEST}_SRCS
-	test-main.cpp
-	test-api.cpp
 	colour_log_formatter.cpp
+	test-api-content-screening.cpp
+	test-api-engine-manager.cpp
+	test-api-web-protection.cpp
+	test-main.cpp
 )
 
 INCLUDE_DIRECTORIES(

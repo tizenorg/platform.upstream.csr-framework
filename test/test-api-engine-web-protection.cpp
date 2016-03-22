@@ -34,15 +34,16 @@ namespace {
 
 struct Result {
 	csre_wp_risk_level_e risk_level;
+	std::string detailed_url;
 
-	Result(csre_wp_risk_level_e r) : risk_level(r) {}
+	Result(csre_wp_risk_level_e r, const char* durl) : risk_level(r), detailed_url(durl) {}
 };
 
 std::unordered_map<std::string, Result> ExpectedResult = {
-	{"http://normal.test.com",      Result(CSRE_WP_RISK_UNVERIFIED)},
-	{"http://highrisky.test.com",   Result(CSRE_WP_RISK_HIGH)},
-	{"http://mediumrisky.test.com", Result(CSRE_WP_RISK_MEDIUM)},
-	{"http://lowrisky.test.com",    Result(CSRE_WP_RISK_LOW)}
+	{"http://normal.test.com",      Result(CSRE_WP_RISK_UNVERIFIED, "")},
+	{"http://highrisky.test.com",   Result(CSRE_WP_RISK_HIGH, "http://high.risky.com")},
+	{"http://mediumrisky.test.com", Result(CSRE_WP_RISK_MEDIUM, "http://medium.risky.com")},
+	{"http://lowrisky.test.com",    Result(CSRE_WP_RISK_LOW, "")}
 };
 
 inline void checkResult(csre_wp_check_result_h &result, const Result &expected)
@@ -57,6 +58,14 @@ inline void checkResult(csre_wp_check_result_h &result, const Result &expected)
 	BOOST_REQUIRE_MESSAGE(risk_level == expected.risk_level,
 		"risk level isn't expected value. "
 			"val: " << risk_level << " expected: " << expected.risk_level);
+
+	const char *detailed_url = nullptr;
+	BOOST_REQUIRE_NO_THROW(ret = csre_wp_result_get_detailed_url(result, &detailed_url));
+
+	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	BOOST_REQUIRE_MESSAGE(expected.detailed_url.compare(detailed_url) == 0,
+		"detailed url isn't expected value. "
+			"val: " << detailed_url <<" expected: " << expected.detailed_url);
 }
 
 class ContextPtr {
@@ -208,6 +217,17 @@ BOOST_AUTO_TEST_CASE(get_data_version)
 	BOOST_REQUIRE_NO_THROW(ret = csre_wp_engine_get_data_version(handle, &version));
 	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	CHECK_IS_NOT_NULL(version);
+}
+
+BOOST_AUTO_TEST_CASE(get_latest_update_time)
+{
+	int ret = CSRE_ERROR_UNKNOWN;
+	auto handle = getEngineHandle();
+
+	time_t time = 0;
+	BOOST_REQUIRE_NO_THROW(ret = csre_wp_engine_get_latest_update_time(handle, &time));
+	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	BOOST_REQUIRE(time > 0);
 }
 
 BOOST_AUTO_TEST_CASE(get_engine_activated)

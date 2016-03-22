@@ -120,6 +120,26 @@ int csre_wp_check_url(csre_wp_context_h handle, const char *url, csre_wp_check_r
 int csre_wp_result_get_risk_level(csre_wp_check_result_h result, csre_wp_risk_level_e* plevel);
 
 /**
+ * @brief Extracts an url of vendor's web site that contains detailed information about the risk
+ *        from the result handle.
+ *
+ * @param[in]  result  A result handle returned by csre_wp_check_url().
+ * @param[out] detailed_url  A pointer of an url that contains detailed information about the risk.
+ *                           If the risk level is CSRE_WP_RISK_MEDIUM or CSRE_WP_RISK_HIGH,
+ *                           this url should be provided by the engine.
+ *                           A caller should not free this string.
+ *
+ * @return #CSRE_CS_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSRE_CS_ERROR_NONE                 Successful
+ * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid result handle
+ * @retval #CSRE_ERROR_INVALID_PARAMETER    detailed_url is invalid
+ * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
+ * @retval -0x0100~-0xFF00                  Engine defined error
+ */
+int csre_wp_result_get_detailed_url(csre_wp_check_result_h result, const char** detailed_url);
+
+/**
  * @brief Get the error string for a given engine-defined error code.
  *
  * @details The error strings are managed by the engine, therefore a caller should not

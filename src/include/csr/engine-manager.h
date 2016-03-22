@@ -22,6 +22,7 @@
 #ifndef __CSR_ENGINE_MANAGER_H_
 #define __CSR_ENGINE_MANAGER_H_
 
+#include <time.h>
 #include "csr/content-screening-types.h"
 #include "csr/web-protection-types.h"
 #include "csr/error.h"
@@ -47,7 +48,7 @@ typedef enum {
 } csr_activated_e;
 
 /**
- * @brief Gets the handle of a selected engine information.
+ * @brief Gets the handle of a current engine information.
  *
  * @param[in]  id       Engine identifier to get handle.
  * @param[out] pengine  A pointer of the engine information handle.
@@ -55,14 +56,13 @@ typedef enum {
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
- * @retval #CSR_ERROR_INVALID_HANDLE       Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    pengine is invalid
- * @retval #CSR_ERROR_ENGINE_NOT_SELECTED  No engine selected
+ * @retval #CSR_ERROR_ENGINE_NOT_EXIST     No engine exists
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_get_selected_engine(csr_engine_id_e id, csr_engine_h *engine);
+int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *pengine);
 
 /**
  * @brief Extracts an vendor name from the engine information handle.
@@ -78,7 +78,7 @@ int csr_get_selected_engine(csr_engine_id_e id, csr_engine_h *engine);
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csr_get_selected_engine()
+ * @see csr_get_current_engine()
  */
 int csr_engine_get_vendor(csr_engine_h engine, char **vendor);
 
@@ -96,7 +96,7 @@ int csr_engine_get_vendor(csr_engine_h engine, char **vendor);
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csr_get_selected_engine()
+ * @see csr_get_current_engine()
  */
 int csr_engine_get_name(csr_engine_h engine, char **name);
 
@@ -111,11 +111,10 @@ int csr_engine_get_name(csr_engine_h engine, char **name);
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid engine information handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    engine_version is invalid
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csr_get_selected_engine()
+ * @see csr_get_current_engine()
  */
 int csr_engine_get_version(csr_engine_h engine, char **version);
 
@@ -130,13 +129,30 @@ int csr_engine_get_version(csr_engine_h engine, char **version);
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid engine information handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    engine_version is invalid
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csr_get_selected_engine()
+ * @see csr_get_current_engine()
  */
 int csr_engine_get_data_version(csr_engine_h engine, char **version);
+
+/**
+ * @brief Extracts the latest update time of an engine from the engine information handle.
+ *
+ * @param[in]  engine   The engine information handle.
+ * @param[out] time     A pointer of lasted update time.
+ *
+ * @return #CSR_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSR_ERROR_NONE                 Successful
+ * @retval #CSR_ERROR_INVALID_HANDLE       Invalid engine information handle
+ * @retval #CSR_ERROR_INVALID_PARAMETER    time is invalid
+ * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
+ * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ *
+ * @see csr_get_current_engine()
+ */
+int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *time);
 
 /**
  * @brief Extracts the state of engine activation from the engine information handle.
@@ -152,9 +168,25 @@ int csr_engine_get_data_version(csr_engine_h engine, char **version);
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csr_get_selected_engine()
+ * @see csr_get_current_engine()
  */
 int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *pactivated);
+
+/**
+ * @brief Releases all system resources associated with a engine information handle.
+ *
+ * @param[in]  engine      The engine information handle.
+ *
+ * @return #CSR_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSR_ERROR_NONE                  Successful
+ * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
+ * @retval #CSR_ERROR_SOCKET                Socket error between client and server
+ * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
+ * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ */
+int csr_engine_destroy(csr_engine_h engine);
 
 #ifdef __cplusplus
 }

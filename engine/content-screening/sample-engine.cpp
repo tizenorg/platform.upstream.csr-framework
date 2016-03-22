@@ -26,6 +26,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <limits.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -37,7 +41,7 @@ extern "C" {
 
 #define PRIVATE_DB_NAME   "csret_cs_virus_signatures"
 #define PRIVATE_LOGO_FILE "vendor_logo.bmp"
-#define MAX_FILE_PATH_LEN 256
+#define MAX_FILE_PATH_LEN PATH_MAX
 #define MAX_NAME_LEN      64
 #define MAX_VERSION_LEN   32
 #define MAX_URL_LEN       256
@@ -46,11 +50,6 @@ extern "C" {
 #define VENDOR_NAME       "TEST_VENDOR"
 #define ENGINE_NAME       "TEST_LOCAL_TCS_ENGINE"
 #define ENGINE_VERSION    "0.0.1"
-
-typedef enum  __csret_cs_scan_on_cloud {
-	TCSE_SCAN_ON_CLOUD_OFF = 0,
-	TCSE_SCAN_ON_CLOUD_ON  = 1
-} csret_cs_scan_on_cloud_e;
 
 typedef struct __csret_cs_malware {
 	csre_cs_severity_level_e severity;
@@ -87,6 +86,7 @@ typedef struct __csret_cs_engine {
 	unsigned int image_size;
 	char engine_version[MAX_VERSION_LEN];
 	char data_version[MAX_VERSION_LEN];
+	time_t latest_update;
 } csret_cs_engine_s;
 
 typedef enum __csret_cs_internal_error {
@@ -111,7 +111,7 @@ char *csret_cs_extract_value(char *line, const char *key)
 		return nullptr;
 
 	auto found = strstr(line, key);
-	if (found == nullptr)
+	if (found != line)
 		return nullptr;
 
 	auto value = found + strlen(key);
@@ -136,13 +136,13 @@ int csret_cs_read_virus_signatures(const char *path)
 	// name=test_malware // this starts a description of a new malware
 	// severity=HIGH  // LOW/MEDIUM/HIGH
 	// threat_type=MALWARE  // MALWARE/RISKY/GENERIC
-	// detailed_url=        // It can be null
+	// detailed_url=http://high.malware.com
 	// signature=X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
 	//
 	// name=test_risk
 	// severity=MEDIUM
 	// threat_type=RISKY
-	// detailed_url=
+	// detailed_url=http://medium.malware.com
 	// signature=RISKY_MALWARE
 
 	csret_cs_malware_list_s *curr_sig = nullptr;
@@ -280,7 +280,9 @@ long csret_cs_get_timestamp()
 int csret_cs_init_engine(const char *root_dir)
 {
 	int ret = CSRE_ERROR_NONE;
+	char db_file_name[MAX_FILE_PATH_LEN] = {0, };
 	char logo_file_name[MAX_FILE_PATH_LEN] = {0, };
+	struct stat attrib;
 	engine_info = (csret_cs_engine_s *) calloc(sizeof(csret_cs_engine_s), 1);
 
 	if (engine_info == nullptr)
@@ -289,6 +291,7 @@ int csret_cs_init_engine(const char *root_dir)
 	snprintf(engine_info->vendor_name, MAX_NAME_LEN, "%s", VENDOR_NAME);
 	snprintf(engine_info->engine_name, MAX_NAME_LEN, "%s", ENGINE_NAME);
 	snprintf(engine_info->engine_version, MAX_VERSION_LEN, "%s", ENGINE_VERSION);
+	snprintf(db_file_name, MAX_FILE_PATH_LEN, "%s/%s", root_dir, PRIVATE_DB_NAME);
 	snprintf(logo_file_name, MAX_FILE_PATH_LEN, "%s/%s", root_dir, PRIVATE_LOGO_FILE);
 	ret = csret_cs_read_binary(logo_file_name, &(engine_info->vendor_logo_image),
 							&(engine_info->image_size));
@@ -298,6 +301,9 @@ int csret_cs_init_engine(const char *root_dir)
 		engine_info->image_size = 0;
 		ret = CSRE_ERROR_NONE;
 	}
+
+	stat(db_file_name, &attrib);
+	engine_info->latest_update = attrib.st_mtime;
 
 	return ret;
 }
@@ -460,17 +466,6 @@ int csre_cs_context_destroy(csre_cs_context_h handle)
 }
 
 API
-int csre_cs_set_scan_on_cloud(csre_cs_context_h handle)
-{
-	if (handle == nullptr)
-		return CSRE_ERROR_INVALID_HANDLE;
-
-	csret_cs_context_s *context = (csret_cs_context_s *)handle;
-	context->scan_on_data = TCSE_SCAN_ON_CLOUD_ON;
-	return CSRE_ERROR_NONE;
-}
-
-API
 int csre_cs_scan_data(csre_cs_context_h handle,
 					  const unsigned char *data,
 					  size_t length,
@@ -483,10 +478,6 @@ int csre_cs_scan_data(csre_cs_context_h handle,
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	csret_cs_context_s *context = (csret_cs_context_s *)handle;
-
-	if (context->scan_on_data == TCSE_SCAN_ON_CLOUD_ON) {
-		//ignored in this engine implementation.
-	}
 
 	ret = csret_cs_detect_malware(context, data, length, &detected);
 
@@ -502,37 +493,24 @@ int csre_cs_scan_file(csre_cs_context_h handle,
 					  const char *file_path,
 					  csre_cs_detected_h *pdetected)
 {
-	int fd = open(file_path, O_RDONLY);
-
-	if (fd < 0)
-		return CSRE_ERROR_FILE_NOT_FOUND;
-
-	return csre_cs_scan_file_by_fd(handle, fd, pdetected);
-}
-
-API
-int csre_cs_scan_file_by_fd(csre_cs_context_h handle,
-							int file_descriptor,
-							csre_cs_detected_h *pdetected)
-{
 	csret_cs_detected_s *detected = nullptr;
 	unsigned char *data;
 	unsigned int data_len;
 	int ret = CSRE_ERROR_NONE;
 
+	if (file_path == nullptr)
+		return CSRE_ERROR_INVALID_PARAMETER;
+
+	int fd = open(file_path, O_RDONLY);
+	if (fd < 0)
+		return CSRE_ERROR_FILE_NOT_FOUND;
+
 	if (handle == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
-	if (file_descriptor < 0)
-		return CSRE_ERROR_INVALID_PARAMETER;
-
 	csret_cs_context_s *context = (csret_cs_context_s *)handle;
 
-	if (context->scan_on_data == TCSE_SCAN_ON_CLOUD_ON) {
-		//ignored in this engine implementation.
-	}
-
-	ret = csret_cs_read_binary_by_fd(file_descriptor, &data, &data_len);
+	ret = csret_cs_read_binary(file_path, &data, &data_len);
 	if (ret != CSRE_ERROR_NONE)
 		return ret;
 
@@ -547,6 +525,63 @@ int csre_cs_scan_file_by_fd(csre_cs_context_h handle,
 	*pdetected = (csre_cs_detected_h) detected;
 
 	return CSRE_ERROR_NONE;
+}
+
+API
+int csre_cs_scan_app_on_cloud(csre_cs_context_h handle,
+							  const char *app_root_dir,
+							  csre_cs_detected_h *pdetected)
+{
+	int ret;
+	DIR *dir;
+	struct dirent entry;
+	struct dirent *result;
+	csret_cs_detected_s *detected = nullptr;
+	csret_cs_detected_s *most_severe= nullptr;
+	int path_length;
+	char path[MAX_FILE_PATH_LEN] = {0 };
+
+	dir = opendir(app_root_dir);
+	if(!dir)
+		return CSRE_ERROR_FILE_NOT_FOUND;
+
+	while ((!readdir_r(dir, &entry, &result))) {
+		if(result == nullptr) // when the end of the directory stread is reached
+			break;
+
+		path_length = snprintf(path, MAX_FILE_PATH_LEN, "%s/%s", app_root_dir, entry.d_name);
+		if(path_length >= MAX_FILE_PATH_LEN) {
+			ret = CSRE_ERROR_UNKNOWN;
+			goto error;
+		}
+
+		if( (entry.d_type & DT_REG) || (entry.d_type & DT_LNK) ) {
+			ret = csre_cs_scan_file(handle, path, (csre_cs_detected_h *)(&detected) );
+		} else if( (entry.d_type & DT_DIR)
+				&& (strcmp(entry.d_name,"..") != 0)
+				&& (strcmp(entry.d_name,".") != 0) ) {
+			ret = csre_cs_scan_app_on_cloud(handle, path, (csre_cs_detected_h *)(&detected) );
+		} else {
+			continue;
+		}
+
+		if(ret != CSRE_ERROR_NONE)
+			goto error;
+		if(detected != nullptr) { // detected
+			if(most_severe == nullptr || detected->malware.severity > most_severe->malware.severity)
+				most_severe = detected;
+			else
+				detected = nullptr;
+		}
+	}
+
+error:
+	if(dir != nullptr)
+		closedir(dir);
+
+	*pdetected = (csre_cs_detected_h) detected;
+
+	return ret;
 }
 
 //==============================================================================
@@ -720,6 +755,21 @@ int csre_cs_engine_get_data_version(csre_cs_engine_h engine, const char **versio
 		return CSRE_ERROR_INVALID_PARAMETER;
 
 	*version = eng->data_version;
+	return CSRE_ERROR_NONE;
+}
+
+API
+int csre_cs_engine_get_latest_update_time(csre_cs_engine_h engine, time_t *time)
+{
+	csret_cs_engine_s *eng = (csret_cs_engine_s *) engine;
+
+	if (eng == nullptr)
+		return CSRE_ERROR_INVALID_HANDLE;
+
+	if (time == nullptr)
+		return CSRE_ERROR_INVALID_PARAMETER;
+
+	*time = eng->latest_update;
 	return CSRE_ERROR_NONE;
 }
 

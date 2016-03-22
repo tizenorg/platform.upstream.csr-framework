@@ -37,6 +37,7 @@
 #define TEST_FILE_NORMAL   TEST_DIR "/test_normal_file"
 #define TEST_FILE_MALWARE  TEST_DIR "/test_malware_file"
 #define TEST_FILE_RISKY    TEST_DIR "/test_risky_file"
+#define TEST_APP_ROOT      TEST_DIR "/test_app"
 
 namespace {
 
@@ -236,7 +237,7 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 		CSRE_CS_SEVERITY_HIGH,
 		CSRE_CS_THREAT_MALWARE,
 		"test_malware",
-		"http://detailedinfo.malware.com",
+		"http://high.malware.com",
 		0);
 }
 
@@ -279,22 +280,6 @@ BOOST_AUTO_TEST_CASE(scan_file_normal)
 	CHECK_IS_NULL(detected);
 }
 
-BOOST_AUTO_TEST_CASE(scan_file_normal_on_cloud)
-{
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto contextPtr = getContextHandle();
-	auto context = contextPtr->get();
-
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_set_scan_on_cloud(context));
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
-
-	csre_cs_detected_h detected;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_scan_file(context, TEST_FILE_NORMAL, &detected));
-
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
-	CHECK_IS_NULL(detected);
-}
-
 BOOST_AUTO_TEST_CASE(scan_file_malware)
 {
 	int ret = CSRE_ERROR_UNKNOWN;
@@ -311,7 +296,7 @@ BOOST_AUTO_TEST_CASE(scan_file_malware)
 		CSRE_CS_SEVERITY_HIGH,
 		CSRE_CS_THREAT_MALWARE,
 		"test_malware",
-		"http://detailedinfo.malware.com",
+		"http://high.malware.com",
 		0);
 }
 
@@ -331,35 +316,18 @@ BOOST_AUTO_TEST_CASE(scan_file_risky)
 		CSRE_CS_SEVERITY_MEDIUM,
 		CSRE_CS_THREAT_RISKY,
 		"test_risk",
-		nullptr,
+		"http://medium.malware.com",
 		0);
 }
 
-BOOST_AUTO_TEST_CASE(scan_file_by_fd_normal)
+BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 {
 	int ret = CSRE_ERROR_UNKNOWN;
 	auto contextPtr = getContextHandle();
 	auto context = contextPtr->get();
 
-	ScopedFile f(TEST_FILE_NORMAL);
-
 	csre_cs_detected_h detected;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_scan_file_by_fd(context, f.getFd(), &detected));
-
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
-	CHECK_IS_NULL(detected);
-}
-
-BOOST_AUTO_TEST_CASE(scan_file_by_fd_malware)
-{
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto contextPtr = getContextHandle();
-	auto context = contextPtr->get();
-
-	ScopedFile f(TEST_FILE_MALWARE);
-
-	csre_cs_detected_h detected;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_scan_file_by_fd(context, f.getFd(), &detected));
+	BOOST_REQUIRE_NO_THROW(ret = csre_cs_scan_app_on_cloud(context, TEST_APP_ROOT,&detected));
 
 	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
@@ -368,31 +336,10 @@ BOOST_AUTO_TEST_CASE(scan_file_by_fd_malware)
 		CSRE_CS_SEVERITY_HIGH,
 		CSRE_CS_THREAT_MALWARE,
 		"test_malware",
-		"http://detailedinfo.malware.com",
+		"http://high.malware.com",
 		0);
 }
 
-BOOST_AUTO_TEST_CASE(scan_file_by_fd_risky)
-{
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto contextPtr = getContextHandle();
-	auto context = contextPtr->get();
-
-	ScopedFile f(TEST_FILE_RISKY);
-
-	csre_cs_detected_h detected;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_scan_file_by_fd(context, f.getFd(), &detected));
-
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
-	CHECK_IS_NOT_NULL(detected);
-
-	checkDetected(detected,
-		CSRE_CS_SEVERITY_MEDIUM,
-		CSRE_CS_THREAT_RISKY,
-		"test_risk",
-		nullptr,
-		0);
-}
 
 BOOST_AUTO_TEST_SUITE_END()
 
@@ -463,6 +410,17 @@ BOOST_AUTO_TEST_CASE(get_data_version)
 	BOOST_REQUIRE_NO_THROW(ret = csre_cs_engine_get_data_version(handle, &version));
 	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	CHECK_IS_NOT_NULL(version);
+}
+
+BOOST_AUTO_TEST_CASE(get_latest_update_time)
+{
+	int ret = CSRE_ERROR_UNKNOWN;
+	auto handle = getEngineHandle();
+
+	time_t time = 0;
+	BOOST_REQUIRE_NO_THROW(ret = csre_cs_engine_get_latest_update_time(handle, &time));
+	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	BOOST_REQUIRE(time > 0);
 }
 
 BOOST_AUTO_TEST_CASE(get_engine_activated)

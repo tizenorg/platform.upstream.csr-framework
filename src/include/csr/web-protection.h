@@ -60,8 +60,6 @@ int csr_wp_context_create(csr_wp_context_h* phandle);
 /**
  * @brief Releases all system resources associated with a CSR Web Protection API handle.
  *
- * @details The handle is one returned by the csr_wp_context_create().
- *
  * @param[in] handle CSR WP context handle returned by csr_wp_context_create().
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
@@ -141,7 +139,7 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char* message);
  * @retval #CSR_ERROR_INVALID_PARAMETER     URL or presult is invalid
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_ENGINE_NOT_SELECTED   No engine selected
+ * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -171,6 +169,27 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url, csr_wp_check_resu
  * @see csr_wp_check_url()
  */
 int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level_e* plevel);
+
+/**
+ * @brief Extracts an url of vendor's web site that contains detailed information about the risk
+ *        from the result handle.
+ *
+ * @param[in]  result  A result handle returned by csr_wp_check_url().
+ * @param[out] detailed_url  A pointer of an url that contains detailed information about the risk.
+ *                           If the risk level is CSR_WP_RISK_MEDIUM or CSR_WP_RISK_HIGH,
+ *                           this url should be provided by the engine.
+ *                           A caller should not free this string.
+ *
+ * @return #CSR_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSR_ERROR_NONE                 Successful
+ * @retval #CSR_ERROR_INVALID_HANDLE       Invalid result handle
+ * @retval #CSR_ERROR_INVALID_PARAMETER    detailed_url is invalid
+ * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ *
+ * @see csr_wp_check_url()
+ */
+int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, const char** detailed_url);
 
 /**
  * @brief Extracts a user reponse of a popup from the result handle.

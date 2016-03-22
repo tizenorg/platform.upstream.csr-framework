@@ -22,6 +22,7 @@
 #ifndef __CSRE_CS_ENGINE_INFO_H_
 #define __CSRE_CS_ENGINE_INFO_H_
 
+#include <time.h>
 #include "csre/error.h"
 
 #ifdef __cplusplus
@@ -147,6 +148,25 @@ int csre_cs_engine_get_version(csre_cs_engine_h engine, const char **version);
  * @see csre_cs_get_engine_info()
  */
 int csre_cs_engine_get_data_version(csre_cs_engine_h engine, const char **version);
+
+/**
+ * @brief Extracts the latest update time of an engine from the engine information handle.
+ *
+ * @param[in]  engine   The engine information handle.
+ * @param[out] time     A pointer of lasted update time.
+ *
+ * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSRE_ERROR_NONE                 Successful
+ * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid engine information handle
+ * @retval #CSRE_ERROR_INVALID_PARAMETER    time is invalid
+ * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
+ * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
+ *
+ * @see csre_cs_get_engine_info()
+ */
+int csre_cs_engine_get_latest_update_time(csre_cs_engine_h engine, time_t *time);
 
 /**
  * @brief Extracts the state of engine activation from the engine information handle.

@@ -26,7 +26,7 @@
 #define API __attribute__((visibility("default")))
 
 API
-int csr_get_selected_engine(csr_engine_id_e id, csr_engine_h *engine)
+int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *engine)
 {
 	(void) id;
 	(void) engine;
@@ -76,6 +76,14 @@ int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *pactivated)
 	(void) engine;
 	(void) pactivated;
 
+	DEBUG("start");
+	return CSR_ERROR_NONE;
+}
+
+API
+int csr_engine_destroy(csr_engine_h engine)
+{
+	(void) engine;
 	DEBUG("start");
 	return CSR_ERROR_NONE;
 }

@@ -47,7 +47,7 @@ typedef enum {
 	CSR_ERROR_SERVER                = TIZEN_ERROR_CSR | 0x03,        /**< Server has been failed for some reason */
 	CSR_ERROR_NO_TASK               = TIZEN_ERROR_CSR | 0x04,        /**< No Task exists*/
 	CSR_ERROR_ENGINE_PERMISSION     = TIZEN_ERROR_CSR | 0x11,        /**< Insufficient permission of engine */
-	CSR_ERROR_ENGINE_NOT_SELECTED   = TIZEN_ERROR_CSR | 0x12,        /**< No engine is selected*/
+	CSR_ERROR_ENGINE_NOT_EXIST      = TIZEN_ERROR_CSR | 0x12,        /**< No engine exists*/
 	CSR_ERROR_ENGINE_NOT_ACTIVATED  = TIZEN_ERROR_CSR | 0x13,        /**< Engine is not activated*/
 	CSR_ERROR_ENGINE_INTERNAL       = TIZEN_ERROR_CSR | 0x19,        /**< Engine Internal error*/
 	CSR_ERROR_UNKNOWN               = TIZEN_ERROR_CSR | 0xFF,        /**< The error with unknown reason */

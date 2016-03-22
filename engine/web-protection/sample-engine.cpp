@@ -25,6 +25,10 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #define API __attribute__((visibility("default")))
 
@@ -42,6 +46,7 @@
 typedef struct __csret_wp_risky_url {
 	char url[MAX_URL_LEN];
 	csre_wp_risk_level_e risk_level;
+	char detailed_url[MAX_URL_LEN];
 } csret_wp_risky_url_s;
 
 typedef struct __csret_wp_risky_url_list {
@@ -60,6 +65,7 @@ typedef struct __csret_wp_engine {
 	unsigned int   image_size;
 	char           engine_version[MAX_VERSION_LEN];
 	char           data_version[MAX_VERSION_LEN];
+	time_t         latest_update;
 } csret_wp_engine_s;
 
 typedef enum __csret_wp_internal_error {
@@ -82,7 +88,7 @@ char *csret_wp_extract_value(char *line, const char *key)
 		return nullptr;
 
 	auto found = strstr(line, key);
-	if (found == nullptr)
+	if (found != line)
 		return nullptr;
 
 	auto value = found + strlen(key);
@@ -106,9 +112,11 @@ int csret_wp_read_risky_urls(const char *path)
 	//
 	// url=highrisky.test.com // this starts a description of a new risky url
 	// risk_level=HIGH  // LOW/MEDIUM/HIGH
+	// detailed_url=http://high.risky.com
 	//
 	// url=midiumrisky.test.com
 	// risk_level=MEDIUM
+	// detailed_url=http://medium.risky.com
 	FILE *fp;
 	char *line = nullptr;
 	size_t len = 0;
@@ -155,6 +163,11 @@ int csret_wp_read_risky_urls(const char *path)
 			else
 				curr_url->risky_url->risk_level = CSRE_WP_RISK_UNVERIFIED;
 		}
+
+		value = csret_wp_extract_value(line, "detailed_url=");
+
+		if (value != nullptr)
+			strncpy(curr_url->risky_url->detailed_url, value, sizeof(curr_url->risky_url->detailed_url) - 1);
 	}
 
 	free(line);
@@ -213,7 +226,9 @@ int csret_wp_read_binary(const char *path, unsigned char **data, unsigned int *l
 int csret_wp_init_engine(const char *root_dir)
 {
 	int ret = CSRE_ERROR_NONE;
+	char db_file_name[MAX_FILE_PATH_LEN] = {0, };
 	char logo_file_name[MAX_FILE_PATH_LEN] = {0, };
+	struct stat attrib;
 	engine_info = (csret_wp_engine_s *) calloc(sizeof(csret_wp_engine_s), 1);
 
 	if (engine_info == nullptr)
@@ -222,6 +237,7 @@ int csret_wp_init_engine(const char *root_dir)
 	snprintf(engine_info->vendor_name, MAX_NAME_LEN, "%s", VENDOR_NAME);
 	snprintf(engine_info->engine_name, MAX_NAME_LEN, "%s", ENGINE_NAME);
 	snprintf(engine_info->engine_version, MAX_VERSION_LEN, "%s", ENGINE_VERSION);
+	snprintf(db_file_name, MAX_FILE_PATH_LEN, "%s/%s", root_dir, PRIVATE_DB_NAME);
 	snprintf(logo_file_name, MAX_FILE_PATH_LEN, "%s/%s", root_dir, PRIVATE_LOGO_FILE);
 	ret = csret_wp_read_binary(logo_file_name, &(engine_info->vendor_logo_image),
 							&(engine_info->image_size));
@@ -231,6 +247,9 @@ int csret_wp_init_engine(const char *root_dir)
 		engine_info->image_size = 0;
 		ret = CSRE_ERROR_NONE;
 	}
+
+	stat(db_file_name, &attrib);
+	engine_info->latest_update = attrib.st_mtime;
 
 	return ret;
 }
@@ -342,6 +361,7 @@ int csre_wp_check_url(csre_wp_context_h handle, const char *url, csre_wp_check_r
 
 		if (strstr(url, risky_url) != nullptr) { // found
 			detected->risk_level = curr_url->risky_url->risk_level;
+			snprintf(detected->detailed_url, MAX_URL_LEN, "%s", curr_url->risky_url->detailed_url);
 			break; // return the first risky url info in test engine
 		}
 
@@ -372,6 +392,22 @@ int csre_wp_result_get_risk_level(csre_wp_check_result_h result, csre_wp_risk_le
 
 	detected = (csret_wp_risky_url_s *) result;
 	*plevel = detected->risk_level;
+	return CSRE_ERROR_NONE;
+}
+
+API
+int csre_wp_result_get_detailed_url(csre_wp_check_result_h result, const char** detailed_url)
+{
+	csret_wp_risky_url_s *detected = nullptr;
+
+	if (result == nullptr)
+		return CSRE_ERROR_INVALID_HANDLE;
+
+	if (detailed_url == nullptr)
+		return CSRE_ERROR_INVALID_PARAMETER;
+
+	detected = (csret_wp_risky_url_s *) result;
+	*detailed_url = detected->detailed_url;
 	return CSRE_ERROR_NONE;
 }
 
@@ -464,6 +500,23 @@ int csre_wp_engine_get_data_version(csre_wp_engine_h engine, const char **versio
 	*version = eng->data_version;
 	return CSRE_ERROR_NONE;
 }
+
+
+API
+int csre_wp_engine_get_latest_update_time(csre_wp_engine_h engine, time_t *time)
+{
+	csret_wp_engine_s *eng = (csret_wp_engine_s *) engine;
+
+	if (eng == nullptr)
+		return CSRE_ERROR_INVALID_HANDLE;
+
+	if (time == nullptr)
+		return CSRE_ERROR_INVALID_PARAMETER;
+
+	*time = eng->latest_update;
+	return CSRE_ERROR_NONE;
+}
+
 
 API
 int csre_wp_engine_get_activated(csre_wp_engine_h engine, csre_wp_activated_e *pactivated)

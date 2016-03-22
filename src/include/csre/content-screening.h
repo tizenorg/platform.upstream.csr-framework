@@ -79,22 +79,6 @@ int csre_cs_context_create(const char *engine_root_dir, csre_cs_context_h* phand
 int csre_cs_context_destroy(csre_cs_context_h handle);
 
 /**
- * @brief Sets a database which is used in scanning.
- *
- * @details If a database is not set or an engine does not support "scanning on cloud",
- *          the scanning will be done in a local device.
- *
- * @param[in] handle    CSR CS context handle returned by csre_cs_context_create().
- *
- * @return #CSRE_CS_ERROR_NONE on success, otherwise a negative error value
- *
- * @retval #CSRE_CS_ERROR_NONE                  Successful
- * @retval #CSRE_CS_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSRE_CS_ERROR_UNKNOWN               Error with unknown reason
- */
-int csre_cs_set_scan_on_cloud(csre_cs_context_h handle);
-
-/**
  * @brief Main function for caller to scan a data buffer for malware.
  *
  * @param[in]  handle     CSR CS Engine context handle returned by
@@ -116,7 +100,6 @@ int csre_cs_set_scan_on_cloud(csre_cs_context_h handle);
  *
  * @see csre_cs_context_create()
  * @see csre_cs_scan_file()
- * @see csre_cs_scan_file_by_fd()
  */
 int csre_cs_scan_data(csre_cs_context_h handle,
                     const unsigned char *data,
@@ -146,33 +129,28 @@ int csre_cs_scan_data(csre_cs_context_h handle,
  *
  * @see csre_cs_context_create()
  * @see csre_cs_scan_data()
- * @see csre_cs_scan_file_by_fd()
  */
 int csre_cs_scan_file(csre_cs_context_h handle,
                   const char *file_path,
                   csre_cs_detected_h *pdetected);
 
 /**
- * @brief Main function for caller to scan a file specified by file descriptor for malware.
+ * @brief Main function for caller to scan an application specified 
+ *        by an application's root directory for malware.
+ *        The detection of a malware is done on the vendor's clould server.
  *
- * @details  The file is opened in readonly by another processe and its file descriptor
- *           is delivered to the engine. This is useful in case of an insufficient
- *           permission of a server process with scanning function. The client with
- *           permission to a file opens the file and deliver its descriptor to a server
- *           with an insufficient permission.
- *
- * @param[in]  handle           CSR CS Engine context handle returned by
- *                              csre_cs_context_create().
- * @param[in]  file_descriptor  A file descriptor of scan target file.
- * @param[out] pdetected        A pointer of the detected malware handle. It can be null
- *                              when no malware detected.
+ * @param[in]  handle       CSR CS Engine context handle returned by
+ *                          csre_cs_context_create().
+ * @param[in]  app_root_dir A absolute root path of scan target application.
+ * @param[out] pdetected    A pointer of the detected malware handle. It can be null when
+ *                          no malware detected.
  *
  * @return #CSRE_CS_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSRE_CS_ERROR_NONE                 Successful
  * @retval #CSRE_CS_ERROR_INVALID_HANDLE       Invalid handle
  * @retval #CSRE_CS_ERROR_OUT_OF_MEMORY        Not enough memory
- * @retval #CSRE_CS_ERROR_INVALID_PARAMETER    presult is invalid
+ * @retval #CSRE_CS_ERROR_INVALID_PARAMETER    app_root_dir or presult is invalid
  * @retval #CSRE_CS_ERROR_ENGINE_NOT_ACTIVATED Engine is not activated
  * @retval #CSRE_CS_ERROR_PERMISSION_DENIED    Access denied
  * @retval #CSRE_CS_ERROR_FILE_NOT_FOUND       File not found
@@ -181,10 +159,8 @@ int csre_cs_scan_file(csre_cs_context_h handle,
  *
  * @see csre_cs_context_create()
  * @see csre_cs_scan_data()
- * @see csre_cs_scan_file()
  */
-int csre_cs_scan_file_by_fd(csre_cs_context_h handle,
-                  int file_descriptor,
+int csre_cs_scan_app_on_cloud(csre_cs_context_h handle, const char* app_root_dir,
                   csre_cs_detected_h *pdetected);
 
 //==============================================================================
@@ -247,13 +223,12 @@ int csre_cs_detected_get_threat_type(csre_cs_detected_h detected, csre_cs_threat
 int csre_cs_detected_get_malware_name(csre_cs_detected_h detected, const char** name);
 
 /**
- * @brief Extracts an url that contains detailed information on vendor's web site from the
- *        detected malware handle.
+ * @brief Extracts an url of the vendor's web site that contains detailed information 
+ *      about the detected malware from the detected malware handle.
  *
  * @param[in]  detected      A detected malware handle.
  * @param[out] detailed_url  A pointer of an url that contains detailed information on
- *                           vendor's web site. It can be null if a vendor doesn't provide
- *                           this information. A caller should not free this string.
+ *                           vendor's web site. A caller should not free this string.
  *
  * @return #CSRE_CS_ERROR_NONE on success, otherwise a negative error value
  *

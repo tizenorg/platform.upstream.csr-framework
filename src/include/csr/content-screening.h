@@ -55,8 +55,6 @@ int csr_cs_context_create(csr_cs_context_h* phandle);
 /**
  * @brief Releases all system resources associated with a Malware Screening API handle.
  *
- * @details The handle is one returned by the csr_cs_context_create() function.
- *
  * @param[in] handle CSR CS context handle returned by csr_cs_context_create().
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
@@ -164,7 +162,7 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle);
  * @retval #CSR_ERROR_INVALID_PARAMETER     data or presult is invalid
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_ENGINE_NOT_SELECTED   No engine selected
+ * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -193,7 +191,7 @@ int csr_cs_scan_data(csr_cs_context_h handle,
  * @retval #CSR_ERROR_FILE_NOT_FOUND        File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_ENGINE_NOT_SELECTED   No engine selected
+ * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -311,7 +309,7 @@ int csr_cs_set_callback_on_file_scanned(csr_cs_context_h handle, csr_cs_on_file_
  * @retval #CSR_ERROR_FILE_NOT_FOUND        File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_ENGINE_NOT_SELECTED   No engine selected
+ * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -342,7 +340,7 @@ int csr_cs_scan_files_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_FILE_NOT_FOUND        File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_ENGINE_NOT_SELECTED   No engine selected
+ * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -375,7 +373,7 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_FILE_NOT_FOUND        File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_ENGINE_NOT_SELECTED   No engine selected
+ * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason

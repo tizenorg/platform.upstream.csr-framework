@@ -26,12 +26,15 @@
 
 BOOST_AUTO_TEST_SUITE(API_ENGINE_MANAGER)
 
-BOOST_AUTO_TEST_CASE(get_selected_engine)
+BOOST_AUTO_TEST_CASE(get_current_engine)
 {
 	int ret = CSR_ERROR_UNKNOWN;
 
 	csr_engine_h handle;
-	BOOST_REQUIRE_NO_THROW(ret = csr_get_selected_engine(CSR_ENGINE_CS, &handle));
+	BOOST_REQUIRE_NO_THROW(ret = csr_get_current_engine(CSR_ENGINE_CS, &handle));
+	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
+
+	BOOST_REQUIRE_NO_THROW(ret = csr_engine_destroy(handle));
 	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
 }
 
@@ -40,11 +43,14 @@ BOOST_AUTO_TEST_CASE(get_name)
 	int ret = CSR_ERROR_UNKNOWN;
 
 	csr_engine_h handle;
-	BOOST_REQUIRE_NO_THROW(ret = csr_get_selected_engine(CSR_ENGINE_CS, &handle));
+	BOOST_REQUIRE_NO_THROW(ret = csr_get_current_engine(CSR_ENGINE_CS, &handle));
 	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
 
 	char *name = nullptr;
 	BOOST_REQUIRE_NO_THROW(ret = csr_engine_get_name(handle, &name));
+	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
+
+	BOOST_REQUIRE_NO_THROW(ret = csr_engine_destroy(handle));
 	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
 }
 

@@ -25,7 +25,7 @@
 #include <string>
 
 #include "csr/error.h"
-#include "message-buffer.h"
+#include "common/message-buffer.h"
 
 
 namespace Csr {

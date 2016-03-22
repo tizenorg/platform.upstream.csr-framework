@@ -9,6 +9,8 @@ URL: http://tizen.org
 BuildRequires: cmake
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(libsystemd-daemon)
+BuildRequires: pkgconfig(vconf)
+BuildRequires: pkgconfig(elementary)
 Requires:      lib%{name}-common = %{version}-%{release}
 %{?systemd_requires}
 
@@ -79,6 +81,7 @@ test program of csr-framework
     -DINCLUDE_INSTALL_DIR:PATH=%{_includedir} \
     -DBIN_DIR:PATH=%{bin_dir} \
     -DSYSTEMD_UNIT_DIR=%{_unitdir} \
+    -DSYSTEMD_UNIT_USER_DIR=%{_unitdir_user} \
     -DSAMPLE_ENGINE_WORKING_DIR:PATH=%{sample_engine_working_dir} \
     -DSAMPLE_ENGINE_DIR:PATH=%{sample_engine_dir} \
     -DTEST_DIR:PATH=%{test_dir}
@@ -91,6 +94,11 @@ mkdir -p %{buildroot}%{_unitdir}/multi-user.target.wants
 mkdir -p %{buildroot}%{_unitdir}/sockets.target.wants
 ln -s ../%{service_name}.service %{buildroot}%{_unitdir}/multi-user.target.wants/%{service_name}.service
 ln -s ../%{service_name}.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}.socket
+
+mkdir -p %{buildroot}%{_unitdir}/default.target.wants
+mkdir -p %{buildroot}%{_unitdir}/sockets.target.wants
+ln -s ../%{service_name}-popup.service %{buildroot}%{_unitdir}/default.target.wants/%{service_name}-popup.service
+ln -s ../%{service_name}-popup.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}-popup.socket
 
 mkdir -p %{buildroot}%{ro_data_dir}/license
 cp LICENSE %{buildroot}%{ro_data_dir}/license/%{name}
@@ -105,17 +113,20 @@ systemctl daemon-reload
 if [ $1 = 1 ]; then
     systemctl start %{service_name}.socket
     systemctl start %{service_name}.service
+    systemctl start %{service_name}-popup.socket
 fi
 
 if [ $1 = 2 ]; then
     systemctl restart %{service_name}.socket
     systemctl restart %{service_name}.service
+    systemctl restart %{service_name}-popup.socket
 fi
 
 %preun
 if [ $1 = 0 ]; then
     systemctl stop %{service_name}.service
     systemctl stop %{service_name}.socket
+    systemctl stop %{service_name}-popup.socket
 fi
 
 %postun
@@ -134,10 +145,15 @@ fi
 %{ro_data_dir}/license/%{name}
 %{ro_data_dir}/license/%{name}.BSL-1.0
 %{bin_dir}/%{service_name}-server
+%{bin_dir}/%{service_name}-popup
 %{_unitdir}/multi-user.target.wants/%{service_name}.service
 %{_unitdir}/%{service_name}.service
 %{_unitdir}/sockets.target.wants/%{service_name}.socket
 %{_unitdir}/%{service_name}.socket
+%{_unitdir}/default.target.wants/%{service_name}-popup.service
+%{_unitdir}/%{service_name}-popup.service
+%{_unitdir}/sockets.target.wants/%{service_name}-popup.socket
+%{_unitdir}/%{service_name}-popup.socket
 
 # sample engine related files
 %{sample_engine_dir}/lib%{service_name}-cs-engine.so
@@ -174,5 +190,6 @@ fi
 %{ro_data_dir}/license/%{name}-test
 %{ro_data_dir}/license/%{name}-test.BSL-1.0
 %{bin_dir}/%{service_name}-test
+%{bin_dir}/%{service_name}-popup-test
 # test resources
 %{test_dir}

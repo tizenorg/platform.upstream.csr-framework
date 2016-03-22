@@ -23,10 +23,10 @@
 
 #include <functional>
 
-#include "message-buffer.h"
-#include "command-id.h"
-#include "audit/logger.h"
-#include "client-common.h"
+#include "common/message-buffer.h"
+#include "common/command-id.h"
+#include "common/audit/logger.h"
+#include "client/client-common.h"
 
 #define API __attribute__((visibility("default")))
 

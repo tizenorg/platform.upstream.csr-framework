@@ -19,7 +19,7 @@
  * @version     1.0
  * @brief
  */
-#include "connection.h"
+#include "common/connection.h"
 
 #include <utility>
 

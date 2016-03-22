@@ -27,16 +27,17 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <unordered_map>
 #include <memory>
 
-#include "command-id.h"
+#include "common/command-id.h"
 #include "csr/error.h"
 
 namespace Csr {
 
 // Abstract data stream buffer
 class IStream {
-  public:
+public:
 	virtual void read(size_t num, void * bytes) = 0;
 	virtual void write(size_t num, const void * bytes) = 0;
 	virtual ~IStream(){}
@@ -44,11 +45,11 @@ class IStream {
 
 // Serializable interface
 class ISerializable {
-  public:
-	/*    ISerializable(){};
-	 *    ISerializable(IStream&){}; */
+public:
+	ISerializable() {}
+	ISerializable(IStream&) {}
 	virtual void Serialize(IStream &) const = 0;
-	virtual ~ISerializable(){}
+	virtual ~ISerializable() {}
 };
 
 struct Serialization {
@@ -169,11 +170,10 @@ struct Serialization {
 	template <typename T>
 	static void Serialize(IStream& stream, const std::list<T>& list)
 	{
-		int length = list.size();
+		size_t length = list.size();
 		stream.write(sizeof(length), &length);
-		for (typename std::list<T>::const_iterator list_iter = list.begin();
-			 list_iter != list.end(); list_iter++)
-			Serialize(stream, *list_iter);
+		for (const auto &item : list)
+			Serialize(stream, item);
 	}
 	template <typename T>
 	static void Serialize(IStream& stream, const std::list<T>* const list)
@@ -228,16 +228,32 @@ struct Serialization {
 	template <typename K, typename T>
 	static void Serialize(IStream& stream, const std::map<K, T>& map)
 	{
-		int length = map.size();
+		size_t length = map.size();
 		stream.write(sizeof(length), &length);
-		typename std::map<K, T>::const_iterator it;
-		for (it = map.begin(); it != map.end(); ++it) {
-			Serialize(stream, (*it).first);
-			Serialize(stream, (*it).second);
+		for (const auto &item : map) {
+			Serialize(stream, item.first);
+			Serialize(stream, item.second);
 		}
 	}
 	template <typename K, typename T>
 	static void Serialize(IStream& stream, const std::map<K, T>* const map)
+	{
+		Serialize(stream, *map);
+	}
+
+	// std::unordered_map
+	template <typename K, typename T>
+	static void Serialize(IStream& stream, const std::unordered_map<K, T>& map)
+	{
+		size_t length = map.size();
+		stream.write(sizeof(length), &length);
+		for (const auto &item : map) {
+			Serialize(stream, item.first);
+			Serialize(stream, item.second);
+		}
+	}
+	template <typename K, typename T>
+	static void Serialize(IStream& stream, const std::unordered_map<K, T>* const map)
 	{
 		Serialize(stream, *map);
 	}
@@ -469,6 +485,28 @@ struct Deserialization {
 		map = new std::map<K, T>;
 		Deserialize(stream, *map);
 	}
+
+	// std::unordered_map
+	template <typename K, typename T>
+	static void Deserialize(IStream& stream, std::unordered_map<K, T>& map)
+	{
+		size_t length;
+		stream.read(sizeof(length), &length);
+		for (size_t i = 0; i < length; ++i) {
+			K key;
+			T obj;
+			Deserialize(stream, key);
+			Deserialize(stream, obj);
+			map[key] = std::move(obj);
+		}
+	}
+	template <typename K, typename T>
+	static void Deserialize(IStream& stream, std::unordered_map<K, T>*& map)
+	{
+		map = new std::map<K, T>;
+		Deserialize(stream, *map);
+	}
+
 }; // struct Deserialization
 
 // generic serialization

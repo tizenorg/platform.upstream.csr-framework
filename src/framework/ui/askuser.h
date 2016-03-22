@@ -14,41 +14,36 @@
  *  limitations under the License
  */
 /*
- * @file        connection.h
+ * @file        askuser.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       Ask user and get response to handle screening result
  */
 #pragma once
 
 #include <string>
-#include <functional>
-#include <memory>
+#include <vector>
 
-#include "common/socket.h"
-#include "common/raw-buffer.h"
+#include "ui/common.h"
+#include "csr/content-screening-types.h"
+#include "csr/web-protection-types.h"
 
 namespace Csr {
+namespace Ui {
 
-class Connection {
+class AskUser {
 public:
-	explicit Connection(Socket &&socket);
-	virtual ~Connection();
+	AskUser();
+	virtual ~AskUser();
 
-	Connection(const Connection &) = delete;
-	Connection &operator=(const Connection &) = delete;
+	AskUser(const AskUser &) = delete;
+	AskUser &operator=(const AskUser &) = delete;
 
-	Connection(Connection &&);
-	Connection &operator=(Connection &&);
-
-	void send(const RawBuffer &) const;
-	RawBuffer receive(void) const;
-	int getFd(void) const;
-
-private:
-	Socket m_socket;
+	Response fileSingle(const std::string &message, const FileItem &item) const;
+	ResponseMap fileMultiple(const std::string &message, const FileItems &items) const;
+	Response urlSingle(const std::string &message, const UrlItem &item) const;
+	ResponseMap urlMultiple(const std::string &message, const UrlItems &items) const;
 };
 
-using ConnShPtr = std::shared_ptr<Connection>;
-
+}
 }

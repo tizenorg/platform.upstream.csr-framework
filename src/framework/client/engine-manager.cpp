@@ -21,7 +21,7 @@
  */
 #include "csr/engine-manager.h"
 
-#include "audit/logger.h"
+#include "common/audit/logger.h"
 
 #define API __attribute__((visibility("default")))
 

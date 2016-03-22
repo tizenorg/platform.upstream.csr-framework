@@ -19,7 +19,7 @@
  * @version     1.0
  * @brief
  */
-#include "socket.h"
+#include "common/socket.h"
 
 #include <exception>
 #include <system_error>
@@ -31,7 +31,7 @@
 
 #include <systemd/sd-daemon.h>
 
-#include "audit/logger.h"
+#include "common/audit/logger.h"
 
 namespace {
 

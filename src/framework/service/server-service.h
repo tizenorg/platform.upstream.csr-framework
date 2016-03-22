@@ -14,33 +14,27 @@
  *  limitations under the License
  */
 /*
- * @file        csr-main.cpp
+ * @file        server-service.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       Main of csr daemon
+ * @brief
  */
-#include "service/server-service.h"
+#pragma once
 
-#include "common/audit/logger.h"
+#include "common/service.h"
+#include "service/logic.h"
 
-int main(void)
-{
-	try {
-		INFO("Start csr-server main!");
+namespace Csr {
 
-		Csr::ServerService service("/tmp/." SERVICE_NAME ".socket");
+class ServerService : public Service {
+public:
+	ServerService(const std::string &address);
+	virtual ~ServerService();
 
-		INFO("Let's start csr-server service!");
+private:
+	virtual void onMessageProcess(const ConnShPtr &) override;
 
-		/* no timeout */
-		service.start(-1);
+	Logic m_logic;
+};
 
-		return 0;
-	} catch (const std::exception &e) {
-		ERROR("std exception occured in csr-server main! what: " << e.what());
-		return -1;
-	} catch (...) {
-		ERROR("Unhandled exception occured in csr-server main!");
-		return -1;
-	}
 }

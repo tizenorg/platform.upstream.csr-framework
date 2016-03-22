@@ -20,19 +20,23 @@
 ###############     SERVER     ###################
 PKG_CHECK_MODULES(${TARGET_CSR_SERVER}_DEP
 	REQUIRED
+	libsystemd-daemon
 )
 
 SET(${TARGET_CSR_SERVER}_SRCS
 	framework/main/csr-main.cpp
-	framework/main/mainloop.cpp
 	framework/service/logic.cpp
-	framework/service/service.cpp
+	framework/service/server-service.cpp
+	framework/ui/askuser.cpp
+
+	# question and response codes needed on both of
+	# csr-server and popup-backend service
+	framework/ui/common.cpp
 )
 
 INCLUDE_DIRECTORIES(
-	framework/common
-	framework/main
-	framework/service
+	framework
+	${PROJECT_SOURCE_DIR}/src/include
 	${${TARGET_CSR_SERVER}_DEP_INCLUDED_DIRS}
 )
 
@@ -74,8 +78,7 @@ SET(${TARGET_CSR_CLIENT}_SRCS
 )
 
 INCLUDE_DIRECTORIES(
-	framework/common
-	framework/client
+	framework
 	${PROJECT_SOURCE_DIR}/src/include
 	${${TARGET_CSR_CLIENT}_DEP_INCLUDE_DIRS}
 )

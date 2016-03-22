@@ -19,14 +19,14 @@
  * @version     1.0
  * @brief       client common for both of cs / wp
  */
-#include "client-common.h"
+#include "client/client-common.h"
 
 #include <exception>
 
-#include "audit/logger.h"
-#include "raw-buffer.h"
-#include "connection.h"
-#include "socket.h"
+#include "common/audit/logger.h"
+#include "common/raw-buffer.h"
+#include "common/connection.h"
+#include "common/socket.h"
 
 static void init_lib(void) __attribute__((constructor));
 static void init_lib(void)

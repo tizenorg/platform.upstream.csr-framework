@@ -24,9 +24,9 @@
 #include <string>
 #include <utility>
 
-#include "command-id.h"
-#include "raw-buffer.h"
-#include "message-buffer.h"
+#include "common/command-id.h"
+#include "common/raw-buffer.h"
+#include "common/message-buffer.h"
 
 namespace Csr {
 

@@ -14,41 +14,40 @@
  *  limitations under the License
  */
 /*
- * @file        connection.h
+ * @file        logic.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       Logic for popup service
  */
 #pragma once
 
 #include <string>
 #include <functional>
-#include <memory>
+#include <utility>
 
-#include "common/socket.h"
 #include "common/raw-buffer.h"
+#include "common/message-buffer.h"
+#include "ui/common.h"
+#include "popup.h"
 
 namespace Csr {
+namespace Ui {
 
-class Connection {
+class Logic {
 public:
-	explicit Connection(Socket &&socket);
-	virtual ~Connection();
+	Logic();
+	virtual ~Logic();
 
-	Connection(const Connection &) = delete;
-	Connection &operator=(const Connection &) = delete;
-
-	Connection(Connection &&);
-	Connection &operator=(Connection &&);
-
-	void send(const RawBuffer &) const;
-	RawBuffer receive(void) const;
-	int getFd(void) const;
+	RawBuffer dispatch(const RawBuffer &);
 
 private:
-	Socket m_socket;
+	std::pair<CommandId, MessageBuffer> getRequestInfo(const RawBuffer &);
+
+	RawBuffer fileSingle(const std::string &message, const FileItem &item) const;
+	RawBuffer fileMultiple(const std::string &message, const FileItems &items) const;
+	RawBuffer urlSingle(const std::string &message, const UrlItem &item) const;
+	RawBuffer urlMultiple(const std::string &message, const UrlItems &items) const;
 };
 
-using ConnShPtr = std::shared_ptr<Connection>;
-
+}
 }

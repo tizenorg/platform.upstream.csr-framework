@@ -73,13 +73,12 @@ private:
 
 #define ERROR(MESSAGE)  LOG(Error, MESSAGE)
 #define WARN(MESSAGE)   LOG(Warning, MESSAGE)
+#define INFO(MESSAGE)   LOG(Info, MESSAGE)
 
 #if !defined(NDEBUG)
-#define INFO(MESSAGE)   LOG(Info, MESSAGE)
 #define DEBUG(MESSAGE)  LOG(Debug, MESSAGE)
 #define TRACE(MESSAGE)  LOG(Trace, MESSAGE)
 #else
-#define INFO(MESSAGE)  do {} while (false)
 #define DEBUG(MESSAGE) do {} while (false)
 #define TRACE(MESSAGE) do {} while (false)
 #endif //NDEBUG

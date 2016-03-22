@@ -1,0 +1,14 @@
+[Unit]
+Description= Csr popup socket
+Wants=@SERVICE_NAME@-popup.service
+Before=@SERVICE_NAME@-popup.service
+
+[Socket]
+ListenStream=/tmp/.@SERVICE_NAME@-popup.socket
+Service=@SERVICE_NAME@-popup.service
+SocketMode=0777
+SmackLabelIPIn=@SERVICE_NAME@
+SmackLabelIPOut=@SERVICE_NAME@
+
+[Install]
+WantedBy=sockets.target

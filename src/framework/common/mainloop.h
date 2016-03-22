@@ -14,41 +14,45 @@
  *  limitations under the License
  */
 /*
- * @file        connection.h
+ * @file        mainloop.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       Manageloop of csr-server with epoll
  */
 #pragma once
 
-#include <string>
 #include <functional>
-#include <memory>
-
-#include "common/socket.h"
-#include "common/raw-buffer.h"
+#include <mutex>
+#include <unordered_map>
 
 namespace Csr {
 
-class Connection {
+class Mainloop {
 public:
-	explicit Connection(Socket &&socket);
-	virtual ~Connection();
+	typedef std::function<void(uint32_t event)> Callback;
 
-	Connection(const Connection &) = delete;
-	Connection &operator=(const Connection &) = delete;
+	Mainloop();
+	virtual ~Mainloop();
 
-	Connection(Connection &&);
-	Connection &operator=(Connection &&);
+	Mainloop(const Mainloop &) = delete;
+	Mainloop &operator=(const Mainloop &) = delete;
+	Mainloop(Mainloop &&) = delete;
+	Mainloop &operator=(Mainloop &&) = delete;
 
-	void send(const RawBuffer &) const;
-	RawBuffer receive(void) const;
-	int getFd(void) const;
+	void run(int timeout);
+
+	void addEventSource(int fd, uint32_t event, Callback &&callback);
+	void removeEventSource(int fd);
 
 private:
-	Socket m_socket;
-};
+	void dispatch(int timeout);
 
-using ConnShPtr = std::shared_ptr<Connection>;
+	bool m_isTimedOut;
+	int m_pollfd;
+	std::mutex m_mutex;
+	std::unordered_map<int, Callback> m_callbacks;
+
+	constexpr static size_t MAX_EPOLL_EVENTS = 32;
+};
 
 }

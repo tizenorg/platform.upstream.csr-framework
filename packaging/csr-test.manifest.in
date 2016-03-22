@@ -7,8 +7,10 @@
 			<smack request="sys-assert::core" type="rwxat" />
 			<smack request="systemd" type="rx" />
 			<smack request="csr" type="rwxat" />
+			<smack request="sdbd" type="rx" />
 		</request>
 		<permit>
+			<smack permit="_" type="rx" />
 		</permit>
 	</define>
 	<request>

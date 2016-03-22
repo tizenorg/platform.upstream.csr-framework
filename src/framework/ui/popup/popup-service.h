@@ -14,33 +14,30 @@
  *  limitations under the License
  */
 /*
- * @file        csr-main.cpp
+ * @file        popup-service.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       Main of csr daemon
+ * @brief
  */
-#include "service/server-service.h"
+#pragma once
 
-#include "common/audit/logger.h"
+#include <string>
 
-int main(void)
-{
-	try {
-		INFO("Start csr-server main!");
+#include "common/service.h"
+#include "logic.h"
 
-		Csr::ServerService service("/tmp/." SERVICE_NAME ".socket");
+namespace Csr {
+namespace Ui {
 
-		INFO("Let's start csr-server service!");
+class PopupService : public Service {
+public:
+	PopupService(const std::string &address);
+	virtual ~PopupService();
 
-		/* no timeout */
-		service.start(-1);
+private:
+	virtual void onMessageProcess(const ConnShPtr &) override;
+	Logic m_logic;
+};
 
-		return 0;
-	} catch (const std::exception &e) {
-		ERROR("std exception occured in csr-server main! what: " << e.what());
-		return -1;
-	} catch (...) {
-		ERROR("Unhandled exception occured in csr-server main!");
-		return -1;
-	}
-}
+} // namespace Ui
+} // namespace Csr

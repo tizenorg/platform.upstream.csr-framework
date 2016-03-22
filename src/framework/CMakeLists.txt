@@ -27,6 +27,8 @@ SET(${TARGET_CSR_COMMON}_SRCS
 	common/connection.cpp
 	common/message-buffer.cpp
 	common/socket.cpp
+	common/service.cpp
+	common/mainloop.cpp
 	common/audit/console-sink.cpp
 	common/audit/dlog-sink.cpp
 	common/audit/logger.cpp
@@ -51,3 +53,5 @@ TARGET_LINK_LIBRARIES(${TARGET_CSR_COMMON}
 )
 
 INSTALL(TARGETS ${TARGET_CSR_COMMON} DESTINATION ${LIB_INSTALL_DIR})
+
+ADD_SUBDIRECTORY(ui)

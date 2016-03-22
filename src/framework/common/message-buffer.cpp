@@ -20,7 +20,7 @@
  * @version     1.0
  * @brief       Implementation of MessageBuffer.
  */
-#include "message-buffer.h"
+#include "common/message-buffer.h"
 
 #include <exception>
 #include <cstring>

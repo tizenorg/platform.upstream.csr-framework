@@ -14,44 +14,36 @@
  *  limitations under the License
  */
 /*
- * @file        mainloop.h
+ * @file        popup-service.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       Manageloop of csr-server with epoll
+ * @brief
  */
-#pragma once
+#include "popup-service.h"
 
-#include <functional>
-#include <mutex>
-#include <unordered_map>
+#include "common/audit/logger.h"
 
 namespace Csr {
+namespace Ui {
 
-class Mainloop {
-public:
-	typedef std::function<void(uint32_t event)> Callback;
-
-	Mainloop();
-	virtual ~Mainloop();
-
-	Mainloop(const Mainloop &) = delete;
-	Mainloop &operator=(const Mainloop &) = delete;
-	Mainloop(Mainloop &&) = delete;
-	Mainloop &operator=(Mainloop &&) = delete;
-
-	void run(void);
-
-	void addEventSource(int fd, uint32_t event, Callback &&callback);
-	void removeEventSource(int fd);
-
-private:
-	void dispatch(int timeout);
-
-	int m_pollfd;
-	std::mutex m_mutex;
-	std::unordered_map<int, Callback> m_callbacks;
-
-	constexpr static size_t MAX_EPOLL_EVENTS = 32;
-};
-
+PopupService::PopupService(const std::string &address) : Service(address)
+{
 }
+
+PopupService::~PopupService()
+{
+}
+
+void PopupService::onMessageProcess(const ConnShPtr &connection)
+{
+	DEBUG("process message on popup service");
+
+	auto reply = m_logic.dispatch(connection->receive());
+
+	connection->send(reply);
+
+	DEBUG("process done on popup service");
+}
+
+} // namespace Ui
+} // namespace Csr

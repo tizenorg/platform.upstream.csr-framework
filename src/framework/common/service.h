@@ -22,12 +22,10 @@
 #pragma once
 
 #include <string>
-#include <memory>
 #include <functional>
 
-#include "connection.h"
-#include "mainloop.h"
-#include "logic.h"
+#include "common/connection.h"
+#include "common/mainloop.h"
 
 namespace Csr {
 
@@ -38,15 +36,20 @@ public:
 	Service(const std::string &address);
 	virtual ~Service();
 
-	void start(void);
-	void stop(void);
+	Service(const Service &) = delete;
+	Service &operator=(const Service &) = delete;
+	Service(Service &&) = delete;
+	Service &operator=(Service &&) = delete;
+
+	virtual void start(int timeout) final;
+	virtual void stop(void) final;
 
 	/* ConnCallback param should throw exception to handle error */
-	void setNewConnectionCallback(const ConnCallback &);
-	void setCloseConnectionCallback(const ConnCallback &);
+	virtual void setNewConnectionCallback(const ConnCallback &) final;
+	virtual void setCloseConnectionCallback(const ConnCallback &) final;
 
 private:
-	void onMessageProcess(const ConnShPtr &);
+	virtual void onMessageProcess(const ConnShPtr &) = 0;
 
 	ConnCallback m_onNewConnection;
 	ConnCallback m_onCloseConnection;
@@ -54,8 +57,6 @@ private:
 	std::unordered_map<int, ConnShPtr> m_connectionRegistry;
 	Mainloop m_loop;
 	std::string m_address;
-
-	Logic m_logic;
 };
 
 }

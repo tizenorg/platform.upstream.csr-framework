@@ -22,9 +22,9 @@
  */
 #pragma once
 
-#include "raw-buffer.h"
-#include "binary-queue.h"
-#include "serialization.h"
+#include "common/raw-buffer.h"
+#include "common/binary-queue.h"
+#include "common/serialization.h"
 
 namespace Csr {
 

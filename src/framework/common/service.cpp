@@ -19,18 +19,16 @@
  * @version     1.0
  * @brief
  */
-#include "service.h"
+#include "common/service.h"
 
 #include <sys/types.h>
 #include <sys/epoll.h>
 
-#include "audit/logger.h"
+#include "common/audit/logger.h"
 
 namespace Csr {
 
-Service::Service(const std::string &address) :
-	m_loop(),
-	m_address(address)
+Service::Service(const std::string &address) : m_address(address)
 {
 	DEBUG("Service constructed with address[" << address << "]");
 
@@ -42,13 +40,13 @@ Service::~Service()
 {
 }
 
-void Service::start()
+void Service::start(int timeout)
 {
 	INFO("Service start!");
 
 	Socket socket(m_address);
 
-	DEBUG("Get server socket[" << socket.getFd()
+	DEBUG("Get systemd socket[" << socket.getFd()
 		<< "] with address[" << m_address << "]");
 
 	m_loop.addEventSource(socket.getFd(), EPOLLIN | EPOLLHUP | EPOLLRDHUP,
@@ -59,7 +57,7 @@ void Service::start()
 			m_onNewConnection(std::make_shared<Connection>(socket.accept()));
 		});
 
-	m_loop.run();
+	m_loop.run(timeout);
 }
 
 void Service::stop()
@@ -72,7 +70,7 @@ void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
 	/* TODO: scoped-lock */
 	m_onNewConnection = [&](const ConnShPtr &connection) {
 		if (!connection)
-			throw std::logic_error("onNewCOnnection called but ConnShPtr is nullptr.");
+			throw std::logic_error("onNewConnection called but ConnShPtr is nullptr.");
 
 		int fd = connection->getFd();
 
@@ -133,20 +131,6 @@ void Service::setCloseConnectionCallback(const ConnCallback &/*callback*/)
 			callback(connection);
 */
 	};
-}
-
-void Service::onMessageProcess(const ConnShPtr &connection)
-{
-	DEBUG("let's dispatch it to worker threads.");
-
-	auto process = [&]() {
-		auto reply = m_logic.dispatch(connection->receive());
-
-		connection->send(reply);
-	};
-
-	/* TODO: submit to workqueue */
-	process();
 }
 
 }

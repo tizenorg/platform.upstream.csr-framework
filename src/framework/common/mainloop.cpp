@@ -19,7 +19,7 @@
  * @version     1.0
  * @brief       Mainloop of csr-server with epoll
  */
-#include "mainloop.h"
+#include "common/mainloop.h"
 
 #include <exception>
 #include <stdexcept>
@@ -27,11 +27,12 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
-#include "audit/logger.h"
+#include "common/audit/logger.h"
 
 namespace Csr {
 
 Mainloop::Mainloop() :
+	m_isTimedOut(false),
 	m_pollfd(::epoll_create1(EPOLL_CLOEXEC))
 {
 	if (m_pollfd == -1)
@@ -42,17 +43,22 @@ Mainloop::Mainloop() :
 
 Mainloop::~Mainloop()
 {
-	if (!m_callbacks.empty())
-		throw std::logic_error("m_callbacks shouldn't be empty");
+	if (!m_isTimedOut && !m_callbacks.empty())
+		throw std::logic_error("mainloop registered callbacks should be empty "
+			"except timed out case");
 
 	::close(m_pollfd);
 }
 
-void Mainloop::run()
+void Mainloop::run(int timeout)
 {
-	while (true) {
-		dispatch(-1);
+	m_isTimedOut = false;
+
+	while (!m_isTimedOut) {
+		dispatch(timeout);
 	}
+
+	DEBUG("Mainloop run stopped");
 }
 
 void Mainloop::addEventSource(int fd, uint32_t event, Callback &&callback)
@@ -112,6 +118,12 @@ void Mainloop::dispatch(int timeout)
 		throw std::system_error(
 			std::error_code(errno, std::generic_category()),
 			"epoll_wait failed!");
+
+	if (nfds == 0) {
+		DEBUG("Mainloop timed out!");
+		m_isTimedOut = true;
+		return;
+	}
 
 	for (int i = 0; i < nfds; i++) {
 		/* TODO: use scoped-lock to thread safe on member variables */

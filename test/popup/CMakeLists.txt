@@ -14,43 +14,34 @@
 #
 # @file        CMakeLists.txt
 # @author      Kyungwook Tak (k.tak@samsung.com)
-# @brief       build test program of csr-framework
+# @brief       build test program of csr-popup
 #
-FIND_PACKAGE(Threads REQUIRED)
-ADD_DEFINITIONS("-DBOOST_TEST_DYN_LINK")
-
-PKG_CHECK_MODULES(${TARGET_CSR_TEST}_DEP
+PKG_CHECK_MODULES(${TARGET_CSR_POPUP_TEST}_DEP
 	REQUIRED
 )
 
-SET(${TARGET_CSR_TEST}_SRCS
-	colour_log_formatter.cpp
-	test-api-content-screening.cpp
-	test-api-engine-manager.cpp
-	test-api-web-protection.cpp
-	test-api-engine-content-screening.cpp
-	test-api-engine-web-protection.cpp
+SET(${TARGET_CSR_POPUP_TEST}_SRCS
+	${PROJECT_SOURCE_DIR}/src/framework/ui/askuser.cpp
+	${PROJECT_SOURCE_DIR}/src/framework/ui/common.cpp
+	${PROJECT_SOURCE_DIR}/test/colour_log_formatter.cpp
 	test-main.cpp
+	test-popup.cpp
 )
 
 INCLUDE_DIRECTORIES(
 	${PROJECT_SOURCE_DIR}/src/include
-	./
-	${${TARGET_CSR_TEST}_DEP_INCLUDE_DIRS}
+	${PROJECT_SOURCE_DIR}/src/framework
+	${PROJECT_SOURCE_DIR}/test
+	.
+	${${TARGET_CSR_POPUP_TEST}_DEP_INCLUDE_DIRS}
 )
 
-ADD_EXECUTABLE(${TARGET_CSR_TEST} ${${TARGET_CSR_TEST}_SRCS})
+ADD_EXECUTABLE(${TARGET_CSR_POPUP_TEST} ${${TARGET_CSR_POPUP_TEST}_SRCS})
 
-TARGET_LINK_LIBRARIES(${TARGET_CSR_TEST}
-	${TARGET_CSR_CLIENT}
-	${TARGET_CSR_CS_ENGINE_SAMPLE}
-	${TARGET_CSR_WP_ENGINE_SAMPLE}
-	${${TARGET_CSR_TEST}_DEP_LIBRARIES}
+TARGET_LINK_LIBRARIES(${TARGET_CSR_POPUP_TEST}
+	${TARGET_CSR_COMMON}
 	boost_unit_test_framework
 	-ldl
 )
 
-INSTALL(TARGETS ${TARGET_CSR_TEST} DESTINATION ${BIN_DIR})
-INSTALL(DIRECTORY resources/ DESTINATION ${TEST_DIR})
-
-ADD_SUBDIRECTORY(popup)
+INSTALL(TARGETS ${TARGET_CSR_POPUP_TEST} DESTINATION ${BIN_DIR})

@@ -19,7 +19,7 @@
  * @version     1.0
  * @brief
  */
-#include "binary-queue.h"
+#include "common/binary-queue.h"
 
 #include <cstring>
 #include <cstddef>

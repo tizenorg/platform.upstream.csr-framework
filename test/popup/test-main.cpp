@@ -14,33 +14,24 @@
  *  limitations under the License
  */
 /*
- * @file        csr-main.cpp
- * @author      Kyungwook Tak (k.tak@samsung.com)
- * @version     1.0
- * @brief       Main of csr daemon
+ * @file       test-main.cpp
+ * @author     Kyungwook Tak(k.tak@samsung.com)
+ * @version    1.0
+ * @brief      CSR popup service test main
  */
-#include "service/server-service.h"
 
-#include "common/audit/logger.h"
+#include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test_log.hpp>
+#include <boost/test/results_reporter.hpp>
+#include <colour_log_formatter.h>
 
-int main(void)
-{
-	try {
-		INFO("Start csr-server main!");
-
-		Csr::ServerService service("/tmp/." SERVICE_NAME ".socket");
-
-		INFO("Let's start csr-server service!");
-
-		/* no timeout */
-		service.start(-1);
-
-		return 0;
-	} catch (const std::exception &e) {
-		ERROR("std exception occured in csr-server main! what: " << e.what());
-		return -1;
-	} catch (...) {
-		ERROR("Unhandled exception occured in csr-server main!");
-		return -1;
+struct TestConfig {
+	TestConfig()
+	{
+		boost::unit_test::unit_test_log.set_threshold_level(boost::unit_test::log_test_units);
+		boost::unit_test::results_reporter::set_level(boost::unit_test::SHORT_REPORT);
+		boost::unit_test::unit_test_log.set_formatter(new Csr::Test::colour_log_formatter);
 	}
-}
+};
+
+BOOST_GLOBAL_FIXTURE(TestConfig)

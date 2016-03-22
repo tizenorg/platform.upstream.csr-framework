@@ -19,13 +19,13 @@
  * @version     1.0
  * @brief
  */
-#include "logic.h"
+#include "service/logic.h"
 
 #include <string>
 #include <utility>
 #include <stdexcept>
 
-#include "audit/logger.h"
+#include "common/audit/logger.h"
 #include "csr/error.h"
 
 namespace Csr {
@@ -79,17 +79,15 @@ std::pair<CommandId, MessageBuffer> Logic::getRequestInfo(const RawBuffer &data)
 
 RawBuffer Logic::scanFile(const std::string &filepath)
 {
-	(void) filepath;
+	INFO("Scan file[" << filepath << "] by engine");
 
-	DEBUG("Scan file[" << filepath << "] by engine");
 	return MessageBuffer::Serialize(CSR_ERROR_NONE).pop();
 }
 
 RawBuffer Logic::checkUrl(const std::string &url)
 {
-	(void) url;
+	INFO("Check url[" << url << "] by engine");
 
-	DEBUG("CHeck url[" << url << "] by engine");
 	return MessageBuffer::Serialize(CSR_ERROR_NONE).pop();
 }
 

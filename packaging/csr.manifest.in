@@ -6,8 +6,20 @@
 			<smack request="device::app_logging" type="rw" />
 			<smack request="sys-assert::core" type="rwxat" />
 			<smack request="systemd" type="rx" />
+			<smack request="xorg" type="rwxat" />
+			<smack request="system::homedir" type="rx" />
+			<smack request="tizen::vconf::setting" type="rl" />
+			<smack request="tizen::vconf::setting::admin" type="rl" />
+			<smack request="tizen::vconf::public::r::platform::rw" type="rl" />
+			<smack request="tizen::vconf::camcorder" type="rl" />
+			<smack request="isf" type="rx" />
+			<smack request="dbus" type="w" />
+			<smack request="pulseaudio" type="w" />
+			<smack request="sdbd" type="rx" />
 		</request>
 		<permit>
+			<smack permit="_" type="rx" />
+			<smack permit="xorg" type="rx" />
 		</permit>
 	</define>
 	<request>

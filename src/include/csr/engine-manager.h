@@ -61,8 +61,6 @@ typedef enum {
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
- *
- * @see csr_context_create()
  */
 int csr_get_selected_engine(csr_engine_id_e id, csr_engine_h *engine);
 
@@ -80,7 +78,7 @@ int csr_get_selected_engine(csr_engine_id_e id, csr_engine_h *engine);
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csr_get_engine_info()
+ * @see csr_get_selected_engine()
  */
 int csr_engine_get_vendor(csr_engine_h engine, char **vendor);
 
@@ -98,7 +96,7 @@ int csr_engine_get_vendor(csr_engine_h engine, char **vendor);
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csr_get_engine_info()
+ * @see csr_get_selected_engine()
  */
 int csr_engine_get_name(csr_engine_h engine, char **name);
 
@@ -117,7 +115,7 @@ int csr_engine_get_name(csr_engine_h engine, char **name);
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csr_get_engine_info()
+ * @see csr_get_selected_engine()
  */
 int csr_engine_get_version(csr_engine_h engine, char **version);
 
@@ -136,7 +134,7 @@ int csr_engine_get_version(csr_engine_h engine, char **version);
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csr_get_engine_info()
+ * @see csr_get_selected_engine()
  */
 int csr_engine_get_data_version(csr_engine_h engine, char **version);
 
@@ -154,7 +152,7 @@ int csr_engine_get_data_version(csr_engine_h engine, char **version);
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csr_get_engine_info()
+ * @see csr_get_selected_engine()
  */
 int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *pactivated);
 

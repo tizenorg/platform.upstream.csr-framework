@@ -1,0 +1,15 @@
+data_version=1.0.0
+# data_version should be in the first line.
+# No space is allowed.
+
+# this starts a description of a new risky url
+url=highrisky.test.com
+# LOW/MEDIUM/HIGH
+risk_level=HIGH
+
+url=mediumrisky.test.com
+risk_level=MEDIUM
+
+url=lowrisky.test.com
+risk_level=LOW
+

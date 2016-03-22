@@ -16,10 +16,13 @@ Requires:      lib%{name}-common = %{version}-%{release}
 General purpose content screening and reputation solution. Can scan
 file contents and checking url to prevent malicious items.
 
-%global service_name csr
-%global bin_dir      %{_bindir}
-%global sbin_dir     /sbin
-%global ro_data_dir  %{_datadir}
+%global service_name              csr
+%global bin_dir                   %{_bindir}
+%global sbin_dir                  /sbin
+%global ro_data_dir               %{_datadir}
+%global sample_engine_working_dir /opt/share/%{service_name}/engine
+%global sample_engine_dir         %{_libdir}
+%global test_dir                  /opt/share/%{service_name}-test
 
 %package -n lib%{name}-common
 Summary: Common library package for %{name}
@@ -75,7 +78,10 @@ test program of csr-framework
     -DVERSION=%{version} \
     -DINCLUDE_INSTALL_DIR:PATH=%{_includedir} \
     -DBIN_DIR:PATH=%{bin_dir} \
-    -DSYSTEMD_UNIT_DIR=%{_unitdir}
+    -DSYSTEMD_UNIT_DIR=%{_unitdir} \
+    -DSAMPLE_ENGINE_WORKING_DIR:PATH=%{sample_engine_working_dir} \
+    -DSAMPLE_ENGINE_DIR:PATH=%{sample_engine_dir} \
+    -DTEST_DIR:PATH=%{test_dir}
 
 make %{?jobs:-j%jobs}
 
@@ -133,6 +139,11 @@ fi
 %{_unitdir}/sockets.target.wants/%{service_name}.socket
 %{_unitdir}/%{service_name}.socket
 
+# sample engine related files
+%{sample_engine_dir}/lib%{service_name}-cs-engine.so
+%{sample_engine_dir}/lib%{service_name}-wp-engine.so
+%{sample_engine_working_dir}
+
 %files -n lib%{name}-common
 %defattr(-,root,root,-)
 %manifest %{service_name}-common.manifest
@@ -159,6 +170,9 @@ fi
 
 %files test
 %defattr(-,root,root,-)
+%manifest %{service_name}-test.manifest
 %{ro_data_dir}/license/%{name}-test
 %{ro_data_dir}/license/%{name}-test.BSL-1.0
 %{bin_dir}/%{service_name}-test
+# test resources
+%{test_dir}

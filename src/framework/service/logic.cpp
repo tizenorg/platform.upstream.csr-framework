@@ -79,12 +79,16 @@ std::pair<CommandId, MessageBuffer> Logic::getRequestInfo(const RawBuffer &data)
 
 RawBuffer Logic::scanFile(const std::string &filepath)
 {
+	(void) filepath;
+
 	DEBUG("Scan file[" << filepath << "] by engine");
 	return MessageBuffer::Serialize(CSR_ERROR_NONE).pop();
 }
 
 RawBuffer Logic::checkUrl(const std::string &url)
 {
+	(void) url;
+
 	DEBUG("CHeck url[" << url << "] by engine");
 	return MessageBuffer::Serialize(CSR_ERROR_NONE).pop();
 }

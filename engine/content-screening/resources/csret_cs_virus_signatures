@@ -1,0 +1,19 @@
+data_version=1.0.0
+# data_version should be in the first line.
+# No space is allowed.
+
+# this starts a description of a new malware
+name=test_malware
+# LOW/MEDIUM/HIGH
+severity=HIGH
+# MALWARE/RISKY/GENERIC
+threat_type=MALWARE
+# detailed_url can be null
+detailed_url=http://detailedinfo.malware.com
+signature=X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
+
+name=test_risk
+severity=MEDIUM
+threat_type=RISKY
+detailed_url=
+signature=RISKY_MALWARE

@@ -202,5 +202,6 @@ fi
 %{ro_data_dir}/license/%{name}-test.BSL-1.0
 %{bin_dir}/%{service_name}-test
 %{bin_dir}/%{service_name}-popup-test
+%{bin_dir}/%{service_name}-threadpool-test
 # test resources
 %{test_dir}

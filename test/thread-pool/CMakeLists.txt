@@ -14,18 +14,17 @@
 #
 # @file        CMakeLists.txt
 # @author      Kyungwook Tak (k.tak@samsung.com)
-# @brief       build test program of csr-popup
+# @brief       build test program of server thread pool
 #
-PKG_CHECK_MODULES(${TARGET_CSR_POPUP_TEST}_DEP
+PKG_CHECK_MODULES(${TARGET_CSR_THREADPOOL_TEST}_DEP
 	REQUIRED
 )
 
-SET(${TARGET_CSR_POPUP_TEST}_SRCS
-	${PROJECT_SOURCE_DIR}/src/framework/ui/askuser.cpp
-	${PROJECT_SOURCE_DIR}/src/framework/ui/common.cpp
+SET(${TARGET_CSR_THREADPOOL_TEST}_SRCS
 	${PROJECT_SOURCE_DIR}/test/colour_log_formatter.cpp
+	${PROJECT_SOURCE_DIR}/src/framework/service/thread-pool.cpp
 	test-main.cpp
-	test-popup.cpp
+	test-thread-pool.cpp
 )
 
 INCLUDE_DIRECTORIES(
@@ -33,15 +32,16 @@ INCLUDE_DIRECTORIES(
 	${PROJECT_SOURCE_DIR}/src/framework
 	${PROJECT_SOURCE_DIR}/test
 	.
-	${${TARGET_CSR_POPUP_TEST}_DEP_INCLUDE_DIRS}
+	${${TARGET_CSR_THREADPOOL_TEST}_DEP_INCLUDE_DIRS}
 )
 
-ADD_EXECUTABLE(${TARGET_CSR_POPUP_TEST} ${${TARGET_CSR_POPUP_TEST}_SRCS})
+ADD_EXECUTABLE(${TARGET_CSR_THREADPOOL_TEST} ${${TARGET_CSR_THREADPOOL_TEST}_SRCS})
 
-TARGET_LINK_LIBRARIES(${TARGET_CSR_POPUP_TEST}
+TARGET_LINK_LIBRARIES(${TARGET_CSR_THREADPOOL_TEST}
 	${TARGET_CSR_COMMON}
+	-pthread
 	-lboost_unit_test_framework
 	-ldl
 )
 
-INSTALL(TARGETS ${TARGET_CSR_POPUP_TEST} DESTINATION ${BIN_DIR})
+INSTALL(TARGETS ${TARGET_CSR_THREADPOOL_TEST} DESTINATION ${BIN_DIR})

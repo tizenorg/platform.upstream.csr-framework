@@ -14,36 +14,24 @@
  *  limitations under the License
  */
 /*
- * @file        server-service.cpp
- * @author      Kyungwook Tak (k.tak@samsung.com)
- * @version     1.0
- * @brief
+ * @file       test-main.cpp
+ * @author     Kyungwook Tak(k.tak@samsung.com)
+ * @version    1.0
+ * @brief      CSR thread pool test main
  */
-#include "service/server-service.h"
 
-#include "common/audit/logger.h"
+#include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test_log.hpp>
+#include <boost/test/results_reporter.hpp>
+#include <colour_log_formatter.h>
 
-namespace Csr {
+struct TestConfig {
+	TestConfig()
+	{
+		boost::unit_test::unit_test_log.set_threshold_level(boost::unit_test::log_test_units);
+		boost::unit_test::results_reporter::set_level(boost::unit_test::SHORT_REPORT);
+		boost::unit_test::unit_test_log.set_formatter(new Csr::Test::colour_log_formatter);
+	}
+};
 
-ServerService::ServerService(const std::string &address) :
-	Service(address),
-	m_workqueue(2, 10)
-{
-}
-
-ServerService::~ServerService()
-{
-}
-
-void ServerService::onMessageProcess(const ConnShPtr &connection)
-{
-	DEBUG("let's dispatch it to worker threads.");
-
-	auto process = [&](RawBuffer &buffer) {
-		connection->send(m_logic.dispatch(buffer));
-	};
-
-	m_workqueue.submit(std::bind(process, connection->receive()));
-}
-
-}
+BOOST_GLOBAL_FIXTURE(TestConfig)

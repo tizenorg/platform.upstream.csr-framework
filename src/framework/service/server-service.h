@@ -23,6 +23,7 @@
 
 #include "common/service.h"
 #include "service/logic.h"
+#include "service/thread-pool.h"
 
 namespace Csr {
 
@@ -35,6 +36,7 @@ private:
 	virtual void onMessageProcess(const ConnShPtr &) override;
 
 	Logic m_logic;
+	ThreadPool m_workqueue;
 };
 
 }

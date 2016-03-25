@@ -48,6 +48,11 @@ const std::string QUERY_SEL_SCHEMA_INFO =
 const std::string QUERY_INS_SCHEMA_INFO =
 	"insert or replace into SCHEMA_INFO (name, value) values (?, ?)";
 
+const std::string QUERY_SEL_ENGINE_STATE =
+	"select state from ENGINE_STATE where engine_id = ?";
+
+const std::string QUERY_INS_ENGINE_STATE =
+	"insert or replace into ENGINE_STATE (engine_id, state) values (?, ?)";
 
 const std::string QUERY_SEL_SCAN_REQUEST =
 	"select dir, last_scan from SCAN_REQUEST where dir = ? and data_version = ?";
@@ -222,6 +227,41 @@ bool CsrDB::setDbVersion(int version) noexcept {
 		return stmt.exec();
 	} catch (std::exception &e) {
 		//LogWarn("setDbVersion failed.error_msg=" << e.what());
+		return false;
+	}
+}
+
+//===========================================================================
+// ENGINE_STATE table
+//===========================================================================
+
+int CsrDB::getEngineState(int engineId) noexcept {
+	try{
+		Statement stmt(conn, QUERY_SEL_ENGINE_STATE);
+
+		int idx = 0;
+		stmt.bind(++idx, engineId);
+
+		if (!stmt.step())
+			return -1;
+
+		return stmt.getColumn(0).getInt();
+	} catch (std::exception &e) {
+		//LogWarn("getEngineState failed.error_msg=" << e.what());
+		return -1;
+	}
+}
+
+bool CsrDB::setEngineState(int engineId, int state) noexcept {
+	try {
+		Statement stmt(conn, QUERY_INS_ENGINE_STATE);
+
+		int idx = 0;
+		stmt.bind(++idx, engineId);
+		stmt.bind(++idx, state);
+		return stmt.exec();
+	} catch (std::exception &e) {
+		//LogWarn("setEngineState failed.error_msg=" << e.what());
 		return false;
 	}
 }

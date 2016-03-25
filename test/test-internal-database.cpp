@@ -88,6 +88,31 @@ BOOST_AUTO_TEST_CASE(schema_info)
 	BOOST_REQUIRE_MESSAGE(version == 1, "Failed. getDbVersion. expected=1, actual=" << version);
 }
 
+BOOST_AUTO_TEST_CASE(engine_state)
+{
+	bool result;
+	Csr::Database::CsrDB db(TEST_DB_FILE, TEST_DB_SCRIPTS);
+
+	int state = -1;
+	result = db.setEngineState(1, 1);
+	BOOST_REQUIRE_MESSAGE(result == true, "Failed. setEngineState");
+
+	result = db.setEngineState(2, 2);
+	BOOST_REQUIRE_MESSAGE(result == true, "Failed. setEngineState");
+
+	state = db.getEngineState(1);
+	BOOST_REQUIRE_MESSAGE(state == 1, "Failed. getEngineState. expected=1, actual=" << state);
+
+	state = db.getEngineState(2);
+	BOOST_REQUIRE_MESSAGE(state == 2, "Failed. getEngineState. expected=2, actual=" << state);
+
+	result = db.setEngineState(1, 2);
+	BOOST_REQUIRE_MESSAGE(result == true, "Failed. setEngineState");
+
+	state = db.getEngineState(1);
+	BOOST_REQUIRE_MESSAGE(state == 2, "Failed. getEngineState. expected=2, actual=" << state);
+}
+
 BOOST_AUTO_TEST_CASE(scan_time)
 {
 	bool result;

@@ -140,6 +140,7 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char* message);
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
+ * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason

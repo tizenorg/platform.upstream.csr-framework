@@ -62,6 +62,10 @@ public:
 	int getDbVersion() noexcept;
 	bool setDbVersion(int version) noexcept;
 
+	// ENGINE_STATE
+	int getEngineState(int engineId) noexcept;
+	bool setEngineState(int engineId, int state) noexcept;
+
 	// SCAN_REQUEST
 	long getLastScanTime(const std::string &dir, const std::string &dataVersion)  noexcept;
 	bool insertLastScanTime(const std::string &dir, long scanTime, const std::string &dataVersion)  noexcept;

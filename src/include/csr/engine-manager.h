@@ -48,6 +48,14 @@ typedef enum {
 } csr_activated_e;
 
 /**
+ * @brief State of engine
+ */
+typedef enum {
+	CSR_ENABLE        = 0x01,  /**< Enable engine */
+	CSR_DISABLE       = 0x02   /**< Disable engine */
+} csr_state_e;
+
+/**
  * @brief Gets the handle of a current engine information.
  *
  * @param[in]  id       Engine identifier to get handle.
@@ -158,7 +166,7 @@ int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *time);
  * @brief Extracts the state of engine activation from the engine information handle.
  *
  * @param[in]  engine      The engine information handle.
- * @param[out] pactivated  A pointer of the engine state.
+ * @param[out] pactivated  A pointer of the engine activation state.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -171,6 +179,43 @@ int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *time);
  * @see csr_get_current_engine()
  */
 int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *pactivated);
+
+/**
+ * @brief Enable or disable an engine.
+ *        If an engine is disabled, all major operations fail with CSR_ERROR_ENGINE_DISABLED error.
+ *
+ * @param[in]  engine      The engine information handle.
+ * @param[in]  state       The engine state.
+ *
+ * @return #CSR_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSR_ERROR_NONE                 Successful
+ * @retval #CSR_ERROR_INVALID_HANDLE       Invalid engine information handle
+ * @retval #CSR_ERROR_INVALID_PARAMETER    state is invalid
+ * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
+ * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ *
+ * @see csr_get_current_engine()
+ */
+int csr_engine_set_state(csr_engine_h engine, csr_state_e state);
+
+/**
+ * @brief Get the engine state.
+ *
+ * @param[in]  engine      The engine information handle.
+ * @param[out] pstate      The pointer of the engine state.
+ *
+ * @return #CSR_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSR_ERROR_NONE                 Successful
+ * @retval #CSR_ERROR_INVALID_HANDLE       Invalid engine information handle
+ * @retval #CSR_ERROR_INVALID_PARAMETER    pstate is invalid
+ * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
+ * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ *
+ * @see csr_get_current_engine()
+ */
+int csr_engine_get_state(csr_engine_h engine, csr_state_e *pstate);
 
 /**
  * @brief Releases all system resources associated with a engine information handle.

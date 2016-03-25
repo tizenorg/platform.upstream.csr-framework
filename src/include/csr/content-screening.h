@@ -22,6 +22,8 @@
 #ifndef __CSR_CONTENT_SCREENING_API_H_
 #define __CSR_CONTENT_SCREENING_API_H_
 
+#include <time.h>
+
 #include "csr/content-screening-types.h"
 #include "csr/error.h"
 
@@ -163,6 +165,7 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle);
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
+ * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -192,6 +195,7 @@ int csr_cs_scan_data(csr_cs_context_h handle,
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
+ * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -310,6 +314,7 @@ int csr_cs_set_callback_on_file_scanned(csr_cs_context_h handle, csr_cs_on_file_
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
+ * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -341,6 +346,7 @@ int csr_cs_scan_files_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
+ * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -374,6 +380,7 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
+ * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -484,7 +491,7 @@ int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, char** detailed
  * @retval #CSR_ERROR_INVALID_PARAMETER    timestamp is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_timestamp(csr_cs_detected_h detected, long* timestamp);
+int csr_cs_detected_get_timestamp(csr_cs_detected_h detected, time_t* timestamp);
 
 /**
  * @brief extracts the file name where a malware is detected from the detected malware handle.

@@ -11,6 +11,7 @@ BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(libsystemd-daemon)
 BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(elementary)
+BuildRequires: pkgconfig(sqlite3)
 Requires:      lib%{name}-common = %{version}-%{release}
 %{?systemd_requires}
 
@@ -22,6 +23,8 @@ file contents and checking url to prevent malicious items.
 %global bin_dir                   %{_bindir}
 %global sbin_dir                  /sbin
 %global ro_data_dir               %{_datadir}
+%global ro_db_dir                 %{_datadir}/%{service_name}/dbspace
+%global rw_db_dir                 /opt/share//%{service_name}/dbspace
 %global sample_engine_working_dir /opt/share/%{service_name}/engine
 %global sample_engine_dir         %{_libdir}
 %global test_dir                  /opt/share/%{service_name}-test
@@ -82,6 +85,8 @@ test program of csr-framework
     -DBIN_DIR:PATH=%{bin_dir} \
     -DSYSTEMD_UNIT_DIR=%{_unitdir} \
     -DSYSTEMD_UNIT_USER_DIR=%{_unitdir_user} \
+    -DRO_DBSPACE:PATH=%{ro_db_dir} \
+    -DRW_DBSPACE:PATH=%{rw_db_dir} \
     -DSAMPLE_ENGINE_WORKING_DIR:PATH=%{sample_engine_working_dir} \
     -DSAMPLE_ENGINE_DIR:PATH=%{sample_engine_dir} \
     -DTEST_DIR:PATH=%{test_dir}
@@ -107,6 +112,10 @@ cp LICENSE %{buildroot}%{ro_data_dir}/license/lib%{name}-client
 cp LICENSE %{buildroot}%{ro_data_dir}/license/lib%{name}-common
 cp LICENSE %{buildroot}%{ro_data_dir}/license/%{name}-test
 cp LICENSE.BSL-1.0 %{buildroot}%{ro_data_dir}/license/%{name}-test.BSL-1.0
+
+mkdir -p %{buildroot}%{ro_db_dir}
+mkdir -p %{buildroot}%{rw_db_dir}
+cp data/scripts/*.sql %{buildroot}%{ro_db_dir}
 
 %post
 systemctl daemon-reload
@@ -154,6 +163,8 @@ fi
 %{_unitdir}/%{service_name}-popup.service
 %{_unitdir}/sockets.target.wants/%{service_name}-popup.socket
 %{_unitdir}/%{service_name}-popup.socket
+
+%attr(444, system, system) %{ro_db_dir}/*.sql
 
 # sample engine related files
 %{sample_engine_dir}/lib%{service_name}-cs-engine.so

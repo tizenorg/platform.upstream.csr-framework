@@ -19,22 +19,32 @@
 FIND_PACKAGE(Threads REQUIRED)
 ADD_DEFINITIONS("-DBOOST_TEST_DYN_LINK")
 
+SET(CSR_FW_SRC_PATH ${PROJECT_SOURCE_DIR}/src/framework)
+SET(CSR_FW_DB_SRC_PATH ${CSR_FW_SRC_PATH}/database)
+
 PKG_CHECK_MODULES(${TARGET_CSR_TEST}_DEP
 	REQUIRED
+	sqlite3
 )
 
 SET(${TARGET_CSR_TEST}_SRCS
+	${CSR_FW_DB_SRC_PATH}/column.cpp
+	${CSR_FW_DB_SRC_PATH}/connection.cpp
+	${CSR_FW_DB_SRC_PATH}/statement.cpp
+	${CSR_FW_DB_SRC_PATH}/csr_db.cpp
 	colour_log_formatter.cpp
 	test-api-content-screening.cpp
 	test-api-engine-manager.cpp
 	test-api-web-protection.cpp
 	test-api-engine-content-screening.cpp
 	test-api-engine-web-protection.cpp
+	test-internal-database.cpp
 	test-main.cpp
 )
 
 INCLUDE_DIRECTORIES(
 	${PROJECT_SOURCE_DIR}/src/include
+        ${CSR_FW_SRC_PATH}
 	./
 	${${TARGET_CSR_TEST}_DEP_INCLUDE_DIRS}
 )

@@ -21,6 +21,7 @@
 PKG_CHECK_MODULES(${TARGET_CSR_SERVER}_DEP
 	REQUIRED
 	libsystemd-daemon
+	sqlite3
 )
 
 SET(${TARGET_CSR_SERVER}_SRCS
@@ -32,6 +33,10 @@ SET(${TARGET_CSR_SERVER}_SRCS
 	# question and response codes needed on both of
 	# csr-server and popup-backend service
 	framework/ui/common.cpp
+	framework/database/column.cpp
+	framework/database/connection.cpp
+	framework/database/statement.cpp
+	framework/database/csr_db.cpp
 )
 
 INCLUDE_DIRECTORIES(

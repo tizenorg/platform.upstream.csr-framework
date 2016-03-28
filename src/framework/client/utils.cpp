@@ -14,38 +14,42 @@
  *  limitations under the License
  */
 /*
- * @file        client-common.h
+ * @file        utils.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       client common for both of cs / wp
+ * @brief       Utils
  */
-#pragma once
+#include "client/utils.h"
 
-#include <functional>
-#include <string>
+#include <exception>
 
+#include "common/audit/logger.h"
 #include "csr/error.h"
-#include "common/message-buffer.h"
 
+__attribute__((constructor))
+static void init_lib(void)
+{
+	Csr::Audit::Logger::setTag("CSR_CLIENT");
+}
 
 namespace Csr {
 namespace Client {
 
-/* Encode parameters which is Command ID specific */
-using Encoder = std::function<Csr::MessageBuffer(void)>;
-
-/* Decode parameters which is Command ID specific */
-using Decoder = std::function<csr_error_e(Csr::MessageBuffer &&)>;
-
-inline std::string toStlString(const char *cstr)
+int exceptionGuard(const std::function<int()> &func)
 {
-	return (cstr == nullptr) ? std::string() : std::string(cstr);
+	try {
+		return func();
+	} catch (const std::bad_alloc &e) {
+		ERROR("memory allocation failed.");
+		return CSR_ERROR_OUT_OF_MEMORY;
+	} catch (const std::exception &e) {
+		ERROR("std exception: " << e.what());
+		return CSR_ERROR_UNKNOWN;
+	} catch (...) {
+		ERROR("Unknown exception occured!");
+		return CSR_ERROR_UNKNOWN;
+	}
 }
-
-/* post request to server with given encoder/decoder
- * If decoder isn't assigned, default decoder do only deserialize
- * return code(csr_error_e) from message buffer and return it */
-int post(Encoder &&encoder, Decoder &&decoder = nullptr);
 
 }
 }

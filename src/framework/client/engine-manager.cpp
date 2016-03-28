@@ -21,9 +21,8 @@
  */
 #include "csr/engine-manager.h"
 
+#include "client/utils.h"
 #include "common/audit/logger.h"
-
-#define API __attribute__((visibility("default")))
 
 API
 int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *engine)

@@ -21,31 +21,43 @@
  */
 #include "csr/web-protection.h"
 
-#include <functional>
+#include <new>
 
-#include "common/message-buffer.h"
+#include "client/utils.h"
+#include "common/wp-types.h"
 #include "common/command-id.h"
 #include "common/audit/logger.h"
-#include "client/client-common.h"
 
-#define API __attribute__((visibility("default")))
+using namespace Csr;
 
 API
 int csr_wp_context_create(csr_wp_context_h* phandle)
 {
-	(void) phandle;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start");
+	if (phandle == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	*phandle = reinterpret_cast<csr_wp_context_h>(new Wp::Context());
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
 int csr_wp_context_destroy(csr_wp_context_h handle)
 {
-	(void) handle;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start");
+	if (handle == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	delete reinterpret_cast<Wp::Context *>(handle);
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
@@ -71,18 +83,29 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char* message)
 API
 int csr_wp_check_url(csr_wp_context_h handle, const char *url, csr_wp_check_result_h *presult)
 {
-	(void) handle;
-	(void) presult;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start");
-	// Request to server sample with arguments
-	return Csr::Client::post([&]() {
-			// TODO: options in handle should be serialized and send to server
-			return Csr::MessageBuffer::Serialize(
-				Csr::CommandId::CHECK_URL,
-				Csr::Client::toStlString(url));
-		});
-	// TODO: Deserialize result and give it out
+	if (handle == nullptr || presult == nullptr
+		|| url == nullptr || url[0] == '\0')
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	auto context = reinterpret_cast<Wp::Context *>(handle);
+	auto ret = context->dispatch<std::pair<int, Wp::Result *>>(
+		CommandId::CHECK_URL,
+		context,
+		Client::toStlString(url));
+
+	if (ret.first != CSR_ERROR_NONE || ret.second == nullptr) {
+		ERROR("Error! ret: " << ret.first);
+		return ret.first;
+	}
+
+	*presult = reinterpret_cast<csr_wp_check_result_h>(ret.second);
+	context->addResult(ret.second);
+
+	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API

@@ -14,23 +14,40 @@
  *  limitations under the License
  */
 /*
- * @file        error.cpp
- * @author      Kyungwook Tak (k.tak@samsung.com)
+ * @file        dispatcher.cpp
+ * @author      Jaemin Ryu (jm77.ryu@samsung.com)
  * @version     1.0
  * @brief
  */
-#include "csr/error.h"
+#include "common/dispatcher.h"
 
-#include "client/utils.h"
-#include "common/audit/logger.h"
+#include <utility>
 
+#include "common/socket.h"
 
-API
-int csr_get_error_string(int error_code, char** string)
+namespace Csr {
+
+Dispatcher::Dispatcher(const std::string &path) : m_address(path)
 {
-	(void) error_code;
-	(void) string;
-
-	DEBUG("start");
-	return CSR_ERROR_NONE;
 }
+
+Dispatcher::~Dispatcher()
+{
+	disconnect();
+}
+
+void Dispatcher::connect()
+{
+	m_connection = std::make_shared<Connection>(Socket::connect(m_address));
+}
+
+void Dispatcher::disconnect()
+{
+}
+
+bool Dispatcher::isConnected()
+{
+	return m_connection ? true : false;
+}
+
+} // namespace Csr

@@ -14,23 +14,32 @@
  *  limitations under the License
  */
 /*
- * @file        error.cpp
+ * @file        utils.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       Utils
  */
-#include "csr/error.h"
+#pragma once
 
-#include "client/utils.h"
+#include <string>
+#include <functional>
+
 #include "common/audit/logger.h"
 
+#define API __attribute__((visibility("default")))
 
-API
-int csr_get_error_string(int error_code, char** string)
+#define EXCEPTION_SAFE_START return Csr::Client::exceptionGuard([&]()->int {
+#define EXCEPTION_SAFE_END });
+
+namespace Csr {
+namespace Client {
+
+inline std::string toStlString(const char *cstr)
 {
-	(void) error_code;
-	(void) string;
-
-	DEBUG("start");
-	return CSR_ERROR_NONE;
+	return (cstr == nullptr) ? std::string() : std::string(cstr);
 }
+
+int exceptionGuard(const std::function<int()> &);
+
+} // namespace Client
+} // namespace Csr

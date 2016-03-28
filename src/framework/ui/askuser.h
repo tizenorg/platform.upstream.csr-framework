@@ -23,8 +23,10 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "ui/common.h"
+#include "common/dispatcher.h"
 #include "csr/content-screening-types.h"
 #include "csr/web-protection-types.h"
 
@@ -43,6 +45,10 @@ public:
 	ResponseMap fileMultiple(const std::string &message, const FileItems &items) const;
 	Response urlSingle(const std::string &message, const UrlItem &item) const;
 	ResponseMap urlMultiple(const std::string &message, const UrlItems &items) const;
+
+private:
+	std::string m_address;
+	std::unique_ptr<Dispatcher> m_dispatcher;
 };
 
 }

@@ -23,15 +23,18 @@ PKG_CHECK_MODULES(${TARGET_CSR_COMMON}_DEP
 )
 
 SET(${TARGET_CSR_COMMON}_SRCS
-	common/binary-queue.cpp
-	common/connection.cpp
-	common/message-buffer.cpp
-	common/socket.cpp
-	common/service.cpp
-	common/mainloop.cpp
 	common/audit/console-sink.cpp
 	common/audit/dlog-sink.cpp
 	common/audit/logger.cpp
+	common/binary-queue.cpp
+	common/connection.cpp
+	common/cs-types.cpp
+	common/dispatcher.cpp
+	common/mainloop.cpp
+	common/message-buffer.cpp
+	common/service.cpp
+	common/socket.cpp
+	common/wp-types.cpp
 )
 
 INCLUDE_DIRECTORIES(

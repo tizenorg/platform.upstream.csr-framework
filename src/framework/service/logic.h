@@ -24,6 +24,8 @@
 #include <string>
 #include <utility>
 
+#include "common/cs-types.h"
+#include "common/wp-types.h"
 #include "common/command-id.h"
 #include "common/raw-buffer.h"
 #include "common/message-buffer.h"
@@ -40,8 +42,8 @@ public:
 private:
 	std::pair<CommandId, MessageBuffer> getRequestInfo(const RawBuffer &);
 
-	RawBuffer scanFile(const std::string &filepath);
-	RawBuffer checkUrl(const std::string &url);
+	RawBuffer scanFile(const Cs::Context &context, const std::string &filepath);
+	RawBuffer checkUrl(const Wp::Context &context, const std::string &url);
 };
 
 }

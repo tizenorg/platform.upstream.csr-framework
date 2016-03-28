@@ -21,118 +21,52 @@
  */
 #include "ui/askuser.h"
 
-#include "common/raw-buffer.h"
-#include "common/message-buffer.h"
-#include "common/connection.h"
-#include "common/socket.h"
+#include <new>
+
 #include "common/audit/logger.h"
 
 namespace Csr {
 namespace Ui {
 
-namespace {
-
-inline Csr::Connection makeConnection(const std::string &address)
+AskUser::AskUser() : m_address("/tmp/." SERVICE_NAME "-popup.socket")
 {
-	DEBUG("Try to make connection to csr-popup service");
-
-	return Csr::Connection(Csr::Socket::connect(address));
-}
-
-inline Csr::Connection makeConnection(void)
-{
-	return makeConnection("/tmp/." SERVICE_NAME "-popup.socket");
-}
-
-inline Csr::RawBuffer dispatch(const Csr::Connection &connection, const Csr::RawBuffer &buf)
-{
-	DEBUG("Try to dispatch to csr-popup service");
-
-	connection.send(buf);
-
-	DEBUG("Wait for response from csr-popup service");
-
-	return connection.receive();
-}
-
-Response ask(const RawBuffer &buf)
-{
-	auto conn = makeConnection();
-
-	auto reply = dispatch(conn, buf);
-
-	Csr::MessageBuffer msg;
-	msg.push(reply);
-
-	int int_response;
-	msg.Deserialize(int_response);
-	return static_cast<Response>(int_response);
-}
-
-ResponseMap askMultiple(const RawBuffer &buf)
-{
-	auto conn = makeConnection();
-
-	auto reply = dispatch(conn, buf);
-
-	Csr::MessageBuffer msg;
-	msg.push(reply);
-
-	ResponseMap responseMap;
-	msg.Deserialize(responseMap);
-
-	return responseMap;
-}
-
-} // namespace Csr::Ui::anonymous
-
-AskUser::AskUser()
-{
+	m_dispatcher.reset(new Dispatcher(m_address));
 }
 
 AskUser::~AskUser()
 {
 }
 
-
 Response AskUser::fileSingle(const std::string &message, const FileItem &item) const
 {
-	auto inbuf = Csr::MessageBuffer::Serialize(
-			static_cast<int>(CommandId::FILE_SINGLE),
-			message,
-			item).pop();
-
-	return ask(inbuf);
+	return static_cast<Response>(m_dispatcher->methodCall<int>(
+		static_cast<int>(CommandId::FILE_SINGLE),
+		message,
+		item));
 }
 
 ResponseMap AskUser::fileMultiple(const std::string &message, const FileItems &items) const
 {
-	auto inbuf = Csr::MessageBuffer::Serialize(
-			static_cast<int>(CommandId::FILE_MULTIPLE),
-			message,
-			items).pop();
-
-	return askMultiple(inbuf);
+	return m_dispatcher->methodCall<ResponseMap>(
+		static_cast<int>(CommandId::FILE_MULTIPLE),
+		message,
+		items);
 }
 
 Response AskUser::urlSingle(const std::string &message, const UrlItem &item) const
 {
-	auto inbuf = Csr::MessageBuffer::Serialize(
-			static_cast<int>(CommandId::URL_SINGLE),
-			message,
-			item).pop();
-
-	return ask(inbuf);
+	return static_cast<Response>(m_dispatcher->methodCall<int>(
+		static_cast<int>(CommandId::URL_SINGLE),
+		message,
+		item));
 }
 
 ResponseMap AskUser::urlMultiple(const std::string &message, const UrlItems &items) const
 {
-	auto inbuf = Csr::MessageBuffer::Serialize(
-			static_cast<int>(CommandId::URL_MULTIPLE),
-			message,
-			items).pop();
-
-	return askMultiple(inbuf);
+	return m_dispatcher->methodCall<ResponseMap>(
+		static_cast<int>(CommandId::URL_MULTIPLE),
+		message,
+		items);
 }
 
 } // namespace Ui

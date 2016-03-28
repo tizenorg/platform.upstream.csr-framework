@@ -46,18 +46,18 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 
 	switch (info.first) {
 	case CommandId::SCAN_FILE: {
+		Cs::Context context;
 		std::string filepath;
-		// csr-cs handle deserialize
-		info.second.Deserialize(filepath);
-		return scanFile(filepath);
+		info.second.Deserialize(context, filepath);
+		return scanFile(context, filepath);
 	}
 
 	/* TODO: should we separate command->logic mapping of CS and WP ? */
 	case CommandId::CHECK_URL: {
+		Wp::Context context;
 		std::string url;
-		// csr-wp handle deserialize
-		info.second.Deserialize(url);
-		return checkUrl(url);
+		info.second.Deserialize(context, url);
+		return checkUrl(context, url);
 	}
 
 	default:
@@ -77,18 +77,20 @@ std::pair<CommandId, MessageBuffer> Logic::getRequestInfo(const RawBuffer &data)
 	return std::make_pair(id, std::move(msgbuffer));
 }
 
-RawBuffer Logic::scanFile(const std::string &filepath)
+RawBuffer Logic::scanFile(const Cs::Context &context, const std::string &filepath)
 {
 	INFO("Scan file[" << filepath << "] by engine");
+	(void) context;
 
-	return MessageBuffer::Serialize(CSR_ERROR_NONE).pop();
+	return MessageBuffer::Serialize(CSR_ERROR_NONE, Cs::Result()).pop();
 }
 
-RawBuffer Logic::checkUrl(const std::string &url)
+RawBuffer Logic::checkUrl(const Wp::Context &context, const std::string &url)
 {
 	INFO("Check url[" << url << "] by engine");
+	(void) context;
 
-	return MessageBuffer::Serialize(CSR_ERROR_NONE).pop();
+	return MessageBuffer::Serialize(CSR_ERROR_NONE, Wp::Result()).pop();
 }
 
 }

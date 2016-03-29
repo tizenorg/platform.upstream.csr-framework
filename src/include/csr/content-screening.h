@@ -602,51 +602,6 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle, const char *dir,
                               csr_cs_detected_list_h *plist, int *pcount);
 
 /**
- * @brief Gets information on a ignored malware file specified by file path.
- *
- * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
- * @param[in]  file_path  A path of a ignored malware file.
- * @param[out] pdetected  A pointer of the detected malware handle. It can be null when
- *                        no ignored file.
- *
- * @return #CSR_ERROR_NONE on success, otherwise a negative error value
- *
- * @retval #CSR_ERROR_NONE                  Successful
- * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or action is invalid
- * @retval #CSR_ERROR_FILE_NOT_FOUND        No ignored file
- * @retval #CSR_ERROR_SOCKET                Socket error between client and server
- * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
- */
-int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path, csr_cs_detected_h *pdetected);
-
-/**
- * @brief Gets information on a ignored malware files specified by directory path.
- *
- * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
- * @param[in]  dir        A directory path where ignored malware files exists.
- * @param[out] plist      A pointer of the detected malware list handle. It can be null
- *                        when no ignored file.
- * @param[out] pcount     Count of ignored malware files which existed in the specified
- *                        directory.
- *
- * @return #CSR_ERROR_NONE on success, otherwise a negative error value
- *
- * @retval #CSR_ERROR_NONE                  Successful
- * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or action is invalid
- * @retval #CSR_ERROR_FILE_NOT_FOUND        No ingored file
- * @retval #CSR_ERROR_SOCKET                Socket error between client and server
- * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
- */
-int csr_cs_get_ignored_malwares(csr_cs_context_h handle, const char *dir,
-                              csr_cs_detected_list_h *plist, int *pcount);
-
-/**
  * @brief Extracts the detected malware handle from the detected malware list handle.
  *
  * @param[in]  list        A detected malware list handle returned by

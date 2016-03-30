@@ -29,7 +29,9 @@ class Connection {
 public:
 	enum Mode {
 		Create = SQLITE_OPEN_CREATE,
-		ReadWrite = SQLITE_OPEN_READWRITE
+		ReadWrite = SQLITE_OPEN_READWRITE,
+		MultiThread = SQLITE_OPEN_NOMUTEX,
+		Serialized = SQLITE_OPEN_FULLMUTEX
 	};
 
 	Connection(const std::string &name, const int flags);

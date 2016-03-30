@@ -102,7 +102,8 @@ const std::string QUERY_DEL_DETECTED_DEPRECATED =
 //===========================================================================
 
 CsrDB::CsrDB(const std::string &dbfile, const std::string &scriptsDirectory)
-	: conn(dbfile, Connection::Create | Connection::ReadWrite), scriptsDir(scriptsDirectory)
+	: conn(dbfile, Connection::Create | Connection::ReadWrite | Connection::Serialized),
+		scriptsDir(scriptsDirectory)
 {
 	initDatabase();
 	conn.exec("VACUUM;");

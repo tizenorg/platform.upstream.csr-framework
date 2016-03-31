@@ -26,7 +26,7 @@
 #include <unordered_map>
 #include <Elementary.h>
 
-#include "common/message-buffer.h"
+#include "common/binary-queue.h"
 #include "common/raw-buffer.h"
 #include "common/audit/logger.h"
 #include "ui/common.h"
@@ -108,14 +108,14 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 	}
 }
 
-std::pair<CommandId, MessageBuffer> Logic::getRequestInfo(const RawBuffer &data)
+std::pair<CommandId, BinaryQueue> Logic::getRequestInfo(const RawBuffer &data)
 {
 	int int_id;
-	MessageBuffer msg;
-	msg.push(data);
-	msg.Deserialize(int_id);
+	BinaryQueue q;
+	q.push(data);
+	q.Deserialize(int_id);
 
-	return std::make_pair(static_cast<CommandId>(int_id), std::move(msg));
+	return std::make_pair(static_cast<CommandId>(int_id), std::move(q));
 }
 
 RawBuffer Logic::fileSingle(const std::string &message, const FileItem &item) const
@@ -130,32 +130,32 @@ RawBuffer Logic::fileSingle(const std::string &message, const FileItem &item) co
 
 	popup.fillText("FileSingle title", message.c_str());
 
-	MessageBuffer msg;
+	BinaryQueue q;
 
 	auto respRemove = static_cast<int>(Response::REMOVE);
 	Evas_Object *remove = popup.addButton("button1");
 	elm_object_text_set(remove, "remove");
-	registerCb(remove, &respRemove, [&msg, &respRemove, &popup]() {
+	registerCb(remove, &respRemove, [&q, &respRemove, &popup]() {
 		DEBUG("Remove button clicked!");
-		msg = MessageBuffer::Serialize(respRemove);
+		q = BinaryQueue::Serialize(respRemove);
 		popup.stop();
 	});
 
 	auto respIgnore = static_cast<int>(Response::IGNORE);
 	Evas_Object *ignore = popup.addButton("button2");
 	elm_object_text_set(ignore, "ignore");
-	registerCb(ignore, &respIgnore, [&msg, &respIgnore, &popup]() {
+	registerCb(ignore, &respIgnore, [&q, &respIgnore, &popup]() {
 		DEBUG("Ignore button clicked!");
-		msg = MessageBuffer::Serialize(respIgnore);
+		q = BinaryQueue::Serialize(respIgnore);
 		popup.stop();
 	});
 
 	auto respSkip = static_cast<int>(Response::SKIP);
 	Evas_Object *skip = popup.addButton("button3");
 	elm_object_text_set(skip, "skip");
-	registerCb(skip, &respSkip, [&msg, &respSkip, &popup]() {
+	registerCb(skip, &respSkip, [&q, &respSkip, &popup]() {
 		DEBUG("Skip button clicked!");
-		msg = MessageBuffer::Serialize(respSkip);
+		q = BinaryQueue::Serialize(respSkip);
 		popup.stop();
 	});
 
@@ -167,7 +167,7 @@ RawBuffer Logic::fileSingle(const std::string &message, const FileItem &item) co
 	unregisterCb(respIgnore);
 	unregisterCb(respSkip);
 
-	return msg.pop();
+	return q.pop();
 }
 
 RawBuffer Logic::fileMultiple(const std::string &message, const FileItems &items) const
@@ -188,23 +188,23 @@ RawBuffer Logic::urlSingle(const std::string &message, const UrlItem &item) cons
 
 	popup.fillText("FileSingle title", message.c_str());
 
-	MessageBuffer msg;
+	BinaryQueue q;
 
 	auto respAllow = static_cast<int>(Response::ALLOW);
 	Evas_Object *allow = popup.addButton("button1");
 	elm_object_text_set(allow, "allow");
-	registerCb(allow, &respAllow, [&msg, &respAllow, &popup]() {
+	registerCb(allow, &respAllow, [&q, &respAllow, &popup]() {
 		DEBUG("Allow button clicked!");
-		msg = MessageBuffer::Serialize(respAllow);
+		q = BinaryQueue::Serialize(respAllow);
 		popup.stop();
 	});
 
 	auto respDeny = static_cast<int>(Response::DENY);
 	Evas_Object *deny = popup.addButton("button2");
 	elm_object_text_set(deny, "deny");
-	registerCb(deny, &respDeny, [&msg, &respDeny, &popup]() {
+	registerCb(deny, &respDeny, [&q, &respDeny, &popup]() {
 		DEBUG("Deny button clicked!");
-		msg = MessageBuffer::Serialize(respDeny);
+		q = BinaryQueue::Serialize(respDeny);
 		popup.stop();
 	});
 
@@ -215,7 +215,7 @@ RawBuffer Logic::urlSingle(const std::string &message, const UrlItem &item) cons
 	unregisterCb(respAllow);
 	unregisterCb(respDeny);
 
-	return msg.pop();
+	return q.pop();
 }
 
 RawBuffer Logic::urlMultiple(const std::string &message, const UrlItems &items) const

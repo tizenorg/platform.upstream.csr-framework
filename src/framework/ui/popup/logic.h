@@ -26,7 +26,7 @@
 #include <utility>
 
 #include "common/raw-buffer.h"
-#include "common/message-buffer.h"
+#include "common/binary-queue.h"
 #include "ui/common.h"
 #include "popup.h"
 
@@ -41,7 +41,7 @@ public:
 	RawBuffer dispatch(const RawBuffer &);
 
 private:
-	std::pair<CommandId, MessageBuffer> getRequestInfo(const RawBuffer &);
+	std::pair<CommandId, BinaryQueue> getRequestInfo(const RawBuffer &);
 
 	RawBuffer fileSingle(const std::string &message, const FileItem &item) const;
 	RawBuffer fileMultiple(const std::string &message, const FileItems &items) const;

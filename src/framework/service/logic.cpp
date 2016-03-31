@@ -66,15 +66,15 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 	}
 }
 
-std::pair<CommandId, MessageBuffer> Logic::getRequestInfo(const RawBuffer &data)
+std::pair<CommandId, BinaryQueue> Logic::getRequestInfo(const RawBuffer &data)
 {
 	CommandId id;
 
-	MessageBuffer msgbuffer;
-	msgbuffer.push(data);
-	msgbuffer.Deserialize(id);
+	BinaryQueue q;
+	q.push(data);
+	q.Deserialize(id);
 
-	return std::make_pair(id, std::move(msgbuffer));
+	return std::make_pair(id, std::move(q));
 }
 
 RawBuffer Logic::scanFile(const Cs::Context &context, const std::string &filepath)
@@ -82,7 +82,7 @@ RawBuffer Logic::scanFile(const Cs::Context &context, const std::string &filepat
 	INFO("Scan file[" << filepath << "] by engine");
 	(void) context;
 
-	return MessageBuffer::Serialize(CSR_ERROR_NONE, Cs::Result()).pop();
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, Cs::Result()).pop();
 }
 
 RawBuffer Logic::checkUrl(const Wp::Context &context, const std::string &url)
@@ -90,7 +90,7 @@ RawBuffer Logic::checkUrl(const Wp::Context &context, const std::string &url)
 	INFO("Check url[" << url << "] by engine");
 	(void) context;
 
-	return MessageBuffer::Serialize(CSR_ERROR_NONE, Wp::Result()).pop();
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, Wp::Result()).pop();
 }
 
 }

@@ -28,7 +28,7 @@
 #include "common/wp-types.h"
 #include "common/command-id.h"
 #include "common/raw-buffer.h"
-#include "common/message-buffer.h"
+#include "common/binary-queue.h"
 
 namespace Csr {
 
@@ -40,7 +40,7 @@ public:
 	RawBuffer dispatch(const RawBuffer &);
 
 private:
-	std::pair<CommandId, MessageBuffer> getRequestInfo(const RawBuffer &);
+	std::pair<CommandId, BinaryQueue> getRequestInfo(const RawBuffer &);
 
 	RawBuffer scanFile(const Cs::Context &context, const std::string &filepath);
 	RawBuffer checkUrl(const Wp::Context &context, const std::string &url);

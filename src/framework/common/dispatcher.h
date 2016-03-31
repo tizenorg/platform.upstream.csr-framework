@@ -24,7 +24,7 @@
 #include <string>
 
 #include "common/connection.h"
-#include "common/message-buffer.h"
+#include "common/binary-queue.h"
 
 namespace Csr {
 
@@ -56,14 +56,14 @@ Type Dispatcher::methodCall(Args &&...args)
 	if (!isConnected())
 		connect();
 
-	m_connection->send(MessageBuffer::Serialize(std::forward<Args>(args)...).pop());
+	m_connection->send(BinaryQueue::Serialize(std::forward<Args>(args)...).pop());
 
 	auto reply = m_connection->receive();
-	MessageBuffer msg;
-	msg.push(reply);
+	BinaryQueue q;
+	q.push(reply);
 
 	Type response;
-	msg.Deserialize(response);
+	q.Deserialize(response);
 
 	return response;
 }

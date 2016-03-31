@@ -31,7 +31,6 @@ SET(${TARGET_CSR_COMMON}_SRCS
 	common/cs-types.cpp
 	common/dispatcher.cpp
 	common/mainloop.cpp
-	common/message-buffer.cpp
 	common/service.cpp
 	common/socket.cpp
 	common/wp-types.cpp

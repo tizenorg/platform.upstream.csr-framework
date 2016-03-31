@@ -16,264 +16,79 @@
 /*
  * @file        binary-queue.h
  * @author      Przemyslaw Dobrowolski (p.dobrowolsk@samsung.com)
+ *              Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
  * @brief       This file is the header file of binary queue
  */
 #pragma once
 
+#include <queue>
 #include <memory>
-#include <list>
-#include <functional>
+#include <cstddef>
+
+#include "common/serialization.h"
+#include "common/raw-buffer.h"
 
 namespace Csr {
-/**
- * Binary stream implemented as constant size bucket list
- *
- * @todo Add optimized implementation for flattenConsume
- */
-class BinaryQueue {
+
+class BinaryQueue : public IStream {
 public:
-	using BufferDeleter = std::function<void(const void *buffer, size_t size, void *userParam)>;
-	static void bufferDeleterFree(const void *buffer,
-								  size_t size,
-								  void *userParam);
+	BinaryQueue();
+	virtual ~BinaryQueue();
 
-	class BucketVisitor {
-	public:
-		/**
-		 * Destructor
-		 */
-		virtual ~BucketVisitor();
+	BinaryQueue(BinaryQueue&&) = default;
+	BinaryQueue &operator=(BinaryQueue&&) = default;
+	BinaryQueue(const BinaryQueue &) = delete;
+	BinaryQueue &operator=(const BinaryQueue &) = delete;
 
-		/**
-		 * Visit bucket
-		 *
-		 * @return none
-		 * @param[in] buffer Constant pointer to bucket data buffer
-		 * @param[in] size Number of bytes in bucket
-		 */
-		virtual void OnVisitBucket(const void *buffer, size_t size) = 0;
-	};
+	RawBuffer pop(void);
+	void push(const RawBuffer &);
+
+	template <typename ...Args>
+	static BinaryQueue Serialize(const Args &...args);
+
+	template <typename ...Args>
+	void Deserialize(Args &...args);
+
+	virtual void read(size_t num, void *bytes) override;
+	virtual void write(size_t num, const void *bytes) override;
 
 private:
+	const static size_t MaxBucketSize = 1024; /* Bytes */
+
 	struct Bucket {
+		explicit Bucket(unsigned char *_data, size_t _size);
+		virtual ~Bucket();
+
+		/* extract ''size'' of bytes from bucket to dest and return updated dest */
+		void *extractTo(void *dest, size_t size);
+
+		Bucket(Bucket &&) = default;
+		Bucket &operator=(Bucket &&) = default;
 		Bucket(const Bucket &) = delete;
 		Bucket &operator=(const Bucket &) = delete;
 
-		const void *buffer;
-		const void *ptr;
-		size_t size;
+		unsigned char *data;
+		const unsigned char *cur; // current valid position of data
 		size_t left;
-
-		BufferDeleter deleter;
-		void *param;
-
-		Bucket(const void *buffer,
-			   size_t size,
-			   BufferDeleter deleter,
-			   void *userParam);
-		virtual ~Bucket();
 	};
 
-	typedef std::list<Bucket *> BucketList;
-	BucketList m_buckets;
+	std::queue<std::unique_ptr<Bucket>> m_buckets;
 	size_t m_size;
-
-	static void deleteBucket(Bucket *bucket);
-
-	class BucketVisitorCall {
-	private:
-		BucketVisitor *m_visitor;
-
-	public:
-		BucketVisitorCall(BucketVisitor *visitor);
-		virtual ~BucketVisitorCall();
-
-		void operator()(Bucket *bucket) const;
-	};
-
-public:
-	/**
-	 * Construct empty binary queue
-	 */
-	BinaryQueue();
-
-	/**
-	 * Construct binary queue via bare copy of other binary queue
-	 *
-	 * @param[in] other Other binary queue to copy from
-	 * @warning One cannot assume that bucket structure is preserved during copy
-	 */
-	BinaryQueue(const BinaryQueue &other);
-
-	/**
-	 * Construct binary queue by moving data from other binary queue
-	 *
-	 * @param[in] other Other binary queue to move from
-	 */
-	BinaryQueue(BinaryQueue&&) = default;
-
-	/**
-	 * Destructor
-	 */
-	virtual ~BinaryQueue();
-
-	/**
-	 * Construct binary queue via bare copy of other binary queue
-	 *
-	 * @param[in] other Other binary queue to copy from
-	 * @warning One cannot assume that bucket structure is preserved during copy
-	 */
-	const BinaryQueue &operator=(const BinaryQueue &other);
-
-	/**
-	 * Assign data from other binary queue using move semantics
-	 *
-	 * @param[in] other Other binary queue to move from
-	 */
-	BinaryQueue &operator=(BinaryQueue&&) = default;
-
-	/**
-	 * Append copy of @a size bytes from memory pointed by @a buffer
-	 * to the end of binary queue. Uses default deleter based on free.
-	 *
-	 * @return none
-	 * @param[in] buffer Pointer to buffer to copy data from
-	 * @param[in] size Number of bytes to copy
-	 * @exception std::bad_alloc Cannot allocate memory to hold additional data
-	 * @see BinaryQueue::BufferDeleterFree
-	 */
-	void appendCopy(const void *buffer, size_t size);
-
-	/**
-	 * Append @a size bytes from memory pointed by @a buffer
-	 * to the end of binary queue. Uses custom provided deleter.
-	 * Responsibility for deleting provided buffer is transfered to BinaryQueue.
-	 *
-	 * @return none
-	 * @param[in] buffer Pointer to data buffer
-	 * @param[in] size Number of bytes available in buffer
-	 * @param[in] deleter Pointer to deleter procedure used to free provided
-	 * buffer
-	 * @param[in] userParam User parameter passed to deleter routine
-	 * @exception std::bad_alloc Cannot allocate memory to hold additional data
-	 */
-	void appendUnmanaged(
-		const void *buffer,
-		size_t size,
-		BufferDeleter deleter = &BinaryQueue::bufferDeleterFree,
-		void *userParam = nullptr);
-
-	/**
-	 * Append copy of other binary queue to the end of this binary queue
-	 *
-	 * @return none
-	 * @param[in] other Constant reference to other binary queue to copy data
-	 * from
-	 * @exception std::bad_alloc Cannot allocate memory to hold additional data
-	 * @warning One cannot assume that bucket structure is preserved during copy
-	 */
-	void appendCopyFrom(const BinaryQueue &other);
-
-	/**
-	 * Move bytes from other binary queue to the end of this binary queue.
-	 * This also removes all bytes from other binary queue.
-	 * This method is designed to be as fast as possible (only pointer swaps)
-	 * and is suggested over making copies of binary queues.
-	 * Bucket structure is preserved after operation.
-	 *
-	 * @return none
-	 * @param[in] other Reference to other binary queue to move data from
-	 * @exception std::bad_alloc Cannot allocate memory to hold additional data
-	 */
-	void appendMoveFrom(BinaryQueue &other);
-
-	/**
-	 * Append copy of binary queue to the end of other binary queue
-	 *
-	 * @return none
-	 * @param[in] other Constant reference to other binary queue to copy data to
-	 * @exception std::bad_alloc Cannot allocate memory to hold additional data
-	 * @warning One cannot assume that bucket structure is preserved during copy
-	 */
-	void appendCopyTo(BinaryQueue &other) const;
-
-	/**
-	 * Move bytes from binary queue to the end of other binary queue.
-	 * This also removes all bytes from binary queue.
-	 * This method is designed to be as fast as possible (only pointer swaps)
-	 * and is suggested over making copies of binary queues.
-	 * Bucket structure is preserved after operation.
-	 *
-	 * @return none
-	 * @param[in] other Reference to other binary queue to move data to
-	 * @exception std::bad_alloc Cannot allocate memory to hold additional data
-	 */
-	void appendMoveTo(BinaryQueue &other);
-
-	/**
-	 * Retrieve total size of all data contained in binary queue
-	 *
-	 * @return Number of bytes in binary queue
-	 */
-	size_t size() const;
-
-	/**
-	 * Remove all data from binary queue
-	 *
-	 * @return none
-	 */
-	void clear();
-
-	/**
-	 * Check if binary queue is empty
-	 *
-	 * @return true if binary queue is empty, false otherwise
-	 */
-	bool empty() const;
-
-	/**
-	 * Remove @a size bytes from beginning of binary queue
-	 *
-	 * @return none
-	 * @param[in] size Number of bytes to remove
-	 * @exception BinaryQueue::Exception::OutOfData Number of bytes is larger
-	 *            than available bytes in binary queue
-	 */
-	void consume(size_t size);
-
-	/**
-	 * Retrieve @a size bytes from beginning of binary queue and copy them
-	 * to user supplied buffer
-	 *
-	 * @return none
-	 * @param[in] buffer Pointer to user buffer to receive bytes
-	 * @param[in] size Size of user buffer pointed by @a buffer
-	 * @exception BinaryQueue::Exception::OutOfData Number of bytes to flatten
-	 *            is larger than available bytes in binary queue
-	 */
-	void flatten(void *buffer, size_t size) const;
-
-	/**
-	 * Retrieve @a size bytes from beginning of binary queue, copy them
-	 * to user supplied buffer, and remove from binary queue
-	 *
-	 * @return none
-	 * @param[in] buffer Pointer to user buffer to receive bytes
-	 * @param[in] size Size of user buffer pointed by @a buffer
-	 * @exception BinaryQueue::Exception::OutOfData Number of bytes to flatten
-	 *            is larger than available bytes in binary queue
-	 */
-	void flattenConsume(void *buffer, size_t size);
-
-	/**
-	 * Visit each buffer with data using visitor object
-	 *
-	 * @return none
-	 * @param[in] visitor Pointer to bucket visitor
-	 * @see BinaryQueue::BucketVisitor
-	 */
-	void visitBuckets(BucketVisitor *visitor) const;
 };
+
+template <typename ...Args>
+BinaryQueue BinaryQueue::Serialize(const Args &...args)
+{
+	BinaryQueue q;
+	Serializer<Args...>::Serialize(q, args...);
+	return q;
+}
+
+template <typename ...Args>
+void BinaryQueue::Deserialize(Args &...args)
+{
+	Deserializer<Args...>::Deserialize(*this, args...);
+}
 
 }

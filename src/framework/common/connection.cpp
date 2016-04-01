@@ -48,13 +48,13 @@ Connection &Connection::operator=(Connection &&other)
 
 void Connection::send(const RawBuffer &buf) const
 {
-	/* TODO: scoped-lock ? */
+	std::lock_guard<std::mutex> lock(m_mSend);
 	m_socket.write(buf);
 }
 
 RawBuffer Connection::receive() const
 {
-	/* TODO: scoped-lock ? */
+	std::lock_guard<std::mutex> lock(m_mRecv);
 	return m_socket.read();
 }
 

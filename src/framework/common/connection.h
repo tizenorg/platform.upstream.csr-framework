@@ -21,9 +21,8 @@
  */
 #pragma once
 
-#include <string>
-#include <functional>
 #include <memory>
+#include <mutex>
 
 #include "common/socket.h"
 #include "common/raw-buffer.h"
@@ -47,6 +46,8 @@ public:
 
 private:
 	Socket m_socket;
+	mutable std::mutex m_mSend;
+	mutable std::mutex m_mRecv;
 };
 
 using ConnShPtr = std::shared_ptr<Connection>;

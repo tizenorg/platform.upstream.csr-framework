@@ -99,32 +99,7 @@ inline void checkDetected(csre_cs_detected_h detected,
 	EXCEPTION_GUARD_END
 }
 
-class ScopedFile {
-public:
-	explicit ScopedFile(const std::string &file)
-	{
-		int fd = open(file.c_str(), O_RDONLY);
-		BOOST_REQUIRE_MESSAGE(fd > 0,
-			"Cannot open file: " << file << " with errno: " << errno);
-
-		m_fd = fd;
-	}
-
-	virtual ~ScopedFile()
-	{
-		close(m_fd);
-	}
-
-	int getFd(void)
-	{
-		return m_fd;
-	}
-
-private:
-	int m_fd;
-};
-
-}
+} // namespace anonymous
 
 BOOST_AUTO_TEST_SUITE(API_ENGINE_CONTENT_SCREENING)
 

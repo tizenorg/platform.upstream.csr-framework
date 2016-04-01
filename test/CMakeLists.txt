@@ -38,6 +38,7 @@ SET(${TARGET_CSR_TEST}_SRCS
 	${CSR_FW_SVC_SRC_PATH}/core-usage.cpp
 	${CSR_FW_SVC_SRC_PATH}/file-system.cpp
 	${CSR_FW_SVC_SRC_PATH}/app-deleter.cpp
+	${CSR_FW_SVC_SRC_PATH}/cs-loader.cpp
 	colour_log_formatter.cpp
 	test-api-content-screening.cpp
 	test-api-content-screening-async.cpp
@@ -50,6 +51,7 @@ SET(${TARGET_CSR_TEST}_SRCS
 	test-internal-file-system.cpp
 	test-main.cpp
 	test-common.cpp
+	test-cs-loader.cpp
 )
 
 INCLUDE_DIRECTORIES(

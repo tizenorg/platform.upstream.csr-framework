@@ -66,7 +66,7 @@ typedef struct __csret_cs_malware_list {
 
 typedef struct __csret_cs_detected {
 	csret_cs_malware_s malware;
-	long timestamp;
+	time_t timestamp;
 } csret_cs_detected_s;
 
 typedef struct __csret_cs_detected_list {
@@ -268,13 +268,11 @@ int csret_cs_read_binary_by_fd(int file_descriptor, unsigned char **data, unsign
 	return csret_cs_read_binary_by_file(file, data, len);
 }
 
-long csret_cs_get_timestamp()
+time_t csret_cs_get_timestamp()
 {
-	unsigned long time_in_micros;
 	struct timeval tv;
 	gettimeofday(&tv, nullptr);
-	time_in_micros = 1000000 * tv.tv_sec + tv.tv_usec;
-	return time_in_micros;
+	return tv.tv_sec;
 }
 
 int csret_cs_init_engine(const char *root_dir)
@@ -653,7 +651,7 @@ int csre_cs_detected_get_detailed_url(csre_cs_detected_h detected, const char **
 }
 
 API
-int csre_cs_detected_get_timestamp(csre_cs_detected_h detected, long *timestamp)
+int csre_cs_detected_get_timestamp(csre_cs_detected_h detected, time_t *timestamp)
 {
 	csret_cs_detected_s *pdetected = nullptr;
 

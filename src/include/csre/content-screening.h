@@ -26,6 +26,7 @@
 #include "csre/error.h"
 
 #include <stddef.h>
+#include <time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -256,7 +257,7 @@ int csre_cs_detected_get_detailed_url(csre_cs_detected_h detected, const char** 
  * @retval #CSRE_CS_ERROR_UNKNOWN              Error with unknown reason
  * @retval -0x0100~-0xFF00                     Engine defined error
  */
-int csre_cs_detected_get_timestamp(csre_cs_detected_h detected, long* timestamp);
+int csre_cs_detected_get_timestamp(csre_cs_detected_h detected, time_t* timestamp);
 
 /**
  * @brief Get the error string for a given engine-defined error code.

@@ -202,10 +202,11 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char **file_paths, un
 }
 
 API
-int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path)
+int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path, void *user_data)
 {
 	(void) handle;
 	(void) dir_path;
+	(void) user_data;
 
 	DEBUG("start!");
 	return CSR_ERROR_NONE;
@@ -327,6 +328,29 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path, 
 
 API
 int csr_cs_get_detected_malwares(csr_cs_context_h handle, const char *dir, csr_cs_detected_list_h *plist, int *pcount)
+{
+	(void) handle;
+	(void) dir;
+	(void) plist;
+	(void) pcount;
+
+	DEBUG("start!");
+	return CSR_ERROR_NONE;
+}
+
+API
+int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path, csr_cs_detected_h *pdetected)
+{
+	(void) handle;
+	(void) file_path;
+	(void) pdetected;
+
+	DEBUG("start!");
+	return CSR_ERROR_NONE;
+}
+
+API
+int csr_cs_get_ignored_malwares(csr_cs_context_h handle, const char *dir, csr_cs_detected_list_h *plist, int *pcount)
 {
 	(void) handle;
 	(void) dir;

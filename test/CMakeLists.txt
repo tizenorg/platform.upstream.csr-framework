@@ -32,6 +32,7 @@ SET(${TARGET_CSR_TEST}_SRCS
 	${CSR_FW_DB_SRC_PATH}/connection.cpp
 	${CSR_FW_DB_SRC_PATH}/statement.cpp
 	${CSR_FW_DB_SRC_PATH}/csr_db.cpp
+	${CSR_FW_SRC_PATH}/service/core-usage.cpp
 	colour_log_formatter.cpp
 	test-api-content-screening.cpp
 	test-api-engine-manager.cpp
@@ -39,6 +40,7 @@ SET(${TARGET_CSR_TEST}_SRCS
 	test-api-engine-content-screening.cpp
 	test-api-engine-web-protection.cpp
 	test-internal-database.cpp
+	test-internal-cpucore.cpp
 	test-main.cpp
 )
 

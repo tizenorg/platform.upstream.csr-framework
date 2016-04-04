@@ -29,6 +29,7 @@ SET(${TARGET_CSR_SERVER}_SRCS
 	framework/service/logic.cpp
 	framework/service/server-service.cpp
 	framework/service/thread-pool.cpp
+	framework/service/core-usage.cpp
 	framework/ui/askuser.cpp
 
 	# question and response codes needed on both of

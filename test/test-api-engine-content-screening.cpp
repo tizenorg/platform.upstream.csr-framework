@@ -161,27 +161,25 @@ inline csre_cs_engine_h getEngineHandle(void)
 	int ret = CSRE_ERROR_UNKNOWN;
 
 	BOOST_REQUIRE_NO_THROW(ret = csre_cs_engine_get_info(&engine));
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	BOOST_REQUIRE_MESSAGE(ret == CSRE_ERROR_NONE,
+		"Failed to create engine handle. ret: " << ret);
 	CHECK_IS_NOT_NULL(engine);
 
 	return engine;
 }
 
-inline ScopedContext getContextHandleWithDir(const char *dir)
+inline ScopedContext getContextHandle(void)
 {
 	csre_cs_context_h context;
 	int ret = CSRE_ERROR_UNKNOWN;
 
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_context_create(dir, &context));
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	BOOST_REQUIRE_NO_THROW(ret = csre_cs_context_create(&context));
+	BOOST_REQUIRE_MESSAGE(ret == CSRE_ERROR_NONE,
+		"Failed to create context handle. ret: " << ret);
 	CHECK_IS_NOT_NULL(context);
 
 	return makeScopedContext(context);
-}
 
-inline ScopedContext getContextHandle(void)
-{
-	return getContextHandleWithDir(SAMPLE_ENGINE_WORKING_DIR);
 }
 
 }
@@ -420,7 +418,9 @@ BOOST_AUTO_TEST_CASE(get_latest_update_time)
 	time_t time = 0;
 	BOOST_REQUIRE_NO_THROW(ret = csre_cs_engine_get_latest_update_time(handle, &time));
 	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
-	BOOST_REQUIRE(time > 0);
+
+	struct tm t;
+	BOOST_MESSAGE(asctime(gmtime_r(&time, &t)));
 }
 
 BOOST_AUTO_TEST_CASE(get_engine_activated)

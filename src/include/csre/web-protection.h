@@ -33,16 +33,50 @@ extern "C" {
 // Main function related
 //==============================================================================
 /**
- * @brief Initializes and returns a Tizen Web Screening engine API handle.
+ * @brief Initializes web protection engine. This will be called only once after
+ *        load engine library.
  *
- * @details A Web Screening engine interface handle (or CSR WP engine handle) is obtained
- *          using the csre_wp_context_create() function. The engine handle is required
- *          for subsequent CSR WP engine API calls. The csre_wp_context_destroy() function
- *          releases/closes the engine handle. Multiple handles can be obtained using
- *          csre_wp_context_create().
+ * @remarks Directory paths in parameters are absolute path so not ended with '/'.
+ *          Pre-provided resources by engine exist in @a ro_res_dir and those resources
+ *          is only readable in runtime. Engine can read/write/create resources in
+ *          @a rw_working_dir.
  *
- * @param[in]  engine_root_dir  A root directory where an engine exists. It is a absolute
- *                              path and it doesn't end with '/'.
+ * @param[in] ro_res_dir      Read-only resources which are pre-provided by engine exists
+ *                            in here.
+ * @param[in] rw_working_dir  Engine can read/write/create resources in runtime in here.
+ *
+ * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSRE_ERROR_NONE               Successful
+ * @retval #CSRE_ERROR_OUT_OF_MEMORY      Not enough memory
+ * @retval #CSRE_ERROR_UNKNOWN            Error with unknown reason
+ * @retval -0x0100~-0xFF00                Engine defined error
+ */
+int csre_wp_global_initialize(const char *ro_res_dir, const char *rw_working_dir);
+
+/**
+ * @brief Deinitializes web protection engine. This will be called only once before
+ *        unload engine library.
+ *
+ *
+ * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSRE_ERROR_NONE               Successful
+ * @retval #CSRE_ERROR_UNKNOWN            Error with unknown reason
+ * @retval -0x0100~-0xFF00                Engine defined error
+ */
+int csre_wp_global_deinitialize();
+
+/**
+ * @brief Creates context handle. The handle contains related resources to do operations.
+ *
+ * @details The handle is required for subsequent CSR WP engine API calls.
+ *          csre_wp_context_destroy() function releases/closes the engine handle. Multiple
+ *          handles can be obtained and multiple requests can be dispatched concurrently.
+ *          Returned resources after operations with the handle will be contained by the
+ *          handle and have same life cycle with it. Context handle may have some options
+ *          to handle request. Options are context-handle-scoped.
+ *
  * @param[out] phandle          A pointer of CSR WP Engine context handle.
  *
  * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
@@ -55,7 +89,7 @@ extern "C" {
  *
  * @see csre_wp_context_destroy()
  */
-int csre_wp_context_create(const char *engine_root_dir, csre_wp_context_h* phandle);
+int csre_wp_context_create(csre_wp_context_h* phandle);
 
 /**
  * @brief Releases all system resources associated with a CSR WP engine API handle.

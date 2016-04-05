@@ -58,6 +58,22 @@ typedef enum {
 int csre_wp_engine_get_info(csre_wp_engine_h *engine);
 
 /**
+ * @brief Releases all system resources associated with a engine information handle.
+ *
+ * @param[in]  engine      The engine information handle.
+ *
+ * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSRE_ERROR_NONE                  Successful
+ * @retval #CSRE_ERROR_INVALID_HANDLE        Invalid handle
+ * @retval #CSRE_ERROR_SOCKET                Socket error between client and server
+ * @retval #CSRE_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSRE_ERROR_ENGINE_INTERNAL       Engine Internal error
+ * @retval #CSRE_ERROR_UNKNOWN               Error with unknown reason
+ */
+int csre_wp_engine_destroy(csre_wp_engine_h engine);
+
+/**
  * @brief returns the engine API version.
  *
  * @param[in]  engine   The engine information handle.

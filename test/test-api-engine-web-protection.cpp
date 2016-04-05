@@ -46,7 +46,7 @@ std::unordered_map<std::string, Result> ExpectedResult = {
 	{"http://lowrisky.test.com",    Result(CSRE_WP_RISK_LOW, "")}
 };
 
-inline void checkResult(csre_wp_check_result_h &result, const Result &expected)
+inline void checkResult(const std::string &url, csre_wp_check_result_h &result, const Result &expected)
 {
 	int ret = CSRE_ERROR_UNKNOWN;
 	CHECK_IS_NOT_NULL(result);
@@ -56,7 +56,7 @@ inline void checkResult(csre_wp_check_result_h &result, const Result &expected)
 
 	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	BOOST_REQUIRE_MESSAGE(risk_level == expected.risk_level,
-		"risk level isn't expected value. "
+		"url[" << url << "] risk level isn't expected value. "
 			"val: " << risk_level << " expected: " << expected.risk_level);
 
 	const char *detailed_url = nullptr;
@@ -64,7 +64,7 @@ inline void checkResult(csre_wp_check_result_h &result, const Result &expected)
 
 	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	BOOST_REQUIRE_MESSAGE(expected.detailed_url.compare(detailed_url) == 0,
-		"detailed url isn't expected value. "
+		"url[" << url << "] detailed url isn't expected value. "
 			"val: " << detailed_url <<" expected: " << expected.detailed_url);
 }
 
@@ -106,21 +106,16 @@ inline csre_wp_engine_h getEngineHandle(void)
 	return engine;
 }
 
-inline ScopedContext getContextHandleWithDir(const char *dir)
+inline ScopedContext getContextHandle(void)
 {
 	csre_wp_context_h context;
 	int ret = CSRE_ERROR_UNKNOWN;
 
-	BOOST_REQUIRE_NO_THROW(ret = csre_wp_context_create(dir, &context));
+	BOOST_REQUIRE_NO_THROW(ret = csre_wp_context_create(&context));
 	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	CHECK_IS_NOT_NULL(context);
 
 	return makeScopedContext(context);
-}
-
-inline ScopedContext getContextHandle(void)
-{
-	return getContextHandleWithDir(SAMPLE_ENGINE_WORKING_DIR);
 }
 
 }
@@ -144,7 +139,7 @@ BOOST_AUTO_TEST_CASE(check_url)
 		BOOST_REQUIRE_NO_THROW(ret = csre_wp_check_url(context, pair.first.c_str(), &result));
 
 		BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
-		checkResult(result, pair.second);
+		checkResult(pair.first, result, pair.second);
 	}
 }
 
@@ -227,7 +222,9 @@ BOOST_AUTO_TEST_CASE(get_latest_update_time)
 	time_t time = 0;
 	BOOST_REQUIRE_NO_THROW(ret = csre_wp_engine_get_latest_update_time(handle, &time));
 	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
-	BOOST_REQUIRE(time > 0);
+
+	struct tm t;
+	BOOST_MESSAGE(asctime(gmtime_r(&time, &t)));
 }
 
 BOOST_AUTO_TEST_CASE(get_engine_activated)

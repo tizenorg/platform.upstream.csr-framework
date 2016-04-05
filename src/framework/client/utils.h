@@ -21,10 +21,7 @@
  */
 #pragma once
 
-#include <string>
 #include <functional>
-
-#include "common/audit/logger.h"
 
 #define API __attribute__((visibility("default")))
 
@@ -33,11 +30,6 @@
 
 namespace Csr {
 namespace Client {
-
-inline std::string toStlString(const char *cstr)
-{
-	return (cstr == nullptr) ? std::string() : std::string(cstr);
-}
 
 int exceptionGuard(const std::function<int()> &);
 

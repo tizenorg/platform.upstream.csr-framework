@@ -14,18 +14,19 @@
  *  limitations under the License
  */
 /*
- * @file        wp-types.cpp
+ * @file        types.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       CSR Web Protection internal types
+ * @brief       CSR internal serializable types
  */
-#include "common/wp-types.h"
+#include "common/types.h"
 
 #include <stdexcept>
 #include <utility>
 
+#include "common/audit/logger.h"
+
 namespace Csr {
-namespace Wp {
 
 Context::Context()
 {
@@ -43,6 +44,18 @@ void Context::Serialize(IStream &) const
 {
 }
 
+// don't copy results.. context copy operation only should be used for option copy
+Context::Context(const Context &) :
+	ISerializable(),
+	m_results()
+{
+}
+
+Context &Context::operator=(const Context &)
+{
+	return *this;
+}
+
 Context::Context(Context &&other) :
 	m_results(std::move(other.m_results))
 {
@@ -58,15 +71,25 @@ Context &Context::operator=(Context &&other)
 	return *this;
 }
 
-void Context::addResult(Result *result)
+void Context::add(std::unique_ptr<Result> &&item)
 {
-	if (result == nullptr)
-		throw std::logic_error("result shouldn't be null");
-
-	m_results.emplace(result);
+	std::lock_guard<std::mutex> l(m_mutex);
+	m_results.emplace_back(std::forward<std::unique_ptr<Result>>(item));
 }
 
-Result::Result()
+void Context::add(Result *item)
+{
+	std::lock_guard<std::mutex> l(m_mutex);
+	m_results.emplace_back(item);
+}
+
+size_t Context::size() const
+{
+	std::lock_guard<std::mutex> l(m_mutex);
+	return m_results.size();
+}
+
+Result::Result() : m_hasVal(false)
 {
 }
 
@@ -74,12 +97,14 @@ Result::~Result()
 {
 }
 
-Result::Result(IStream &)
+Result::Result(IStream &stream)
 {
+	Deserializer<bool>::Deserialize(stream, m_hasVal);
 }
 
-void Result::Serialize(IStream &) const
+void Result::Serialize(IStream &stream) const
 {
+	Serializer<bool>::Serialize(stream, m_hasVal);
 }
 
 Result::Result(Result &&)
@@ -91,5 +116,9 @@ Result &Result::operator=(Result &&)
 	return *this;
 }
 
-} // namespace Wp
+bool Result::hasValue() const
+{
+	return m_hasVal;
+}
+
 } // namespace Csr

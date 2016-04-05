@@ -28,6 +28,7 @@
 #include <list>
 #include <map>
 #include <unordered_map>
+#include <set>
 #include <memory>
 
 #include "common/command-id.h"
@@ -179,6 +180,20 @@ struct Serialization {
 	static void Serialize(IStream& stream, const std::list<T>* const list)
 	{
 		Serialize(stream, *list);
+	}
+
+	template <typename T>
+	static void Serialize(IStream& stream, const std::set<T>& set)
+	{
+		auto len = set.size();
+		stream.write(sizeof(len), &len);
+		for (const auto &item : set)
+			Serialize(stream, item);
+	}
+	template <typename T>
+	static void Serialize(IStream& stream, const std::set<T>* const set)
+	{
+		Serialize(stream, *set);
 	}
 
 	// RawBuffer
@@ -413,6 +428,24 @@ struct Deserialization {
 	{
 		list = new std::list<T>;
 		Deserialize(stream, *list);
+	}
+
+	template <typename T>
+	static void Deserialize(IStream& stream, std::set<T>& set)
+	{
+		size_t len;
+		stream.read(sizeof(len), &len);
+		for (size_t i = 0; i < len; ++i) {
+			T obj;
+			Deserialize(stream, obj);
+			set.insert(std::move(obj));
+		}
+	}
+	template <typename T>
+	static void Deserialize(IStream& stream, std::set<T>*& set)
+	{
+		set = new std::set<T>;
+		Deserialize(stream, *set);
 	}
 
 	// RawBuffer

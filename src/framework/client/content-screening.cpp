@@ -24,7 +24,8 @@
 #include <new>
 
 #include "client/utils.h"
-#include "common/cs-types.h"
+#include "client/handle-ext.h"
+#include "client/async-logic.h"
 #include "common/command-id.h"
 #include "common/audit/logger.h"
 
@@ -38,7 +39,7 @@ int csr_cs_context_create(csr_cs_context_h* phandle)
 	if (phandle == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*phandle = reinterpret_cast<csr_cs_context_h>(new Cs::Context());
+	*phandle = reinterpret_cast<csr_cs_context_h>(new Client::HandleExt());
 
 	return CSR_ERROR_NONE;
 
@@ -53,7 +54,7 @@ int csr_cs_context_destroy(csr_cs_context_h handle)
 	if (handle == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	delete reinterpret_cast<Cs::Context *>(handle);
+	delete reinterpret_cast<Client::HandleExt *>(handle);
 
 	return CSR_ERROR_NONE;
 
@@ -120,19 +121,36 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path, csr_cs_dete
 		|| file_path == nullptr || file_path[0] == '\0')
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	auto context = reinterpret_cast<Cs::Context *>(handle);
-	auto ret = context->dispatch<std::pair<int, Cs::Result *>>(
+	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
+	auto ret = hExt->dispatch<std::pair<int, Result *>>(
 		CommandId::SCAN_FILE,
-		context,
-		Client::toStlString(file_path));
+		hExt->getContext(),
+		std::string(file_path));
 
-	if (ret.first != CSR_ERROR_NONE || ret.second == nullptr) {
+	if (ret.first != CSR_ERROR_NONE) {
 		ERROR("Error! ret: " << ret.first);
 		return ret.first;
 	}
 
+	hExt->add(ret.second);
 	*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
-	context->addResult(ret.second);
+
+	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
+}
+
+API
+int csr_cs_set_callback_on_file_scanned(csr_cs_context_h handle, csr_cs_on_file_scanned_cb callback)
+{
+	EXCEPTION_SAFE_START
+
+	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
+
+	if (hExt == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	hExt->m_cb.onScanned = callback;
 
 	return CSR_ERROR_NONE;
 
@@ -142,95 +160,171 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path, csr_cs_dete
 API
 int csr_cs_set_callback_on_detected(csr_cs_context_h handle, csr_cs_on_detected_cb callback)
 {
-	(void) handle;
-	(void) callback;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
+
+	if (hExt == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	hExt->m_cb.onDetected = callback;
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
 int csr_cs_set_callback_on_completed(csr_cs_context_h handle, csr_cs_on_completed_cb callback)
 {
-	(void) handle;
-	(void) callback;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
+
+	if (hExt == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	hExt->m_cb.onCompleted = callback;
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
 int csr_cs_set_callback_on_cancelled(csr_cs_context_h handle, csr_cs_on_cancelled_cb callback)
 {
-	(void) handle;
-	(void) callback;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
+
+	if (hExt == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	hExt->m_cb.onCancelled = callback;
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
 int csr_cs_set_callback_on_error(csr_cs_context_h handle, csr_cs_on_error_cb callback)
 {
-	(void) handle;
-	(void) callback;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
+
+	if (hExt == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	hExt->m_cb.onError = callback;
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
-int csr_cs_set_callback_on_file_scanned(csr_cs_context_h handle, csr_cs_on_file_scanned_cb callback)
+int csr_cs_scan_files_async(csr_cs_context_h handle, const char **file_paths, unsigned int count, void *user_data)
 {
-	(void) handle;
-	(void) callback;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (handle == nullptr || file_paths == nullptr || count == 0)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
+
+	auto fileSet(std::make_shared<StrSet>());
+	for (unsigned int i = 0; i < count; i++) {
+		if (file_paths[i] == nullptr)
+			return CSR_ERROR_INVALID_PARAMETER;
+
+		fileSet->emplace(file_paths[i]);
+	}
+
+	hExt->dispatchAsync([hExt, user_data, fileSet] {
+		Client::AsyncLogic l(hExt->getContext(), hExt->m_cb, user_data,
+			[&hExt] { return hExt->isStopped(); });
+
+		l.scanFiles(fileSet).second();
+	});
+
 	return CSR_ERROR_NONE;
-}
 
-API
-int csr_cs_scan_files_async(csr_cs_context_h handle, const char **file_paths, unsigned int count,  void *user_data)
-{
-	(void) handle;
-	(void) file_paths;
-	(void) count;
-	(void) user_data;
-
-	DEBUG("start!");
-	return CSR_ERROR_NONE;
+	EXCEPTION_SAFE_END
 }
 
 API
 int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path, void *user_data)
 {
-	(void) handle;
-	(void) dir_path;
-	(void) user_data;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (handle == nullptr || dir_path == nullptr || dir_path[0] == '\0')
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
+
+	hExt->dispatchAsync([hExt, user_data, dir_path] {
+		Client::AsyncLogic l(hExt->getContext(), hExt->m_cb, user_data,
+			[&hExt] { return hExt->isStopped(); });
+
+		l.scanDir(dir_path).second();
+	});
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
-int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char **file_paths, unsigned int count, void *user_data)
+int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char **dir_paths, unsigned int count, void *user_data)
 {
-	(void) handle;
-	(void) file_paths;
-	(void) count;
-	(void) user_data;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (handle == nullptr || dir_paths == nullptr || count == 0)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
+
+	auto dirSet(std::make_shared<StrSet>());
+	for (unsigned int i = 0; i < count; i++) {
+		if (dir_paths[i] == nullptr)
+			return CSR_ERROR_INVALID_PARAMETER;
+
+		dirSet->emplace(dir_paths[i]);
+	}
+
+	hExt->dispatchAsync([hExt, user_data, dirSet] {
+		Client::AsyncLogic l(hExt->getContext(), hExt->m_cb, user_data,
+			[&hExt] { return hExt->isStopped(); });
+
+		l.scanDirs(dirSet).second();
+	});
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
 int csr_cs_scan_cancel(csr_cs_context_h handle)
 {
-	(void) handle;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (handle == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
+
+	if (hExt->isStopped())
+		return CSR_ERROR_NONE;
+
+	hExt->stop();
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API

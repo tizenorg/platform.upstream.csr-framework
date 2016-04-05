@@ -14,22 +14,24 @@
  *  limitations under the License
  */
 /*
- * @file        wp-types.h
+ * @file        types.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       CSR Web Protection internal types
+ * @brief       CSR internal serializable types
  */
 #pragma once
 
-#include <set>
+#include <vector>
 #include <memory>
-#include <utility>
+#include <mutex>
 
 #include "common/dispatcher.h"
 #include "common/serialization.h"
 
 namespace Csr {
-namespace Wp {
+
+using Task = std::function<void()>;
+using StrSet = std::set<std::string>;
 
 class Result : public ISerializable {
 public:
@@ -40,6 +42,11 @@ public:
 
 	Result(Result &&);
 	Result &operator=(Result &&);
+
+	bool hasValue(void) const;
+
+private:
+	bool m_hasVal;
 };
 
 class Context : public ISerializable {
@@ -49,27 +56,22 @@ public:
 	Context(IStream &);
 	virtual void Serialize(IStream &) const;
 
-	template<typename Type, typename  ...Args>
-	Type dispatch(Args &&...);
-
 	Context(Context &&);
 	Context &operator=(Context &&);
 
-	void addResult(Result *);
+	// TODO: Handling results vector between contexts should be refined..
+	//       copy ctor/assignments for serializing and results vector isn't included here.
+	Context(const Context &);
+	Context &operator=(const Context &);
+
+	void add(std::unique_ptr<Result> &&);
+	void add(Result *);
+	size_t size(void) const;
+	// for destroying with context
+	std::vector<std::unique_ptr<Result>> m_results;
 
 private:
-	std::unique_ptr<Dispatcher> m_dispatcher;
-	std::set<std::unique_ptr<Result>> m_results;
+	mutable std::mutex m_mutex;
 };
 
-template<typename Type, typename ...Args>
-Type Context::dispatch(Args &&...args)
-{
-	if (m_dispatcher == nullptr)
-		m_dispatcher.reset(new Dispatcher("/tmp/." SERVICE_NAME ".socket"));
-
-	return m_dispatcher->methodCall<Type>(std::forward<Args>(args)...);
-}
-
-} // namespace Wp
 } // namespace Csr

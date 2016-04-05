@@ -24,9 +24,11 @@
 namespace Csr {
 
 enum class CommandId : int {
-	SCAN_FILE    = 0x01,
-	JUDGE_STATUS = 0x02,
-	CHECK_URL    = 0x03
+	SCAN_FILE       = 0x01,
+	JUDGE_STATUS    = 0x02,
+	CHECK_URL       = 0x03,
+	DIR_GET_RESULTS = 0x04,
+	DIR_GET_FILES   = 0x05
 };
 
 }

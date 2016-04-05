@@ -14,56 +14,37 @@
  *  limitations under the License
  */
 /*
- * @file        cs-types.h
+ * @file        handle.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       CSR Content Screening internal types
+ * @brief       Client request handle with dispatcher in it
  */
 #pragma once
 
-#include <set>
-#include <memory>
 #include <utility>
 
+#include "common/types.h"
 #include "common/dispatcher.h"
-#include "common/serialization.h"
 
 namespace Csr {
-namespace Cs {
+namespace Client {
 
-class Result : public ISerializable {
+class Handle {
 public:
-	Result();
-	virtual ~Result();
-	Result(IStream &);
-	virtual void Serialize(IStream &) const;
-
-	Result(Result &&);
-	Result &operator=(Result &&);
-};
-
-class Context : public ISerializable {
-public:
-	Context();
-	virtual ~Context();
-	Context(IStream &);
-	virtual void Serialize(IStream &) const;
-
-	Context(Context &&);
-	Context &operator=(Context &&);
-
-	template<typename Type, typename  ...Args>
+	template<typename Type, typename ...Args>
 	Type dispatch(Args &&...);
 
-	void addResult(Result *);
+	void add(Result *);
+
+	Context &getContext(void) noexcept;
 
 private:
 	std::unique_ptr<Dispatcher> m_dispatcher;
-	std::set<std::unique_ptr<Result>> m_results;
+	Context m_ctx;
 };
 
 template<typename Type, typename ...Args>
-Type Context::dispatch(Args &&...args)
+Type Handle::dispatch(Args &&...args)
 {
 	if (m_dispatcher == nullptr)
 		m_dispatcher.reset(new Dispatcher("/tmp/." SERVICE_NAME ".socket"));
@@ -71,5 +52,5 @@ Type Context::dispatch(Args &&...args)
 	return m_dispatcher->methodCall<Type>(std::forward<Args>(args)...);
 }
 
-} // namespace Cs
+} // namespace Client
 } // namespace Csr

@@ -46,7 +46,7 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 
 	switch (info.first) {
 	case CommandId::SCAN_FILE: {
-		Cs::Context context;
+		Context context;
 		std::string filepath;
 		info.second.Deserialize(context, filepath);
 		return scanFile(context, filepath);
@@ -54,10 +54,24 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 
 	/* TODO: should we separate command->logic mapping of CS and WP ? */
 	case CommandId::CHECK_URL: {
-		Wp::Context context;
+		Context context;
 		std::string url;
 		info.second.Deserialize(context, url);
 		return checkUrl(context, url);
+	}
+
+	case CommandId::DIR_GET_RESULTS: {
+		Context context;
+		std::string dir;
+		info.second.Deserialize(context, dir);
+		return dirGetResults(context, dir);
+	}
+
+	case CommandId::DIR_GET_FILES: {
+		Context context;
+		std::string dir;
+		info.second.Deserialize(context, dir);
+		return dirGetFiles(context, dir);
 	}
 
 	default:
@@ -77,20 +91,36 @@ std::pair<CommandId, BinaryQueue> Logic::getRequestInfo(const RawBuffer &data)
 	return std::make_pair(id, std::move(q));
 }
 
-RawBuffer Logic::scanFile(const Cs::Context &context, const std::string &filepath)
+RawBuffer Logic::scanFile(const Context &context, const std::string &filepath)
 {
 	INFO("Scan file[" << filepath << "] by engine");
 	(void) context;
 
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, Cs::Result()).pop();
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, Result()).pop();
 }
 
-RawBuffer Logic::checkUrl(const Wp::Context &context, const std::string &url)
+RawBuffer Logic::checkUrl(const Context &context, const std::string &url)
 {
 	INFO("Check url[" << url << "] by engine");
 	(void) context;
 
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, Wp::Result()).pop();
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, Result()).pop();
+}
+
+RawBuffer Logic::dirGetResults(const Context &context, const std::string &dir)
+{
+	INFO("Dir[" << dir << "] get results");
+	(void) context;
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
+}
+
+RawBuffer Logic::dirGetFiles(const Context &context, const std::string &dir)
+{
+	INFO("Dir[" << dir << "] get files");
+	(void) context;
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, std::vector<Result>()).pop();
 }
 
 }

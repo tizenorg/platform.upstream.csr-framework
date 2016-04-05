@@ -14,37 +14,47 @@
  *  limitations under the License
  */
 /*
- * @file        logic.h
+ * @file        async-logic.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
  * @brief
  */
 #pragma once
 
-#include <string>
-#include <utility>
+#include <memory>
+#include <atomic>
 
 #include "common/types.h"
-#include "common/command-id.h"
-#include "common/raw-buffer.h"
-#include "common/binary-queue.h"
+#include "common/dispatcher.h"
+#include "client/callback.h"
 
 namespace Csr {
+namespace Client {
 
-class Logic {
+class AsyncLogic {
 public:
-	Logic();
-	virtual ~Logic();
+	AsyncLogic(Context &context, const Callback &cb, void *userdata,
+			   const std::function<bool()> &isStopped);
+	virtual ~AsyncLogic();
 
-	RawBuffer dispatch(const RawBuffer &);
+	std::pair<Callback::Id, Task> scanFiles(const std::shared_ptr<StrSet> &files);
+	std::pair<Callback::Id, Task> scanDir(const std::string &dir);
+	std::pair<Callback::Id, Task> scanDirs(const std::shared_ptr<StrSet> &dirs);
+
+	void stop(void);
 
 private:
-	std::pair<CommandId, BinaryQueue> getRequestInfo(const RawBuffer &);
+	void add(Result *);
 
-	RawBuffer scanFile(const Context &context, const std::string &filepath);
-	RawBuffer checkUrl(const Context &context, const std::string &url);
-	RawBuffer dirGetResults(const Context &context, const std::string &dir);
-	RawBuffer dirGetFiles(const Context &context, const std::string &dir);
+	Context &m_origCtx; // for registering results for auto-release
+	Context m_ctx; // TODO: append it to handle context when destroyed
+	Callback m_cb;
+	void *m_userdata;
+	std::function<bool()> m_isStopped;
+
+	std::unique_ptr<Dispatcher> m_dispatcher;
+
 };
 
+}
 }

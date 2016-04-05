@@ -14,81 +14,30 @@
  *  limitations under the License
  */
 /*
- * @file        cs-types.cpp
+ * @file        handle.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       CSR Content Screening internal types
+ * @brief       Client request handle with dispatcher in it
  */
-#include "common/cs-types.h"
+#include "client/handle.h"
 
 #include <stdexcept>
 
 namespace Csr {
-namespace Cs {
+namespace Client {
 
-Context::Context()
+Context &Handle::getContext() noexcept
 {
+	return m_ctx;
 }
 
-Context::~Context()
-{
-}
-
-Context::Context(IStream &)
-{
-}
-
-void Context::Serialize(IStream &) const
-{
-}
-
-Context::Context(Context &&other) :
-	m_results(std::move(other.m_results))
-{
-}
-
-Context &Context::operator=(Context &&other)
-{
-	if (this == &other)
-		return *this;
-
-	m_results = std::move(other.m_results);
-
-	return *this;
-}
-
-void Context::addResult(Result *result)
+void Handle::add(Result *result)
 {
 	if (result == nullptr)
 		throw std::logic_error("result shouldn't be null");
 
-	m_results.emplace(result);
+	m_ctx.add(result);
 }
 
-Result::Result()
-{
-}
-
-Result::~Result()
-{
-}
-
-Result::Result(IStream &)
-{
-}
-
-void Result::Serialize(IStream &) const
-{
-}
-
-Result::Result(Result &&)
-{
-}
-
-Result &Result::operator=(Result &&)
-{
-	return *this;
-}
-
-} // namespace Cs
+} // namespace Client
 } // namespace Csr

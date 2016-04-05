@@ -24,7 +24,8 @@
 #include <new>
 
 #include "client/utils.h"
-#include "common/wp-types.h"
+#include "client/handle.h"
+#include "common/types.h"
 #include "common/command-id.h"
 #include "common/audit/logger.h"
 
@@ -38,7 +39,7 @@ int csr_wp_context_create(csr_wp_context_h* phandle)
 	if (phandle == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*phandle = reinterpret_cast<csr_wp_context_h>(new Wp::Context());
+	*phandle = reinterpret_cast<csr_wp_context_h>(new Client::Handle());
 
 	return CSR_ERROR_NONE;
 
@@ -53,7 +54,7 @@ int csr_wp_context_destroy(csr_wp_context_h handle)
 	if (handle == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	delete reinterpret_cast<Wp::Context *>(handle);
+	delete reinterpret_cast<Client::Handle *>(handle);
 
 	return CSR_ERROR_NONE;
 
@@ -89,19 +90,19 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url, csr_wp_check_resu
 		|| url == nullptr || url[0] == '\0')
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	auto context = reinterpret_cast<Wp::Context *>(handle);
-	auto ret = context->dispatch<std::pair<int, Wp::Result *>>(
+	auto h = reinterpret_cast<Client::Handle *>(handle);
+	auto ret = h->dispatch<std::pair<int, Result *>>(
 		CommandId::CHECK_URL,
-		context,
-		Client::toStlString(url));
+		h->getContext(),
+		std::string(url));
 
-	if (ret.first != CSR_ERROR_NONE || ret.second == nullptr) {
+	if (ret.first != CSR_ERROR_NONE) {
 		ERROR("Error! ret: " << ret.first);
 		return ret.first;
 	}
 
+	h->add(ret.second);
 	*presult = reinterpret_cast<csr_wp_check_result_h>(ret.second);
-	context->addResult(ret.second);
 
 	return CSR_ERROR_NONE;
 

@@ -28,12 +28,11 @@ SET(${TARGET_CSR_COMMON}_SRCS
 	common/audit/logger.cpp
 	common/binary-queue.cpp
 	common/connection.cpp
-	common/cs-types.cpp
+	common/types.cpp
 	common/dispatcher.cpp
 	common/mainloop.cpp
 	common/service.cpp
 	common/socket.cpp
-	common/wp-types.cpp
 )
 
 INCLUDE_DIRECTORIES(

@@ -16,4 +16,4 @@
 # @author      Kyungwook Tak (k.tak@samsung.com)
 # @brief       install headers to be built with clients
 #
-INSTALL(DIRECTORY csr DESTINATION ${INCLUDE_INSTALL_DIR}/csr)
+INSTALL(DIRECTORY csr DESTINATION ${INCLUDE_INSTALL_DIR})

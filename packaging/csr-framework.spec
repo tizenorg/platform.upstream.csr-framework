@@ -189,12 +189,12 @@ fi
 
 %files devel
 %defattr(-,root,root,-)
-%{_includedir}/csr/csr/content-screening.h
-%{_includedir}/csr/csr/content-screening-types.h
-%{_includedir}/csr/csr/web-protection.h
-%{_includedir}/csr/csr/web-protection-types.h
-%{_includedir}/csr/csr/error.h
-%{_includedir}/csr/csr/engine-manager.h
+%{_includedir}/csr/content-screening.h
+%{_includedir}/csr/content-screening-types.h
+%{_includedir}/csr/web-protection.h
+%{_includedir}/csr/web-protection-types.h
+%{_includedir}/csr/error.h
+%{_includedir}/csr/engine-manager.h
 %{_libdir}/pkgconfig/%{service_name}.pc
 %{_libdir}/lib%{service_name}-client.so
 %{_libdir}/lib%{service_name}-common.so

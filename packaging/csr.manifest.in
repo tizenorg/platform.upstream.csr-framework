@@ -16,10 +16,13 @@
 			<smack request="dbus" type="w" />
 			<smack request="pulseaudio" type="w" />
 			<smack request="sdbd" type="rx" />
+			<smack request="pkgmgr::db" type="rwx" />
 		</request>
 		<permit>
 			<smack permit="_" type="rx" />
 			<smack permit="xorg" type="rx" />
+			<smack permit="pkgmgr" type="rx" />
+			<smack permit="pkgmgr-server" type="rx" />
 		</permit>
 	</define>
 	<request>

@@ -12,6 +12,8 @@ BuildRequires: pkgconfig(libsystemd-daemon)
 BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(elementary)
 BuildRequires: pkgconfig(sqlite3)
+BuildRequires: pkgconfig(pkgmgr)
+BuildRequires: pkgconfig(glib-2.0)
 Requires:      lib%{name}-common = %{version}-%{release}
 %{?systemd_requires}
 
@@ -23,12 +25,13 @@ file contents and checking url to prevent malicious items.
 %global bin_dir                      %{_bindir}
 %global sbin_dir                     /sbin
 %global ro_data_dir                  %{_datadir}
-%global ro_db_dir                    %{_datadir}/%{service_name}/dbspace
-%global rw_db_dir                    /opt/share/%{service_name}/dbspace
+%global rw_data_dir                  /opt/share
+%global ro_db_dir                    %{ro_data_dir}/%{service_name}/dbspace
+%global rw_db_dir                    %{rw_data_dir}/%{service_name}/dbspace
 %global sample_engine_ro_res_dir     %{ro_data_dir}/%{service_name}/engine
-%global sample_engine_rw_working_dir /opt/share/%{service_name}/engine
+%global sample_engine_rw_working_dir %{rw_data_dir}/%{service_name}/engine
 %global sample_engine_dir            %{_libdir}
-%global test_dir                     /opt/share/%{service_name}-test
+%global test_dir                     %{rw_data_dir}/%{service_name}-test
 
 %package -n lib%{name}-common
 Summary: Common library package for %{name}
@@ -67,6 +70,7 @@ Summary: test program for %{name}
 License: Apache-2.0 and BSL-1.0
 Group:   Security/Testing
 BuildRequires: boost-devel
+BuildRequires: pkgconfig(pkgmgr-info)
 Requires:      %{name} = %{version}
 
 %description test
@@ -167,13 +171,19 @@ fi
 %{_unitdir}/sockets.target.wants/%{service_name}-popup.socket
 %{_unitdir}/%{service_name}-popup.socket
 
+%dir %{ro_data_dir}/%{service_name}
+%dir %{rw_data_dir}/%{service_name}
+%dir %{ro_db_dir}
+%dir %{rw_db_dir}
 %attr(444, system, system) %{ro_db_dir}/*.sql
 
 # sample engine related files
+%dir %{sample_engine_dir}
+%dir %{sample_engine_ro_res_dir}
+%dir %attr(775, system, system) %{sample_engine_rw_working_dir}
 %{sample_engine_dir}/lib%{service_name}-cs-engine.so
 %{sample_engine_dir}/lib%{service_name}-wp-engine.so
-%dir %{sample_engine_ro_res_dir}
-%attr(775, system, system) %{sample_engine_rw_working_dir}
+%attr(-, system, system) %{sample_engine_rw_working_dir}/*
 
 %files -n lib%{name}-common
 %defattr(-,root,root,-)
@@ -208,4 +218,5 @@ fi
 %{bin_dir}/%{service_name}-popup-test
 %{bin_dir}/%{service_name}-threadpool-test
 # test resources
-%{test_dir}
+%dir %{test_dir}
+%{test_dir}/*

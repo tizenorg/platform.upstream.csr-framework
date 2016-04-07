@@ -21,10 +21,14 @@ ADD_DEFINITIONS("-DBOOST_TEST_DYN_LINK")
 
 SET(CSR_FW_SRC_PATH ${PROJECT_SOURCE_DIR}/src/framework)
 SET(CSR_FW_DB_SRC_PATH ${CSR_FW_SRC_PATH}/database)
+SET(CSR_FW_SVC_SRC_PATH ${CSR_FW_SRC_PATH}/service)
 
 PKG_CHECK_MODULES(${TARGET_CSR_TEST}_DEP
 	REQUIRED
 	sqlite3
+	glib-2.0
+	pkgmgr
+	pkgmgr-info
 )
 
 SET(${TARGET_CSR_TEST}_SRCS
@@ -32,7 +36,9 @@ SET(${TARGET_CSR_TEST}_SRCS
 	${CSR_FW_DB_SRC_PATH}/connection.cpp
 	${CSR_FW_DB_SRC_PATH}/statement.cpp
 	${CSR_FW_DB_SRC_PATH}/csr_db.cpp
-	${CSR_FW_SRC_PATH}/service/core-usage.cpp
+	${CSR_FW_SVC_SRC_PATH}/core-usage.cpp
+	${CSR_FW_SVC_SRC_PATH}/file-system.cpp
+	${CSR_FW_SVC_SRC_PATH}/app-deleter.cpp
 	colour_log_formatter.cpp
 	test-api-content-screening.cpp
 	test-api-content-screening-async.cpp
@@ -42,13 +48,14 @@ SET(${TARGET_CSR_TEST}_SRCS
 	test-api-engine-web-protection.cpp
 	test-internal-database.cpp
 	test-internal-cpucore.cpp
+	test-internal-file-system.cpp
 	test-main.cpp
 	test-common.cpp
 )
 
 INCLUDE_DIRECTORIES(
 	${PROJECT_SOURCE_DIR}/src/include
-        ${CSR_FW_SRC_PATH}
+	${CSR_FW_SRC_PATH}
 	./
 	${${TARGET_CSR_TEST}_DEP_INCLUDE_DIRS}
 )

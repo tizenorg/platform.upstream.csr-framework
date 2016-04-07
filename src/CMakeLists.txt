@@ -22,6 +22,8 @@ PKG_CHECK_MODULES(${TARGET_CSR_SERVER}_DEP
 	REQUIRED
 	libsystemd-daemon
 	sqlite3
+	glib-2.0
+	pkgmgr
 )
 
 SET(${TARGET_CSR_SERVER}_SRCS
@@ -30,6 +32,8 @@ SET(${TARGET_CSR_SERVER}_SRCS
 	framework/service/server-service.cpp
 	framework/service/thread-pool.cpp
 	framework/service/core-usage.cpp
+	framework/service/file-system.cpp
+	framework/service/app-deleter.cpp
 	framework/ui/askuser.cpp
 
 	# question and response codes needed on both of

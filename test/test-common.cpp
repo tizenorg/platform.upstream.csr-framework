@@ -14,42 +14,24 @@
  *  limitations under the License
  */
 /*
- * @file        test-api-web-protection.cpp
+ * @file        test-common.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       CSR Web protection API test
+ * @brief       Common utilities for test
  */
-#include <csr/web-protection.h>
-
-#include <string>
-#include <iostream>
-#include <boost/test/unit_test.hpp>
-
 #include "test-common.h"
 
-BOOST_AUTO_TEST_SUITE(API_WEB_PROTECTION)
+namespace Test {
 
-BOOST_AUTO_TEST_CASE(context_create_destroy)
+void exceptionGuard(const std::function<void()> &f)
 {
-	EXCEPTION_GUARD_START
-
-	auto c = Test::Context<csr_wp_context_h>();
-	(void) c;
-
-	EXCEPTION_GUARD_END
+	try {
+		f();
+	} catch (const std::exception &e) {
+		BOOST_REQUIRE_MESSAGE(0, "std::exception catched: " << e.what());
+	} catch (...) {
+		BOOST_REQUIRE_MESSAGE(0, "Unknown exception catched");
+	}
 }
 
-BOOST_AUTO_TEST_CASE(check_url)
-{
-	EXCEPTION_GUARD_START
-
-	auto c = Test::Context<csr_wp_context_h>();
-	auto context = c.get();
-
-	csr_wp_check_result_h result;
-	ASSERT_IF(csr_wp_check_url(context, "dummy/url/test", &result), CSR_ERROR_NONE);
-
-	EXCEPTION_GUARD_END
-}
-
-BOOST_AUTO_TEST_SUITE_END()
+} // namespace Test

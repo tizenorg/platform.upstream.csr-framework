@@ -30,7 +30,7 @@ extern "C" {
 
 /* define it temporary until this code goes into capi-base-common package */
 #ifndef TIZEN_ERROR_CSR
-#define TIZEN_ERROR_CSR 0x60 // 0110 0000
+#define TIZEN_ERROR_CSR 0x6000 // 0110 0000 0000 0000
 #endif
 
 

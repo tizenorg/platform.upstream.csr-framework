@@ -26,7 +26,18 @@
 namespace Csr {
 namespace Client {
 
-Context &Handle::getContext() noexcept
+Handle::Handle(std::shared_ptr<Context> &&context) :
+	m_ctx(std::move(context))
+{
+	if (!m_ctx)
+		throw std::logic_error("context shouldn't be null");
+}
+
+Handle::~Handle()
+{
+}
+
+std::shared_ptr<Context> &Handle::getContext() noexcept
 {
 	return m_ctx;
 }
@@ -36,7 +47,7 @@ void Handle::add(Result *result)
 	if (result == nullptr)
 		throw std::logic_error("result shouldn't be null");
 
-	m_ctx.add(result);
+	m_ctx->add(result);
 }
 
 } // namespace Client

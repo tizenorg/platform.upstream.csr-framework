@@ -27,13 +27,14 @@
 
 #include "common/dispatcher.h"
 #include "common/serialization.h"
+#include "common/kvp-container.h"
 
 namespace Csr {
 
 using Task = std::function<void()>;
 using StrSet = std::set<std::string>;
 
-class Result : public ISerializable {
+class Result : public ISerializable, public KvpContainer {
 public:
 	Result();
 	virtual ~Result();
@@ -49,7 +50,7 @@ private:
 	bool m_hasVal;
 };
 
-class Context : public ISerializable {
+class Context : public ISerializable, public KvpContainer {
 public:
 	Context();
 	virtual ~Context();

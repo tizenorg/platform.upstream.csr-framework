@@ -40,7 +40,7 @@ namespace Client {
 
 class HandleExt : public Handle {
 public:
-	HandleExt();
+	explicit HandleExt(std::shared_ptr<Context> &&);
 	virtual ~HandleExt();
 
 	void dispatchAsync(const Task &task);

@@ -23,32 +23,37 @@
 
 #include <utility>
 
+#include "common/cs-detected.h"
 #include "common/audit/logger.h"
 
 namespace Csr {
 namespace Client {
 
-AsyncLogic::AsyncLogic(Context &context, const Callback &cb, void *userdata,
-					   const std::function<bool()> &isStopped) :
+AsyncLogic::AsyncLogic(std::shared_ptr<Context> &context, const Callback &cb,
+					   void *userdata, const std::function<bool()> &isStopped) :
 	m_origCtx(context),
-	m_ctx(context),
+	m_ctx(new CsContext),
 	m_cb(cb),
 	m_userdata(userdata),
 	m_isStopped(isStopped),
 	m_dispatcher(new Dispatcher("/tmp/." SERVICE_NAME ".socket"))
 {
+	copyKvp<int>(CsContext::Key::AskUser);
+	copyKvp<int>(CsContext::Key::CoreUsage);
+	copyKvp<std::string>(CsContext::Key::PopupMessage);
+	copyKvp<bool>(CsContext::Key::ScanOnCloud);
 }
 
 AsyncLogic::~AsyncLogic()
 {
 	DEBUG("AsyncLogic dtor. Results num in "
-		  "mother ctx[" << m_origCtx.size() << "] "
-		  "and here[" << m_ctx.size() << "]");
+		  "mother ctx[" << m_origCtx->size() << "] "
+		  "and here[" << m_ctx->size() << "]");
 
-	for (auto &resultPtr : m_ctx.m_results)
-		m_origCtx.add(std::move(resultPtr));
+	for (auto &resultPtr : m_ctx->m_results)
+		m_origCtx->add(std::move(resultPtr));
 
-	DEBUG("Integrated mother ctx results num: " << m_origCtx.size());
+	DEBUG("Integrated mother ctx results num: " << m_origCtx->size());
 }
 
 std::pair<Callback::Id, Task> AsyncLogic::scanDirs(const std::shared_ptr<StrSet>
@@ -75,7 +80,7 @@ std::pair<Callback::Id, Task> AsyncLogic::scanDir(const std::string &dir)
 {
 	// For in case of there's already detected malware for dir
 	auto retResults =
-		m_dispatcher->methodCall<std::pair<int, std::vector<Result *>>>(
+		m_dispatcher->methodCall<std::pair<int, std::vector<CsDetected *>>>(
 			CommandId::DIR_GET_RESULTS, m_ctx, dir);
 
 	if (retResults.first != CSR_ERROR_NONE) {
@@ -175,7 +180,7 @@ std::pair<Callback::Id, Task> AsyncLogic::scanFiles(const
 
 void AsyncLogic::add(Result *r)
 {
-	m_ctx.add(r);
+	m_ctx->add(r);
 }
 
 }

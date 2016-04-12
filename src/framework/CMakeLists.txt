@@ -28,6 +28,9 @@ SET(${TARGET_CSR_COMMON}_SRCS
 	common/audit/logger.cpp
 	common/binary-queue.cpp
 	common/connection.cpp
+	common/cs-context.cpp
+	common/cs-detected.cpp
+	common/kvp-container.cpp
 	common/types.cpp
 	common/dispatcher.cpp
 	common/mainloop.cpp

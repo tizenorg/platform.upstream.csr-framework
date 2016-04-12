@@ -462,7 +462,7 @@ int csr_cs_detected_get_threat_type(csr_cs_detected_h detected, csr_cs_threat_ty
  * @retval #CSR_ERROR_INVALID_PARAMETER    malware_name is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_malware_name(csr_cs_detected_h detected, char** malware_name);
+int csr_cs_detected_get_malware_name(csr_cs_detected_h detected, const char** pmalware_name);
 
 /**
  * @brief extracts an url that contains detailed information on vendor's web site from the detected malware handle.
@@ -479,7 +479,7 @@ int csr_cs_detected_get_malware_name(csr_cs_detected_h detected, char** malware_
  * @retval #CSR_ERROR_INVALID_PARAMETER    malware_name is invalid.
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, char** detailed_url);
+int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, const char** pdetailed_url);
 
 /**
  * @brief extracts the time stamp when a malware is detected from the detected malware handle.
@@ -494,7 +494,7 @@ int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, char** detailed
  * @retval #CSR_ERROR_INVALID_PARAMETER    timestamp is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_timestamp(csr_cs_detected_h detected, time_t* timestamp);
+int csr_cs_detected_get_timestamp(csr_cs_detected_h detected, time_t* ptimestamp);
 
 /**
  * @brief extracts the file name where a malware is detected from the detected malware handle.
@@ -509,7 +509,7 @@ int csr_cs_detected_get_timestamp(csr_cs_detected_h detected, time_t* timestamp)
  * @retval #CSR_ERROR_INVALID_PARAMETER    file_name is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_file_name(csr_cs_detected_h detected, char** file_name);
+int csr_cs_detected_get_file_name(csr_cs_detected_h detected, const char** pfile_name);
 
 /**
  * @brief extracts a user reponse of a popup from the detected malware handle.

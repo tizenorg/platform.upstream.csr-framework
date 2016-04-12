@@ -35,6 +35,7 @@ SET(${TARGET_CSR_TEST}_SRCS
 	${CSR_FW_SRC_PATH}/service/core-usage.cpp
 	colour_log_formatter.cpp
 	test-api-content-screening.cpp
+	test-api-content-screening-async.cpp
 	test-api-engine-manager.cpp
 	test-api-web-protection.cpp
 	test-api-engine-content-screening.cpp
@@ -42,6 +43,7 @@ SET(${TARGET_CSR_TEST}_SRCS
 	test-internal-database.cpp
 	test-internal-cpucore.cpp
 	test-main.cpp
+	test-common.cpp
 )
 
 INCLUDE_DIRECTORIES(

@@ -31,8 +31,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#define CHECK_IS_NULL(ptr)     BOOST_REQUIRE(ptr == nullptr)
-#define CHECK_IS_NOT_NULL(ptr) BOOST_REQUIRE(ptr != nullptr)
+#include "test-common.h"
 
 #define TEST_FILE_NORMAL   TEST_DIR "/test_normal_file"
 #define TEST_FILE_MALWARE  TEST_DIR "/test_malware_file"
@@ -48,28 +47,24 @@ inline void checkDetected(csre_cs_detected_h detected,
 		const char *expected_detailed_url,
 		long expected_timestamp)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
+	EXCEPTION_GUARD_START
+
 	CHECK_IS_NOT_NULL(detected);
 
 	csre_cs_severity_level_e severity;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_detected_get_severity(detected, &severity));
-
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_detected_get_severity(detected, &severity), CSRE_ERROR_NONE);
 	BOOST_REQUIRE_MESSAGE(severity == expected_severity,
 		"severity isn't expected value. "
 		"val: " << severity << " expected: " << expected_severity);
 
 	csre_cs_threat_type_e threat_type;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_detected_get_threat_type(detected, &threat_type));
-
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_detected_get_threat_type(detected, &threat_type), CSRE_ERROR_NONE);
 	BOOST_REQUIRE_MESSAGE(threat_type == expected_threat_type,
 		"threat type isn't expected value. "
 		"val: " << threat_type << " expected: " << expected_threat_type);
 
 	const char *malware_name = nullptr;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_detected_get_malware_name(detected, &malware_name));
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_detected_get_malware_name(detected, &malware_name), CSRE_ERROR_NONE);
 
 	if (expected_malware_name != nullptr) {
 		CHECK_IS_NOT_NULL(malware_name);
@@ -81,8 +76,7 @@ inline void checkDetected(csre_cs_detected_h detected,
 	}
 
 	const char *detailed_url = nullptr;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_detected_get_detailed_url(detected, &detailed_url));
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_detected_get_detailed_url(detected, &detailed_url), CSRE_ERROR_NONE);
 
 	if (expected_detailed_url != nullptr) {
 		CHECK_IS_NOT_NULL(detailed_url);
@@ -95,33 +89,15 @@ inline void checkDetected(csre_cs_detected_h detected,
 	}
 
 	long timestamp;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_detected_get_timestamp(detected, &timestamp));
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_detected_get_timestamp(detected, &timestamp), CSRE_ERROR_NONE);
 
 	if (expected_timestamp != 0)
 		BOOST_REQUIRE_MESSAGE(timestamp == expected_timestamp,
 			"timestamp isn't expected value. "
 				"val: " << timestamp << " expected: " << expected_timestamp);
+
+	EXCEPTION_GUARD_END
 }
-
-class ContextPtr {
-public:
-	ContextPtr() : m_context(nullptr) {}
-	ContextPtr(csre_cs_context_h context) : m_context(context) {}
-	virtual ~ContextPtr()
-	{
-		int ret = csre_cs_context_destroy(m_context);
-		BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
-	}
-
-	csre_cs_context_h get(void)
-	{
-		return m_context;
-	}
-
-private:
-	csre_cs_context_h m_context;
-};
 
 class ScopedFile {
 public:
@@ -148,87 +124,59 @@ private:
 	int m_fd;
 };
 
-using ScopedContext = std::unique_ptr<ContextPtr>;
-
-inline ScopedContext makeScopedContext(csre_cs_context_h context)
-{
-	return ScopedContext(new ContextPtr(context));
-}
-
-inline csre_cs_engine_h getEngineHandle(void)
-{
-	csre_cs_engine_h engine;
-	int ret = CSRE_ERROR_UNKNOWN;
-
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_engine_get_info(&engine));
-	BOOST_REQUIRE_MESSAGE(ret == CSRE_ERROR_NONE,
-		"Failed to create engine handle. ret: " << ret);
-	CHECK_IS_NOT_NULL(engine);
-
-	return engine;
-}
-
-inline ScopedContext getContextHandle(void)
-{
-	csre_cs_context_h context;
-	int ret = CSRE_ERROR_UNKNOWN;
-
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_context_create(&context));
-	BOOST_REQUIRE_MESSAGE(ret == CSRE_ERROR_NONE,
-		"Failed to create context handle. ret: " << ret);
-	CHECK_IS_NOT_NULL(context);
-
-	return makeScopedContext(context);
-
-}
-
 }
 
 BOOST_AUTO_TEST_SUITE(API_ENGINE_CONTENT_SCREENING)
 
 BOOST_AUTO_TEST_CASE(context_create_destroy)
 {
-	auto context = getContextHandle();
-	(void)context;
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_context_h>();
+	(void) c;
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(scan_data_clear)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto contextPtr = getContextHandle();
-	auto context = contextPtr->get();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_context_h>();
+	auto context = c.get();
 
 	const char *data = "abcd1234dfdfdf334dfdi8ffndsfdfdsfdasfagdfvdfdfafadfasdfsdfe";
 
 	csre_cs_detected_h detected;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_scan_data(
+	ASSERT_IF(csre_cs_scan_data(
 		context,
 		reinterpret_cast<const unsigned char *>(data),
 		strlen(data),
-		&detected));
+		&detected), CSRE_ERROR_NONE);
 
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	CHECK_IS_NULL(detected);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(scan_data_high)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto contextPtr = getContextHandle();
-	auto context = contextPtr->get();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_context_h>();
+	auto context = c.get();
 
 	const char *data =
 		"aabbccX5O!P%@AP[4\\PZX54(P^)7CC)7}$"
 		"EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*112233";
 
 	csre_cs_detected_h detected;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_scan_data(
+	ASSERT_IF(csre_cs_scan_data(
 		context,
 		reinterpret_cast<const unsigned char *>(data),
 		strlen(data),
-		&detected));
+		&detected), CSRE_ERROR_NONE);
 
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
 
 	checkDetected(detected,
@@ -237,24 +185,26 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 		"test_malware",
 		"http://high.malware.com",
 		0);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(scan_data_medium)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto contextPtr = getContextHandle();
-	auto context = contextPtr->get();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_context_h>();
+	auto context = c.get();
 
 	const char *data = "aabbccRISKY_MALWARE112233";
 
 	csre_cs_detected_h detected;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_scan_data(
+	ASSERT_IF(csre_cs_scan_data(
 		context,
 		reinterpret_cast<const unsigned char *>(data),
 		strlen(data),
-		&detected));
+		&detected), CSRE_ERROR_NONE);
 
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
 
 	checkDetected(detected,
@@ -263,31 +213,35 @@ BOOST_AUTO_TEST_CASE(scan_data_medium)
 		"test_risk",
 		nullptr,
 		0);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(scan_file_normal)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto contextPtr = getContextHandle();
-	auto context = contextPtr->get();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_context_h>();
+	auto context = c.get();
 
 	csre_cs_detected_h detected;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_scan_file(context, TEST_FILE_NORMAL, &detected));
+	ASSERT_IF(csre_cs_scan_file(context, TEST_FILE_NORMAL, &detected), CSRE_ERROR_NONE);
 
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	CHECK_IS_NULL(detected);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(scan_file_malware)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto contextPtr = getContextHandle();
-	auto context = contextPtr->get();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_context_h>();
+	auto context = c.get();
 
 	csre_cs_detected_h detected;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_scan_file(context, TEST_FILE_MALWARE, &detected));
+	ASSERT_IF(csre_cs_scan_file(context, TEST_FILE_MALWARE, &detected), CSRE_ERROR_NONE);
 
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
 
 	checkDetected(detected,
@@ -296,18 +250,20 @@ BOOST_AUTO_TEST_CASE(scan_file_malware)
 		"test_malware",
 		"http://high.malware.com",
 		0);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(scan_file_risky)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto contextPtr = getContextHandle();
-	auto context = contextPtr->get();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_context_h>();
+	auto context = c.get();
 
 	csre_cs_detected_h detected;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_scan_file(context, TEST_FILE_RISKY, &detected));
+	ASSERT_IF(csre_cs_scan_file(context, TEST_FILE_RISKY, &detected), CSRE_ERROR_NONE);
 
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
 
 	checkDetected(detected,
@@ -316,18 +272,20 @@ BOOST_AUTO_TEST_CASE(scan_file_risky)
 		"test_risk",
 		"http://medium.malware.com",
 		0);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto contextPtr = getContextHandle();
-	auto context = contextPtr->get();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_context_h>();
+	auto context = c.get();
 
 	csre_cs_detected_h detected;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_scan_app_on_cloud(context, TEST_APP_ROOT,&detected));
+	ASSERT_IF(csre_cs_scan_app_on_cloud(context, TEST_APP_ROOT,&detected), CSRE_ERROR_NONE);
 
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
 
 	checkDetected(detected,
@@ -336,8 +294,9 @@ BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 		"test_malware",
 		"http://high.malware.com",
 		0);
-}
 
+	EXCEPTION_GUARD_END
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 
@@ -346,14 +305,15 @@ BOOST_AUTO_TEST_SUITE(API_ENGINE_CONTENT_SCREENING_ERR_STRING)
 
 BOOST_AUTO_TEST_CASE(positive)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
+	EXCEPTION_GUARD_START
 
 	const char *string = nullptr;
 
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_get_error_string(ret, &string));
+	ASSERT_IF(csre_cs_get_error_string(CSRE_ERROR_UNKNOWN, &string), CSRE_ERROR_NONE);
 
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
 	CHECK_IS_NOT_NULL(string);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -363,85 +323,110 @@ BOOST_AUTO_TEST_SUITE(API_ENGINE_CONTENT_SCREENING_ENGINE_INFO)
 
 BOOST_AUTO_TEST_CASE(get_engine_info)
 {
-	auto handle = getEngineHandle();
-	(void)handle;
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_engine_h>();
+	(void) c;
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(get_vendor)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto handle = getEngineHandle();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_engine_h>();
+	auto handle = c.get();
 
 	const char *vendor = nullptr;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_engine_get_vendor(handle, &vendor));
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_engine_get_vendor(handle, &vendor), CSRE_ERROR_NONE);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(get_vendor_logo)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto handle = getEngineHandle();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_engine_h>();
+	auto handle = c.get();
 
 	unsigned char *vendor_logo_image = nullptr;
 	unsigned int size = 0;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_engine_get_vendor_logo(handle, &vendor_logo_image, &size));
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_engine_get_vendor_logo(handle, &vendor_logo_image, &size), CSRE_ERROR_NONE);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(get_version)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto handle = getEngineHandle();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_engine_h>();
+	auto handle = c.get();
 
 	const char *version = nullptr;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_engine_get_version(handle, &version));
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_engine_get_version(handle, &version), CSRE_ERROR_NONE);
 	CHECK_IS_NOT_NULL(version);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(get_data_version)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto handle = getEngineHandle();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_engine_h>();
+	auto handle = c.get();
 
 	const char *version = nullptr;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_engine_get_data_version(handle, &version));
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_engine_get_data_version(handle, &version), CSRE_ERROR_NONE);
 	CHECK_IS_NOT_NULL(version);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(get_latest_update_time)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto handle = getEngineHandle();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_engine_h>();
+	auto handle = c.get();
 
 	time_t time = 0;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_engine_get_latest_update_time(handle, &time));
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_engine_get_latest_update_time(handle, &time), CSRE_ERROR_NONE);
 
 	struct tm t;
 	BOOST_MESSAGE(asctime(gmtime_r(&time, &t)));
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(get_engine_activated)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto handle = getEngineHandle();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_engine_h>();
+	auto handle = c.get();
 
 	csre_cs_activated_e activated;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_engine_get_activated(handle, &activated));
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_engine_get_activated(handle, &activated), CSRE_ERROR_NONE);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(get_api_version)
 {
-	int ret = CSRE_ERROR_UNKNOWN;
-	auto handle = getEngineHandle();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csre_cs_engine_h>();
+	auto handle = c.get();
 
 	const char *version = nullptr;
-	BOOST_REQUIRE_NO_THROW(ret = csre_cs_engine_get_api_version(handle, &version));
-	BOOST_REQUIRE(ret == CSRE_ERROR_NONE);
-	BOOST_REQUIRE(memcmp(version, CSRE_CS_API_VERSION, strlen(version)) == 0);
+	ASSERT_IF(csre_cs_engine_get_api_version(handle, &version), CSRE_ERROR_NONE);
+	ASSERT_IF(memcmp(version, CSRE_CS_API_VERSION, strlen(version)), 0);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -26,160 +26,83 @@
 #include <memory>
 #include <new>
 #include <iostream>
-#include <condition_variable>
-#include <thread>
-#include <mutex>
 #include <boost/test/unit_test.hpp>
 
-namespace {
-
-class ContextPtr {
-public:
-	ContextPtr() : m_context(nullptr) {}
-	ContextPtr(csr_cs_context_h context) : m_context(context) {}
-	virtual ~ContextPtr()
-	{
-		BOOST_REQUIRE(csr_cs_context_destroy(m_context) == CSR_ERROR_NONE);
-	}
-
-	inline csr_cs_context_h get(void)
-	{
-		return m_context;
-	}
-
-private:
-	csr_cs_context_h m_context;
-};
-
-using ScopedContext = std::unique_ptr<ContextPtr>;
-
-inline ScopedContext makeScopedContext(csr_cs_context_h context)
-{
-	return ScopedContext(new ContextPtr(context));
-}
-
-inline ScopedContext getContextHandle(void)
-{
-	csr_cs_context_h context;
-	int ret = CSR_ERROR_UNKNOWN;
-	BOOST_REQUIRE_NO_THROW(ret = csr_cs_context_create(&context));
-	BOOST_REQUIRE_MESSAGE(ret == CSR_ERROR_NONE,
-						  "Failed to create context handle. ret: " << ret);
-	BOOST_REQUIRE(context != nullptr);
-	return makeScopedContext(context);
-}
-
-}
+#include "test-common.h"
 
 BOOST_AUTO_TEST_SUITE(API_CONTENT_SCREENING)
 
 BOOST_AUTO_TEST_CASE(context_create_destroy)
 {
-	auto contextPtr = getContextHandle();
-	(void) contextPtr;
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	(void) c;
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(set_values_to_context_positive)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	ASSERT_IF(csr_cs_set_ask_user(context, CSR_CS_NOT_ASK_USER), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_ask_user(context, CSR_CS_ASK_USER), CSR_ERROR_NONE);
+
+	ASSERT_IF(csr_cs_set_popup_message(context, "Test popup message"),
+			  CSR_ERROR_NONE);
+
+	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_DEFAULT),
+			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_ALL), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_HALF), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_SINGLE),
+			  CSR_ERROR_NONE);
+
+	ASSERT_IF(csr_cs_set_scan_on_cloud(context), CSR_ERROR_NONE);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(set_values_to_context_negative)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	ASSERT_IF(csr_cs_set_ask_user(context, static_cast<csr_cs_ask_user_e>(0x926ce)),
+			  CSR_ERROR_INVALID_PARAMETER);
+
+	ASSERT_IF(csr_cs_set_popup_message(context, nullptr),
+			  CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_set_popup_message(context, ""), CSR_ERROR_INVALID_PARAMETER);
+
+	ASSERT_IF(csr_cs_set_core_usage(context,
+									static_cast<csr_cs_core_usage_e>(0x882a2)),
+			  CSR_ERROR_INVALID_PARAMETER);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(scan_file)
 {
-	int ret = CSR_ERROR_UNKNOWN;
-	auto contextPtr = getContextHandle();
-	auto context = contextPtr->get();
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
 	csr_cs_detected_h detected;
-	BOOST_REQUIRE_NO_THROW(ret = csr_cs_scan_file(context, "dummy_file_path",
-								 &detected));
-	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
-}
 
-struct AsyncTestContext {
-	std::mutex m;
-	std::condition_variable cv;
-	int scannedCnt;
-	int detectedCnt;
-	int completedCnt;
-	int cancelledCnt;
-	int errorCnt;
+	ASSERT_IF(csr_cs_scan_file(context, "dummy_file_path", &detected),
+			  CSR_ERROR_NONE);
 
-	AsyncTestContext() :
-		scannedCnt(0),
-		detectedCnt(0),
-		completedCnt(0),
-		cancelledCnt(0),
-		errorCnt(0) {}
-};
+	// no malware detected
+	CHECK_IS_NULL(detected);
 
-void on_scanned(void *userdata, const char *file)
-{
-	BOOST_MESSAGE("on_scanned called. file[" << file << "] scanned!");
-	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
-	ctx->scannedCnt++;
-}
-
-void on_error(void *userdata, int ec)
-{
-	BOOST_MESSAGE("on_error called. async request done with error code[" << ec <<
-				  "]");
-	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
-	ctx->errorCnt++;
-}
-
-void on_detected(void *userdata, csr_cs_detected_h detected)
-{
-	(void) detected;
-	BOOST_MESSAGE("on_detected called.");
-	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
-	ctx->detectedCnt++;
-}
-
-void on_completed(void *userdata)
-{
-	BOOST_MESSAGE("on_completed called. async request completed succesfully.");
-	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
-	ctx->completedCnt++;
-	ctx->cv.notify_one();
-}
-
-void on_cancelled(void *userdata)
-{
-	BOOST_MESSAGE("on_cancelled called. async request canceled!");
-	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
-	ctx->cancelledCnt++;
-}
-
-BOOST_AUTO_TEST_CASE(scan_files_async)
-{
-	int ret = CSR_ERROR_UNKNOWN;
-	auto contextPtr = getContextHandle();
-	auto context = contextPtr->get();
-	BOOST_REQUIRE_NO_THROW(ret = csr_cs_set_callback_on_completed(context,
-								 on_completed));
-	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
-	BOOST_REQUIRE_NO_THROW(ret = csr_cs_set_callback_on_error(context, on_error));
-	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
-	BOOST_REQUIRE_NO_THROW(ret = csr_cs_set_callback_on_cancelled(context,
-								 on_cancelled));
-	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
-	BOOST_REQUIRE_NO_THROW(ret = csr_cs_set_callback_on_detected(context,
-								 on_detected));
-	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
-	BOOST_REQUIRE_NO_THROW(ret = csr_cs_set_callback_on_file_scanned(context,
-								 on_scanned));
-	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
-	const char *files[3] = {
-		TEST_DIR "/test_malware_file",
-		TEST_DIR "/test_normal_file",
-		TEST_DIR "/test_risky_file"
-	};
-	AsyncTestContext testCtx;
-	BOOST_REQUIRE_NO_THROW(ret =
-							   csr_cs_scan_files_async(context, files, sizeof(files) / sizeof(const char *),
-									   &testCtx));
-	BOOST_REQUIRE(ret == CSR_ERROR_NONE);
-	std::unique_lock<std::mutex> l(testCtx.m);
-	testCtx.cv.wait(l);
-	l.unlock();
-	BOOST_REQUIRE_MESSAGE(testCtx.completedCnt == 1 && testCtx.scannedCnt == 3 &&
-						  testCtx.detectedCnt == 0 && testCtx.cancelledCnt == 0 && testCtx.errorCnt == 0,
-						  "Async request result isn't expected.");
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_SUITE_END()

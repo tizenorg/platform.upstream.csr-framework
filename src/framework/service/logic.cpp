@@ -26,9 +26,34 @@
 #include <stdexcept>
 
 #include "common/audit/logger.h"
+#include "common/cs-detected.h"
 #include "csr/error.h"
 
 namespace Csr {
+
+namespace {
+
+// temporal function for debugging until modules integrated to logic.
+void printCsContext(const CsContext &context)
+{
+	std::string popupMessage;
+	int askUser;
+	int coreUsage;
+	bool scanOnCloud;
+
+	context.get(static_cast<int>(CsContext::Key::PopupMessage), popupMessage);
+	context.get(static_cast<int>(CsContext::Key::AskUser), askUser);
+	context.get(static_cast<int>(CsContext::Key::CoreUsage), coreUsage);
+	context.get(static_cast<int>(CsContext::Key::ScanOnCloud), scanOnCloud);
+
+	INFO("Context info:"
+		" PopupMessage: " << popupMessage <<
+		" AskUser: " << askUser <<
+		" CoreUsage: " << coreUsage <<
+		" ScanOnCloud: " << scanOnCloud);
+}
+
+}
 
 Logic::Logic()
 {
@@ -46,7 +71,7 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 
 	switch (info.first) {
 	case CommandId::SCAN_FILE: {
-		Context context;
+		CsContext context;
 		std::string filepath;
 		info.second.Deserialize(context, filepath);
 		return scanFile(context, filepath);
@@ -61,14 +86,14 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 	}
 
 	case CommandId::DIR_GET_RESULTS: {
-		Context context;
+		CsContext context;
 		std::string dir;
 		info.second.Deserialize(context, dir);
 		return dirGetResults(context, dir);
 	}
 
 	case CommandId::DIR_GET_FILES: {
-		Context context;
+		CsContext context;
 		std::string dir;
 		info.second.Deserialize(context, dir);
 		return dirGetFiles(context, dir);
@@ -91,12 +116,31 @@ std::pair<CommandId, BinaryQueue> Logic::getRequestInfo(const RawBuffer &data)
 	return std::make_pair(id, std::move(q));
 }
 
-RawBuffer Logic::scanFile(const Context &context, const std::string &filepath)
+RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 {
 	INFO("Scan file[" << filepath << "] by engine");
-	(void) context;
 
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, Result()).pop();
+	printCsContext(context);
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
+}
+
+RawBuffer Logic::dirGetResults(const CsContext &context, const std::string &dir)
+{
+	INFO("Dir[" << dir << "] get results");
+
+	printCsContext(context);
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, std::vector<CsDetected>()).pop();
+}
+
+RawBuffer Logic::dirGetFiles(const CsContext &context, const std::string &dir)
+{
+	INFO("Dir[" << dir << "] get files");
+
+	printCsContext(context);
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
 }
 
 RawBuffer Logic::checkUrl(const Context &context, const std::string &url)
@@ -105,22 +149,6 @@ RawBuffer Logic::checkUrl(const Context &context, const std::string &url)
 	(void) context;
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, Result()).pop();
-}
-
-RawBuffer Logic::dirGetResults(const Context &context, const std::string &dir)
-{
-	INFO("Dir[" << dir << "] get results");
-	(void) context;
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
-}
-
-RawBuffer Logic::dirGetFiles(const Context &context, const std::string &dir)
-{
-	INFO("Dir[" << dir << "] get files");
-	(void) context;
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, std::vector<Result>()).pop();
 }
 
 }

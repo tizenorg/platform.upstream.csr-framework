@@ -22,6 +22,7 @@
 #pragma once
 
 #include <utility>
+#include <memory>
 
 #include "common/types.h"
 #include "common/dispatcher.h"
@@ -31,16 +32,19 @@ namespace Client {
 
 class Handle {
 public:
+	explicit Handle(std::shared_ptr<Context> &&);
+	virtual ~Handle();
+
 	template<typename Type, typename ...Args>
 	Type dispatch(Args &&...);
 
 	void add(Result *);
 
-	Context &getContext(void) noexcept;
+	std::shared_ptr<Context> &getContext(void) noexcept;
 
 private:
 	std::unique_ptr<Dispatcher> m_dispatcher;
-	Context m_ctx;
+	std::shared_ptr<Context> m_ctx;
 };
 
 template<typename Type, typename ...Args>

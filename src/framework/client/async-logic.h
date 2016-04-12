@@ -25,6 +25,7 @@
 #include <atomic>
 
 #include "common/types.h"
+#include "common/cs-context.h"
 #include "common/dispatcher.h"
 #include "client/callback.h"
 
@@ -33,7 +34,7 @@ namespace Client {
 
 class AsyncLogic {
 public:
-	AsyncLogic(Context &context, const Callback &cb, void *userdata,
+	AsyncLogic(std::shared_ptr<Context> &context, const Callback &cb, void *userdata,
 			   const std::function<bool()> &isStopped);
 	virtual ~AsyncLogic();
 
@@ -44,10 +45,13 @@ public:
 	void stop(void);
 
 private:
+	template<typename T>
+	void copyKvp(CsContext::Key);
+
 	void add(Result *);
 
-	Context &m_origCtx; // for registering results for auto-release
-	Context m_ctx; // TODO: append it to handle context when destroyed
+	std::shared_ptr<Context> &m_origCtx; // for registering results for auto-release
+	std::unique_ptr<Context> m_ctx; // TODO: append it to handle context when destroyed
 	Callback m_cb;
 	void *m_userdata;
 	std::function<bool()> m_isStopped;
@@ -55,6 +59,15 @@ private:
 	std::unique_ptr<Dispatcher> m_dispatcher;
 
 };
+
+template<typename T>
+void AsyncLogic::copyKvp(CsContext::Key key)
+{
+	T value;
+
+	m_origCtx->get(static_cast<int>(key), value);
+	m_ctx->set(static_cast<int>(key), value);
+}
 
 }
 }

@@ -14,42 +14,34 @@
  *  limitations under the License
  */
 /*
- * @file        test-api-web-protection.cpp
+ * @file        kvp-container.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       CSR Web protection API test
+ * @brief       Key-value pair container with set/get interface
  */
-#include <csr/web-protection.h>
+#pragma once
 
 #include <string>
-#include <iostream>
-#include <boost/test/unit_test.hpp>
+#include <ctime>
 
-#include "test-common.h"
+namespace Csr {
 
-BOOST_AUTO_TEST_SUITE(API_WEB_PROTECTION)
+// set/get key-value pairs. Key should be defined in each derived classes
+class KvpContainer {
+public:
+	virtual ~KvpContainer();
 
-BOOST_AUTO_TEST_CASE(context_create_destroy)
-{
-	EXCEPTION_GUARD_START
+	virtual void set(int, int);
+	virtual void set(int, bool);
+	virtual void set(int, const std::string &);
+	virtual void set(int, const char *);
+	virtual void set(int, time_t);
 
-	auto c = Test::Context<csr_wp_context_h>();
-	(void) c;
+	virtual void get(int, int &) const;
+	virtual void get(int, bool &) const;
+	virtual void get(int, std::string &) const;
+	virtual void get(int, const char **) const; // For not copy to string lifecycle within itself.
+	virtual void get(int, time_t &) const;
+};
 
-	EXCEPTION_GUARD_END
 }
-
-BOOST_AUTO_TEST_CASE(check_url)
-{
-	EXCEPTION_GUARD_START
-
-	auto c = Test::Context<csr_wp_context_h>();
-	auto context = c.get();
-
-	csr_wp_check_result_h result;
-	ASSERT_IF(csr_wp_check_url(context, "dummy/url/test", &result), CSR_ERROR_NONE);
-
-	EXCEPTION_GUARD_END
-}
-
-BOOST_AUTO_TEST_SUITE_END()

@@ -25,6 +25,7 @@
 #include <utility>
 
 #include "common/types.h"
+#include "common/cs-context.h"
 #include "common/command-id.h"
 #include "common/raw-buffer.h"
 #include "common/binary-queue.h"
@@ -41,10 +42,11 @@ public:
 private:
 	std::pair<CommandId, BinaryQueue> getRequestInfo(const RawBuffer &);
 
-	RawBuffer scanFile(const Context &context, const std::string &filepath);
+	RawBuffer scanFile(const CsContext &context, const std::string &filepath);
+	RawBuffer dirGetResults(const CsContext &context, const std::string &dir);
+	RawBuffer dirGetFiles(const CsContext &context, const std::string &dir);
+
 	RawBuffer checkUrl(const Context &context, const std::string &url);
-	RawBuffer dirGetResults(const Context &context, const std::string &dir);
-	RawBuffer dirGetFiles(const Context &context, const std::string &dir);
 };
 
 }

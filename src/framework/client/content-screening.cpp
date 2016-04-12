@@ -26,10 +26,40 @@
 #include "client/utils.h"
 #include "client/handle-ext.h"
 #include "client/async-logic.h"
+#include "common/cs-context.h"
+#include "common/cs-detected.h"
 #include "common/command-id.h"
 #include "common/audit/logger.h"
 
 using namespace Csr;
+
+namespace {
+
+bool _isValid(const csr_cs_core_usage_e &value)
+{
+	switch (value) {
+	case CSR_CS_USE_CORE_DEFAULT:
+	case CSR_CS_USE_CORE_ALL:
+	case CSR_CS_USE_CORE_HALF:
+	case CSR_CS_USE_CORE_SINGLE:
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool _isValid(const csr_cs_ask_user_e &value)
+{
+	switch (value) {
+	case CSR_CS_NOT_ASK_USER:
+	case CSR_CS_ASK_USER:
+		return true;
+	default:
+		return false;
+	}
+}
+
+}
 
 API
 int csr_cs_context_create(csr_cs_context_h* phandle)
@@ -39,7 +69,8 @@ int csr_cs_context_create(csr_cs_context_h* phandle)
 	if (phandle == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*phandle = reinterpret_cast<csr_cs_context_h>(new Client::HandleExt());
+	*phandle = reinterpret_cast<csr_cs_context_h>(
+		new Client::HandleExt(std::shared_ptr<Context>(new CsContext())));
 
 	return CSR_ERROR_NONE;
 
@@ -64,40 +95,66 @@ int csr_cs_context_destroy(csr_cs_context_h handle)
 API
 int csr_cs_set_ask_user(csr_cs_context_h handle, csr_cs_ask_user_e ask_user)
 {
-	(void) handle;
-	(void) ask_user;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (handle == nullptr || !_isValid(ask_user))
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	reinterpret_cast<Client::HandleExt *>(handle)->getContext()->set(
+		static_cast<int>(CsContext::Key::AskUser), static_cast<int>(ask_user));
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
 int csr_cs_set_popup_message(csr_cs_context_h handle, const char* message)
 {
-	(void) handle;
-	(void) message;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (handle == nullptr || message == nullptr || message[0] == '\0')
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	reinterpret_cast<Client::HandleExt *>(handle)->getContext()->set(
+		static_cast<int>(CsContext::Key::PopupMessage), message);
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
 int csr_cs_set_core_usage(csr_cs_context_h handle, csr_cs_core_usage_e usage)
 {
-	(void) handle;
-	(void) usage;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (handle == nullptr || !_isValid(usage))
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	reinterpret_cast<Client::HandleExt *>(handle)->getContext()->set(
+		static_cast<int>(CsContext::Key::CoreUsage), static_cast<int>(usage));
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
+// TODO: API which unset this option isn't needed?
 API
 int csr_cs_set_scan_on_cloud(csr_cs_context_h handle)
 {
-	(void) handle;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (handle == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	reinterpret_cast<Client::HandleExt *>(handle)->getContext()->set(
+		static_cast<int>(CsContext::Key::ScanOnCloud), true);
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
@@ -132,8 +189,15 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path, csr_cs_dete
 		return ret.first;
 	}
 
-	hExt->add(ret.second);
-	*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
+	if (ret.second == nullptr)
+		return CSR_ERROR_UNKNOWN; // deserialization logic error
+
+	if (ret.second->hasValue()) {
+		hExt->add(ret.second);
+		*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
+	} else {
+		*pdetected = nullptr;
+	}
 
 	return CSR_ERROR_NONE;
 
@@ -147,7 +211,7 @@ int csr_cs_set_callback_on_file_scanned(csr_cs_context_h handle, csr_cs_on_file_
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
-	if (hExt == nullptr)
+	if (hExt == nullptr || callback == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	hExt->m_cb.onScanned = callback;
@@ -164,7 +228,7 @@ int csr_cs_set_callback_on_detected(csr_cs_context_h handle, csr_cs_on_detected_
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
-	if (hExt == nullptr)
+	if (hExt == nullptr || callback == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	hExt->m_cb.onDetected = callback;
@@ -181,7 +245,7 @@ int csr_cs_set_callback_on_completed(csr_cs_context_h handle, csr_cs_on_complete
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
-	if (hExt == nullptr)
+	if (hExt == nullptr || callback == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	hExt->m_cb.onCompleted = callback;
@@ -198,7 +262,7 @@ int csr_cs_set_callback_on_cancelled(csr_cs_context_h handle, csr_cs_on_cancelle
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
-	if (hExt == nullptr)
+	if (hExt == nullptr || callback == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	hExt->m_cb.onCancelled = callback;
@@ -215,7 +279,7 @@ int csr_cs_set_callback_on_error(csr_cs_context_h handle, csr_cs_on_error_cb cal
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
-	if (hExt == nullptr)
+	if (hExt == nullptr || callback == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	hExt->m_cb.onError = callback;
@@ -330,72 +394,119 @@ int csr_cs_scan_cancel(csr_cs_context_h handle)
 API
 int csr_cs_detected_get_severity(csr_cs_detected_h detected, csr_cs_severity_level_e* pseverity)
 {
-	(void) detected;
-	(void) pseverity;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (detected == nullptr || pseverity == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	int intSeverity;
+	reinterpret_cast<Result *>(detected)->get(
+		static_cast<int>(CsDetected::Key::Severity), intSeverity);
+	*pseverity = static_cast<csr_cs_severity_level_e>(intSeverity);
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
 int csr_cs_detected_get_threat_type(csr_cs_detected_h detected, csr_cs_threat_type_e* pthreat_type)
 {
-	(void) detected;
-	(void) pthreat_type;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (detected == nullptr || pthreat_type == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	int intThreat;
+	reinterpret_cast<Result *>(detected)->get(
+		static_cast<int>(CsDetected::Key::Threat), intThreat);
+	*pthreat_type = static_cast<csr_cs_threat_type_e>(intThreat);
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
-int csr_cs_detected_get_malware_name(csr_cs_detected_h detected, char** malware_name)
+int csr_cs_detected_get_malware_name(csr_cs_detected_h detected, const char** pmalware_name)
 {
-	(void) detected;
-	(void) malware_name;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (detected == nullptr || pmalware_name == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	reinterpret_cast<Result *>(detected)->get(
+		static_cast<int>(CsDetected::Key::MalwareName), pmalware_name);
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
-int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, char** detailed_url)
+int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, const char** pdetailed_url)
 {
-	(void) detected;
-	(void) detailed_url;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (detected == nullptr || pdetailed_url == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	reinterpret_cast<Result *>(detected)->get(
+		static_cast<int>(CsDetected::Key::MalwareName), pdetailed_url);
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
-int csr_cs_detected_get_timestamp(csr_cs_detected_h detected, time_t* timestamp)
+int csr_cs_detected_get_timestamp(csr_cs_detected_h detected, time_t* ptimestamp)
 {
-	(void) detected;
-	(void) timestamp;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (detected == nullptr || ptimestamp == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	reinterpret_cast<Result *>(detected)->get(
+		static_cast<int>(CsDetected::Key::TimeStamp), *ptimestamp);
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
-int csr_cs_detected_get_file_name(csr_cs_detected_h detected, char** file_name)
+int csr_cs_detected_get_file_name(csr_cs_detected_h detected, const char** pfile_name)
 {
-	(void) detected;
-	(void) file_name;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (detected == nullptr || pfile_name == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	reinterpret_cast<Result *>(detected)->get(
+		static_cast<int>(CsDetected::Key::TargetName), pfile_name);
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
 int csr_cs_detected_get_user_response(csr_cs_detected_h detected, csr_cs_user_response_e* presponse)
 {
-	(void) detected;
-	(void) detected;
-	(void) presponse;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start!");
+	if (detected == nullptr || presponse == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	int intResponse;
+	reinterpret_cast<Result *>(detected)->get(
+		static_cast<int>(CsDetected::Key::UserResponse), intResponse);
+	*presponse = static_cast<csr_cs_user_response_e>(intResponse);
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API

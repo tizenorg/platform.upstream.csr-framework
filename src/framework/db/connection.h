@@ -13,17 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License
  */
-
-#ifndef __DB_CONNECTION__
-#define __DB_CONNECTION__
+#pragma once
 
 #include <string>
 
 #include <sqlite3.h>
 
 namespace Csr {
-
-namespace Database {
+namespace Db {
 
 class Connection {
 public:
@@ -39,36 +36,40 @@ public:
 
 	int exec(const std::string &query);
 
-	inline long long getLastInsertRowId() const noexcept {
-		return sqlite3_last_insert_rowid(handle);
+	inline long long getLastInsertRowId() const noexcept
+	{
+		return sqlite3_last_insert_rowid(m_handle);
 	}
 
-	inline const std::string &getName() const noexcept {
-		return filename;
+	inline const std::string &getName() const noexcept
+	{
+		return m_filename;
 	}
 
-	inline int getErrorCode() const {
-		return sqlite3_errcode(handle);
+	inline int getErrorCode() const
+	{
+		return sqlite3_errcode(m_handle);
 	}
 
-	inline int getExtendedErrorCode() const {
-		return sqlite3_extended_errcode(handle);
+	inline int getExtendedErrorCode() const
+	{
+		return sqlite3_extended_errcode(m_handle);
 	}
 
-	inline std::string getErrorMessage() const {
-		return sqlite3_errmsg(handle);
+	inline std::string getErrorMessage() const
+	{
+		return sqlite3_errmsg(m_handle);
 	}
 
-	inline sqlite3 *get() const noexcept {
-		return handle;
+	inline sqlite3 *get() const noexcept
+	{
+		return m_handle;
 	}
 
 private:
-	sqlite3 *handle;
-	std::string filename;
+	sqlite3 *m_handle;
+	std::string m_filename;
 };
 
-} // namespace Database
-
+} // namespace Db
 } // namespace Csr
-#endif //__DB_CONNECTION__

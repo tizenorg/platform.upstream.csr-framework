@@ -20,143 +20,104 @@
  * @brief       CSR Content screening DB internal test
  */
 
-#include "database/csr_db.h"
+#include "db/manager.h"
+
 #include <iostream>
 #include <fstream>
 #include <string>
 
 #include <boost/test/unit_test.hpp>
 
+#include "test-common.h"
+
 #define TEST_DB_FILE     TEST_DIR "/test.db"
 #define TEST_DB_SCRIPTS  RO_DBSPACE
 
 namespace {
 
-inline void checkSameMalware(Csr::Database::RowDetected &malware1, Csr::Database::RowDetected &malware2)
+void checkSameMalware(Csr::Db::RowDetected &malware1,
+					  Csr::Db::RowDetected &malware2)
 {
-	BOOST_REQUIRE_MESSAGE(malware1.path.compare(malware2.path) == 0,
-						  "Failed. checkSameMalware. path1=" << malware1.path << ", path2=" << malware2.path);
-
-	BOOST_REQUIRE_MESSAGE(malware1.dataVersion.compare(malware2.dataVersion) == 0,
-						  "Failed. checkSameMalware. dataVersion1=" << malware1.dataVersion
-						  << ", dataVersion2=" << malware2.dataVersion);
-
-	BOOST_REQUIRE_MESSAGE(malware1.severityLevel == malware2.severityLevel,
-						  "Failed. checkSameMalware. severityLevel1=" << malware1.severityLevel
-						  << ", severityLevel2=" << malware2.severityLevel);
-
-	BOOST_REQUIRE_MESSAGE(malware1.threatType == malware2.threatType,
-						  "Failed. checkSameMalware. threatType1=" << malware1.threatType
-						  << ", threatType2=" << malware2.threatType);
-
-	BOOST_REQUIRE_MESSAGE(malware1.name.compare(malware2.name) == 0,
-						  "Failed. checkSameMalware. name1=" << malware1.name
-						  << ", name2=" << malware2.name);
-
-	BOOST_REQUIRE_MESSAGE(malware1.detailedUrl.compare(malware2.detailedUrl) == 0,
-						  "Failed. checkSameMalware. detailedUrl1=" << malware1.detailedUrl
-						  << ", detailedUrl2=" << malware2.detailedUrl);
-
-	BOOST_REQUIRE_MESSAGE(malware1.detected_time == malware2.detected_time,
-						  "Failed. checkSameMalware. detected_time1=" << malware1.detected_time
-						  << ", detected_time2=" << malware2.detected_time);
-
-	BOOST_REQUIRE_MESSAGE(malware1.modified_time == malware2.modified_time,
-						  "Failed. checkSameMalware. modified_time1=" << malware1.modified_time
-						  << ", modified_time2=" << malware2.modified_time);
-
-	BOOST_REQUIRE_MESSAGE(malware1.ignored == malware2.ignored,
-						  "Failed. checkSameMalware. ignored1=" << malware1.ignored
-						  << ", ignored2=" << malware2.ignored);
+	ASSERT_IF(malware1.path,          malware2.path);
+	ASSERT_IF(malware1.dataVersion,   malware2.dataVersion);
+	ASSERT_IF(malware1.severityLevel, malware2.severityLevel);
+	ASSERT_IF(malware1.threatType,    malware2.threatType);
+	ASSERT_IF(malware1.name,          malware2.name);
+	ASSERT_IF(malware1.detailedUrl,   malware2.detailedUrl);
+	ASSERT_IF(malware1.detected_time, malware2.detected_time);
+	ASSERT_IF(malware1.modified_time, malware2.modified_time);
+	ASSERT_IF(malware1.ignored,       malware2.ignored);
 }
 
-} // end of namespace
-
+} // namespace anonymous
 
 BOOST_AUTO_TEST_SUITE(INTERNAL_DATABASE)
 
 BOOST_AUTO_TEST_CASE(schema_info)
 {
-	bool result;
-	Csr::Database::CsrDB db(TEST_DB_FILE, TEST_DB_SCRIPTS);
+	EXCEPTION_GUARD_START
 
-	int version = 1;
-	result = db.setDbVersion(version);
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. setDbVersion");
+	Csr::Db::Manager db(TEST_DB_FILE, TEST_DB_SCRIPTS);
 
-	version = db.getDbVersion();
-	BOOST_REQUIRE_MESSAGE(version == 1, "Failed. getDbVersion. expected=1, actual=" << version);
+	ASSERT_IF(db.getSchemaVersion(), 1); // latest version is 1
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(engine_state)
 {
-	bool result;
-	Csr::Database::CsrDB db(TEST_DB_FILE, TEST_DB_SCRIPTS);
+	EXCEPTION_GUARD_START
 
-	int state = -1;
-	result = db.setEngineState(1, 1);
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. setEngineState");
+	Csr::Db::Manager db(TEST_DB_FILE, TEST_DB_SCRIPTS);
 
-	result = db.setEngineState(2, 2);
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. setEngineState");
+	ASSERT_IF(db.setEngineState(1, 1), true);
+	ASSERT_IF(db.setEngineState(2, 2), true);
 
-	state = db.getEngineState(1);
-	BOOST_REQUIRE_MESSAGE(state == 1, "Failed. getEngineState. expected=1, actual=" << state);
+	ASSERT_IF(db.getEngineState(1), 1);
+	ASSERT_IF(db.getEngineState(2), 2);
 
-	state = db.getEngineState(2);
-	BOOST_REQUIRE_MESSAGE(state == 2, "Failed. getEngineState. expected=2, actual=" << state);
+	ASSERT_IF(db.setEngineState(1, 2), true);
+	ASSERT_IF(db.getEngineState(1), 2);
 
-	result = db.setEngineState(1, 2);
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. setEngineState");
-
-	state = db.getEngineState(1);
-	BOOST_REQUIRE_MESSAGE(state == 2, "Failed. getEngineState. expected=2, actual=" << state);
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(scan_time)
 {
-	bool result;
-	Csr::Database::CsrDB db(TEST_DB_FILE, TEST_DB_SCRIPTS);
+	EXCEPTION_GUARD_START
+
+	Csr::Db::Manager db(TEST_DB_FILE, TEST_DB_SCRIPTS);
 
 	std::string dir = "/opt";
 	long scantime = 100;
-	long retrievedTime;
 	std::string dataVersion = "1.0.0";
 
-	result = db.cleanLastScanTime();
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. cleanLastScanTime");
+	ASSERT_IF(db.cleanLastScanTime(), true);
+	ASSERT_IF(db.getLastScanTime(dir, dataVersion), -1);
+	ASSERT_IF(db.insertLastScanTime(dir, scantime, dataVersion), true);
 
-	retrievedTime = db.getLastScanTime(dir, dataVersion);
-	BOOST_REQUIRE_MESSAGE(retrievedTime == -1, "Failed. getLastScanTime."
-						  "expected=-1, actual=" << retrievedTime);
+	ASSERT_IF(db.insertLastScanTime("/opt/data", scantime + 100, dataVersion),
+			  true);
+	ASSERT_IF(db.insertLastScanTime("/opt/data/etc", scantime + 200, dataVersion),
+			  true);
 
-	result = db.insertLastScanTime(dir, scantime, dataVersion);
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. insertLastScanTime");
+	ASSERT_IF(db.getLastScanTime(dir, dataVersion), scantime);
+	ASSERT_IF(db.cleanLastScanTime(), true);
 
-	result = db.insertLastScanTime(std::string("/opt/data"), scantime + 100, dataVersion);
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. insertLastScanTime");
-
-	result = db.insertLastScanTime(std::string("/opt/data/etc"), scantime + 200, dataVersion);
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. insertLastScanTime");
-
-	retrievedTime = db.getLastScanTime(dir, dataVersion);
-	BOOST_REQUIRE_MESSAGE(retrievedTime == scantime, "Failed. getLastScanTime."
-						  "expected=" << scantime << ", actual=" << retrievedTime);
-
-	result = db.cleanLastScanTime();
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. cleanLastScanTime");
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(detected_malware_file)
 {
-	bool result;
-	Csr::Database::CsrDB db(TEST_DB_FILE, TEST_DB_SCRIPTS);
+	EXCEPTION_GUARD_START
+
+	Csr::Db::Manager db(TEST_DB_FILE, TEST_DB_SCRIPTS);
 
 	std::string initDataVersion = "1.0.0";
 	std::string changedDataVersion = "2.0.0";
 
 	// insert
-	Csr::Database::RowDetected malware1;
+	Csr::Db::RowDetected malware1;
 	malware1.path = "/opt/testmalware1";
 	malware1.dataVersion = initDataVersion;
 	malware1.severityLevel = 1;
@@ -167,7 +128,7 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	malware1.modified_time = 100;
 	malware1.ignored = 1;
 
-	Csr::Database::RowDetected malware2;
+	Csr::Db::RowDetected malware2;
 	malware2.path = "/opt/testmalware2";
 	malware2.dataVersion = initDataVersion;
 	malware2.severityLevel = 2;
@@ -178,7 +139,7 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	malware2.modified_time = 210;
 	malware2.ignored = 2;
 
-	Csr::Database::RowDetected malware3;
+	Csr::Db::RowDetected malware3;
 	malware3.path = "/opt/testmalware3";
 	malware3.dataVersion = changedDataVersion;
 	malware3.severityLevel = 3;
@@ -190,71 +151,59 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	malware3.ignored = 3;
 
 	// select test with vacant data
-	Csr::Database::DetectedShrPtr detected = db.getDetectedMalware(malware1.path);
-	BOOST_REQUIRE_MESSAGE(detected == nullptr, "Failed. getDetectedMalware for no data");
+	auto detected = db.getDetectedMalware(malware1.path);
+	CHECK_IS_NULL(detected);
 
-	Csr::Database::DetectedListShrPtr detectedList = db.getDetectedMalwares(std::string("/opt"));
-	BOOST_REQUIRE_MESSAGE(detectedList->size() == 0, "Failed. getDetectedMalwares for no data. size="
-						  <<  detectedList->size());
+	auto detectedList = db.getDetectedMalwares("/opt");
+	ASSERT_IF(detectedList->empty(), true);
 
 	// insertDetectedMalware test
-	result = db.insertDetectedMalware(malware1);
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. insertDetectedMalware");
-
-	result = db.insertDetectedMalware(malware2);
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. insertDetectedMalware");
+	ASSERT_IF(db.insertDetectedMalware(malware1), true);
+	ASSERT_IF(db.insertDetectedMalware(malware2), true);
 
 	// getDetectedMalware test
 	detected = db.getDetectedMalware(malware1.path);
-	checkSameMalware(malware1, *detected.get());
-
+	checkSameMalware(malware1, *detected);
 	detected = db.getDetectedMalware(malware2.path);
-	checkSameMalware(malware2, *detected.get());
+	checkSameMalware(malware2, *detected);
 
 	// getDetectedMalwares test
-	detectedList = db.getDetectedMalwares(std::string("/opt"));
-	BOOST_REQUIRE_MESSAGE(detectedList->size() == 2, "Failed. getDetectedMalwares. Size="
-						  << detectedList->size());
-	std::vector<Csr::Database::DetectedShrPtr>::iterator iter;
-	for (iter = detectedList->begin(); iter != detectedList->end(); iter++) {
-		if (malware1.path.compare((*iter)->path) == 0) {
-			checkSameMalware(malware1, **iter);
-		} else if (malware2.path.compare((*iter)->path) == 0) {
-			checkSameMalware(malware2, **iter);
-		} else {
+	detectedList = db.getDetectedMalwares("/opt");
+	ASSERT_IF(detectedList->size(), static_cast<size_t>(2));
+
+	for (auto &item : *detectedList) {
+		if (malware1.path == item->path)
+			checkSameMalware(malware1, *item);
+		else if (malware2.path == item->path)
+			checkSameMalware(malware2, *item);
+		else
 			BOOST_REQUIRE_MESSAGE(false, "Failed. getDetectedMalwares");
-		}
 	}
 
 	// setDetectedMalwareIgnored test
-	result = db.setDetectedMalwareIgnored(malware1.path, 1);
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. setDetectedMalwareIgnored");
+	ASSERT_IF(db.setDetectedMalwareIgnored(malware1.path, 1), true);
 
 	malware1.ignored = 1;
 	detected = db.getDetectedMalware(malware1.path);
-	checkSameMalware(malware1, *detected.get());
+	checkSameMalware(malware1, *detected);
 
 	// deleteDeprecatedDetecedMalwares test
-	result = db.insertDetectedMalware(malware3);
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. insertDetectedMalware");
+	ASSERT_IF(db.insertDetectedMalware(malware3), true);
 
-	result = db.deleteDeprecatedDetecedMalwares(std::string("/opt"), changedDataVersion);
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. deleteDeprecatedDetecedMalwares");
+	ASSERT_IF(db.deleteDeprecatedDetecedMalwares("/opt", changedDataVersion), true);
 
 	detected = db.getDetectedMalware(malware3.path);
-	checkSameMalware(malware3, *detected.get());
+	checkSameMalware(malware3, *detected);
 
 	detected = db.getDetectedMalware(malware1.path);
-	BOOST_REQUIRE_MESSAGE(detected.get() == nullptr,
-						  "Failed. deleteDeprecatedDetecedMalwares:getDetectedMalware");
+	CHECK_IS_NULL(detected);
 	detected = db.getDetectedMalware(malware2.path);
-	BOOST_REQUIRE_MESSAGE(detected.get() == nullptr,
-						  "Failed. deleteDeprecatedDetecedMalwares:getDetectedMalware");
+	CHECK_IS_NULL(detected);
 
 	// deleteDetecedMalware test
-	result = db.deleteDetecedMalware(malware3.path);
-	BOOST_REQUIRE_MESSAGE(result == true, "Failed. deleteDetecedMalware");
-}
+	ASSERT_IF(db.deleteDetecedMalware(malware3.path), true);
 
+	EXCEPTION_GUARD_END
+}
 
 BOOST_AUTO_TEST_SUITE_END()

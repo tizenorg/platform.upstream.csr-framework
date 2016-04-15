@@ -13,40 +13,34 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License
  */
-
 #include <iostream>
 #include <stdexcept>
 
-
-#include "database/connection.h"
+#include "db/connection.h"
 
 namespace Csr {
+namespace Db {
 
-namespace Database {
-
-Connection::Connection(const std::string &name, const int flags)
-	: handle(nullptr),
-	  filename(name)
+Connection::Connection(const std::string &name, const int flags) :
+	m_handle(nullptr),
+	m_filename(name)
 {
-	if (::sqlite3_open_v2(filename.c_str(), &handle, flags, NULL)) {
+	if (::sqlite3_open_v2(m_filename.c_str(), &m_handle, flags, nullptr))
 		throw std::runtime_error(getErrorMessage());
-	}
 }
 
 Connection::~Connection()
 {
-	sqlite3_close(handle);
+	sqlite3_close(m_handle);
 }
 
 int Connection::exec(const std::string &query)
 {
-	if (::sqlite3_exec(handle, query.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+	if (::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK)
 		throw std::runtime_error(getErrorMessage());
-	}
 
-	return sqlite3_changes(handle);
+	return sqlite3_changes(m_handle);
 }
 
-} // namespace Database
-
+} // namespace Db
 } // namespace Csr

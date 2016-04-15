@@ -39,10 +39,9 @@ SET(${TARGET_CSR_SERVER}_SRCS
 	# question and response codes needed on both of
 	# csr-server and popup-backend service
 	framework/ui/common.cpp
-	framework/database/column.cpp
-	framework/database/connection.cpp
-	framework/database/statement.cpp
-	framework/database/csr_db.cpp
+	framework/db/connection.cpp
+	framework/db/statement.cpp
+	framework/db/manager.cpp
 )
 
 INCLUDE_DIRECTORIES(

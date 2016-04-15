@@ -389,7 +389,7 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_scan_dirs_async(csr_cs_context_h handle,
-                  const char **file_paths,
+                  const char **dir_paths,
                   unsigned int count,
                   void *user_data);
 

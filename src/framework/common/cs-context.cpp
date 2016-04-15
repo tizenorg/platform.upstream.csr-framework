@@ -39,7 +39,7 @@ CsContext::~CsContext()
 {
 }
 
-CsContext::CsContext(IStream &stream) : Context(stream)
+CsContext::CsContext(IStream &stream)
 {
 	int intAskUser;
 	int intCoreUsage;

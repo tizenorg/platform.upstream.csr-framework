@@ -26,6 +26,7 @@
 
 #include "common/types.h"
 #include "common/cs-context.h"
+#include "common/wp-context.h"
 #include "common/command-id.h"
 #include "common/raw-buffer.h"
 #include "common/binary-queue.h"
@@ -46,7 +47,7 @@ private:
 	RawBuffer dirGetResults(const CsContext &context, const std::string &dir);
 	RawBuffer dirGetFiles(const CsContext &context, const std::string &dir);
 
-	RawBuffer checkUrl(const Context &context, const std::string &url);
+	RawBuffer checkUrl(const WpContext &context, const std::string &url);
 };
 
 }

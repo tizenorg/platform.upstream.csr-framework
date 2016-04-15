@@ -179,7 +179,7 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path, csr_cs_dete
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
-	auto ret = hExt->dispatch<std::pair<int, Result *>>(
+	auto ret = hExt->dispatch<std::pair<int, CsDetected *>>(
 		CommandId::SCAN_FILE,
 		hExt->getContext(),
 		std::string(file_path));

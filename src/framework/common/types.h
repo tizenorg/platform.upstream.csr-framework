@@ -38,13 +38,20 @@ class Result : public ISerializable, public KvpContainer {
 public:
 	Result();
 	virtual ~Result();
-	Result(IStream &);
-	virtual void Serialize(IStream &) const;
 
 	Result(Result &&);
 	Result &operator=(Result &&);
 
 	bool hasValue(void) const;
+
+protected:
+	Result(IStream &);
+	virtual void Serialize(IStream &) const override;
+
+	inline void setValueFlag(void)
+	{
+		m_hasVal = true;
+	}
 
 private:
 	bool m_hasVal;
@@ -54,8 +61,6 @@ class Context : public ISerializable, public KvpContainer {
 public:
 	Context();
 	virtual ~Context();
-	Context(IStream &);
-	virtual void Serialize(IStream &) const;
 
 	Context(Context &&);
 	Context &operator=(Context &&);

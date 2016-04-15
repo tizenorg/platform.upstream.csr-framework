@@ -37,7 +37,7 @@ WpContext::~WpContext()
 {
 }
 
-WpContext::WpContext(IStream &stream) : Context(stream)
+WpContext::WpContext(IStream &stream)
 {
 	int intAskUser;
 	Deserializer<std::string, int>::Deserialize(stream,

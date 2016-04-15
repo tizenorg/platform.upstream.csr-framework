@@ -39,7 +39,7 @@ public:
 	virtual ~WpContext();
 
 	WpContext(IStream &);
-	virtual void Serialize(IStream &) const;
+	virtual void Serialize(IStream &) const override;
 
 	WpContext(WpContext &&);
 	WpContext &operator=(WpContext &&);

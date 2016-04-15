@@ -38,12 +38,15 @@ WpResult::~WpResult()
 {
 }
 
-WpResult::WpResult(IStream &stream)
+WpResult::WpResult(IStream &stream) : Result(stream)
 {
+	if (!hasValue())
+		return;
+
 	int intRiskLevel;
 	int intResponse;
-	Deserializer<int, std::string, int>
-	::Deserialize(stream, intRiskLevel, m_detailedUrl, intResponse);
+	Deserializer<int, std::string, int>::Deserialize(stream,
+			intRiskLevel, m_detailedUrl, intResponse);
 
 	m_riskLevel = static_cast<csr_wp_risk_level_e>(intRiskLevel);
 	m_response = static_cast<csr_wp_user_response_e>(intResponse);
@@ -51,8 +54,13 @@ WpResult::WpResult(IStream &stream)
 
 void WpResult::Serialize(IStream &stream) const
 {
-	Serializer<int, std::string, int>
-	::Serialize(stream, static_cast<int>(m_riskLevel), m_detailedUrl, static_cast<int>(m_response));
+	Result::Serialize(stream);
+
+	if (!hasValue())
+		return;
+
+	Serializer<int, std::string, int>::Serialize(stream,
+			static_cast<int>(m_riskLevel), m_detailedUrl, static_cast<int>(m_response));
 }
 
 WpResult::WpResult(WpResult &&other) :
@@ -92,6 +100,8 @@ void WpResult::set(int key, int value)
 		throw std::logic_error(FORMAT("Invalid key[" << key
 			<< "] comes in to set as int. value=" << value));
 	}
+
+	setValueFlag();
 }
 
 void WpResult::set(int key, const std::string &value)
@@ -104,6 +114,8 @@ void WpResult::set(int key, const std::string &value)
 		throw std::logic_error(FORMAT("Invalid key[" << key
 			<< "] comes in to set as std::string. value=" << value));
 	}
+
+	setValueFlag();
 }
 
 void WpResult::set(int key, const char *value)
@@ -116,6 +128,8 @@ void WpResult::set(int key, const char *value)
 		throw std::logic_error(FORMAT("Invalid key[" << key
 			<< "] comes in to set as char*. value=" << value));
 	}
+
+	setValueFlag();
 }
 
 void WpResult::get(int key, int &value) const

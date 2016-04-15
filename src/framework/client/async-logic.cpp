@@ -137,7 +137,7 @@ std::pair<Callback::Id, Task> AsyncLogic::scanFiles(const
 			});
 		}
 
-		auto ret = m_dispatcher->methodCall<std::pair<int, Result *>>(
+		auto ret = m_dispatcher->methodCall<std::pair<int, CsDetected *>>(
 					   CommandId::SCAN_FILE, m_ctx, file);
 
 		if (ret.first != CSR_ERROR_NONE) {

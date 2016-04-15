@@ -36,14 +36,6 @@ Context::~Context()
 {
 }
 
-Context::Context(IStream &)
-{
-}
-
-void Context::Serialize(IStream &) const
-{
-}
-
 // don't copy results.. context copy operation only should be used for option copy
 Context::Context(const Context &) :
 	ISerializable(),

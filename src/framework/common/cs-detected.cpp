@@ -42,8 +42,11 @@ CsDetected::~CsDetected()
 {
 }
 
-CsDetected::CsDetected(IStream &stream)
+CsDetected::CsDetected(IStream &stream) : Result(stream)
 {
+	if (!hasValue())
+		return;
+
 	int intSeverity;
 	int intThreat;
 	int intResponse;
@@ -59,6 +62,11 @@ CsDetected::CsDetected(IStream &stream)
 
 void CsDetected::Serialize(IStream &stream) const
 {
+	Result::Serialize(stream);
+
+	if (!hasValue())
+		return;
+
 	Serializer<std::string, std::string, std::string, int, int, int, time_t>
 		::Serialize(stream,
 			m_targetName, m_malwareName, m_detailedUrl,
@@ -115,6 +123,8 @@ void CsDetected::set(int key, int value)
 		throw std::logic_error(FORMAT("Invalid key[" << key
 			<< "] comes in to set as int."));
 	}
+
+	setValueFlag();
 }
 
 void CsDetected::set(int key, const std::string &value)
@@ -130,11 +140,14 @@ void CsDetected::set(int key, const std::string &value)
 
 	case Key::DetailedUrl:
 		m_detailedUrl = value;
+		break;
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
 			<< "] comes in to set as string."));
 	}
+
+	setValueFlag();
 }
 
 void CsDetected::set(int key, const char *value)
@@ -150,11 +163,14 @@ void CsDetected::set(int key, const char *value)
 
 	case Key::DetailedUrl:
 		m_detailedUrl = value;
+		break;
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
 			<< "] comes in to set as string."));
 	}
+
+	setValueFlag();
 }
 
 void CsDetected::set(int key, time_t value)
@@ -168,6 +184,8 @@ void CsDetected::set(int key, time_t value)
 		throw std::logic_error(FORMAT("Invalid key[" << key
 			<< "] comes in to set as time_t."));
 	}
+
+	setValueFlag();
 }
 
 void CsDetected::get(int key, int &value) const

@@ -25,8 +25,9 @@
 #include <utility>
 #include <stdexcept>
 
-#include "common/audit/logger.h"
 #include "common/cs-detected.h"
+#include "common/wp-result.h"
+#include "common/audit/logger.h"
 #include "csr/error.h"
 
 namespace Csr {
@@ -79,7 +80,7 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 
 	/* TODO: should we separate command->logic mapping of CS and WP ? */
 	case CommandId::CHECK_URL: {
-		Context context;
+		WpContext context;
 		std::string url;
 		info.second.Deserialize(context, url);
 		return checkUrl(context, url);
@@ -143,12 +144,12 @@ RawBuffer Logic::dirGetFiles(const CsContext &context, const std::string &dir)
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
 }
 
-RawBuffer Logic::checkUrl(const Context &context, const std::string &url)
+RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 {
 	INFO("Check url[" << url << "] by engine");
 	(void) context;
 
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, Result()).pop();
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, WpResult()).pop();
 }
 
 }

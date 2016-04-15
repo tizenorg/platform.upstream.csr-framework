@@ -43,7 +43,7 @@ public:
 	virtual ~CsContext();
 
 	CsContext(IStream &);
-	virtual void Serialize(IStream &) const;
+	virtual void Serialize(IStream &) const override;
 
 	CsContext(CsContext &&);
 	CsContext &operator=(CsContext &&);

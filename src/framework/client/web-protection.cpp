@@ -42,7 +42,7 @@ int csr_wp_context_create(csr_wp_context_h *phandle)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	*phandle = reinterpret_cast<csr_wp_context_h>(
-				   new Client::Handle(std::make_shared<Context>()));
+				   new Client::Handle(std::make_shared<WpContext>()));
 
 	return CSR_ERROR_NONE;
 
@@ -70,7 +70,7 @@ int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user)
 	EXCEPTION_SAFE_START
 
 	if (handle == nullptr
-			|| (ask_user != CSR_WP_NOT_ASK_USER &&  ask_user != CSR_WP_ASK_USER))
+			|| (ask_user != CSR_WP_NOT_ASK_USER && ask_user != CSR_WP_ASK_USER))
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	reinterpret_cast<Client::Handle *>(handle)->getContext()->set(
@@ -107,7 +107,7 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url, csr_wp_check_resu
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto h = reinterpret_cast<Client::Handle *>(handle);
-	auto ret = h->dispatch<std::pair<int, Result *>>(
+	auto ret = h->dispatch<std::pair<int, WpResult *>>(
 				   CommandId::CHECK_URL,
 				   h->getContext(),
 				   std::string(url));

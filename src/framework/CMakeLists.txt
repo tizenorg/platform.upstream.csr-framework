@@ -30,6 +30,8 @@ SET(${TARGET_CSR_COMMON}_SRCS
 	common/connection.cpp
 	common/cs-context.cpp
 	common/cs-detected.cpp
+	common/wp-context.cpp
+	common/wp-result.cpp
 	common/kvp-container.cpp
 	common/types.cpp
 	common/dispatcher.cpp

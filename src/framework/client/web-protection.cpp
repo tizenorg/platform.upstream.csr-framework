@@ -27,12 +27,14 @@
 #include "client/handle.h"
 #include "common/types.h"
 #include "common/command-id.h"
+#include "common/wp-context.h"
+#include "common/wp-result.h"
 #include "common/audit/logger.h"
 
 using namespace Csr;
 
 API
-int csr_wp_context_create(csr_wp_context_h* phandle)
+int csr_wp_context_create(csr_wp_context_h *phandle)
 {
 	EXCEPTION_SAFE_START
 
@@ -40,7 +42,7 @@ int csr_wp_context_create(csr_wp_context_h* phandle)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	*phandle = reinterpret_cast<csr_wp_context_h>(
-		new Client::Handle(std::make_shared<Context>()));
+				   new Client::Handle(std::make_shared<Context>()));
 
 	return CSR_ERROR_NONE;
 
@@ -65,21 +67,34 @@ int csr_wp_context_destroy(csr_wp_context_h handle)
 API
 int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user)
 {
-	(void) handle;
-	(void) ask_user;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start");
+	if (handle == nullptr
+			|| (ask_user != CSR_WP_NOT_ASK_USER &&  ask_user != CSR_WP_ASK_USER))
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	reinterpret_cast<Client::Handle *>(handle)->getContext()->set(
+		static_cast<int>(WpContext::Key::AskUser), static_cast<int>(ask_user));
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
-int csr_wp_set_popup_message(csr_wp_context_h handle, const char* message)
+int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message)
 {
-	(void) handle;
-	(void) message;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start");
+	if (handle == nullptr || message == nullptr || message[0] == '\0')
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	reinterpret_cast<Client::Handle *>(handle)->getContext()->set(
+		static_cast<int>(WpContext::Key::PopupMessage), message);
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
@@ -88,14 +103,14 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url, csr_wp_check_resu
 	EXCEPTION_SAFE_START
 
 	if (handle == nullptr || presult == nullptr
-		|| url == nullptr || url[0] == '\0')
+			|| url == nullptr || url[0] == '\0')
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto h = reinterpret_cast<Client::Handle *>(handle);
 	auto ret = h->dispatch<std::pair<int, Result *>>(
-		CommandId::CHECK_URL,
-		h->getContext(),
-		std::string(url));
+				   CommandId::CHECK_URL,
+				   h->getContext(),
+				   std::string(url));
 
 	if (ret.first != CSR_ERROR_NONE) {
 		ERROR("Error! ret: " << ret.first);
@@ -111,21 +126,54 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url, csr_wp_check_resu
 }
 
 API
-int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level_e* plevel)
+int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level_e *plevel)
 {
-	(void) result;
-	(void) plevel;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start");
+	if (result == nullptr || plevel == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	int intRiskLevel;
+	reinterpret_cast<Result *>(result)->get(
+		static_cast<int>(WpResult::Key::RiskLevel), intRiskLevel);
+	*plevel = static_cast<csr_wp_risk_level_e>(intRiskLevel);
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }
 
 API
-int csr_wp_result_get_user_response(csr_wp_check_result_h result, csr_wp_user_response_e* presponse)
+int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, const char **pdetailed_url)
 {
-	(void) result;
-	(void) presponse;
+	EXCEPTION_SAFE_START
 
-	DEBUG("start");
+	if (result == nullptr || pdetailed_url == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	reinterpret_cast<Result *>(result)->get(
+		static_cast<int>(WpResult::Key::DetailedUrl), pdetailed_url);
+
 	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
+}
+
+
+API
+int csr_wp_result_get_user_response(csr_wp_check_result_h result, csr_wp_user_response_e *presponse)
+{
+	EXCEPTION_SAFE_START
+
+	if (result == nullptr || presponse == nullptr)
+		return CSR_ERROR_INVALID_PARAMETER;
+
+	int intResponse;
+	reinterpret_cast<Result *>(result)->get(
+		static_cast<int>(WpResult::Key::UserResponse), intResponse);
+	*presponse = static_cast<csr_wp_user_response_e>(intResponse);
+
+	return CSR_ERROR_NONE;
+
+	EXCEPTION_SAFE_END
 }

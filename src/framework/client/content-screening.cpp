@@ -452,7 +452,7 @@ int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, const char** pd
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	reinterpret_cast<Result *>(detected)->get(
-		static_cast<int>(CsDetected::Key::MalwareName), pdetailed_url);
+		static_cast<int>(CsDetected::Key::DetailedUrl), pdetailed_url);
 
 	return CSR_ERROR_NONE;
 

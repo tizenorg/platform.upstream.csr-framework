@@ -118,15 +118,20 @@ std::string Manager::getScript(const std::string &scriptName)
 
 int Manager::getSchemaVersion()
 {
-	Statement stmt(m_conn, Query::SEL_SCHEMA_INFO);
+	try {
+		Statement stmt(m_conn, Query::SEL_SCHEMA_INFO);
 
-	int idx = 0;
-	stmt.bind(++idx, DB_VERSION_STR);
+		int idx = 0;
+		stmt.bind(++idx, DB_VERSION_STR);
 
-	if (!stmt.step()) // Tables don't exist yet
-		return SchemaVersion::NOT_EXIST;
+		if (!stmt.step()) // Tables don't exist yet
+			return SchemaVersion::NOT_EXIST;
 
-	return stmt.getInt(0);
+		return stmt.getInt(0);
+	} catch (const std::runtime_error &e) {
+		INFO("Database doesn't exist.");
+		return SchemaVersion::NOT_EXIST; // table not exist!
+	}
 }
 
 void Manager::setSchemaVersion(int sv)

@@ -44,8 +44,13 @@ namespace {
 
 bool installed;
 GMainLoop *mainLoop;
-int __app_install_cb(int req_id, const char *pkg_type, const char *pkgid,
-					 const char *key, const char *val, const void *pmsg, void *data)
+
+int __app_install_cb(
+#ifdef MULTI_USER_SUPPORT
+	uid_t, // target_uid
+#endif
+	int req_id, const char *pkg_type, const char *pkgid,
+	const char *key, const char *val, const void *pmsg, void *data)
 {
 	(void) req_id;
 	(void) pkg_type;
@@ -171,7 +176,11 @@ BOOST_AUTO_TEST_CASE(remove_file)
 
 BOOST_AUTO_TEST_CASE(remove_app)
 {
+#ifdef MULTI_USER_SUPPORT
 	std::string fpath = "/opt/usr/apps/org.example.maliciousapp/shared/res/malicious.txt";
+#else
+	std::string fpath = "/home/owner/apps_rw/org.example.maliciousapp/shared/res/malicious.txt";
+#endif
 	std::string appPath = TEST_APP_PKG;
 
 	// install the test app
@@ -185,7 +194,11 @@ BOOST_AUTO_TEST_CASE(remove_app)
 	mainLoop = g_main_loop_new(nullptr, false);
 	g_main_loop_run(mainLoop);
 	pkgmgr_client_free(pkgmgr);
+#ifdef MULTI_USER_SUPPORT
+	BOOST_REQUIRE_MESSAGE(installed == true, "fail to install test app. check if you logged in as owner.");
+#else
 	BOOST_REQUIRE_MESSAGE(installed == true, "fail to install test app");
+#endif
 
 	// remove the app
 	Csr::File app(fpath);

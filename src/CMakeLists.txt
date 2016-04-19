@@ -18,12 +18,18 @@
 #
 
 ###############     SERVER     ###################
+
+IF (MULTI_USER_SUPPORT MATCHES "ON")
+SET(ADDITIONAL_PKG_CHECK_LIST libtzplatform-config)
+ENDIF (MULTI_USER_SUPPORT MATCHES "ON")
+
 PKG_CHECK_MODULES(${TARGET_CSR_SERVER}_DEP
 	REQUIRED
 	libsystemd-daemon
 	sqlite3
 	glib-2.0
 	pkgmgr
+	${ADDITIONAL_PKG_CHECK_LIST}
 )
 
 SET(${TARGET_CSR_SERVER}_SRCS

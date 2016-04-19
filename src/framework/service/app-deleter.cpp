@@ -26,9 +26,18 @@
 #include <cstring>
 
 #include <glib.h>
+#include <unistd.h>
 #include <package-manager.h>
 
 #include "common/audit/logger.h"
+
+#ifdef MULTI_USER_SUPPORT
+#include <sys/types.h>
+#include <pwd.h>
+#include <tzplatform_config.h>
+#define GLOBAL_USER tzplatform_getuid(TZ_SYS_GLOBALAPP_USER)
+#define MAX_PWD_LINE_SIZE 512
+#endif
 
 #define MAX_WAIT_SEC 10
 
@@ -51,9 +60,12 @@ void setRemoveResult(bool result, gpointer data)
 	g_main_loop_quit(pdata->loop);
 }
 
-static int __app_uninstall_cb(int req_id, const char *pkg_type,
-							  const char *pkgid, const char *key,
-							  const char *val, const void *pmsg, void *data)
+static int __app_uninstall_cb(
+#ifdef MULTI_USER_SUPPORT
+	uid_t, // target_uid
+#endif
+	int req_id, const char *pkg_type, const char *pkgid,
+	const char *key, const char *val, const void *pmsg, void *data)
 {
 	(void) req_id;
 	(void) pkg_type;
@@ -78,14 +90,32 @@ static gboolean __app_uninstall_timeout(gpointer data)
 	return TRUE;
 }
 
+#ifdef MULTI_USER_SUPPORT
+static int __get_uid(const char* user_name, uid_t *uid)
+{
+	struct passwd pd;
+	struct passwd* tempPwdPtr;
+	char pwdbuffer[MAX_PWD_LINE_SIZE];
+	int  pwdlinelen = sizeof(pwdbuffer);
+
+	if((getpwnam_r(user_name, &pd, pwdbuffer, pwdlinelen, &tempPwdPtr))!=0)
+		return -1;
+	else
+		*uid = pd.pw_uid;
+	return 0;
+}
+#endif
+
 } // namespace anonymous
 
 namespace Csr {
 
-bool AppDeleter::remove(const std::string &pkgid)
+bool AppDeleter::remove(const std::string &user, const std::string &pkgid)
 {
+	int ret;
+
 	if (pkgid.empty())
-		throw std::logic_error("pkgid shouldn't be empty in AppDeleter");
+		throw std::logic_error(FORMAT("pkgid shouldn't be empty in AppDeleter." <<user<<","<<pkgid));
 
 	std::unique_ptr<pkgmgr_client, int(*)(pkgmgr_client *)> client(
 		pkgmgr_client_new(PC_REQUEST), pkgmgr_client_free);
@@ -98,8 +128,18 @@ bool AppDeleter::remove(const std::string &pkgid)
 
 	LoopData data(loop.get(), pkgid);
 
-	if (pkgmgr_client_uninstall(client.get(), nullptr, pkgid.c_str(), PM_QUIET,
-								::__app_uninstall_cb, &data) <= PKGMGR_R_OK)
+#ifdef MULTI_USER_SUPPORT
+	uid_t uid = GLOBAL_USER;
+	if(!user.empty())
+		if( __get_uid(user.c_str(), &uid) < 0 )
+			throw std::runtime_error(FORMAT("Invalid User Name. name=" << user));
+	ret = pkgmgr_client_usr_uninstall(client.get(), nullptr, pkgid.c_str(), PM_QUIET,
+					::__app_uninstall_cb, &data, uid);
+#else
+	ret = pkgmgr_client_uninstall(client.get(), nullptr, pkgid.c_str(), PM_QUIET,
+					::__app_uninstall_cb, &data);
+#endif
+	if(ret <= PKGMGR_R_OK)
 		return false;
 
 	g_timeout_add_seconds(MAX_WAIT_SEC, __app_uninstall_timeout, &data);

@@ -14,6 +14,7 @@ BuildRequires: pkgconfig(elementary)
 BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(pkgmgr)
 BuildRequires: pkgconfig(glib-2.0)
+#BuildRequires: pkgconfig(libtzplatform-config)
 Requires:      lib%{name}-common = %{version}-%{release}
 %{?systemd_requires}
 
@@ -95,7 +96,8 @@ test program of csr-framework
     -DSAMPLE_ENGINE_RO_RES_DIR:PATH=%{sample_engine_ro_res_dir} \
     -DSAMPLE_ENGINE_RW_WORKING_DIR:PATH=%{sample_engine_rw_working_dir} \
     -DSAMPLE_ENGINE_DIR:PATH=%{sample_engine_dir} \
-    -DTEST_DIR:PATH=%{test_dir}
+    -DTEST_DIR:PATH=%{test_dir} \
+#    -DMULTI_USER_SUPPORT=ON
 
 make %{?jobs:-j%jobs}
 

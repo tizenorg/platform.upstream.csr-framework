@@ -125,7 +125,7 @@ void File::initRegex()
 bool File::remove()
 {
 	if (m_inApp)
-		return AppDeleter::remove(m_appPkgId);
+		return AppDeleter::remove(m_appUser, m_appPkgId);
 	else
 		return ::remove(m_path.c_str()) == 0;
 }

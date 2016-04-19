@@ -28,7 +28,7 @@ namespace Csr {
 class AppDeleter {
 public:
 	AppDeleter() = delete;
-	static bool remove(const std::string &pkgid);
+	static bool remove(const std::string &user, const std::string &pkgid);
 };
 
 } // namespace Csr

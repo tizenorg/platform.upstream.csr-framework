@@ -23,6 +23,7 @@
 #define __CSR_CONTENT_SCREENING_API_H_
 
 #include <time.h>
+#include <stdbool.h>
 
 #include "csr/content-screening-types.h"
 #include "csr/error.h"
@@ -377,7 +378,7 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     file_paths or count is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     dir_paths or count is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
  * @retval #CSR_ERROR_FILE_NOT_FOUND        File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
@@ -523,9 +524,38 @@ int csr_cs_detected_get_file_name(csr_cs_detected_h detected, const char** pfile
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid result handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    presponse is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
- *
  */
 int csr_cs_detected_get_user_response(csr_cs_detected_h detected, csr_cs_user_response_e* presponse);
+
+/**
+ * @brief check if a malware was detected in an application or in a file.
+ *
+ * @param[in]  detected      A detected malware handle.
+ * @param[out] pis_app       A pointer of a flag indicating the position a malware was detected.
+ *
+ * @return #CSR_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSR_ERROR_NONE                 Successful
+ * @retval #CSR_ERROR_INVALID_HANDLE       Invalid result handle
+ * @retval #CSR_ERROR_INVALID_PARAMETER    pis_app is invalid
+ * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ */
+int csr_cs_detected_is_app(csr_cs_detected_h detected, bool* pis_app);
+
+/**
+ * @brief extracts the package id of an application where a malware is detected from detected malware handle.
+ *
+ * @param[in]  detected      A detected malware handle.
+ * @param[out] ppkg_id       A pointer of the pakcage id where a malware is detected. A caller should not free this string. This is a null when a malware was not detected in an application.
+ *
+ * @return #CSR_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSR_ERROR_NONE                 Successful
+ * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
+ * @retval #CSR_ERROR_INVALID_PARAMETER    ppkg_id is invalid
+ * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ */
+int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, const char** ppkg_id);
 
 /**
  * @brief Judges how a detected malware file is handled.
@@ -541,7 +571,7 @@ int csr_cs_detected_get_user_response(csr_cs_detected_h detected, csr_cs_user_re
  *           again.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
- * @param[in]  file_path  A path of a detected malware file.
+ * @param[in]  detected   A handle of a detected malware.
  * @param[in]  action     An action to be taken.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
@@ -549,14 +579,14 @@ int csr_cs_detected_get_user_response(csr_cs_detected_h detected, csr_cs_user_re
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or action is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     detected or action is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     No permission to remove
  * @retval #CSR_ERROR_FILE_NOT_FOUND        File to take action on not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_judge_detected_malware(csr_cs_context_h handle, const char *file_path, csr_cs_action_e action);
+int csr_cs_judge_detected_malware(csr_cs_context_h handle, csr_cs_detected_h detected, csr_cs_action_e action);
 
 
 /**
@@ -602,7 +632,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path, 
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_get_detected_malwares(csr_cs_context_h handle, const char *dir,
-                              csr_cs_detected_list_h *plist, int *pcount);
+                              csr_cs_detected_list_h *plist, size_t *pcount);
 
 /**
  * @brief Gets information on a ignored malware file specified by file path.
@@ -647,7 +677,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path, c
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_get_ignored_malwares(csr_cs_context_h handle, const char *dir,
-                              csr_cs_detected_list_h *plist, int *pcount);
+                              csr_cs_detected_list_h *plist, size_t *pcount);
 
 /**
  * @brief Extracts the detected malware handle from the detected malware list handle.
@@ -666,7 +696,7 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle, const char *dir,
  * @retval #CSR_ERROR_INVALID_PARAMETER    index or pdetected is invalid.
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_dlist_get_detected(csr_cs_detected_list_h list, int index, csr_cs_detected_h *pdetected);
+int csr_cs_dlist_get_detected(csr_cs_detected_list_h list, size_t index, csr_cs_detected_h *pdetected);
 
 #ifdef __cplusplus
 }

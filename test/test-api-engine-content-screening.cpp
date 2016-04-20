@@ -327,7 +327,7 @@ BOOST_AUTO_TEST_CASE(get_vendor_logo)
 	auto handle = c.get();
 
 	unsigned char *vendor_logo_image = nullptr;
-	unsigned int size = 0;
+	size_t size = 0;
 	ASSERT_IF(csre_cs_engine_get_vendor_logo(handle, &vendor_logo_image, &size), CSRE_ERROR_NONE);
 
 	EXCEPTION_GUARD_END

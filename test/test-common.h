@@ -56,7 +56,7 @@
 namespace Test {
 
 template <typename T, typename U>
-void _assert(T value, U expected, const std::string &filename, const std::string &funcname, unsigned int line)
+void _assert(const T &value, const U &expected, const std::string &filename, const std::string &funcname, unsigned int line)
 {
 	BOOST_REQUIRE_MESSAGE(value == expected,
 		"[" << filename << " > " << funcname << " : " << line << "]"

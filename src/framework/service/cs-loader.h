@@ -22,7 +22,6 @@
 #pragma once
 
 #include <ctime>
-#include <cstddef>
 #include <vector>
 #include <string>
 

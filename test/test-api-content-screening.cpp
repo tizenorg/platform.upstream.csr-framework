@@ -88,6 +88,24 @@ BOOST_AUTO_TEST_CASE(set_values_to_context_negative)
 	EXCEPTION_GUARD_END
 }
 
+BOOST_AUTO_TEST_CASE(scan_data)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_detected_h detected;
+	unsigned char data[100] = {0, };
+
+	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected),
+			  CSR_ERROR_NONE);
+
+	// no malware detected
+	CHECK_IS_NULL(detected);
+
+	EXCEPTION_GUARD_END
+}
+
 BOOST_AUTO_TEST_CASE(scan_file)
 {
 	EXCEPTION_GUARD_START
@@ -101,6 +119,96 @@ BOOST_AUTO_TEST_CASE(scan_file)
 
 	// no malware detected
 	CHECK_IS_NULL(detected);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_detected_malware)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_detected_h detected;
+
+	ASSERT_IF(csr_cs_get_detected_malware(context, "dummy_file_path", &detected),
+			  CSR_ERROR_NONE);
+
+	// no malware detected
+	CHECK_IS_NOT_NULL(detected);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_detected_malwares)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_detected_list_h detected_list;
+	int cnt;
+
+	ASSERT_IF(csr_cs_get_detected_malwares(context, "dummy_dir_path", &detected_list, &cnt),
+			  CSR_ERROR_NONE);
+
+	// no malware detected
+	CHECK_IS_NOT_NULL(detected_list);
+
+	ASSERT_IF(cnt, 1);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_ignored_malware)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_detected_h ignored;
+
+	ASSERT_IF(csr_cs_get_ignored_malware(context, "dummy_file_path", &ignored),
+			  CSR_ERROR_NONE);
+
+	CHECK_IS_NOT_NULL(ignored);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_ignored_malwares)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_detected_list_h ignored_list;
+	int cnt;
+
+	ASSERT_IF(csr_cs_get_ignored_malwares(context, "dummy_dir_path", &ignored_list, &cnt),
+			  CSR_ERROR_NONE);
+
+	CHECK_IS_NOT_NULL(ignored_list);
+
+	ASSERT_IF(cnt, 1);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(judge_detected_malware)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_detected_h detected;
+
+	ASSERT_IF(csr_cs_get_detected_malware(context, "dummy_file_path", &detected),
+			  CSR_ERROR_NONE);
+	CHECK_IS_NOT_NULL(detected);
+
+	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE),
+			  CSR_ERROR_NONE);
 
 	EXCEPTION_GUARD_END
 }

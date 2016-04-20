@@ -35,10 +35,14 @@ public:
 		TargetName   = 0x01, // string
 		MalwareName  = 0x02, // string
 		DetailedUrl  = 0x03, // string
+		PkgId        = 0x04, // string
+		PkgName      = 0x05, // string
+		PkgVersion   = 0x06, // string
 
 		Severity     = 0x10, // int
 		Threat       = 0x11, // int
 		UserResponse = 0x12, // int
+		IsApp        = 0x13, // int
 
 		TimeStamp    = 0x21  // time_t
 	};
@@ -66,10 +70,35 @@ private:
 
 	std::string m_malwareName;
 	std::string m_detailedUrl;
+	std::string m_pkgId;
+	std::string m_pkgName;
+	std::string m_pkgVersion;
 	csr_cs_severity_level_e m_severity;
 	csr_cs_threat_type_e m_threat;
 	csr_cs_user_response_e m_response;
+	csr_cs_bool_e m_isApp;
 	time_t m_ts;
 };
+
+class CsDetectedList : public Result {
+public:
+	CsDetectedList();
+	virtual ~CsDetectedList();
+
+	CsDetectedList(IStream &);
+	void Serialize(IStream &stream) const;
+
+	CsDetectedList(CsDetectedList &&);
+	CsDetectedList &operator=(CsDetectedList &&);
+
+	void add(std::unique_ptr<CsDetected> &&);
+	void add(CsDetected *);
+	CsDetected *get(size_t idx) const;
+	size_t size() const;
+
+private:
+	std::vector<std::unique_ptr<CsDetected>> m_list;
+};
+
 
 }

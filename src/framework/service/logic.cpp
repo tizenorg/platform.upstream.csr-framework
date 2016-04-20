@@ -71,6 +71,13 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 	INFO("Request dispatch! CommandId: " << static_cast<int>(info.first));
 
 	switch (info.first) {
+	case CommandId::SCAN_DATA: {
+		CsContext context;
+		RawBuffer data;
+		info.second.Deserialize(context, data);
+		return scanData(context, data);
+	}
+
 	case CommandId::SCAN_FILE: {
 		CsContext context;
 		std::string filepath;
@@ -100,6 +107,45 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 		return dirGetFiles(context, dir);
 	}
 
+	case CommandId::JUDGE_STATUS: {
+		CsContext context;
+		std::string filepath;
+		info.second.Deserialize(context, filepath);
+		return judgeStatus(context, filepath);
+	}
+
+	case CommandId::GET_DETECTED: {
+		CsContext context;
+		std::string filepath;
+		info.second.Deserialize(context, filepath);
+		return getDetected(context, filepath);
+	}
+
+	case CommandId::GET_DETECTED_LIST: {
+		CsContext context;
+		std::string dir;
+		info.second.Deserialize(context, dir);
+		//return getDetectedList(context, dir);
+		RawBuffer buff = getDetectedList(context, dir);
+		INFO(" CommandId::GET_DETECTED_LIST : RawBuffer Size[" << buff.size() << "]");
+		return buff;
+	}
+
+	case CommandId::GET_IGNORED: {
+		CsContext context;
+		std::string filepath;
+		info.second.Deserialize(context, filepath);
+		return getIgnored(context, filepath);
+	}
+
+	case CommandId::GET_IGNORED_LIST: {
+		CsContext context;
+		std::string dir;
+		info.second.Deserialize(context, dir);
+		return getIgnoredList(context, dir);
+	}
+
+
 	default:
 		throw std::range_error(FORMAT("Command id[" << static_cast<int>(info.first)
 			<< "] isn't in range."));
@@ -115,6 +161,15 @@ std::pair<CommandId, BinaryQueue> Logic::getRequestInfo(const RawBuffer &data)
 	q.Deserialize(id);
 
 	return std::make_pair(id, std::move(q));
+}
+
+RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
+{
+	INFO("Scan Data[size=" << data.size() << "] by engine");
+
+	printCsContext(context);
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
 }
 
 RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
@@ -142,6 +197,69 @@ RawBuffer Logic::dirGetFiles(const CsContext &context, const std::string &dir)
 	printCsContext(context);
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
+}
+
+RawBuffer Logic::judgeStatus(const CsContext &context, const std::string &filepath)
+{
+	INFO("Judge Status[" << filepath << "] by engine");
+
+	printCsContext(context);
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+}
+
+RawBuffer Logic::getDetected(const CsContext &context, const std::string &filepath)
+{
+	INFO("Get Detected[" << filepath << "] by engine");
+
+	printCsContext(context);
+
+	CsDetected detected;
+	detected.set(static_cast<int>(CsDetected::Key::TargetName), "test_file");
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, detected).pop();
+}
+
+RawBuffer Logic::getDetectedList(const CsContext &context, const std::string &dir)
+{
+	INFO("Get Detected List[" << dir << "] by engine");
+
+	printCsContext(context);
+
+	std::unique_ptr<CsDetected> detected(new CsDetected());
+	detected->set(static_cast<int>(CsDetected::Key::TargetName), "test_file");
+
+	CsDetectedList list;
+	list.add(std::move(detected));
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, list).pop();
+}
+
+RawBuffer Logic::getIgnored(const CsContext &context, const std::string &filepath)
+{
+	INFO("Get Ignored[" << filepath << "] by engine");
+
+	printCsContext(context);
+
+	CsDetected detected;
+	detected.set(static_cast<int>(CsDetected::Key::TargetName), "test_file");
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, detected).pop();
+}
+
+RawBuffer Logic::getIgnoredList(const CsContext &context, const std::string &dir)
+{
+	INFO("Get Ignored List[" << dir << "] by engine");
+
+	printCsContext(context);
+
+	std::unique_ptr<CsDetected> detected(new CsDetected());
+	detected->set(static_cast<int>(CsDetected::Key::TargetName), "test_file");
+
+	CsDetectedList list;
+	list.add(std::move(detected));
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, list).pop();
 }
 
 RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)

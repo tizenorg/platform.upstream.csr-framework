@@ -22,6 +22,7 @@
 #include "client/handle.h"
 
 #include <stdexcept>
+#include <utility>
 
 namespace Csr {
 namespace Client {
@@ -48,6 +49,14 @@ void Handle::add(Result *result)
 		throw std::logic_error("result shouldn't be null");
 
 	m_ctx->add(result);
+}
+
+void Handle::add(ResultListPtr &&resultListPtr)
+{
+	if (resultListPtr == nullptr)
+		throw std::logic_error("result list pointer shouldn't be null");
+
+	m_ctx->add(std::forward<ResultListPtr>(resultListPtr));
 }
 
 } // namespace Client

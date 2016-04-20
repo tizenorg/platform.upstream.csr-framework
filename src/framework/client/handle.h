@@ -39,6 +39,7 @@ public:
 	Type dispatch(Args &&...);
 
 	void add(Result *);
+	void add(ResultListPtr &&);
 
 	std::shared_ptr<Context> &getContext(void) noexcept;
 

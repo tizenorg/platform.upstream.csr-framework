@@ -19,14 +19,11 @@
  * @version    1.0
  * @brief
  */
-
 #pragma once
 
 #include <ctime>
-#include <cstddef>
 #include <vector>
 #include <string>
-
 
 #include "csre/web-protection-types.h"
 #include "csre/web-protection-engine-info.h"

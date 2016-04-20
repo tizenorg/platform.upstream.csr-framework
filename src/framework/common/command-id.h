@@ -24,11 +24,22 @@
 namespace Csr {
 
 enum class CommandId : int {
-	SCAN_FILE       = 0x01,
-	JUDGE_STATUS    = 0x02,
-	CHECK_URL       = 0x03,
-	DIR_GET_RESULTS = 0x04,
-	DIR_GET_FILES   = 0x05
+	// content scanning
+	// scanning
+	SCAN_DATA           = 0x1001,
+	SCAN_FILE           = 0x1002,
+	// delta, history
+	DIR_GET_RESULTS     = 0x1101,
+	DIR_GET_FILES       = 0x1102,
+	GET_DETECTED        = 0x1103,
+	GET_DETECTED_LIST   = 0x1104,
+	GET_IGNORED         = 0x1105,
+	GET_IGNORED_LIST    = 0x1106,
+	// handle result
+	JUDGE_STATUS        = 0x1201,
+
+	// web protection
+	CHECK_URL           = 0x2001
 };
 
 }

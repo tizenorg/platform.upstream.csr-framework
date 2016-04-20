@@ -29,6 +29,7 @@
 #include <list>
 #include <fstream>
 #include <iostream>
+#include <climits>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -399,8 +400,12 @@ int csre_wp_engine_get_vendor_logo(csre_wp_engine_h engine, unsigned char **vend
 	if (vendor_logo_image == nullptr || image_size == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
 
+	auto s = eng->logoImage.size();
+	if (s > UINT_MAX - 1)
+		return CSRET_WP_ERROR_FILE_IO;
+
+	*image_size = reinterpret_cast<unsigned int>(s);
 	*vendor_logo_image = eng->logoImage.data();
-	*image_size = eng->logoImage.size();
 
 	return CSRE_ERROR_NONE;
 }

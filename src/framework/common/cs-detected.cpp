@@ -119,6 +119,10 @@ void CsDetected::set(int key, int value)
 		m_response = static_cast<csr_cs_user_response_e>(value);
 		break;
 
+	case Key::IsApp:
+		m_isApp = static_cast<csr_cs_bool_e>(value);
+		break;
+
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
 			<< "] comes in to set as int."));
@@ -140,6 +144,18 @@ void CsDetected::set(int key, const std::string &value)
 
 	case Key::DetailedUrl:
 		m_detailedUrl = value;
+		break;
+
+	case Key::PkgId:
+		m_pkgId = value;
+		break;
+
+	case Key::PkgName:
+		m_pkgName = value;
+		break;
+
+	case Key::PkgVersion:
+		m_pkgVersion= value;
 		break;
 
 	default:
@@ -203,6 +219,10 @@ void CsDetected::get(int key, int &value) const
 		value = static_cast<int>(m_response);
 		break;
 
+	case Key::IsApp:
+		value = static_cast<int>(m_isApp);
+		break;
+
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
 			<< "] comes in to get as int."));
@@ -225,6 +245,19 @@ void CsDetected::get(int key, const char **value) const
 
 	case Key::DetailedUrl:
 		*value = m_detailedUrl.c_str();
+		break;
+
+	case Key::PkgId:
+		*value = m_pkgId.c_str();
+		break;
+
+	case Key::PkgName:
+		*value = m_pkgName.c_str();
+		break;
+
+	case Key::PkgVersion:
+		*value = m_pkgVersion.c_str();
+		break;
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
@@ -243,6 +276,86 @@ void CsDetected::get(int key, time_t &value) const
 		throw std::logic_error(FORMAT("Invalid key[" << key
 			<< "] comes in to get as time_t."));
 	}
+}
+
+CsDetectedList::CsDetectedList()
+{
+}
+
+CsDetectedList::~CsDetectedList()
+{
+}
+
+CsDetectedList::CsDetectedList(IStream &stream) : Result(stream)
+{
+	if(!hasValue())
+		return;
+
+	// TODO : need to verify usage
+	int length;
+	Deserializer<int>::Deserialize(stream, length);
+	for (int i = 0; i < length; ++i) {
+		std::unique_ptr<CsDetected> detected(new CsDetected(stream));
+		m_list.emplace_back(std::move(detected));
+	}
+}
+
+void CsDetectedList::Serialize(IStream &stream) const
+{
+	Result::Serialize(stream);
+
+	if (!hasValue())
+		return;
+
+	// TODO : need to verify usage
+	int length = m_list.size();
+	Serializer<int>::Serialize(stream, length);
+	for (const auto &i : m_list)
+		i->Serialize(stream);
+}
+
+CsDetectedList::CsDetectedList(CsDetectedList &&other) :
+	Result(std::move(other)),
+	m_list(std::move(other.m_list))
+{
+}
+
+CsDetectedList &CsDetectedList::operator=(CsDetectedList &&other)
+{
+	if (this == &other)
+		return *this;
+
+	m_list = std::move(other.m_list);
+
+	return *this;
+}
+
+void CsDetectedList::add(std::unique_ptr<CsDetected> &&detected)
+{
+	// TODO : need to verify usage
+	m_list.emplace_back(std::move(detected));
+
+	setValueFlag();
+}
+
+void  CsDetectedList::add(CsDetected* detected)
+{
+	// TODO : need to verify usage
+	m_list.emplace_back(detected);
+
+	setValueFlag();
+}
+
+CsDetected *CsDetectedList::get(size_t idx) const
+{
+	if(idx >= m_list.size())
+		return nullptr;
+	return m_list.at(idx).get();
+}
+
+size_t CsDetectedList::size() const
+{
+	return m_list.size();
 }
 
 }

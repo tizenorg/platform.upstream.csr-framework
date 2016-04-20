@@ -43,9 +43,16 @@ public:
 private:
 	std::pair<CommandId, BinaryQueue> getRequestInfo(const RawBuffer &);
 
+	RawBuffer scanData(const CsContext &context, const RawBuffer &data);
 	RawBuffer scanFile(const CsContext &context, const std::string &filepath);
 	RawBuffer dirGetResults(const CsContext &context, const std::string &dir);
 	RawBuffer dirGetFiles(const CsContext &context, const std::string &dir);
+	RawBuffer judgeStatus(const CsContext &context, const std::string &filepath);
+	RawBuffer getDetected(const CsContext &context, const std::string &filepath);
+	RawBuffer getDetectedList(const CsContext &context, const std::string &dir);
+	RawBuffer getIgnored(const CsContext &context, const std::string &filepath);
+	RawBuffer getIgnoredList(const CsContext &context, const std::string &dir);
+
 
 	RawBuffer checkUrl(const WpContext &context, const std::string &url);
 };

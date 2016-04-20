@@ -57,6 +57,10 @@ private:
 	bool m_hasVal;
 };
 
+using ResultPtr = std::unique_ptr<Result>;
+using ResultList = std::vector<ResultPtr>;
+using ResultListPtr = std::unique_ptr<ResultList>;
+
 class Context : public ISerializable, public KvpContainer {
 public:
 	Context();
@@ -70,11 +74,13 @@ public:
 	Context(const Context &);
 	Context &operator=(const Context &);
 
-	void add(std::unique_ptr<Result> &&);
+	void add(ResultPtr &&);
 	void add(Result *);
+	void add(ResultListPtr &&);
 	size_t size(void) const;
 	// for destroying with context
-	std::vector<std::unique_ptr<Result>> m_results;
+	std::vector<ResultPtr> m_results;
+	std::vector<ResultListPtr> m_resultLists;
 
 private:
 	mutable std::mutex m_mutex;

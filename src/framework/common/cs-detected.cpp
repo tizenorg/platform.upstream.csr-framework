@@ -34,6 +34,7 @@ CsDetected::CsDetected() :
 	m_severity(CSR_CS_SEVERITY_LOW),
 	m_threat(CSR_CS_THREAT_GENERIC),
 	m_response(CSR_CS_NO_ASK_USER),
+	m_isApp(false),
 	m_ts(0)
 {
 }
@@ -127,6 +128,21 @@ void CsDetected::set(int key, int value)
 	setValueFlag();
 }
 
+void CsDetected::set(int key, bool value)
+{
+	switch (static_cast<Key>(key)) {
+	case Key::IsApp:
+		m_isApp = value;
+		break;
+
+	default:
+		throw std::logic_error(FORMAT("Invalid key[" << key
+			<< "] comes in to set as bool."));
+	}
+
+	setValueFlag();
+}
+
 void CsDetected::set(int key, const std::string &value)
 {
 	switch (static_cast<Key>(key)) {
@@ -140,6 +156,10 @@ void CsDetected::set(int key, const std::string &value)
 
 	case Key::DetailedUrl:
 		m_detailedUrl = value;
+		break;
+
+	case Key::PkgId:
+		m_pkgId = value;
 		break;
 
 	default:
@@ -209,6 +229,19 @@ void CsDetected::get(int key, int &value) const
 	}
 }
 
+void CsDetected::get(int key, bool &value) const
+{
+	switch (static_cast<Key>(key)) {
+	case Key::IsApp:
+		value = m_isApp;
+		break;
+
+	default:
+		throw std::logic_error(FORMAT("Invalid key[" << key
+			<< "] comes in to get as bool."));
+	}
+}
+
 void CsDetected::get(int key, const char **value) const
 {
 	if (value == nullptr)
@@ -225,6 +258,11 @@ void CsDetected::get(int key, const char **value) const
 
 	case Key::DetailedUrl:
 		*value = m_detailedUrl.c_str();
+		break;
+
+	case Key::PkgId:
+		*value = m_pkgId.c_str();
+		break;
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key

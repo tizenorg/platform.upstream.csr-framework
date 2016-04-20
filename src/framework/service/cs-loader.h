@@ -91,7 +91,7 @@ private:
 	using FpGetEngineLatestUpdateTime = int(*)(csre_cs_engine_h, time_t *);
 	using FpGetEngineActivated = int(*)(csre_cs_engine_h, csre_cs_activated_e *);
 	using FpGetEngineVendorLogo = int(*)(csre_cs_engine_h, unsigned char **,
-										unsigned int *);
+										size_t *);
 
 	struct PluginContext {
 		void *dlhandle;

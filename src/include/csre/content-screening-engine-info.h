@@ -23,6 +23,7 @@
 #define __CSRE_CS_ENGINE_INFO_H_
 
 #include <time.h>
+#include <stddef.h>
 #include "csre/error.h"
 
 #ifdef __cplusplus
@@ -224,7 +225,7 @@ int csre_cs_engine_get_activated(csre_cs_engine_h engine, csre_cs_activated_e *p
  *
  * @see csre_cs_get_engine_info()
  */
-int csre_cs_engine_get_vendor_logo(csre_cs_engine_h engine, unsigned char** vendor_logo_image, unsigned int* image_size);
+int csre_cs_engine_get_vendor_logo(csre_cs_engine_h engine, unsigned char** vendor_logo_image, size_t* image_size);
 
 #ifdef __cplusplus
 }

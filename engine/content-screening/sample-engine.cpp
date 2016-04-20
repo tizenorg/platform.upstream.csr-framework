@@ -590,7 +590,7 @@ int csre_cs_engine_get_name(csre_cs_engine_h engine, const char **name)
 
 API
 int csre_cs_engine_get_vendor_logo(csre_cs_engine_h engine, unsigned char **logo_image,
-								   unsigned int *image_size)
+								   size_t *image_size)
 {
 	auto eng = reinterpret_cast<csret_cs_engine_s *>(engine);
 

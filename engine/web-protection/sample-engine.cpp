@@ -389,7 +389,7 @@ int csre_wp_engine_get_name(csre_wp_engine_h engine, const char **name)
 
 API
 int csre_wp_engine_get_vendor_logo(csre_wp_engine_h engine, unsigned char **vendor_logo_image,
-								   unsigned int *image_size)
+								   size_t *image_size)
 {
 	auto eng = reinterpret_cast<csret_wp_engine_s *>(engine);
 

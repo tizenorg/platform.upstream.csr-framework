@@ -234,7 +234,7 @@ int CsLoader::getEngineVendorLogo(csre_cs_engine_h e, std::vector<unsigned char>
 		throw std::invalid_argument("cs loader get engine vendor logo");
 
 	unsigned char *cvalue = nullptr;
-	unsigned int size = 0;
+	size_t size = 0;
 	auto retval = m_pc.fpGetEngineVendorLogo(e, &cvalue, &size);
 
 	if (retval == CSRE_ERROR_NONE && cvalue != nullptr && size != 0)

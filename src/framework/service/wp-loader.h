@@ -74,7 +74,7 @@ private:
 	using FpGetEngineDataVersion = int(*)(csre_wp_engine_h, const char **);
 	using FpGetEngineLatestUpdateTime = int(*)(csre_wp_engine_h, time_t *);
 	using FpGetEngineActivated = int(*)(csre_wp_engine_h, csre_wp_activated_e *);
-	using FpGetEngineVendorLogo = int(*)(csre_wp_engine_h, unsigned char **, unsigned int *);
+	using FpGetEngineVendorLogo = int(*)(csre_wp_engine_h, unsigned char **, size_t *);
 
 	struct PluginContext {
 		void *dlhandle;

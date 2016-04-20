@@ -23,6 +23,7 @@
 #define __CSRE_WEB_PROTECTION_ENGINE_INFO_H_
 
 #include <time.h>
+#include <stddef.h>
 #include "csre/error.h"
 
 #ifdef __cplusplus
@@ -224,7 +225,7 @@ int csre_wp_engine_get_activated(csre_wp_engine_h engine, csre_wp_activated_e *p
  *
  * @see csre_wp_engine_get_info()
  */
-int csre_wp_engine_get_vendor_logo(csre_wp_engine_h engine, unsigned char** vendor_logo_image, unsigned int* image_size);
+int csre_wp_engine_get_vendor_logo(csre_wp_engine_h engine, unsigned char** vendor_logo_image, size_t* image_size);
 
 #ifdef __cplusplus
 }

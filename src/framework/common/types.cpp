@@ -63,16 +63,22 @@ Context &Context::operator=(Context &&other)
 	return *this;
 }
 
-void Context::add(std::unique_ptr<Result> &&item)
+void Context::add(ResultPtr &&item)
 {
 	std::lock_guard<std::mutex> l(m_mutex);
-	m_results.emplace_back(std::forward<std::unique_ptr<Result>>(item));
+	m_results.emplace_back(std::forward<ResultPtr>(item));
 }
 
 void Context::add(Result *item)
 {
 	std::lock_guard<std::mutex> l(m_mutex);
 	m_results.emplace_back(item);
+}
+
+void Context::add(ResultListPtr &&item)
+{
+	std::lock_guard<std::mutex> l(m_mutex);
+	m_resultLists.emplace_back(std::forward<ResultListPtr>(item));
 }
 
 size_t Context::size() const

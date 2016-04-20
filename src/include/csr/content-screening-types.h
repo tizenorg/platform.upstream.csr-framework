@@ -83,6 +83,14 @@ typedef enum {
 } csr_cs_core_usage_e;
 
 /**
+ * @brief boolean flag used in content screening
+ */
+typedef enum {
+	CSR_CS_FALSE           = 0x00,  /* False */
+	CSR_CS_TRUE            = 0x01   /* True */
+} csr_cs_bool_e;
+
+/**
  * @brief TCS context handle.
  */
 typedef struct __csr_cs_context_s* csr_cs_context_h;

@@ -70,9 +70,9 @@ private:
 	using FpContextCreate = int(*)(csre_cs_context_h *);
 	using FpContextDestroy = int(*)(csre_cs_context_h);
 	using FpScanData = int(*)(csre_cs_context_h, const unsigned char *, size_t,
-							  csre_cs_detected_h *);
+							csre_cs_detected_h *);
 	using FpScanFile = int(*)(csre_cs_context_h, const char *,
-							  csre_cs_detected_h *);
+							csre_cs_detected_h *);
 	using FpScanAppOnCloud = int(*)(csre_cs_context_h, const char *,
 									csre_cs_detected_h *);
 	using FpGetSeverity = int(*)(csre_cs_detected_h, csre_cs_severity_level_e *);
@@ -91,7 +91,7 @@ private:
 	using FpGetEngineLatestUpdateTime = int(*)(csre_cs_engine_h, time_t *);
 	using FpGetEngineActivated = int(*)(csre_cs_engine_h, csre_cs_activated_e *);
 	using FpGetEngineVendorLogo = int(*)(csre_cs_engine_h, unsigned char **,
-										 unsigned int *);
+										unsigned int *);
 
 	struct PluginContext {
 		void *dlhandle;

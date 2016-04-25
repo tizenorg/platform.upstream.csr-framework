@@ -34,9 +34,6 @@
 
 #include "test-common.h"
 
-
-
-
 namespace {
 
 struct Result {
@@ -281,4 +278,3 @@ BOOST_AUTO_TEST_CASE(get_api_version)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-

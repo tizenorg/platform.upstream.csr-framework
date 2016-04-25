@@ -22,6 +22,7 @@
 #pragma once
 
 #include <Elementary.h>
+#include <string>
 
 namespace Csr {
 namespace Ui {
@@ -32,7 +33,7 @@ public:
 	virtual ~Popup();
 
 	/* fill text on popup */
-	void fillText(const char *title, const char *content);
+	void fillText(const std::string &title, const std::string &content);
 
 	/* add button to popup on given part of */
 	Evas_Object *addButton(const char *part);

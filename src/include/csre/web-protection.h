@@ -165,7 +165,7 @@ int csre_wp_result_get_risk_level(csre_wp_check_result_h result, csre_wp_risk_le
  *
  * @return #CSRE_CS_ERROR_NONE on success, otherwise a negative error value
  *
- * @retval #CSRE_CS_ERROR_NONE                 Successful
+ * @retval #CSRE_CS_ERROR_NONE              Successful
  * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid result handle
  * @retval #CSRE_ERROR_INVALID_PARAMETER    detailed_url is invalid
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason

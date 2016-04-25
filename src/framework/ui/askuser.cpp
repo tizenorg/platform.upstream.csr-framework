@@ -23,8 +23,6 @@
 
 #include <new>
 
-#include "common/audit/logger.h"
-
 namespace Csr {
 namespace Ui {
 
@@ -37,9 +35,9 @@ AskUser::~AskUser()
 {
 }
 
-Response AskUser::fileSingle(const std::string &message, const FileItem &item) const
+CsResponse AskUser::fileSingle(const std::string &message, const FileItem &item) const
 {
-	return static_cast<Response>(m_dispatcher->methodCall<int>(
+	return static_cast<CsResponse>(m_dispatcher->methodCall<int>(
 		static_cast<int>(CommandId::FILE_SINGLE),
 		message,
 		item));
@@ -53,20 +51,20 @@ ResponseMap AskUser::fileMultiple(const std::string &message, const FileItems &i
 		items);
 }
 
-Response AskUser::urlSingle(const std::string &message, const UrlItem &item) const
+WpResponse AskUser::wpAskPermission(const std::string &message, const UrlItem &item) const
 {
-	return static_cast<Response>(m_dispatcher->methodCall<int>(
-		static_cast<int>(CommandId::URL_SINGLE),
+	return static_cast<WpResponse>(m_dispatcher->methodCall<int>(
+		static_cast<int>(CommandId::WP_ASK_PERMISSION),
 		message,
 		item));
 }
 
-ResponseMap AskUser::urlMultiple(const std::string &message, const UrlItems &items) const
+WpResponse AskUser::wpNotify(const std::string &message, const UrlItem &item) const
 {
-	return m_dispatcher->methodCall<ResponseMap>(
-		static_cast<int>(CommandId::URL_MULTIPLE),
+	return static_cast<WpResponse>(m_dispatcher->methodCall<int>(
+		static_cast<int>(CommandId::WP_NOTIFY),
 		message,
-		items);
+		item));
 }
 
 } // namespace Ui

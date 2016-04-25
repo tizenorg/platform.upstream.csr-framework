@@ -302,4 +302,50 @@ CsLoader::~CsLoader()
 	dlclose(m_pc.dlhandle);
 }
 
+CsEngineContext::CsEngineContext(std::shared_ptr<CsLoader> &loader) :
+	m_loader(loader), m_context(nullptr)
+{
+	if (m_loader == nullptr)
+		throw std::logic_error("invalid argument. shouldn't be null.");
+
+	auto ret = m_loader->contextCreate(m_context);
+	if (ret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("get engine context by loader. ret: " << ret));
+}
+
+CsEngineContext::~CsEngineContext()
+{
+	auto ret = m_loader->contextDestroy(m_context);
+	if (ret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("destroy engine context by loader. ret: " << ret));
+}
+
+csre_cs_context_h &CsEngineContext::get(void)
+{
+	return m_context;
+}
+
+CsEngineInfo::CsEngineInfo(std::shared_ptr<CsLoader> &loader) :
+	m_loader(loader), m_info(nullptr)
+{
+	if (m_loader == nullptr)
+		throw std::logic_error("invalid argument. shouldn't be null.");
+
+	auto ret = m_loader->getEngineInfo(m_info);
+	if (ret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("get engine info by loader. ret: " << ret));
+}
+
+CsEngineInfo::~CsEngineInfo()
+{
+	auto ret = m_loader->destroyEngine(m_info);
+	if (ret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("destroy engine info by loader. ret: " << ret));
+}
+
+csre_cs_engine_h &CsEngineInfo::get(void)
+{
+	return m_info;
+}
+
 }

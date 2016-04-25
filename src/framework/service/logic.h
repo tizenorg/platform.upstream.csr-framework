@@ -27,9 +27,12 @@
 #include "common/types.h"
 #include "common/cs-context.h"
 #include "common/wp-context.h"
+#include "common/wp-result.h"
 #include "common/command-id.h"
 #include "common/raw-buffer.h"
 #include "common/binary-queue.h"
+#include "service/cs-loader.h"
+#include "service/wp-loader.h"
 
 namespace Csr {
 
@@ -55,6 +58,12 @@ private:
 
 
 	RawBuffer checkUrl(const WpContext &context, const std::string &url);
+
+	WpResult convert(csre_wp_check_result_h &);
+	void getUserResponse(const WpContext &, const std::string &url, csr_wp_risk_level_e, WpResult &);
+
+	std::shared_ptr<CsLoader> m_cs;
+	std::shared_ptr<WpLoader> m_wp;
 };
 
 }

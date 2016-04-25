@@ -109,6 +109,7 @@ void WpResult::set(int key, const std::string &value)
 	switch (static_cast<Key>(key)) {
 	case Key::DetailedUrl:
 		m_detailedUrl = value;
+		break;
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
@@ -123,6 +124,7 @@ void WpResult::set(int key, const char *value)
 	switch (static_cast<Key>(key)) {
 	case Key::DetailedUrl:
 		m_detailedUrl = value;
+		break;
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
@@ -152,11 +154,12 @@ void WpResult::get(int key, int &value) const
 void WpResult::get(int key, const char **value) const
 {
 	if (value == nullptr)
-		throw std::logic_error("invalud argument. output storage pointer is null.");
+		throw std::logic_error("invalid argument. output storage pointer is null.");
 
 	switch (static_cast<Key>(key)) {
 	case Key::DetailedUrl:
 		*value = m_detailedUrl.c_str();
+		break;
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key

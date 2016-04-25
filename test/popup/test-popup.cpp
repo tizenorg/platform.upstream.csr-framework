@@ -31,7 +31,7 @@ using namespace Csr::Ui;
 
 namespace {
 
-void printPressed(Response response)
+void printPressed(CsResponse response)
 {
 	std::cout << "###################################################" << std::endl;
 	std::cout << "###################################################" << std::endl;
@@ -39,23 +39,44 @@ void printPressed(Response response)
 
 	bool isValid = true;
 	switch (response) {
-	case Response::ALLOW:
-		std::cout << "##############  ALLOW BUTTON PRESSED  #############" << std::endl;
-		break;
-	case Response::DENY:
-		std::cout << "##############  DENY  BUTTON PRESSED  #############" << std::endl;
-		break;
-	case Response::CONFIRM:
-		std::cout << "############## CONFIRM BUTTON PRESSED #############" << std::endl;
-		break;
-	case Response::REMOVE:
+	case CsResponse::REMOVE:
 		std::cout << "############## REMOVE BUTTON PRESSED  #############" << std::endl;
 		break;
-	case Response::IGNORE:
+	case CsResponse::IGNORE:
 		std::cout << "############## IGNORE BUTTON PRESSED  #############" << std::endl;
 		break;
-	case Response::SKIP:
+	case CsResponse::SKIP:
 		std::cout << "##############  SKIP  BUTTON PRESSED  #############" << std::endl;
+		break;
+	default:
+		std::cout << "############## Invalid Response!!!    #############" << std::endl;
+		isValid = false;
+		break;
+	}
+
+	std::cout << "###################################################" << std::endl;
+	std::cout << "###################################################" << std::endl;
+	std::cout << "###################################################" << std::endl;
+
+	BOOST_REQUIRE_MESSAGE(isValid, "invalid response from csr-popup!");
+}
+
+void printPressed(WpResponse response)
+{
+	std::cout << "###################################################" << std::endl;
+	std::cout << "###################################################" << std::endl;
+	std::cout << "###################################################" << std::endl;
+
+	bool isValid = true;
+	switch (response) {
+	case WpResponse::ALLOW:
+		std::cout << "##############  ALLOW BUTTON PRESSED  #############" << std::endl;
+		break;
+	case WpResponse::DENY:
+		std::cout << "##############  DENY  BUTTON PRESSED  #############" << std::endl;
+		break;
+	case WpResponse::CONFIRM:
+		std::cout << "############## CONFIRM BUTTON PRESSED #############" << std::endl;
 		break;
 	default:
 		std::cout << "############## Invalid Response!!!    #############" << std::endl;
@@ -91,7 +112,7 @@ BOOST_AUTO_TEST_CASE(file_single)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(url_single)
+BOOST_AUTO_TEST_CASE(wp_ask_permission)
 {
 	try {
 		AskUser askuser;
@@ -100,7 +121,23 @@ BOOST_AUTO_TEST_CASE(url_single)
 		item.risk = CSR_WP_RISK_MEDIUM;
 		item.url = "http://csr.test.dummyurl.com";
 
-		auto response = askuser.urlSingle("Message for url_single tc", item);
+		auto response = askuser.wpAskPermission("Message for wp_ask_permission tc", item);
+		printPressed(response);
+	} catch (...) {
+		BOOST_REQUIRE_MESSAGE(0, "exception shouldn't be thrown.");
+	}
+}
+
+BOOST_AUTO_TEST_CASE(wp_notify)
+{
+	try {
+		AskUser askuser;
+
+		UrlItem item;
+		item.risk = CSR_WP_RISK_HIGH;
+		item.url = "http://csr.test.dummyurl.com";
+
+		auto response = askuser.wpNotify("Message for wp_ask_permission tc", item);
 		printPressed(response);
 	} catch (...) {
 		BOOST_REQUIRE_MESSAGE(0, "exception shouldn't be thrown.");

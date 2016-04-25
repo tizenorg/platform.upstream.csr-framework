@@ -87,20 +87,20 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 		return fileMultiple(message, items);
 	}
 
-	case CommandId::URL_SINGLE: {
+	case CommandId::WP_ASK_PERMISSION: {
 		std::string message;
 		UrlItem item;
 		info.second.Deserialize(message, item);
 
-		return urlSingle(message, item);
+		return wpAskPermission(message, item);
 	}
 
-	case CommandId::URL_MULTIPLE: {
+	case CommandId::WP_NOTIFY: {
 		std::string message;
-		UrlItems items;
-		info.second.Deserialize(message, items);
+		UrlItem item;
+		info.second.Deserialize(message, item);
 
-		return urlMultiple(message, items);
+		return wpNotify(message, item);
 	}
 
 	default:
@@ -132,7 +132,7 @@ RawBuffer Logic::fileSingle(const std::string &message, const FileItem &item) co
 
 	BinaryQueue q;
 
-	auto respRemove = static_cast<int>(Response::REMOVE);
+	auto respRemove = static_cast<int>(CsResponse::REMOVE);
 	Evas_Object *remove = popup.addButton("button1");
 	elm_object_text_set(remove, "remove");
 	registerCb(remove, &respRemove, [&q, &respRemove, &popup]() {
@@ -141,7 +141,7 @@ RawBuffer Logic::fileSingle(const std::string &message, const FileItem &item) co
 		popup.stop();
 	});
 
-	auto respIgnore = static_cast<int>(Response::IGNORE);
+	auto respIgnore = static_cast<int>(CsResponse::IGNORE);
 	Evas_Object *ignore = popup.addButton("button2");
 	elm_object_text_set(ignore, "ignore");
 	registerCb(ignore, &respIgnore, [&q, &respIgnore, &popup]() {
@@ -150,7 +150,7 @@ RawBuffer Logic::fileSingle(const std::string &message, const FileItem &item) co
 		popup.stop();
 	});
 
-	auto respSkip = static_cast<int>(Response::SKIP);
+	auto respSkip = static_cast<int>(CsResponse::SKIP);
 	Evas_Object *skip = popup.addButton("button3");
 	elm_object_text_set(skip, "skip");
 	registerCb(skip, &respSkip, [&q, &respSkip, &popup]() {
@@ -177,20 +177,19 @@ RawBuffer Logic::fileMultiple(const std::string &message, const FileItems &items
 	return RawBuffer();
 }
 
-RawBuffer Logic::urlSingle(const std::string &message, const UrlItem &item) const
+RawBuffer Logic::wpAskPermission(const std::string &message, const UrlItem &item) const
 {
-	INFO("urlSingle start with param.. "
-		"message[" << message << "] "
-		"url[" << item.url << "] "
-		"risk level[" << static_cast<int>(item.risk) << "]");
-
 	Popup popup;
 
-	popup.fillText("FileSingle title", message.c_str());
+	popup.fillText("Danger URL", FORMAT(
+			"URL: " << item.url << "\n" <<
+			"Risky: " << (item.risk == CSR_WP_RISK_HIGH
+				? "High" : "Medium") << "\n" <<
+			message.c_str()));
 
 	BinaryQueue q;
 
-	auto respAllow = static_cast<int>(Response::ALLOW);
+	auto respAllow = static_cast<int>(WpResponse::ALLOW);
 	Evas_Object *allow = popup.addButton("button1");
 	elm_object_text_set(allow, "allow");
 	registerCb(allow, &respAllow, [&q, &respAllow, &popup]() {
@@ -199,7 +198,7 @@ RawBuffer Logic::urlSingle(const std::string &message, const UrlItem &item) cons
 		popup.stop();
 	});
 
-	auto respDeny = static_cast<int>(Response::DENY);
+	auto respDeny = static_cast<int>(WpResponse::DENY);
 	Evas_Object *deny = popup.addButton("button2");
 	elm_object_text_set(deny, "deny");
 	registerCb(deny, &respDeny, [&q, &respDeny, &popup]() {
@@ -210,7 +209,7 @@ RawBuffer Logic::urlSingle(const std::string &message, const UrlItem &item) cons
 
 	popup.start();
 
-	DEBUG("urlSingle done!");
+	DEBUG("wpAskPermission done!");
 
 	unregisterCb(respAllow);
 	unregisterCb(respDeny);
@@ -218,11 +217,34 @@ RawBuffer Logic::urlSingle(const std::string &message, const UrlItem &item) cons
 	return q.pop();
 }
 
-RawBuffer Logic::urlMultiple(const std::string &message, const UrlItems &items) const
+RawBuffer Logic::wpNotify(const std::string &message, const UrlItem &item) const
 {
-	(void) message;
-	(void) items;
-	return RawBuffer();
+	Popup popup;
+
+	popup.fillText("Danger URL", FORMAT(
+			"URL: " << item.url << "\n" <<
+			"Risky: " << (item.risk == CSR_WP_RISK_HIGH
+				? "High" : "Medium") << "\n" <<
+			message.c_str()));
+
+	BinaryQueue q;
+
+	auto respConfirm = static_cast<int>(WpResponse::CONFIRM);
+	Evas_Object *allow = popup.addButton("button1");
+	elm_object_text_set(allow, "confirm");
+	registerCb(allow, &respConfirm, [&q, &respConfirm, &popup]() {
+		DEBUG("Confirm button clicked!");
+		q = BinaryQueue::Serialize(respConfirm);
+		popup.stop();
+	});
+
+	popup.start();
+
+	DEBUG("wpNotify done!");
+
+	unregisterCb(respConfirm);
+
+	return q.pop();
 }
 
 }

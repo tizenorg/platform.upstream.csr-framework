@@ -45,8 +45,9 @@ private:
 
 	RawBuffer fileSingle(const std::string &message, const FileItem &item) const;
 	RawBuffer fileMultiple(const std::string &message, const FileItems &items) const;
-	RawBuffer urlSingle(const std::string &message, const UrlItem &item) const;
-	RawBuffer urlMultiple(const std::string &message, const UrlItems &items) const;
+
+	RawBuffer wpAskPermission(const std::string &message, const UrlItem &item) const;
+	RawBuffer wpNotify(const std::string &message, const UrlItem &item) const;
 };
 
 }

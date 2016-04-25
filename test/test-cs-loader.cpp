@@ -37,6 +37,7 @@
 #define TEST_FILE_RISKY    TEST_DIR "/test_risky_file"
 #define TEST_APP_ROOT      TEST_DIR "/test_app"
 
+
 namespace {
 
 inline void checkDetected(csre_cs_detected_h detected,

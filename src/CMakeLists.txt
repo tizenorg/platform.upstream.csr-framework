@@ -35,6 +35,7 @@ SET(${TARGET_CSR_SERVER}_SRCS
 	framework/service/file-system.cpp
 	framework/service/app-deleter.cpp
 	framework/service/cs-loader.cpp
+	framework/service/wp-loader.cpp
 	framework/ui/askuser.cpp
 
 	# question and response codes needed on both of

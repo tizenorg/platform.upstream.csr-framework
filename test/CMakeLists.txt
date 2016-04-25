@@ -39,6 +39,7 @@ SET(${TARGET_CSR_TEST}_SRCS
 	${CSR_FW_SVC_SRC_PATH}/file-system.cpp
 	${CSR_FW_SVC_SRC_PATH}/app-deleter.cpp
 	${CSR_FW_SVC_SRC_PATH}/cs-loader.cpp
+	${CSR_FW_SVC_SRC_PATH}/wp-loader.cpp
 	colour_log_formatter.cpp
 	test-api-content-screening.cpp
 	test-api-content-screening-async.cpp
@@ -52,6 +53,7 @@ SET(${TARGET_CSR_TEST}_SRCS
 	test-main.cpp
 	test-common.cpp
 	test-cs-loader.cpp
+	test-wp-loader.cpp
 )
 
 INCLUDE_DIRECTORIES(

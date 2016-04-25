@@ -41,10 +41,11 @@ public:
 	AskUser(const AskUser &) = delete;
 	AskUser &operator=(const AskUser &) = delete;
 
-	Response fileSingle(const std::string &message, const FileItem &item) const;
+	CsResponse fileSingle(const std::string &message, const FileItem &item) const;
 	ResponseMap fileMultiple(const std::string &message, const FileItems &items) const;
-	Response urlSingle(const std::string &message, const UrlItem &item) const;
-	ResponseMap urlMultiple(const std::string &message, const UrlItems &items) const;
+
+	WpResponse wpAskPermission(const std::string &message, const UrlItem &item) const;
+	WpResponse wpNotify(const std::string &message, const UrlItem &item) const;
 
 private:
 	std::string m_address;

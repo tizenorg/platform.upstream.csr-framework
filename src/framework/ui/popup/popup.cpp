@@ -65,10 +65,10 @@ void Popup::start()
 	elm_run();
 }
 
-void Popup::fillText(const char *title, const char *content)
+void Popup::fillText(const std::string &title, const std::string &content)
 {
-	elm_object_part_text_set(m_popup, "title,text", title);
-	elm_object_text_set(m_popup, content);
+	elm_object_part_text_set(m_popup, "title,text", title.c_str());
+	elm_object_text_set(m_popup, content.c_str());
 }
 
 Evas_Object *Popup::addButton(const char *part)

@@ -61,6 +61,10 @@ SET(TARGET_CSR_TEST ${SERVICE_NAME}-test)
 SET(TARGET_CSR_POPUP_TEST ${SERVICE_NAME}-popup-test)
 SET(TARGET_CSR_THREADPOOL_TEST ${SERVICE_NAME}-threadpool-test)
 
+# for now, sample engine as a default
+ADD_DEFINITIONS("-DCS_ENGINE_PATH=\"${SAMPLE_ENGINE_DIR}/lib${TARGET_CSR_CS_ENGINE_SAMPLE}.so\"")
+ADD_DEFINITIONS("-DWP_ENGINE_PATH=\"${SAMPLE_ENGINE_DIR}/lib${TARGET_CSR_WP_ENGINE_SAMPLE}.so\"")
+
 CONFIGURE_FILE(packaging/${SERVICE_NAME}.manifest.in ${SERVICE_NAME}.manifest @ONLY)
 CONFIGURE_FILE(packaging/${SERVICE_NAME}-client.manifest.in ${SERVICE_NAME}-client.manifest @ONLY)
 CONFIGURE_FILE(packaging/${SERVICE_NAME}-common.manifest.in ${SERVICE_NAME}-common.manifest @ONLY)

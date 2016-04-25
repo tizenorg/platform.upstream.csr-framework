@@ -252,4 +252,50 @@ WpLoader::~WpLoader()
 	dlclose(m_pc.dlhandle);
 }
 
+WpEngineContext::WpEngineContext(std::shared_ptr<WpLoader> &loader) :
+	m_loader(loader), m_context(nullptr)
+{
+	if (m_loader == nullptr)
+		throw std::logic_error("invalid argument. shouldn't be null.");
+
+	auto ret = m_loader->contextCreate(m_context);
+	if (ret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("get engine context by loader. ret: " << ret));
+}
+
+WpEngineContext::~WpEngineContext()
+{
+	auto ret = m_loader->contextDestroy(m_context);
+	if (ret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("destroy engine context by loader. ret: " << ret));
+}
+
+csre_wp_context_h &WpEngineContext::get(void)
+{
+	return m_context;
+}
+
+WpEngineInfo::WpEngineInfo(std::shared_ptr<WpLoader> &loader) :
+	m_loader(loader), m_info(nullptr)
+{
+	if (m_loader == nullptr)
+		throw std::logic_error("invalid argument. shouldn't be null.");
+
+	auto ret = m_loader->getEngineInfo(m_info);
+	if (ret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("get engine info by loader. ret: " << ret));
+}
+
+WpEngineInfo::~WpEngineInfo()
+{
+	auto ret = m_loader->destroyEngine(m_info);
+	if (ret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("destroy engine info by loader. ret: " << ret));
+}
+
+csre_wp_engine_h &WpEngineInfo::get(void)
+{
+	return m_info;
+}
+
 }

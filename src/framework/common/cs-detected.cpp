@@ -225,6 +225,7 @@ void CsDetected::get(int key, const char **value) const
 
 	case Key::DetailedUrl:
 		*value = m_detailedUrl.c_str();
+		break;
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key

@@ -36,20 +36,21 @@ namespace Ui {
 enum class CommandId : int {
 	FILE_SINGLE   = 0x01,
 	FILE_MULTIPLE = 0x02,
-	URL_SINGLE    = 0x03,
-	URL_MULTIPLE  = 0x04
+
+	WP_ASK_PERMISSION = 0x10,
+	WP_NOTIFY         = 0x11
 };
 
-enum class Response : int {
-	/* For url access on web protection */
-	ALLOW   = 0x01,
-	DENY    = 0x02,
-	CONFIRM = 0x03,
+enum class WpResponse : int {
+	ALLOW   = 0x10,
+	DENY    = 0x20,
+	CONFIRM = 0x30
+};
 
-	/* For content screening detected item handling */
-	REMOVE  = 0x04,
-	IGNORE  = 0x05,
-	SKIP    = 0x06
+enum class CsResponse : int {
+	REMOVE  = 0x10,
+	IGNORE  = 0x20,
+	SKIP    = 0x30
 };
 
 struct FileItem : public ISerializable {
@@ -74,7 +75,6 @@ struct UrlItem : public ISerializable {
 };
 
 using FileItems = std::vector<FileItem>;
-using UrlItems = std::vector<UrlItem>;
 using ResponseMap = std::unordered_map<std::string, int>;
 
 }

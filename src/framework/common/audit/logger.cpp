@@ -19,16 +19,16 @@
  * @version     1.0
  * @brief
  */
-#include "logger.h"
+#include "common/audit/logger.h"
 
 #include <sys/types.h>
 #include <unistd.h>
 
 #include <stdexcept>
 
-#include "log-sink.h"
-#include "console-sink.h"
-#include "dlog-sink.h"
+#include "common/audit/log-sink.h"
+#include "common/audit/console-sink.h"
+#include "common/audit/dlog-sink.h"
 
 namespace Csr {
 namespace Audit {

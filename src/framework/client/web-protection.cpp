@@ -135,10 +135,7 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result,
 	if (result == nullptr || plevel == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	int intRiskLevel;
-	reinterpret_cast<Result *>(result)->get(
-		static_cast<int>(WpResult::Key::RiskLevel), intRiskLevel);
-	*plevel = static_cast<csr_wp_risk_level_e>(intRiskLevel);
+	*plevel = reinterpret_cast<WpResult *>(result)->riskLevel;
 
 	return CSR_ERROR_NONE;
 
@@ -154,8 +151,7 @@ int csr_wp_result_get_detailed_url(csr_wp_check_result_h result,
 	if (result == nullptr || pdetailed_url == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	reinterpret_cast<Result *>(result)->get(
-		static_cast<int>(WpResult::Key::DetailedUrl), pdetailed_url);
+	*pdetailed_url = reinterpret_cast<WpResult *>(result)->detailedUrl.c_str();
 
 	return CSR_ERROR_NONE;
 
@@ -172,10 +168,7 @@ int csr_wp_result_get_user_response(csr_wp_check_result_h result,
 	if (result == nullptr || presponse == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	int intResponse;
-	reinterpret_cast<Result *>(result)->get(
-		static_cast<int>(WpResult::Key::UserResponse), intResponse);
-	*presponse = static_cast<csr_wp_user_response_e>(intResponse);
+	*presponse = reinterpret_cast<WpResult *>(result)->response;
 
 	return CSR_ERROR_NONE;
 

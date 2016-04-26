@@ -26,7 +26,7 @@
 #include "client/utils.h"
 #include "client/handle-ext.h"
 #include "client/async-logic.h"
-#include "common/raw-buffer.h"
+#include "common/types.h"
 #include "common/cs-context.h"
 #include "common/cs-detected.h"
 #include "common/command-id.h"
@@ -113,7 +113,7 @@ int csr_cs_context_create(csr_cs_context_h *phandle)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	*phandle = reinterpret_cast<csr_cs_context_h>(
-				   new Client::HandleExt(std::shared_ptr<Context>(new CsContext())));
+				   new Client::HandleExt(ContextShPtr(new CsContext())));
 
 	return CSR_ERROR_NONE;
 
@@ -228,6 +228,7 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data,
 		*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
 	} else {
 		*pdetected = nullptr;
+		delete ret.second;
 	}
 
 	return CSR_ERROR_NONE;
@@ -264,6 +265,7 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 		*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
 	} else {
 		*pdetected = nullptr;
+		delete ret.second;
 	}
 
 	return CSR_ERROR_NONE;
@@ -477,10 +479,7 @@ int csr_cs_detected_get_severity(csr_cs_detected_h detected,
 	if (detected == nullptr || pseverity == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	int intSeverity;
-	reinterpret_cast<Result *>(detected)->get(
-		static_cast<int>(CsDetected::Key::Severity), intSeverity);
-	*pseverity = static_cast<csr_cs_severity_level_e>(intSeverity);
+	*pseverity = reinterpret_cast<CsDetected *>(detected)->severity;
 
 	return CSR_ERROR_NONE;
 
@@ -496,10 +495,7 @@ int csr_cs_detected_get_threat_type(csr_cs_detected_h detected,
 	if (detected == nullptr || pthreat_type == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	int intThreat;
-	reinterpret_cast<Result *>(detected)->get(
-		static_cast<int>(CsDetected::Key::Threat), intThreat);
-	*pthreat_type = static_cast<csr_cs_threat_type_e>(intThreat);
+	*pthreat_type = reinterpret_cast<CsDetected *>(detected)->threat;
 
 	return CSR_ERROR_NONE;
 
@@ -515,8 +511,7 @@ int csr_cs_detected_get_malware_name(csr_cs_detected_h detected,
 	if (detected == nullptr || pmalware_name == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	reinterpret_cast<Result *>(detected)->get(
-		static_cast<int>(CsDetected::Key::MalwareName), pmalware_name);
+	*pmalware_name = reinterpret_cast<CsDetected *>(detected)->malwareName.c_str();
 
 	return CSR_ERROR_NONE;
 
@@ -532,8 +527,7 @@ int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected,
 	if (detected == nullptr || pdetailed_url == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	reinterpret_cast<Result *>(detected)->get(
-		static_cast<int>(CsDetected::Key::DetailedUrl), pdetailed_url);
+	*pdetailed_url = reinterpret_cast<CsDetected *>(detected)->detailedUrl.c_str();
 
 	return CSR_ERROR_NONE;
 
@@ -549,8 +543,7 @@ int csr_cs_detected_get_timestamp(csr_cs_detected_h detected,
 	if (detected == nullptr || ptimestamp == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	reinterpret_cast<Result *>(detected)->get(
-		static_cast<int>(CsDetected::Key::TimeStamp), *ptimestamp);
+	*ptimestamp = reinterpret_cast<CsDetected *>(detected)->ts;
 
 	return CSR_ERROR_NONE;
 
@@ -566,8 +559,7 @@ int csr_cs_detected_get_file_name(csr_cs_detected_h detected,
 	if (detected == nullptr || pfile_name == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	reinterpret_cast<Result *>(detected)->get(
-		static_cast<int>(CsDetected::Key::TargetName), pfile_name);
+	*pfile_name = reinterpret_cast<CsDetected *>(detected)->targetName.c_str();
 
 	return CSR_ERROR_NONE;
 
@@ -583,10 +575,7 @@ int csr_cs_detected_get_user_response(csr_cs_detected_h detected,
 	if (detected == nullptr || presponse == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	int intResponse;
-	reinterpret_cast<Result *>(detected)->get(
-		static_cast<int>(CsDetected::Key::UserResponse), intResponse);
-	*presponse = static_cast<csr_cs_user_response_e>(intResponse);
+	*presponse = reinterpret_cast<CsDetected *>(detected)->response;
 
 	return CSR_ERROR_NONE;
 
@@ -601,8 +590,7 @@ int csr_cs_detected_is_app(csr_cs_detected_h detected, bool *pis_app)
 	if (detected == nullptr || pis_app == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	reinterpret_cast<Result *>(detected)->get(
-		static_cast<int>(CsDetected::Key::IsApp), *pis_app);
+	*pis_app = reinterpret_cast<CsDetected *>(detected)->isApp;
 
 	return CSR_ERROR_NONE;
 
@@ -617,8 +605,7 @@ int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, const char **ppkg_id)
 	if (detected == nullptr || ppkg_id == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	reinterpret_cast<Result *>(detected)->get(
-		static_cast<int>(CsDetected::Key::PkgId), ppkg_id);
+	*ppkg_id = reinterpret_cast<CsDetected *>(detected)->pkgId.c_str();
 
 	return CSR_ERROR_NONE;
 
@@ -631,17 +618,14 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle,
 {
 	EXCEPTION_SAFE_START
 
-	if (handle == nullptr || detected == nullptr ||  !_isValid(action))
+	if (handle == nullptr || detected == nullptr || !_isValid(action))
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
-	const char *file_path = nullptr;
-	reinterpret_cast<Result *>(detected)->get(
-		static_cast<int>(CsDetected::Key::TargetName), &file_path);
 	auto ret = hExt->dispatch<int>(
 				   CommandId::JUDGE_STATUS,
 				   hExt->getContext(),
-				   std::string(file_path),
+				   reinterpret_cast<CsDetected *>(detected)->targetName,
 				   static_cast<int>(action));
 
 	if (ret != CSR_ERROR_NONE) {
@@ -660,7 +644,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
 {
 	EXCEPTION_SAFE_START
 
-	if (handle == nullptr || file_path == nullptr ||  pdetected == nullptr)
+	if (handle == nullptr || file_path == nullptr || pdetected == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
@@ -698,7 +682,7 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
 	EXCEPTION_SAFE_START
 
 	if (handle == nullptr || dir_paths == nullptr || count == 0
-			||  plist == nullptr || pcount == nullptr)
+			|| plist == nullptr || pcount == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
@@ -734,7 +718,7 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
 	ResultListPtr resultListPtr(new ResultList);
 
 	while (auto dptr = cptrList.pop())
-		resultListPtr->emplace_back(std::unique_ptr<Result>(dptr));
+		resultListPtr->emplace_back(dptr);
 
 	*plist = reinterpret_cast<csr_cs_detected_list_h>(resultListPtr.get());
 	*pcount = resultListPtr->size();
@@ -752,7 +736,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
 {
 	EXCEPTION_SAFE_START
 
-	if (handle == nullptr || file_path == nullptr ||  pdetected == nullptr)
+	if (handle == nullptr || file_path == nullptr || pdetected == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
@@ -790,7 +774,7 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
 	EXCEPTION_SAFE_START
 
 	if (handle == nullptr || dir_paths == nullptr || count == 0
-			||  plist == nullptr || pcount == nullptr)
+			|| plist == nullptr || pcount == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
@@ -826,7 +810,7 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
 	ResultListPtr resultListPtr(new ResultList);
 
 	while (auto dptr = cptrList.pop())
-		resultListPtr->emplace_back(std::unique_ptr<Result>(dptr));
+		resultListPtr->emplace_back(dptr);
 
 	*plist = reinterpret_cast<csr_cs_detected_list_h>(resultListPtr.get());
 	*pcount = resultListPtr->size();

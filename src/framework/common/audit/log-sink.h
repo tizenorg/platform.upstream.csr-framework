@@ -23,7 +23,7 @@
 
 #include <string>
 
-#include "audit/logger.h"
+#include "common/audit/logger.h"
 
 namespace Csr {
 namespace Audit {

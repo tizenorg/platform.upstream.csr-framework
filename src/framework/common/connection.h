@@ -25,7 +25,7 @@
 #include <mutex>
 
 #include "common/socket.h"
-#include "common/raw-buffer.h"
+#include "common/types.h"
 
 namespace Csr {
 

@@ -23,7 +23,7 @@
 
 #include <string>
 
-#include "common/raw-buffer.h"
+#include "common/types.h"
 
 namespace Csr {
 

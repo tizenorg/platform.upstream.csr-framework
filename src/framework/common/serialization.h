@@ -323,6 +323,12 @@ struct Deserialization {
 		object = new T(stream);
 	}
 
+	template <typename T>
+	static void Deserialize(IStream &stream, std::shared_ptr<T> &object)
+	{
+		object.reset(new T(stream));
+	}
+
 	// char
 	static void Deserialize(IStream &stream, char &value)
 	{

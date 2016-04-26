@@ -14,48 +14,48 @@
  *  limitations under the License
  */
 /*
- * @file        handle.h
+ * @file        icontext.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       Client request handle with dispatcher in it
+ * @brief       Abstract class of context for both of cs / wp
  */
 #pragma once
 
-#include <utility>
+#include <vector>
 #include <memory>
+#include <mutex>
 
-#include "common/icontext.h"
 #include "common/dispatcher.h"
+#include "common/serialization.h"
+#include "common/kvp-container.h"
+#include "common/iresult.h"
 
 namespace Csr {
-namespace Client {
 
-class Handle {
+class IContext;
+using ContextPtr = std::unique_ptr<IContext>;
+using ContextShPtr = std::shared_ptr<IContext>;
+
+class IContext : public ISerializable, public KvpContainer {
 public:
-	explicit Handle(ContextShPtr &&);
-	virtual ~Handle();
+	IContext();
+	virtual ~IContext();
 
-	template<typename Type, typename ...Args>
-	Type dispatch(Args &&...);
+	IContext(IContext &&) = delete;
+	IContext &operator=(IContext &&) = delete;
+	IContext(const IContext &) = delete;
+	IContext &operator=(const IContext &) = delete;
 
+	void add(ResultPtr &&);
 	void add(IResult *);
 	void add(ResultListPtr &&);
-
-	ContextShPtr &getContext(void) noexcept;
+	size_t size(void) const;
+	// for destroying with context
+	std::vector<ResultPtr> m_results;
+	std::vector<ResultListPtr> m_resultLists;
 
 private:
-	std::unique_ptr<Dispatcher> m_dispatcher;
-	ContextShPtr m_ctx;
+	mutable std::mutex m_mutex;
 };
 
-template<typename Type, typename ...Args>
-Type Handle::dispatch(Args &&...args)
-{
-	if (m_dispatcher == nullptr)
-		m_dispatcher.reset(new Dispatcher("/tmp/." SERVICE_NAME ".socket"));
-
-	return m_dispatcher->methodCall<Type>(std::forward<Args>(args)...);
-}
-
-} // namespace Client
 } // namespace Csr

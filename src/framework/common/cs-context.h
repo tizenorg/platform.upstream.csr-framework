@@ -22,14 +22,18 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
-#include "common/types.h"
+#include "common/icontext.h"
 #include "csr/content-screening-types.h"
 
 namespace Csr {
 
-class CsContext : public Context {
-public:
+struct CsContext;
+using CsContextPtr = std::unique_ptr<CsContext>;
+using CsContextShPtr = std::shared_ptr<CsContext>;
+
+struct CsContext : public IContext {
 	enum class Key : int {
 		PopupMessage = 0x01, // string
 
@@ -45,11 +49,10 @@ public:
 	CsContext(IStream &);
 	virtual void Serialize(IStream &) const override;
 
-	CsContext(CsContext &&);
-	CsContext &operator=(CsContext &&);
-
-	CsContext(const CsContext &);
-	CsContext &operator=(const CsContext &);
+	CsContext(CsContext &&) = delete;
+	CsContext &operator=(CsContext &&) = delete;
+	CsContext(const CsContext &) = delete;
+	CsContext &operator=(const CsContext &) = delete;
 
 	virtual void set(int, int) override;
 	virtual void set(int, const std::string &) override;
@@ -61,11 +64,10 @@ public:
 	virtual void get(int, const char **) const override;
 	virtual void get(int, bool &) const override;
 
-private:
-	std::string m_popupMessage;
-	csr_cs_ask_user_e m_askUser;
-	csr_cs_core_usage_e m_coreUsage;
-	bool m_isScanOnCloud;
+	std::string popupMessage;
+	csr_cs_ask_user_e askUser;
+	csr_cs_core_usage_e coreUsage;
+	bool isScanOnCloud;
 };
 
 }

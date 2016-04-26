@@ -29,7 +29,6 @@
 #include "common/wp-context.h"
 #include "common/wp-result.h"
 #include "common/command-id.h"
-#include "common/raw-buffer.h"
 #include "common/binary-queue.h"
 #include "service/cs-loader.h"
 #include "service/wp-loader.h"

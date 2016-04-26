@@ -28,10 +28,11 @@
 namespace Csr {
 
 CsContext::CsContext() :
-	m_popupMessage(),
-	m_askUser(CSR_CS_NOT_ASK_USER),
-	m_coreUsage(CSR_CS_USE_CORE_DEFAULT),
-	m_isScanOnCloud(false)
+	IContext(),
+	popupMessage(),
+	askUser(CSR_CS_NOT_ASK_USER),
+	coreUsage(CSR_CS_USE_CORE_DEFAULT),
+	isScanOnCloud(false)
 {
 }
 
@@ -44,73 +45,28 @@ CsContext::CsContext(IStream &stream)
 	int intAskUser;
 	int intCoreUsage;
 	Deserializer<std::string, int, int, bool>::Deserialize(stream,
-			m_popupMessage, intAskUser, intCoreUsage, m_isScanOnCloud);
+			popupMessage, intAskUser, intCoreUsage, isScanOnCloud);
 
-	m_askUser = static_cast<csr_cs_ask_user_e>(intAskUser);
-	m_coreUsage = static_cast<csr_cs_core_usage_e>(intCoreUsage);
+	askUser = static_cast<csr_cs_ask_user_e>(intAskUser);
+	coreUsage = static_cast<csr_cs_core_usage_e>(intCoreUsage);
 }
 
 void CsContext::Serialize(IStream &stream) const
 {
 	Serializer<std::string, int, int, bool>::Serialize(stream,
-			m_popupMessage, static_cast<int>(m_askUser), static_cast<int>(m_coreUsage),
-			m_isScanOnCloud);
-}
-
-CsContext::CsContext(CsContext &&other) :
-	Context(std::move(other)),
-	m_popupMessage(std::move(other.m_popupMessage)),
-	m_askUser(other.m_askUser),
-	m_coreUsage(other.m_coreUsage),
-	m_isScanOnCloud(other.m_isScanOnCloud)
-{
-}
-
-CsContext &CsContext::operator=(CsContext &&other)
-{
-	if (this == &other)
-		return *this;
-
-	Context::operator=(std::move(other));
-
-	m_popupMessage = std::move(other.m_popupMessage);
-	m_askUser = other.m_askUser;
-	m_coreUsage = other.m_coreUsage;
-	m_isScanOnCloud = other.m_isScanOnCloud;
-
-	return *this;
-}
-
-CsContext::CsContext(const CsContext &other) :
-	Context(other),
-	m_popupMessage(other.m_popupMessage),
-	m_askUser(other.m_askUser),
-	m_coreUsage(other.m_coreUsage),
-	m_isScanOnCloud(other.m_isScanOnCloud)
-{
-}
-
-CsContext &CsContext::operator=(const CsContext &other)
-{
-	Context::operator=(other);
-
-	m_popupMessage = other.m_popupMessage;
-	m_askUser = other.m_askUser;
-	m_coreUsage = other.m_coreUsage;
-	m_isScanOnCloud = other.m_isScanOnCloud;
-
-	return *this;
+			popupMessage, static_cast<int>(askUser), static_cast<int>(coreUsage),
+			isScanOnCloud);
 }
 
 void CsContext::set(int key, int value)
 {
 	switch (static_cast<Key>(key)) {
 	case Key::AskUser:
-		m_askUser = static_cast<csr_cs_ask_user_e>(value);
+		askUser = static_cast<csr_cs_ask_user_e>(value);
 		break;
 
 	case Key::CoreUsage:
-		m_coreUsage = static_cast<csr_cs_core_usage_e>(value);
+		coreUsage = static_cast<csr_cs_core_usage_e>(value);
 		break;
 
 	default:
@@ -123,7 +79,7 @@ void CsContext::set(int key, const std::string &value)
 {
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:
-		m_popupMessage = value;
+		popupMessage = value;
 		break;
 
 	default:
@@ -136,7 +92,7 @@ void CsContext::set(int key, const char *value)
 {
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:
-		m_popupMessage = value;
+		popupMessage = value;
 		break;
 
 	default:
@@ -149,7 +105,7 @@ void CsContext::set(int key, bool value)
 {
 	switch (static_cast<Key>(key)) {
 	case Key::ScanOnCloud:
-		m_isScanOnCloud = value;
+		isScanOnCloud = value;
 		break;
 
 	default:
@@ -162,11 +118,11 @@ void CsContext::get(int key, int &value) const
 {
 	switch (static_cast<Key>(key)) {
 	case Key::AskUser:
-		value = static_cast<int>(m_askUser);
+		value = static_cast<int>(askUser);
 		break;
 
 	case Key::CoreUsage:
-		value = static_cast<int>(m_coreUsage);
+		value = static_cast<int>(coreUsage);
 		break;
 
 	default:
@@ -179,7 +135,7 @@ void CsContext::get(int key, std::string &value) const
 {
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:
-		value = m_popupMessage;
+		value = popupMessage;
 		break;
 
 	default:
@@ -195,7 +151,7 @@ void CsContext::get(int key, const char **value) const
 
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:
-		*value = m_popupMessage.c_str();
+		*value = popupMessage.c_str();
 		break;
 
 	default:
@@ -208,7 +164,7 @@ void CsContext::get(int key, bool &value) const
 {
 	switch (static_cast<Key>(key)) {
 	case Key::ScanOnCloud:
-		value = m_isScanOnCloud;
+		value = isScanOnCloud;
 		break;
 
 	default:

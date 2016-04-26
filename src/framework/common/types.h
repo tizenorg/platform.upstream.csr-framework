@@ -17,73 +17,19 @@
  * @file        types.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       CSR internal serializable types
+ * @brief       Typedefs of primitives
  */
 #pragma once
 
 #include <vector>
-#include <memory>
-#include <mutex>
-
-#include "common/dispatcher.h"
-#include "common/serialization.h"
-#include "common/kvp-container.h"
+#include <functional>
+#include <set>
+#include <string>
 
 namespace Csr {
 
 using Task = std::function<void()>;
 using StrSet = std::set<std::string>;
-
-class Result : public ISerializable, public KvpContainer {
-public:
-	Result();
-	virtual ~Result();
-
-	Result(Result &&);
-	Result &operator=(Result &&);
-
-	bool hasValue(void) const;
-
-protected:
-	Result(IStream &);
-	virtual void Serialize(IStream &) const override;
-
-	inline void setValueFlag(void)
-	{
-		m_hasVal = true;
-	}
-
-private:
-	bool m_hasVal;
-};
-
-using ResultPtr = std::unique_ptr<Result>;
-using ResultList = std::vector<ResultPtr>;
-using ResultListPtr = std::unique_ptr<ResultList>;
-
-class Context : public ISerializable, public KvpContainer {
-public:
-	Context();
-	virtual ~Context();
-
-	Context(Context &&);
-	Context &operator=(Context &&);
-
-	// TODO: Handling results vector between contexts should be refined..
-	//       copy ctor/assignments for serializing and results vector isn't included here.
-	Context(const Context &);
-	Context &operator=(const Context &);
-
-	void add(ResultPtr &&);
-	void add(Result *);
-	void add(ResultListPtr &&);
-	size_t size(void) const;
-	// for destroying with context
-	std::vector<ResultPtr> m_results;
-	std::vector<ResultListPtr> m_resultLists;
-
-private:
-	mutable std::mutex m_mutex;
-};
+using RawBuffer = std::vector<unsigned char>;
 
 } // namespace Csr

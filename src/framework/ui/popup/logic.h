@@ -25,7 +25,7 @@
 #include <functional>
 #include <utility>
 
-#include "common/raw-buffer.h"
+#include "common/types.h"
 #include "common/binary-queue.h"
 #include "ui/common.h"
 #include "popup.h"

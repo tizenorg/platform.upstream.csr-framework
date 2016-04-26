@@ -23,21 +23,12 @@
 
 #include <string>
 
-#include "common/types.h"
+#include "common/iresult.h"
 #include "csr/web-protection-types.h"
 
 namespace Csr {
 
-class WpResult : public Result {
-public:
-	// key for set/get
-	enum class Key : int {
-		DetailedUrl  = 0x01, // string
-
-		RiskLevel    = 0x10, // int
-		UserResponse = 0x11  // int
-	};
-
+struct WpResult : public IResult {
 	WpResult();
 	virtual ~WpResult();
 
@@ -47,17 +38,9 @@ public:
 	WpResult(WpResult &&);
 	WpResult &operator=(WpResult &&);
 
-	virtual void set(int, int) override;
-	virtual void set(int, const std::string &) override;
-	virtual void set(int, const char *) override;
-
-	virtual void get(int, int &) const override;
-	virtual void get(int, const char **) const override;
-
-private:
-	csr_wp_risk_level_e m_riskLevel;
-	std::string m_detailedUrl;
-	csr_wp_user_response_e m_response;
+	csr_wp_risk_level_e riskLevel;
+	std::string detailedUrl;
+	csr_wp_user_response_e response;
 };
 
 }

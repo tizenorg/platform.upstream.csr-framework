@@ -99,75 +99,76 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 	switch (info.first) {
 	// Content scanning
 	case CommandId::SCAN_DATA: {
-		CsContext context;
+		CsContextShPtr cptr;
 		RawBuffer data;
-		info.second.Deserialize(context, data);
-		return scanData(context, data);
+		info.second.Deserialize(cptr, data);
+
+		return scanData(*cptr, data);
 	}
 
 	case CommandId::SCAN_FILE: {
-		CsContext context;
+		CsContextShPtr cptr;
 		std::string filepath;
-		info.second.Deserialize(context, filepath);
-		return scanFile(context, filepath);
+		info.second.Deserialize(cptr, filepath);
+		return scanFile(*cptr, filepath);
 	}
 
 	case CommandId::DIR_GET_RESULTS: {
-		CsContext context;
+		CsContextShPtr cptr;
 		std::string dir;
-		info.second.Deserialize(context, dir);
-		return dirGetResults(context, dir);
+		info.second.Deserialize(cptr, dir);
+		return dirGetResults(*cptr, dir);
 	}
 
 	case CommandId::DIR_GET_FILES: {
-		CsContext context;
+		CsContextShPtr cptr;
 		std::string dir;
-		info.second.Deserialize(context, dir);
-		return dirGetFiles(context, dir);
+		info.second.Deserialize(cptr, dir);
+		return dirGetFiles(*cptr, dir);
 	}
 
 	case CommandId::JUDGE_STATUS: {
-		CsContext context;
+		CsContextShPtr cptr;
 		std::string filepath;
-		info.second.Deserialize(context, filepath);
-		return judgeStatus(context, filepath);
+		info.second.Deserialize(cptr, filepath);
+		return judgeStatus(*cptr, filepath);
 	}
 
 	case CommandId::GET_DETECTED: {
-		CsContext context;
+		CsContextShPtr cptr;
 		std::string filepath;
-		info.second.Deserialize(context, filepath);
-		return getDetected(context, filepath);
+		info.second.Deserialize(cptr, filepath);
+		return getDetected(*cptr, filepath);
 	}
 
 	case CommandId::GET_DETECTED_LIST: {
-		CsContext context;
+		CsContextShPtr cptr;
 		StrSet dirSet;
-		info.second.Deserialize(context, dirSet);
-		return getDetectedList(context, dirSet);
+		info.second.Deserialize(cptr, dirSet);
+		return getDetectedList(*cptr, dirSet);
 	}
 
 	case CommandId::GET_IGNORED: {
-		CsContext context;
+		CsContextShPtr cptr;
 		std::string filepath;
-		info.second.Deserialize(context, filepath);
-		return getIgnored(context, filepath);
+		info.second.Deserialize(cptr, filepath);
+		return getIgnored(*cptr, filepath);
 	}
 
 	case CommandId::GET_IGNORED_LIST: {
-		CsContext context;
+		CsContextShPtr cptr;
 		StrSet dirSet;
-		info.second.Deserialize(context, dirSet);
-		return getIgnoredList(context, dirSet);
+		info.second.Deserialize(cptr, dirSet);
+		return getIgnoredList(*cptr, dirSet);
 	}
 
 	// Web protection
 	/* TODO: should we separate command->logic mapping of CS and WP ? */
 	case CommandId::CHECK_URL: {
-		WpContext context;
+		WpContextShPtr cptr;
 		std::string url;
-		info.second.Deserialize(context, url);
-		return checkUrl(context, url);
+		info.second.Deserialize(cptr, url);
+		return checkUrl(*cptr, url);
 	}
 
 	default:
@@ -241,7 +242,7 @@ RawBuffer Logic::getDetected(const CsContext &context,
 	printCsContext(context);
 
 	CsDetected detected;
-	detected.set(static_cast<int>(CsDetected::Key::TargetName), "test_file");
+	detected.targetName = "test_file";
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, detected).pop();
 }
@@ -256,7 +257,7 @@ RawBuffer Logic::getDetectedList(const CsContext &context, const StrSet &dirSet)
 	printCsContext(context);
 
 	CsDetectedPtr detected(new CsDetected());
-	detected->set(static_cast<int>(CsDetected::Key::TargetName), "test_file");
+	detected->targetName = "test_file";
 
 	CsDetectedList list;
 	list.emplace_back(std::move(detected));
@@ -272,7 +273,7 @@ RawBuffer Logic::getIgnored(const CsContext &context,
 	printCsContext(context);
 
 	CsDetected detected;
-	detected.set(static_cast<int>(CsDetected::Key::TargetName), "test_file");
+	detected.targetName = "test_file";
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, detected).pop();
 }
@@ -287,7 +288,7 @@ RawBuffer Logic::getIgnoredList(const CsContext &context, const StrSet &dirSet)
 	printCsContext(context);
 
 	CsDetectedPtr detected(new CsDetected());
-	detected->set(static_cast<int>(CsDetected::Key::TargetName), "test_file");
+	detected->targetName = "test_file";
 
 	CsDetectedList list;
 	list.emplace_back(std::move(detected));
@@ -312,12 +313,10 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 	}
 
 	auto wr = convert(result);
-	int level;
-	wr.get(static_cast<int>(WpResult::Key::RiskLevel), level);
 
 	DEBUG("checking level.. prepare for asking user");
 
-	switch (static_cast<csr_wp_risk_level_e>(level)) {
+	switch (wr.riskLevel) {
 	case CSR_WP_RISK_UNVERIFIED:
 		DEBUG("url[" << url << "] risk level is unverified");
 		return BinaryQueue::Serialize(ret, wr).pop();
@@ -337,7 +336,8 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid level: " << level));
+		throw std::logic_error(FORMAT("Invalid level: " <<
+									  static_cast<int>(wr.riskLevel)));
 	}
 
 	return BinaryQueue::Serialize(ret, wr).pop();
@@ -346,14 +346,10 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 void Logic::getUserResponse(const WpContext &c, const std::string &url,
 							csr_wp_risk_level_e level, WpResult &wr)
 {
-	int isAsk;
-	c.get(static_cast<int>(WpContext::Key::AskUser), isAsk);
-
-	if (static_cast<csr_wp_ask_user_e>(isAsk) == CSR_WP_NOT_ASK_USER)
+	if (c.askUser == CSR_WP_NOT_ASK_USER)
 		return;
 
-	std::string popupMessage;
-	c.get(static_cast<int>(WpContext::Key::PopupMessage), popupMessage);
+	auto &popupMessage = c.popupMessage;
 
 	Ui::AskUser askUser;
 	Ui::WpResponse response = Ui::WpResponse::CONFIRM;
@@ -365,11 +361,9 @@ void Logic::getUserResponse(const WpContext &c, const std::string &url,
 		response = askUser.wpAskPermission(popupMessage, item);
 
 		if (response == Ui::WpResponse::ALLOW)
-			wr.set(static_cast<int>(WpResult::Key::UserResponse),
-				   CSR_WP_PROCESSING_ALLOWED);
+			wr.response = CSR_WP_PROCESSING_ALLOWED;
 		else if (response == Ui::WpResponse::DENY)
-			wr.set(static_cast<int>(WpResult::Key::UserResponse),
-				   CSR_WP_PROCESSING_DISALLOWED);
+			wr.response = CSR_WP_PROCESSING_DISALLOWED;
 		else
 			throw std::runtime_error("Invalid response from popup service.");
 	} else {
@@ -377,8 +371,7 @@ void Logic::getUserResponse(const WpContext &c, const std::string &url,
 		response = askUser.wpNotify(popupMessage, item);
 
 		if (response == Ui::WpResponse::CONFIRM)
-			wr.set(static_cast<int>(WpResult::Key::UserResponse),
-				   CSR_WP_PROCESSING_DISALLOWED);
+			wr.response = CSR_WP_PROCESSING_DISALLOWED;
 		else
 			throw std::runtime_error("Invalid response from popup service.");
 	}
@@ -429,8 +422,8 @@ WpResult Logic::convert(csre_wp_check_result_h &r)
 
 	WpResult wr;
 
-	wr.set(static_cast<int>(WpResult::Key::DetailedUrl), detailedUrl);
-	wr.set(static_cast<int>(WpResult::Key::RiskLevel), static_cast<int>(level));
+	wr.detailedUrl = detailedUrl;
+	wr.riskLevel = level;
 
 	return wr;
 }

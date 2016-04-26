@@ -21,26 +21,25 @@
  */
 #pragma once
 
-#include "client/handle.h"
-#include "client/callback.h"
-#include "common/types.h"
-
 #include <mutex>
 #include <thread>
 #include <atomic>
+
 #include <string>
 #include <map>
+#include <set>
 #include <utility>
 
-#include <set>
-#include <string>
+#include "client/handle.h"
+#include "client/callback.h"
+#include "common/icontext.h"
 
 namespace Csr {
 namespace Client {
 
 class HandleExt : public Handle {
 public:
-	explicit HandleExt(std::shared_ptr<Context> &&);
+	explicit HandleExt(ContextShPtr &&);
 	virtual ~HandleExt();
 
 	void dispatchAsync(const Task &task);

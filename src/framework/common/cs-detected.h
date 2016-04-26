@@ -22,8 +22,9 @@
 #pragma once
 
 #include <string>
+#include <ctime>
 
-#include "common/types.h"
+#include "common/iresult.h"
 #include "csr/content-screening-types.h"
 
 namespace Csr {
@@ -32,24 +33,7 @@ class CsDetected;
 using CsDetectedPtr = std::unique_ptr<CsDetected>;
 using CsDetectedList = std::vector<CsDetectedPtr>;
 
-class CsDetected : public Result {
-public:
-	// key for set/get
-	enum class Key : int {
-		TargetName   = 0x01, // string
-		MalwareName  = 0x02, // string
-		DetailedUrl  = 0x03, // string
-		PkgId        = 0x04, // string
-
-		Severity     = 0x10, // int
-		Threat       = 0x11, // int
-		UserResponse = 0x12, // int
-
-		TimeStamp    = 0x20, // time_t
-
-		IsApp        = 0x30  // bool
-	};
-
+struct CsDetected : public IResult {
 	CsDetected();
 	virtual ~CsDetected();
 
@@ -59,28 +43,18 @@ public:
 	CsDetected(CsDetected &&);
 	CsDetected &operator=(CsDetected &&);
 
-	virtual void set(int, int) override;
-	virtual void set(int, bool) override;
-	virtual void set(int, const std::string &) override;
-	virtual void set(int, const char *) override;
-	virtual void set(int, time_t) override;
+	bool hasValue(void) const noexcept;
 
-	virtual void get(int, int &) const override;
-	virtual void get(int, bool &) const override;
-	virtual void get(int, const char **) const override;
-	virtual void get(int, time_t &) const override;
+	std::string targetName; // file path or app id which contains malware
 
-private:
-	std::string m_targetName; // file path or app id which contains malware
-
-	std::string m_malwareName;
-	std::string m_detailedUrl;
-	std::string m_pkgId;
-	csr_cs_severity_level_e m_severity;
-	csr_cs_threat_type_e m_threat;
-	csr_cs_user_response_e m_response;
-	bool m_isApp;
-	time_t m_ts;
+	std::string malwareName;
+	std::string detailedUrl;
+	std::string pkgId;
+	csr_cs_severity_level_e severity;
+	csr_cs_threat_type_e threat;
+	csr_cs_user_response_e response;
+	bool isApp;
+	time_t ts;
 };
 
 }

@@ -28,14 +28,14 @@
 namespace Csr {
 
 CsDetected::CsDetected() :
-	m_targetName(),
-	m_malwareName(),
-	m_detailedUrl(),
-	m_severity(CSR_CS_SEVERITY_LOW),
-	m_threat(CSR_CS_THREAT_GENERIC),
-	m_response(CSR_CS_NO_ASK_USER),
-	m_isApp(false),
-	m_ts(0)
+	targetName(),
+	malwareName(),
+	detailedUrl(),
+	severity(CSR_CS_SEVERITY_LOW),
+	threat(CSR_CS_THREAT_GENERIC),
+	response(CSR_CS_NO_ASK_USER),
+	isApp(false),
+	ts(0)
 {
 }
 
@@ -43,45 +43,36 @@ CsDetected::~CsDetected()
 {
 }
 
-CsDetected::CsDetected(IStream &stream) : Result(stream)
+CsDetected::CsDetected(IStream &stream)
 {
-	if (!hasValue())
-		return;
-
 	int intSeverity;
 	int intThreat;
 	int intResponse;
 	Deserializer<std::string, std::string, std::string, int, int, int, time_t>::Deserialize(
-		stream, m_targetName, m_malwareName, m_detailedUrl, intSeverity, intThreat,
-		intResponse, m_ts);
+		stream, targetName, malwareName, detailedUrl, intSeverity, intThreat,
+		intResponse, ts);
 
-	m_severity = static_cast<csr_cs_severity_level_e>(intSeverity);
-	m_threat = static_cast<csr_cs_threat_type_e>(intThreat);
-	m_response = static_cast<csr_cs_user_response_e>(intResponse);
+	severity = static_cast<csr_cs_severity_level_e>(intSeverity);
+	threat = static_cast<csr_cs_threat_type_e>(intThreat);
+	response = static_cast<csr_cs_user_response_e>(intResponse);
 }
 
 void CsDetected::Serialize(IStream &stream) const
 {
-	Result::Serialize(stream);
-
-	if (!hasValue())
-		return;
-
 	Serializer<std::string, std::string, std::string, int, int, int, time_t>::Serialize(
-		stream, m_targetName, m_malwareName, m_detailedUrl,
-		static_cast<int>(m_severity), static_cast<int>(m_threat),
-		static_cast<int>(m_response), m_ts);
+		stream, targetName, malwareName, detailedUrl,
+		static_cast<int>(severity), static_cast<int>(threat),
+		static_cast<int>(response), ts);
 }
 
 CsDetected::CsDetected(CsDetected &&other) :
-	Result(std::move(other)),
-	m_targetName(std::move(other.m_targetName)),
-	m_malwareName(std::move(other.m_malwareName)),
-	m_detailedUrl(std::move(other.m_detailedUrl)),
-	m_severity(other.m_severity),
-	m_threat(other.m_threat),
-	m_response(other.m_response),
-	m_ts(other.m_ts)
+	targetName(std::move(other.targetName)),
+	malwareName(std::move(other.malwareName)),
+	detailedUrl(std::move(other.detailedUrl)),
+	severity(other.severity),
+	threat(other.threat),
+	response(other.response),
+	ts(other.ts)
 {
 }
 
@@ -90,195 +81,20 @@ CsDetected &CsDetected::operator=(CsDetected &&other)
 	if (this == &other)
 		return *this;
 
-	Result::operator=(std::move(other));
-
-	m_targetName = std::move(other.m_targetName);
-	m_malwareName = std::move(other.m_malwareName);
-	m_detailedUrl = std::move(other.m_detailedUrl);
-	m_severity = other.m_severity;
-	m_threat = other.m_threat;
-	m_response = other.m_response;
-	m_ts = other.m_ts;
+	targetName = std::move(other.targetName);
+	malwareName = std::move(other.malwareName);
+	detailedUrl = std::move(other.detailedUrl);
+	severity = other.severity;
+	threat = other.threat;
+	response = other.response;
+	ts = other.ts;
 
 	return *this;
 }
 
-void CsDetected::set(int key, int value)
+bool CsDetected::hasValue(void) const noexcept
 {
-	switch (static_cast<Key>(key)) {
-	case Key::Severity:
-		m_severity = static_cast<csr_cs_severity_level_e>(value);
-		break;
-
-	case Key::Threat:
-		m_threat = static_cast<csr_cs_threat_type_e>(value);
-		break;
-
-	case Key::UserResponse:
-		m_response = static_cast<csr_cs_user_response_e>(value);
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as int."));
-	}
-
-	setValueFlag();
-}
-
-void CsDetected::set(int key, bool value)
-{
-	switch (static_cast<Key>(key)) {
-	case Key::IsApp:
-		m_isApp = value;
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as bool."));
-	}
-
-	setValueFlag();
-}
-
-void CsDetected::set(int key, const std::string &value)
-{
-	switch (static_cast<Key>(key)) {
-	case Key::TargetName:
-		m_targetName = value;
-		break;
-
-	case Key::MalwareName:
-		m_malwareName = value;
-		break;
-
-	case Key::DetailedUrl:
-		m_detailedUrl = value;
-		break;
-
-	case Key::PkgId:
-		m_pkgId = value;
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as string."));
-	}
-
-	setValueFlag();
-}
-
-void CsDetected::set(int key, const char *value)
-{
-	switch (static_cast<Key>(key)) {
-	case Key::TargetName:
-		m_targetName = value;
-		break;
-
-	case Key::MalwareName:
-		m_malwareName = value;
-		break;
-
-	case Key::DetailedUrl:
-		m_detailedUrl = value;
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as string."));
-	}
-
-	setValueFlag();
-}
-
-void CsDetected::set(int key, time_t value)
-{
-	switch (static_cast<Key>(key)) {
-	case Key::TimeStamp:
-		m_ts = value;
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as time_t."));
-	}
-
-	setValueFlag();
-}
-
-void CsDetected::get(int key, int &value) const
-{
-	switch (static_cast<Key>(key)) {
-	case Key::Severity:
-		value = static_cast<int>(m_severity);
-		break;
-
-	case Key::Threat:
-		value = static_cast<int>(m_threat);
-		break;
-
-	case Key::UserResponse:
-		value = static_cast<int>(m_response);
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to get as int."));
-	}
-}
-
-void CsDetected::get(int key, bool &value) const
-{
-	switch (static_cast<Key>(key)) {
-	case Key::IsApp:
-		value = m_isApp;
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to get as bool."));
-	}
-}
-
-void CsDetected::get(int key, const char **value) const
-{
-	if (value == nullptr)
-		throw std::logic_error("invalud argument. output storage pointer is null.");
-
-	switch (static_cast<Key>(key)) {
-	case Key::TargetName:
-		*value = m_targetName.c_str();
-		break;
-
-	case Key::MalwareName:
-		*value = m_malwareName.c_str();
-		break;
-
-	case Key::DetailedUrl:
-		*value = m_detailedUrl.c_str();
-		break;
-
-	case Key::PkgId:
-		*value = m_pkgId.c_str();
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to get as string."));
-	}
-}
-
-void CsDetected::get(int key, time_t &value) const
-{
-	switch (static_cast<Key>(key)) {
-	case Key::TimeStamp:
-		value = m_ts;
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to get as time_t."));
-	}
+	return !targetName.empty();
 }
 
 }

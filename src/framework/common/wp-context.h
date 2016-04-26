@@ -22,14 +22,18 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
-#include "common/types.h"
+#include "common/icontext.h"
 #include "csr/web-protection-types.h"
 
 namespace Csr {
 
-class WpContext : public Context {
-public:
+struct WpContext;
+using WpContextPtr = std::unique_ptr<WpContext>;
+using WpContextShPtr = std::shared_ptr<WpContext>;
+
+struct WpContext : public IContext {
 	enum class Key : int {
 		PopupMessage = 0x01, // string
 		AskUser      = 0x10, // int
@@ -41,11 +45,10 @@ public:
 	WpContext(IStream &);
 	virtual void Serialize(IStream &) const override;
 
-	WpContext(WpContext &&);
-	WpContext &operator=(WpContext &&);
-
-	WpContext(const WpContext &);
-	WpContext &operator=(const WpContext &);
+	WpContext(WpContext &&) = delete;
+	WpContext &operator=(WpContext &&) = delete;
+	WpContext(const WpContext &) = delete;
+	WpContext &operator=(const WpContext &) = delete;
 
 	virtual void set(int, int) override;
 	virtual void set(int, const std::string &) override;
@@ -55,9 +58,8 @@ public:
 	virtual void get(int, std::string &) const override;
 	virtual void get(int, const char **) const override;
 
-private:
-	std::string m_popupMessage;
-	csr_wp_ask_user_e m_askUser;
+	std::string popupMessage;
+	csr_wp_ask_user_e askUser;
 };
 
 } // end of namespace Csr

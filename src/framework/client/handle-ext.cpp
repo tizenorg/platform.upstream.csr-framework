@@ -30,7 +30,7 @@
 namespace Csr {
 namespace Client {
 
-HandleExt::HandleExt(std::shared_ptr<Context> &&context) :
+HandleExt::HandleExt(ContextShPtr &&context) :
 	Handle(std::move(context)),
 	m_stop(false)
 {

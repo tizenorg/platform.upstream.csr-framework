@@ -27,7 +27,6 @@
 #include <Elementary.h>
 
 #include "common/binary-queue.h"
-#include "common/raw-buffer.h"
 #include "common/audit/logger.h"
 #include "ui/common.h"
 

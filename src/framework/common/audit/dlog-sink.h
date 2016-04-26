@@ -23,8 +23,8 @@
 
 #include <string>
 
-#include "audit/log-sink.h"
-#include "audit/logger.h"
+#include "common/audit/log-sink.h"
+#include "common/audit/logger.h"
 
 namespace Csr {
 namespace Audit {

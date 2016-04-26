@@ -34,7 +34,7 @@ namespace Client {
 
 class AsyncLogic {
 public:
-	AsyncLogic(std::shared_ptr<Context> &context, const Callback &cb,
+	AsyncLogic(ContextShPtr &context, const Callback &cb,
 			   void *userdata,
 			   const std::function<bool()> &isStopped);
 	virtual ~AsyncLogic();
@@ -49,12 +49,12 @@ private:
 	template<typename T>
 	void copyKvp(CsContext::Key);
 
-	void add(Result *);
+	void add(IResult *);
 
-	std::shared_ptr<Context> &m_origCtx; // for registering results for auto-release
+	ContextShPtr &m_origCtx; // for registering results for auto-release
 
 	// TODO: append it to handle context when destroyed
-	std::unique_ptr<Context> m_ctx;
+	ContextPtr m_ctx;
 
 	Callback m_cb;
 	void *m_userdata;

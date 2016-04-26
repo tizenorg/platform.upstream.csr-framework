@@ -19,7 +19,7 @@
  * @version     1.0
  * @brief
  */
-#include "dlog-sink.h"
+#include "common/audit/dlog-sink.h"
 
 #include <iostream>
 #include <dlog.h>

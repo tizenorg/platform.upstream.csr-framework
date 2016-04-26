@@ -28,9 +28,9 @@
 namespace Csr {
 
 WpResult::WpResult() :
-	m_riskLevel(CSR_WP_RISK_LOW),
-	m_detailedUrl(),
-	m_response(CSR_WP_NO_ASK_USER)
+	riskLevel(CSR_WP_RISK_LOW),
+	detailedUrl(),
+	response(CSR_WP_NO_ASK_USER)
 {
 }
 
@@ -38,36 +38,27 @@ WpResult::~WpResult()
 {
 }
 
-WpResult::WpResult(IStream &stream) : Result(stream)
+WpResult::WpResult(IStream &stream)
 {
-	if (!hasValue())
-		return;
-
 	int intRiskLevel;
 	int intResponse;
 	Deserializer<int, std::string, int>::Deserialize(stream,
-			intRiskLevel, m_detailedUrl, intResponse);
+			intRiskLevel, detailedUrl, intResponse);
 
-	m_riskLevel = static_cast<csr_wp_risk_level_e>(intRiskLevel);
-	m_response = static_cast<csr_wp_user_response_e>(intResponse);
+	riskLevel = static_cast<csr_wp_risk_level_e>(intRiskLevel);
+	response = static_cast<csr_wp_user_response_e>(intResponse);
 }
 
 void WpResult::Serialize(IStream &stream) const
 {
-	Result::Serialize(stream);
-
-	if (!hasValue())
-		return;
-
 	Serializer<int, std::string, int>::Serialize(stream,
-			static_cast<int>(m_riskLevel), m_detailedUrl, static_cast<int>(m_response));
+			static_cast<int>(riskLevel), detailedUrl, static_cast<int>(response));
 }
 
 WpResult::WpResult(WpResult &&other) :
-	Result(std::move(other)),
-	m_riskLevel(other.m_riskLevel),
-	m_detailedUrl(std::move(other.m_detailedUrl)),
-	m_response(other.m_response)
+	riskLevel(other.riskLevel),
+	detailedUrl(std::move(other.detailedUrl)),
+	response(other.response)
 {
 }
 
@@ -76,95 +67,11 @@ WpResult &WpResult::operator=(WpResult &&other)
 	if (this == &other)
 		return *this;
 
-	Result::operator=(std::move(other));
-
-	m_detailedUrl = std::move(other.m_detailedUrl);
-	m_riskLevel = other.m_riskLevel;
-	m_response = other.m_response;
+	detailedUrl = std::move(other.detailedUrl);
+	riskLevel = other.riskLevel;
+	response = other.response;
 
 	return *this;
-}
-
-void WpResult::set(int key, int value)
-{
-	switch (static_cast<Key>(key)) {
-	case Key::RiskLevel:
-		m_riskLevel = static_cast<csr_wp_risk_level_e>(value);
-		break;
-
-	case Key::UserResponse:
-		m_response = static_cast<csr_wp_user_response_e>(value);
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as int. value=" << value));
-	}
-
-	setValueFlag();
-}
-
-void WpResult::set(int key, const std::string &value)
-{
-	switch (static_cast<Key>(key)) {
-	case Key::DetailedUrl:
-		m_detailedUrl = value;
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as std::string. value=" << value));
-	}
-
-	setValueFlag();
-}
-
-void WpResult::set(int key, const char *value)
-{
-	switch (static_cast<Key>(key)) {
-	case Key::DetailedUrl:
-		m_detailedUrl = value;
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as char*. value=" << value));
-	}
-
-	setValueFlag();
-}
-
-void WpResult::get(int key, int &value) const
-{
-	switch (static_cast<Key>(key)) {
-	case Key::RiskLevel:
-		value = static_cast<int>(m_riskLevel);
-		break;
-
-	case Key::UserResponse:
-		value = static_cast<int>(m_response);
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as int. value=" << value));
-	}
-}
-
-void WpResult::get(int key, const char **value) const
-{
-	if (value == nullptr)
-		throw std::logic_error("invalid argument. output storage pointer is null.");
-
-	switch (static_cast<Key>(key)) {
-	case Key::DetailedUrl:
-		*value = m_detailedUrl.c_str();
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as char**. value=" << value));
-	}
 }
 
 }

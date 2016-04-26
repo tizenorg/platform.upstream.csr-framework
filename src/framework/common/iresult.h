@@ -14,17 +14,25 @@
  *  limitations under the License
  */
 /*
- * @file        raw-buffer.h
+ * @file        iresult.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       Abstract class for handle all result resources by a single interface
  */
 #pragma once
 
-#include <vector>
+#include "common/serialization.h"
 
 namespace Csr {
 
-using RawBuffer = std::vector<unsigned char>;
+class IResult;
+using ResultPtr = std::unique_ptr<IResult>;
+using ResultList = std::vector<ResultPtr>;
+using ResultListPtr = std::unique_ptr<ResultList>;
+
+class IResult : public ISerializable {
+public:
+	virtual ~IResult() {}
+};
 
 }

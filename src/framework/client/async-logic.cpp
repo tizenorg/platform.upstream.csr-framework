@@ -29,7 +29,7 @@
 namespace Csr {
 namespace Client {
 
-AsyncLogic::AsyncLogic(std::shared_ptr<Context> &context, const Callback &cb,
+AsyncLogic::AsyncLogic(ContextShPtr &context, const Callback &cb,
 					   void *userdata, const std::function<bool()> &isStopped) :
 	m_origCtx(context),
 	m_ctx(new CsContext),
@@ -178,7 +178,7 @@ std::pair<Callback::Id, Task> AsyncLogic::scanFiles(const
 	});
 }
 
-void AsyncLogic::add(Result *r)
+void AsyncLogic::add(IResult *r)
 {
 	m_ctx->add(r);
 }

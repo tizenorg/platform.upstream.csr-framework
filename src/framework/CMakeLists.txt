@@ -33,7 +33,7 @@ SET(${TARGET_CSR_COMMON}_SRCS
 	common/wp-context.cpp
 	common/wp-result.cpp
 	common/kvp-container.cpp
-	common/types.cpp
+	common/icontext.cpp
 	common/dispatcher.cpp
 	common/mainloop.cpp
 	common/service.cpp
@@ -41,7 +41,8 @@ SET(${TARGET_CSR_COMMON}_SRCS
 )
 
 INCLUDE_DIRECTORIES(
-	common
+	./
+	${PROJECT_SOURCE_DIR}/src/include
 	${${TARGET_CSR_COMMON}_DEP_INCLUDE_DIRS}
 )
 

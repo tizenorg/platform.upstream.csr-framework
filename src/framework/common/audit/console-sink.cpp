@@ -19,7 +19,7 @@
  * @version     1.0
  * @brief
  */
-#include "console-sink.h"
+#include "common/audit/console-sink.h"
 
 #include <iostream>
 

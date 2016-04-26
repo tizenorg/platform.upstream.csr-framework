@@ -327,7 +327,7 @@ int csr_cs_set_callback_on_file_scanned(csr_cs_context_h handle,
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_scan_files_async(csr_cs_context_h handle,
-							const char **file_paths,
+							const char *file_paths[],
 							size_t count,
 							void *user_data);
 
@@ -396,7 +396,7 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_scan_dirs_async(csr_cs_context_h handle,
-						   const char **dir_paths,
+						   const char *dir_paths[],
 						   size_t count,
 						   void *user_data);
 
@@ -630,7 +630,8 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
  * @brief Gets information on a detected malware files specified by directory path.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
- * @param[in]  dir        A directory path where detected malware files exists.
+ * @param[in]  dir_paths  A directory path where detected malware files exists.
+ * @param[in]  count      Count of array element of @a dir_paths
  * @param[out] plist      A pointer of the detected malware list handle. It can be null
  *                        when no malware file.
  * @param[out] pcount     Count of detected malware files which existed in the specified
@@ -647,7 +648,8 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_get_detected_malwares(csr_cs_context_h handle, const char *dir,
+int csr_cs_get_detected_malwares(csr_cs_context_h handle,
+								 const char *dir_paths[], size_t count,
 								 csr_cs_detected_list_h *plist, size_t *pcount);
 
 /**
@@ -676,7 +678,8 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
  * @brief Gets information on a ignored malware files specified by directory path.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
- * @param[in]  dir        A directory path where ignored malware files exists.
+ * @param[in]  dir_paths  A directory path where ignored malware files exists.
+ * @param[in]  count      Count of array element of @a dir_paths
  * @param[out] plist      A pointer of the detected malware list handle. It can be null
  *                        when no ignored file.
  * @param[out] pcount     Count of ignored malware files which existed in the specified
@@ -693,7 +696,8 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_get_ignored_malwares(csr_cs_context_h handle, const char *dir,
+int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
+								const char *dir_paths[], size_t count,
 								csr_cs_detected_list_h *plist, size_t *pcount);
 
 /**

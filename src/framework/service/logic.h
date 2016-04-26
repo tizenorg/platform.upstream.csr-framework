@@ -52,9 +52,9 @@ private:
 	RawBuffer dirGetFiles(const CsContext &context, const std::string &dir);
 	RawBuffer judgeStatus(const CsContext &context, const std::string &filepath);
 	RawBuffer getDetected(const CsContext &context, const std::string &filepath);
-	RawBuffer getDetectedList(const CsContext &context, const std::string &dir);
+	RawBuffer getDetectedList(const CsContext &context, const StrSet &dirSet);
 	RawBuffer getIgnored(const CsContext &context, const std::string &filepath);
-	RawBuffer getIgnoredList(const CsContext &context, const std::string &dir);
+	RawBuffer getIgnoredList(const CsContext &context, const StrSet &dirSet);
 
 
 	RawBuffer checkUrl(const WpContext &context, const std::string &url);

@@ -362,7 +362,7 @@ int csr_cs_set_callback_on_error(csr_cs_context_h handle,
 }
 
 API
-int csr_cs_scan_files_async(csr_cs_context_h handle, const char **file_paths,
+int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 							size_t count, void *user_data)
 {
 	EXCEPTION_SAFE_START
@@ -417,7 +417,7 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path,
 }
 
 API
-int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char **dir_paths,
+int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 						   size_t count, void *user_data)
 {
 	EXCEPTION_SAFE_START
@@ -691,20 +691,32 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
 }
 
 API
-int csr_cs_get_detected_malwares(csr_cs_context_h handle, const char *dir,
+int csr_cs_get_detected_malwares(csr_cs_context_h handle,
+								 const char *dir_paths[], size_t count,
 								 csr_cs_detected_list_h *plist, size_t *pcount)
 {
 	EXCEPTION_SAFE_START
 
-	if (handle == nullptr || dir == nullptr
+	if (handle == nullptr || dir_paths == nullptr || count == 0
 			||  plist == nullptr || pcount == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
+
+	StrSet dirSet;
+
+	for (size_t i = 0; i < count; i++) {
+		if (dir_paths[i] == nullptr || dir_paths[i][0] == '\0')
+			return CSR_ERROR_INVALID_PARAMETER;
+
+		dirSet.emplace(dir_paths[i]);
+	}
+
+	if (dirSet.size() == 0)
+		return CSR_ERROR_INVALID_PARAMETER;
+
 	auto ret = hExt->dispatch<std::pair<int, std::vector<CsDetected *>>>(
-				   CommandId::GET_DETECTED_LIST,
-				   hExt->getContext(),
-				   std::string(dir));
+				   CommandId::GET_DETECTED_LIST, hExt->getContext(), dirSet);
 
 	if (ret.first != CSR_ERROR_NONE) {
 		ERROR("Error! ret: " << ret.first);
@@ -771,20 +783,32 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
 }
 
 API
-int csr_cs_get_ignored_malwares(csr_cs_context_h handle, const char *dir,
+int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
+								const char *dir_paths[], size_t count,
 								csr_cs_detected_list_h *plist, size_t *pcount)
 {
 	EXCEPTION_SAFE_START
 
-	if (handle == nullptr || dir == nullptr
+	if (handle == nullptr || dir_paths == nullptr || count == 0
 			||  plist == nullptr || pcount == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
+
+	StrSet dirSet;
+
+	for (size_t i = 0; i < count; i++) {
+		if (dir_paths[i] == nullptr || dir_paths[i][0] == '\0')
+			return CSR_ERROR_INVALID_PARAMETER;
+
+		dirSet.emplace(dir_paths[i]);
+	}
+
+	if (dirSet.size() == 0)
+		return CSR_ERROR_INVALID_PARAMETER;
+
 	auto ret = hExt->dispatch<std::pair<int, std::vector<CsDetected *>>>(
-				   CommandId::GET_IGNORED_LIST,
-				   hExt->getContext(),
-				   std::string(dir));
+				   CommandId::GET_IGNORED_LIST, hExt->getContext(), dirSet);
 
 	if (ret.first != CSR_ERROR_NONE) {
 		ERROR("Error! ret: " << ret.first);

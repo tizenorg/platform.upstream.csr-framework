@@ -149,9 +149,18 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares)
 	csr_cs_detected_list_h detected_list;
 	size_t cnt = 0;
 
-	ASSERT_IF(csr_cs_get_detected_malwares(context, "dummy_dir_path",
-										   &detected_list, &cnt),
-			  CSR_ERROR_NONE);
+	const char *dirs[5] = {
+		"dummy_dir_path1",
+		"dummy_dir_path2",
+		"dummy_dir_path3",
+		"dummy_dir_path4",
+		"dummy_dir_path5",
+	};
+
+	ASSERT_IF(
+		csr_cs_get_detected_malwares(context, dirs, sizeof(dirs) / sizeof(const char *),
+									 &detected_list, &cnt),
+		CSR_ERROR_NONE);
 
 	// no malware detected
 	CHECK_IS_NOT_NULL(detected_list);
@@ -186,9 +195,18 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares)
 	csr_cs_detected_list_h ignored_list;
 	size_t cnt = 0;
 
-	ASSERT_IF(csr_cs_get_ignored_malwares(context, "dummy_dir_path", &ignored_list,
-										  &cnt),
-			  CSR_ERROR_NONE);
+	const char *dirs[5] = {
+		"dummy_dir_path1",
+		"dummy_dir_path2",
+		"dummy_dir_path3",
+		"dummy_dir_path4",
+		"dummy_dir_path5",
+	};
+
+	ASSERT_IF(
+		csr_cs_get_ignored_malwares(context, dirs, sizeof(dirs) / sizeof(const char *),
+									&ignored_list, &cnt),
+		CSR_ERROR_NONE);
 
 	CHECK_IS_NOT_NULL(ignored_list);
 

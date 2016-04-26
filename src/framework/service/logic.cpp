@@ -23,6 +23,7 @@
 
 #include <string>
 #include <utility>
+#include <algorithm>
 #include <stdexcept>
 
 #include "common/cs-detected.h"
@@ -141,12 +142,9 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 
 	case CommandId::GET_DETECTED_LIST: {
 		CsContext context;
-		std::string dir;
-		info.second.Deserialize(context, dir);
-		//return getDetectedList(context, dir);
-		RawBuffer buff = getDetectedList(context, dir);
-		INFO(" CommandId::GET_DETECTED_LIST : RawBuffer Size[" << buff.size() << "]");
-		return buff;
+		StrSet dirSet;
+		info.second.Deserialize(context, dirSet);
+		return getDetectedList(context, dirSet);
 	}
 
 	case CommandId::GET_IGNORED: {
@@ -158,9 +156,9 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 
 	case CommandId::GET_IGNORED_LIST: {
 		CsContext context;
-		std::string dir;
-		info.second.Deserialize(context, dir);
-		return getIgnoredList(context, dir);
+		StrSet dirSet;
+		info.second.Deserialize(context, dirSet);
+		return getIgnoredList(context, dirSet);
 	}
 
 	// Web protection
@@ -248,10 +246,12 @@ RawBuffer Logic::getDetected(const CsContext &context,
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, detected).pop();
 }
 
-RawBuffer Logic::getDetectedList(const CsContext &context,
-								 const std::string &dir)
+RawBuffer Logic::getDetectedList(const CsContext &context, const StrSet &dirSet)
 {
-	INFO("Get Detected List[" << dir << "] by engine");
+	INFO("Get detected list logic");
+	std::for_each(dirSet.begin(), dirSet.end(), [](const std::string & dir) {
+		INFO("dir[" << dir << "] in directory set of get detected list logic");
+	});
 
 	printCsContext(context);
 
@@ -277,10 +277,12 @@ RawBuffer Logic::getIgnored(const CsContext &context,
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, detected).pop();
 }
 
-RawBuffer Logic::getIgnoredList(const CsContext &context,
-								const std::string &dir)
+RawBuffer Logic::getIgnoredList(const CsContext &context, const StrSet &dirSet)
 {
-	INFO("Get Ignored List[" << dir << "] by engine");
+	INFO("Get ignored list logic");
+	std::for_each(dirSet.begin(), dirSet.end(), [](const std::string & dir) {
+		INFO("dir[" << dir << "] in directory set of get ignored list logic");
+	});
 
 	printCsContext(context);
 

@@ -38,9 +38,7 @@ void PopupService::onMessageProcess(const ConnShPtr &connection)
 {
 	DEBUG("process message on popup service");
 
-	auto reply = m_logic.dispatch(connection->receive());
-
-	connection->send(reply);
+	connection->send(m_logic.dispatch(connection->receive()));
 
 	DEBUG("process done on popup service");
 }

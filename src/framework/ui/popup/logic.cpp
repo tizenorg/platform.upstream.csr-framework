@@ -30,6 +30,9 @@
 #include "common/audit/logger.h"
 #include "ui/common.h"
 
+#include "csr/content-screening-types.h"
+#include "csr/web-protection-types.h"
+
 namespace Csr {
 namespace Ui {
 
@@ -41,18 +44,46 @@ void evasCbWrapper(void *data, Evas_Object *, void *)
 {
 	auto response = reinterpret_cast<int *>(data);
 	g_callbackRegistry[*response]();
+	g_callbackRegistry.clear();
 }
 
-void registerCb(Evas_Object *button, int *response,
-				std::function<void()> &&func)
+void registerCb(Evas_Object *button, int *rp, std::function<void()> &&func)
 {
-	evas_object_smart_callback_add(button, "clicked", evasCbWrapper, response);
-	g_callbackRegistry[*response] = std::move(func);
+	evas_object_smart_callback_add(button, "clicked", evasCbWrapper, rp);
+	g_callbackRegistry[*rp] = std::move(func);
 }
 
-void unregisterCb(int response)
+bool isCsCommand(const CommandId &cid)
 {
-	g_callbackRegistry.erase(response);
+	switch (cid) {
+	case CommandId::CS_PROMPT_DATA:
+	case CommandId::CS_PROMPT_APP:
+	case CommandId::CS_PROMPT_FILE:
+	case CommandId::CS_NOTIFY_DATA:
+	case CommandId::CS_NOTIFY_APP:
+	case CommandId::CS_NOTIFY_FILE:
+		return true;
+
+	case CommandId::WP_PROMPT:
+	case CommandId::WP_NOTIFY:
+		return false;
+
+	default:
+		throw std::logic_error("Protocol error. unknown popup-service command id.");
+	}
+}
+
+void addButton(int *rp, const std::string &buttonPart, const std::string &buttonText,
+			   Popup &popup, RawBuffer &result)
+{
+	auto button = popup.addButton(buttonPart);
+	elm_object_text_set(button, buttonText.c_str());
+
+	registerCb(button, rp, [rp, &result, &popup]() {
+		DEBUG("Button for response[" << *rp << "] clicked!");
+		result = BinaryQueue::Serialize(rp).pop();
+		popup.stop();
+	});
 }
 
 } // namespace anonymous
@@ -71,117 +102,188 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 	INFO("Request dispatch on popup-service. CommandId: " << static_cast<int>
 		 (info.first));
 
-	switch (info.first) {
-	case CommandId::FILE_SINGLE: {
+	if (isCsCommand(info.first)) {
 		std::string message;
-		FileItem item;
-		info.second.Deserialize(message, item);
+		CsDetected d;
+		info.second.Deserialize(message, d);
 
-		return fileSingle(message, item);
-	}
-
-	case CommandId::FILE_MULTIPLE: {
-		std::string message;
-		FileItems items;
-		info.second.Deserialize(message, items);
-
-		return fileMultiple(message, items);
-	}
-
-	case CommandId::WP_ASK_PERMISSION: {
+		switch (info.first) {
+		case CommandId::CS_PROMPT_DATA: return csPromptData(message, d);
+		case CommandId::CS_PROMPT_APP:  return csPromptApp(message, d);
+		case CommandId::CS_PROMPT_FILE: return csPromptFile(message, d);
+		case CommandId::CS_NOTIFY_DATA: return csNotifyData(message, d);
+		case CommandId::CS_NOTIFY_APP:  return csNotifyApp(message, d);
+		case CommandId::CS_NOTIFY_FILE: return csNotifyFile(message, d);
+		default: throw std::logic_error("Cannot be happened.");
+		}
+	} else {
 		std::string message;
 		UrlItem item;
 		info.second.Deserialize(message, item);
 
-		return wpAskPermission(message, item);
-	}
-
-	case CommandId::WP_NOTIFY: {
-		std::string message;
-		UrlItem item;
-		info.second.Deserialize(message, item);
-
-		return wpNotify(message, item);
-	}
-
-	default:
-		throw std::logic_error("Protocol error. unknown popup-service command id.");
+		switch (info.first) {
+		case CommandId::WP_PROMPT: return wpPrompt(message, item);
+		case CommandId::WP_NOTIFY: return wpNotify(message, item);
+		default: throw std::logic_error("Cannot be happened.");
+		}
 	}
 }
 
 std::pair<CommandId, BinaryQueue> Logic::getRequestInfo(const RawBuffer &data)
 {
-	int int_id;
 	BinaryQueue q;
 	q.push(data);
+
+	int int_id;
 	q.Deserialize(int_id);
 
 	return std::make_pair(static_cast<CommandId>(int_id), std::move(q));
 }
 
-RawBuffer Logic::fileSingle(const std::string &message,
-							const FileItem &item) const
+RawBuffer Logic::csPromptData(const std::string &message, const CsDetected &d) const
 {
-	INFO("fileSingle start with param.. "
-		 "message[" << message << "] "
-		 "filepath[" << item.filepath << "] "
-		 "severity[" << static_cast<int>(item.severity) << "] "
-		 "threat[" << static_cast<int>(item.threat) << "]");
-
 	Popup popup;
 
-	popup.fillText("FileSingle title", message.c_str());
+	popup.fillText("Virus detected on data", FORMAT(
+					   "Malware: " << d.malwareName << "\n" <<
+					   "Severity: " << static_cast<int>(d.severity) << "\n" <<
+					   "Do you want to stop processing?" <<
+					   message.c_str()));
 
-	BinaryQueue q;
+	RawBuffer result;
 
-	auto respRemove = static_cast<int>(CsResponse::REMOVE);
-	Evas_Object *remove = popup.addButton("button1");
-	elm_object_text_set(remove, "remove");
-	registerCb(remove, &respRemove, [&q, &respRemove, &popup]() {
-		DEBUG("Remove button clicked!");
-		q = BinaryQueue::Serialize(respRemove);
-		popup.stop();
-	});
+	std::unique_ptr<int[]> resps(new int[2]);
+	resps[0] = static_cast<int>(CSR_CS_PROCESSING_ALLOWED);
+	resps[1] = static_cast<int>(CSR_CS_PROCESSING_DISALLOWED);
 
-	auto respIgnore = static_cast<int>(CsResponse::IGNORE);
-	Evas_Object *ignore = popup.addButton("button2");
-	elm_object_text_set(ignore, "ignore");
-	registerCb(ignore, &respIgnore, [&q, &respIgnore, &popup]() {
-		DEBUG("Ignore button clicked!");
-		q = BinaryQueue::Serialize(respIgnore);
-		popup.stop();
-	});
-
-	auto respSkip = static_cast<int>(CsResponse::SKIP);
-	Evas_Object *skip = popup.addButton("button3");
-	elm_object_text_set(skip, "skip");
-	registerCb(skip, &respSkip, [&q, &respSkip, &popup]() {
-		DEBUG("Skip button clicked!");
-		q = BinaryQueue::Serialize(respSkip);
-		popup.stop();
-	});
+	addButton(&resps[0], "button1", "yes", popup, result);
+	addButton(&resps[1], "button2", "no", popup, result);
 
 	popup.start();
 
-	DEBUG("fileSingle done!");
-
-	unregisterCb(respRemove);
-	unregisterCb(respIgnore);
-	unregisterCb(respSkip);
-
-	return q.pop();
+	return result;
 }
 
-RawBuffer Logic::fileMultiple(const std::string &message,
-							  const FileItems &items) const
+RawBuffer Logic::csPromptFile(const std::string &message, const CsDetected &d) const
 {
-	(void) message;
-	(void) items;
-	return RawBuffer();
+	Popup popup;
+
+	popup.fillText("Virus detected", FORMAT(
+					   "File: " << d.targetName << "\n" <<
+					   "Malware: " << d.malwareName << "\n" <<
+					   message.c_str()));
+
+	RawBuffer result;
+
+	std::unique_ptr<int[]> resps(new int[3]);
+	resps[0] = static_cast<int>(CSR_CS_REMOVE);
+	resps[1] = static_cast<int>(CSR_CS_IGNORE);
+	resps[2] = static_cast<int>(CSR_CS_SKIP);
+
+	addButton(&resps[0], "button1", "remove", popup, result);
+	addButton(&resps[1], "button2", "ignore", popup, result);
+	addButton(&resps[2], "button3", "skip", popup, result);
+
+	popup.start();
+
+	return result;
 }
 
-RawBuffer Logic::wpAskPermission(const std::string &message,
-								 const UrlItem &item) const
+RawBuffer Logic::csPromptApp(const std::string &message, const CsDetected &d) const
+{
+	Popup popup;
+
+	popup.fillText("Virus detected", FORMAT(
+					   "App: " << d.targetName << "\n" <<
+					   "Malware: " << d.malwareName << "\n" <<
+					   message.c_str()));
+
+	RawBuffer result;
+
+	std::unique_ptr<int[]> resps(new int[3]);
+	resps[0] = static_cast<int>(CSR_CS_REMOVE);
+	resps[1] = static_cast<int>(CSR_CS_IGNORE);
+	resps[2] = static_cast<int>(CSR_CS_SKIP);
+
+	addButton(&resps[0], "button1", "remove", popup, result);
+	addButton(&resps[1], "button2", "ignore", popup, result);
+	addButton(&resps[2], "button3", "skip", popup, result);
+
+	popup.start();
+
+	return result;
+}
+
+RawBuffer Logic::csNotifyData(const std::string &message, const CsDetected &d) const
+{
+	Popup popup;
+
+	popup.fillText("Virus detected on data", FORMAT(
+					   "Malware: " << d.malwareName << "\n" <<
+					   "Severity: " << static_cast<int>(d.severity) << "\n" <<
+					   "Do you want to stop processing?" <<
+					   message.c_str()));
+
+	RawBuffer result;
+
+	std::unique_ptr<int[]> resps(new int[2]);
+	resps[0] = static_cast<int>(CSR_CS_PROCESSING_ALLOWED);
+	resps[1] = static_cast<int>(CSR_CS_PROCESSING_DISALLOWED);
+
+	addButton(&resps[0], "button1", "yes", popup, result);
+	addButton(&resps[1], "button2", "no", popup, result);
+
+	popup.start();
+
+	return result;
+}
+
+RawBuffer Logic::csNotifyFile(const std::string &message, const CsDetected &d) const
+{
+	Popup popup;
+
+	popup.fillText("Virus detected", FORMAT(
+					   "File: " << d.targetName << "\n" <<
+					   "Malware: " << d.malwareName << "\n" <<
+					   message.c_str()));
+
+	std::unique_ptr<int[]> resps(new int[2]);
+	resps[0] = static_cast<int>(CSR_CS_REMOVE);
+	resps[1] = static_cast<int>(CSR_CS_SKIP);
+
+	RawBuffer result;
+	addButton(&resps[0], "button1", "remove", popup, result);
+	addButton(&resps[1], "button2", "skip", popup, result);
+
+	popup.start();
+
+	return result;
+}
+
+RawBuffer Logic::csNotifyApp(const std::string &message, const CsDetected &d) const
+{
+	Popup popup;
+
+	popup.fillText("Virus detected", FORMAT(
+					   "App: " << d.targetName << "\n" <<
+					   "Malware: " << d.malwareName << "\n" <<
+					   message.c_str()));
+
+	RawBuffer result;
+
+	std::unique_ptr<int[]> resps(new int[2]);
+	resps[0] = static_cast<int>(CSR_CS_REMOVE);
+	resps[1] = static_cast<int>(CSR_CS_SKIP);
+
+	addButton(&resps[0], "button1", "remove", popup, result);
+	addButton(&resps[1], "button2", "skip", popup, result);
+
+	popup.start();
+
+	return result;
+}
+
+RawBuffer Logic::wpPrompt(const std::string &message, const UrlItem &item) const
 {
 	Popup popup;
 
@@ -191,34 +293,18 @@ RawBuffer Logic::wpAskPermission(const std::string &message,
 									 ? "High" : "Medium") << "\n" <<
 					   message.c_str()));
 
-	BinaryQueue q;
+	RawBuffer result;
 
-	auto respAllow = static_cast<int>(WpResponse::ALLOW);
-	Evas_Object *allow = popup.addButton("button1");
-	elm_object_text_set(allow, "allow");
-	registerCb(allow, &respAllow, [&q, &respAllow, &popup]() {
-		DEBUG("Allow button clicked!");
-		q = BinaryQueue::Serialize(respAllow);
-		popup.stop();
-	});
+	std::unique_ptr<int[]> resps(new int[2]);
+	resps[0] = static_cast<int>(CSR_WP_PROCESSING_ALLOWED);
+	resps[1] = static_cast<int>(CSR_WP_PROCESSING_DISALLOWED);
 
-	auto respDeny = static_cast<int>(WpResponse::DENY);
-	Evas_Object *deny = popup.addButton("button2");
-	elm_object_text_set(deny, "deny");
-	registerCb(deny, &respDeny, [&q, &respDeny, &popup]() {
-		DEBUG("Deny button clicked!");
-		q = BinaryQueue::Serialize(respDeny);
-		popup.stop();
-	});
+	addButton(&resps[0], "button1", "allow", popup, result);
+	addButton(&resps[1], "button2", "deny", popup, result);
 
 	popup.start();
 
-	DEBUG("wpAskPermission done!");
-
-	unregisterCb(respAllow);
-	unregisterCb(respDeny);
-
-	return q.pop();
+	return result;
 }
 
 RawBuffer Logic::wpNotify(const std::string &message, const UrlItem &item) const
@@ -231,24 +317,16 @@ RawBuffer Logic::wpNotify(const std::string &message, const UrlItem &item) const
 									 ? "High" : "Medium") << "\n" <<
 					   message.c_str()));
 
-	BinaryQueue q;
+	RawBuffer result;
 
-	auto respConfirm = static_cast<int>(WpResponse::CONFIRM);
-	Evas_Object *allow = popup.addButton("button1");
-	elm_object_text_set(allow, "confirm");
-	registerCb(allow, &respConfirm, [&q, &respConfirm, &popup]() {
-		DEBUG("Confirm button clicked!");
-		q = BinaryQueue::Serialize(respConfirm);
-		popup.stop();
-	});
+	std::unique_ptr<int> resp(new int);
+	*resp = static_cast<int>(CSR_WP_PROCESSING_DISALLOWED);
+
+	addButton(resp.get(), "button1", "confirm", popup, result);
 
 	popup.start();
 
-	DEBUG("wpNotify done!");
-
-	unregisterCb(respConfirm);
-
-	return q.pop();
+	return result;
 }
 
 }

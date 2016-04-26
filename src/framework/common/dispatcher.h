@@ -58,9 +58,8 @@ Type Dispatcher::methodCall(Args &&...args)
 
 	m_connection->send(BinaryQueue::Serialize(std::forward<Args>(args)...).pop());
 
-	auto reply = m_connection->receive();
 	BinaryQueue q;
-	q.push(reply);
+	q.push(m_connection->receive());
 
 	Type response;
 	q.Deserialize(response);

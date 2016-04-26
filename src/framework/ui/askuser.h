@@ -22,11 +22,12 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <memory>
 
 #include "ui/common.h"
 #include "common/dispatcher.h"
+#include "common/cs-detected.h"
+
 #include "csr/content-screening-types.h"
 #include "csr/web-protection-types.h"
 
@@ -41,13 +42,9 @@ public:
 	AskUser(const AskUser &) = delete;
 	AskUser &operator=(const AskUser &) = delete;
 
-	CsResponse fileSingle(const std::string &message, const FileItem &item) const;
-	ResponseMap fileMultiple(const std::string &message,
-							 const FileItems &items) const;
-
-	WpResponse wpAskPermission(const std::string &message,
-							   const UrlItem &item) const;
-	WpResponse wpNotify(const std::string &message, const UrlItem &item) const;
+	// ui command id, message, data for filling up popup window
+	csr_cs_user_response_e cs(const CommandId &, const std::string &, const CsDetected &) const;
+	csr_wp_user_response_e wp(const CommandId &, const std::string &, const UrlItem &) const;
 
 private:
 	std::string m_address;

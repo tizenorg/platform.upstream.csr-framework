@@ -73,11 +73,11 @@ void Popup::fillText(const std::string &title, const std::string &content)
 	elm_object_text_set(m_popup, content.c_str());
 }
 
-Evas_Object *Popup::addButton(const char *part)
+Evas_Object *Popup::addButton(const std::string &part)
 {
 	Evas_Object *button = elm_button_add(m_popup);
 	elm_object_style_set(button, "bottom");
-	elm_object_part_content_set(m_popup, part, button);
+	elm_object_part_content_set(m_popup, part.c_str(), button);
 	evas_object_show(button);
 
 	return button;

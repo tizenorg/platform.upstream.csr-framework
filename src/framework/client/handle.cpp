@@ -28,7 +28,7 @@ namespace Csr {
 namespace Client {
 
 Handle::Handle(ContextShPtr &&context) :
-	m_ctx(std::move(context))
+	m_ctx(std::forward<ContextShPtr>(context))
 {
 	if (!m_ctx)
 		throw std::logic_error("context shouldn't be null");
@@ -43,20 +43,14 @@ ContextShPtr &Handle::getContext() noexcept
 	return m_ctx;
 }
 
-void Handle::add(IResult *result)
+void Handle::add(ResultPtr &&ptr)
 {
-	if (result == nullptr)
-		throw std::logic_error("result shouldn't be null");
-
-	m_ctx->add(result);
+	m_results.emplace_back(std::forward<ResultPtr>(ptr));
 }
 
-void Handle::add(ResultListPtr &&resultListPtr)
+void Handle::add(ResultListPtr &&ptr)
 {
-	if (resultListPtr == nullptr)
-		throw std::logic_error("result list pointer shouldn't be null");
-
-	m_ctx->add(std::forward<ResultListPtr>(resultListPtr));
+	m_resultLists.emplace_back(std::forward<ResultListPtr>(ptr));
 }
 
 } // namespace Client

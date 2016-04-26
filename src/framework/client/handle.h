@@ -23,6 +23,7 @@
 
 #include <utility>
 #include <memory>
+#include <vector>
 
 #include "common/icontext.h"
 #include "common/dispatcher.h"
@@ -38,10 +39,15 @@ public:
 	template<typename Type, typename ...Args>
 	Type dispatch(Args &&...);
 
-	void add(IResult *);
-	void add(ResultListPtr &&);
+	virtual void add(ResultPtr &&);
+	virtual void add(ResultListPtr &&);
 
 	ContextShPtr &getContext(void) noexcept;
+
+protected:
+	// for destroying with context
+	std::vector<ResultPtr> m_results;
+	std::vector<ResultListPtr> m_resultLists;
 
 private:
 	std::unique_ptr<Dispatcher> m_dispatcher;

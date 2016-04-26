@@ -28,20 +28,22 @@
 #include "common/cs-context.h"
 #include "common/dispatcher.h"
 #include "client/callback.h"
+#include "client/handle-ext.h"
 
 namespace Csr {
 namespace Client {
 
 class AsyncLogic {
 public:
-	AsyncLogic(ContextShPtr &context, const Callback &cb,
-			   void *userdata,
+	using Ending = std::pair<Callback::Id, Task>;
+
+	AsyncLogic(HandleExt *handle, void *userdata,
 			   const std::function<bool()> &isStopped);
 	virtual ~AsyncLogic();
 
-	std::pair<Callback::Id, Task> scanFiles(const std::shared_ptr<StrSet> &files);
-	std::pair<Callback::Id, Task> scanDir(const std::string &dir);
-	std::pair<Callback::Id, Task> scanDirs(const std::shared_ptr<StrSet> &dirs);
+	Ending scanFiles(const std::shared_ptr<StrSet> &files);
+	Ending scanDir(const std::string &dir);
+	Ending scanDirs(const std::shared_ptr<StrSet> &dirs);
 
 	void stop(void);
 
@@ -49,12 +51,10 @@ private:
 	template<typename T>
 	void copyKvp(CsContext::Key);
 
-	void add(IResult *);
+	Handle *m_handle; // for registering results for auto-release
 
-	ContextShPtr &m_origCtx; // for registering results for auto-release
-
-	// TODO: append it to handle context when destroyed
 	ContextPtr m_ctx;
+	std::vector<ResultPtr> m_results;
 
 	Callback m_cb;
 	void *m_userdata;
@@ -68,7 +68,7 @@ void AsyncLogic::copyKvp(CsContext::Key key)
 {
 	T value;
 
-	m_origCtx->get(static_cast<int>(key), value);
+	m_handle->getContext()->get(static_cast<int>(key), value);
 	m_ctx->set(static_cast<int>(key), value);
 }
 

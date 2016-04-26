@@ -29,11 +29,11 @@
 namespace Csr {
 namespace Client {
 
-AsyncLogic::AsyncLogic(ContextShPtr &context, const Callback &cb,
-					   void *userdata, const std::function<bool()> &isStopped) :
-	m_origCtx(context),
+AsyncLogic::AsyncLogic(HandleExt *handle, void *userdata,
+					   const std::function<bool()> &isStopped) :
+	m_handle(handle),
 	m_ctx(new CsContext),
-	m_cb(cb),
+	m_cb(handle->m_cb),
 	m_userdata(userdata),
 	m_isStopped(isStopped),
 	m_dispatcher(new Dispatcher("/tmp/." SERVICE_NAME ".socket"))
@@ -46,37 +46,30 @@ AsyncLogic::AsyncLogic(ContextShPtr &context, const Callback &cb,
 
 AsyncLogic::~AsyncLogic()
 {
-	DEBUG("AsyncLogic dtor. Results num in "
-		  "mother ctx[" << m_origCtx->size() << "] "
-		  "and here[" << m_ctx->size() << "]");
-
-	for (auto &resultPtr : m_ctx->m_results)
-		m_origCtx->add(std::move(resultPtr));
-
-	DEBUG("Integrated mother ctx results num: " << m_origCtx->size());
+	for (auto &resultPtr : m_results)
+		m_handle->add(std::move(resultPtr));
 }
 
-std::pair<Callback::Id, Task> AsyncLogic::scanDirs(const std::shared_ptr<StrSet>
-		&dirs)
+AsyncLogic::Ending AsyncLogic::scanDirs(const std::shared_ptr<StrSet> &dirs)
 {
 	// TODO: canonicalize dirs. (e.g. Can omit subdirectory it there is
 	//       parent directory in set)
-	std::pair<Callback::Id, Task> t(Callback::Id::OnCompleted, [this] {
+	Ending e(Callback::Id::OnCompleted, [this] {
 		if (m_cb.onCompleted)
 			m_cb.onCompleted(this->m_userdata);
 	});
 
 	for (const auto &dir : *dirs) {
-		t = scanDir(dir);
+		e = scanDir(dir);
 
-		if (t.first != Callback::Id::OnCompleted)
-			return t;
+		if (e.first != Callback::Id::OnCompleted)
+			return e;
 	}
 
-	return t;
+	return e;
 }
 
-std::pair<Callback::Id, Task> AsyncLogic::scanDir(const std::string &dir)
+AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 {
 	// For in case of there's already detected malware for dir
 	auto retResults =
@@ -98,7 +91,7 @@ std::pair<Callback::Id, Task> AsyncLogic::scanDir(const std::string &dir)
 
 	// Register already detected malwares to context to be freed with context.
 	for (auto r : retResults.second) {
-		add(r);
+		m_results.emplace_back(r);
 
 		if (m_cb.onDetected)
 			m_cb.onDetected(m_userdata, reinterpret_cast<csr_cs_detected_h>(r));
@@ -125,8 +118,7 @@ std::pair<Callback::Id, Task> AsyncLogic::scanDir(const std::string &dir)
 	return task;
 }
 
-std::pair<Callback::Id, Task> AsyncLogic::scanFiles(const
-		std::shared_ptr<StrSet> &fileSet)
+AsyncLogic::Ending AsyncLogic::scanFiles(const std::shared_ptr<StrSet> &fileSet)
 {
 	for (const auto &file : *fileSet) {
 		if (m_isStopped()) {
@@ -164,7 +156,7 @@ std::pair<Callback::Id, Task> AsyncLogic::scanFiles(const
 
 		// malware detected!
 		INFO("[Detected] file[" << file << "]");
-		add(ret.second);
+		m_results.emplace_back(ret.second);
 
 		if (m_cb.onDetected)
 			m_cb.onDetected(m_userdata, reinterpret_cast<csr_cs_detected_h>(ret.second));
@@ -178,10 +170,5 @@ std::pair<Callback::Id, Task> AsyncLogic::scanFiles(const
 	});
 }
 
-void AsyncLogic::add(IResult *r)
-{
-	m_ctx->add(r);
-}
-
-}
-}
+} // namespace Client
+} // namespace Csr

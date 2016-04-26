@@ -48,6 +48,9 @@ public:
 
 	Callback m_cb; // TODO: to refine..
 
+	virtual void add(ResultPtr &&) override;
+	virtual void add(ResultListPtr &&) override;
+
 private:
 	struct Worker {
 		std::atomic<bool> isDone;
@@ -71,6 +74,7 @@ private:
 
 	std::atomic<bool> m_stop;
 	std::mutex m_mutex;
+	std::mutex m_resultsMutex;
 	std::map<std::thread::id, Worker> m_workerMap;
 };
 

@@ -224,7 +224,7 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data,
 		return CSR_ERROR_UNKNOWN; // deserialization logic error
 
 	if (ret.second->hasValue()) {
-		hExt->add(ret.second);
+		hExt->add(ResultPtr(ret.second));
 		*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
 	} else {
 		*pdetected = nullptr;
@@ -261,7 +261,7 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 		return CSR_ERROR_UNKNOWN; // deserialization logic error
 
 	if (ret.second->hasValue()) {
-		hExt->add(ret.second);
+		hExt->add(ResultPtr(ret.second));
 		*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
 	} else {
 		*pdetected = nullptr;
@@ -384,8 +384,7 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 	}
 
 	hExt->dispatchAsync([hExt, user_data, fileSet] {
-		Client::AsyncLogic l(hExt->getContext(), hExt->m_cb, user_data,
-		[&hExt] { return hExt->isStopped(); });
+		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
 		l.scanFiles(fileSet).second();
 	});
@@ -407,8 +406,7 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path,
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
 	hExt->dispatchAsync([hExt, user_data, dir_path] {
-		Client::AsyncLogic l(hExt->getContext(), hExt->m_cb, user_data,
-		[&hExt] { return hExt->isStopped(); });
+		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
 		l.scanDir(dir_path).second();
 	});
@@ -439,8 +437,7 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 	}
 
 	hExt->dispatchAsync([hExt, user_data, dirSet] {
-		Client::AsyncLogic l(hExt->getContext(), hExt->m_cb, user_data,
-		[&hExt] { return hExt->isStopped(); });
+		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
 		l.scanDirs(dirSet).second();
 	});
@@ -662,7 +659,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
 		return CSR_ERROR_UNKNOWN; // deserialization logic error
 
 	if (ret.second->hasValue()) {
-		hExt->add(ret.second);
+		hExt->add(ResultPtr(ret.second));
 		*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
 	} else {
 		*pdetected = nullptr;
@@ -754,7 +751,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
 		return CSR_ERROR_UNKNOWN; // deserialization logic error
 
 	if (ret.second->hasValue()) {
-		hExt->add(ret.second);
+		hExt->add(ResultPtr(ret.second));
 		*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
 	} else {
 		*pdetected = nullptr;

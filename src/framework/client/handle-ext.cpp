@@ -108,6 +108,7 @@ void HandleExt::dispatchAsync(const Task &f)
 
 		DEBUG("client async thread done! tid: " << std::this_thread::get_id());
 	});
+
 	{
 		std::lock_guard<std::mutex> l(m_mutex);
 		m_workerMap.emplace(t.get_id(), std::move(t));
@@ -136,6 +137,18 @@ HandleExt::Worker &HandleExt::Worker::operator=(HandleExt::Worker &&other)
 	isDone = other.isDone.load();
 	t = std::move(other.t);
 	return *this;
+}
+
+void HandleExt::add(ResultPtr &&ptr)
+{
+	std::lock_guard<std::mutex> l(m_resultsMutex);
+	m_results.emplace_back(std::forward<ResultPtr>(ptr));
+}
+
+void HandleExt::add(ResultListPtr &&ptr)
+{
+	std::lock_guard<std::mutex> l(m_resultsMutex);
+	m_resultLists.emplace_back(std::forward<ResultListPtr>(ptr));
 }
 
 } // namespace Client

@@ -118,7 +118,7 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url,
 		return ret.first;
 	}
 
-	h->add(ret.second);
+	h->add(ResultPtr(ret.second));
 	*presult = reinterpret_cast<csr_wp_check_result_h>(ret.second);
 
 	return CSR_ERROR_NONE;

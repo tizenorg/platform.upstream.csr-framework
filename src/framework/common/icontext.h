@@ -21,9 +21,7 @@
  */
 #pragma once
 
-#include <vector>
 #include <memory>
-#include <mutex>
 
 #include "common/dispatcher.h"
 #include "common/serialization.h"
@@ -38,24 +36,13 @@ using ContextShPtr = std::shared_ptr<IContext>;
 
 class IContext : public ISerializable, public KvpContainer {
 public:
-	IContext();
-	virtual ~IContext();
+	IContext() {}
+	virtual ~IContext() {}
 
 	IContext(IContext &&) = delete;
 	IContext &operator=(IContext &&) = delete;
 	IContext(const IContext &) = delete;
 	IContext &operator=(const IContext &) = delete;
-
-	void add(ResultPtr &&);
-	void add(IResult *);
-	void add(ResultListPtr &&);
-	size_t size(void) const;
-	// for destroying with context
-	std::vector<ResultPtr> m_results;
-	std::vector<ResultListPtr> m_resultLists;
-
-private:
-	mutable std::mutex m_mutex;
 };
 
 } // namespace Csr

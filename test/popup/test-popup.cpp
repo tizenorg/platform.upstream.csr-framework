@@ -22,16 +22,19 @@
 #define BOOST_TEST_MODULE CSR_POPUP_TEST
 #include "ui/askuser.h"
 #include "ui/common.h"
+#include "common/cs-detected.h"
 
 #include <string>
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 
-using namespace Csr::Ui;
+#include "test-common.h"
+
+using namespace Csr;
 
 namespace {
 
-void printPressed(CsResponse response)
+void printPressed(csr_cs_user_response_e response)
 {
 	std::cout << "###################################################" << std::endl;
 	std::cout << "###################################################" << std::endl;
@@ -40,16 +43,24 @@ void printPressed(CsResponse response)
 	bool isValid = true;
 
 	switch (response) {
-	case CsResponse::REMOVE:
+	case CSR_CS_REMOVE:
 		std::cout << "############## REMOVE BUTTON PRESSED  #############" << std::endl;
 		break;
 
-	case CsResponse::IGNORE:
+	case CSR_CS_IGNORE:
 		std::cout << "############## IGNORE BUTTON PRESSED  #############" << std::endl;
 		break;
 
-	case CsResponse::SKIP:
+	case CSR_CS_SKIP:
 		std::cout << "##############  SKIP  BUTTON PRESSED  #############" << std::endl;
+		break;
+
+	case CSR_CS_PROCESSING_ALLOWED:
+		std::cout << "############## ALLOW  BUTTON PRESSED  #############" << std::endl;
+		break;
+
+	case CSR_CS_PROCESSING_DISALLOWED:
+		std::cout << "############ DISALLOW BUTTON PRESSED ##############" << std::endl;
 		break;
 
 	default:
@@ -65,7 +76,7 @@ void printPressed(CsResponse response)
 	BOOST_REQUIRE_MESSAGE(isValid, "invalid response from csr-popup!");
 }
 
-void printPressed(WpResponse response)
+void printPressed(csr_wp_user_response_e response)
 {
 	std::cout << "###################################################" << std::endl;
 	std::cout << "###################################################" << std::endl;
@@ -74,16 +85,12 @@ void printPressed(WpResponse response)
 	bool isValid = true;
 
 	switch (response) {
-	case WpResponse::ALLOW:
+	case CSR_WP_PROCESSING_ALLOWED:
 		std::cout << "##############  ALLOW BUTTON PRESSED  #############" << std::endl;
 		break;
 
-	case WpResponse::DENY:
-		std::cout << "##############  DENY  BUTTON PRESSED  #############" << std::endl;
-		break;
-
-	case WpResponse::CONFIRM:
-		std::cout << "############## CONFIRM BUTTON PRESSED #############" << std::endl;
+	case CSR_WP_PROCESSING_DISALLOWED:
+		std::cout << "############ DENY/CONFIRM BUTTON PRESSED ##########" << std::endl;
 		break;
 
 	default:
@@ -103,54 +110,151 @@ void printPressed(WpResponse response)
 
 BOOST_AUTO_TEST_SUITE(POPUP)
 
-BOOST_AUTO_TEST_CASE(file_single)
+BOOST_AUTO_TEST_SUITE(CS)
+
+BOOST_AUTO_TEST_CASE(prompt_data)
 {
-	try {
-		AskUser askuser;
+	EXCEPTION_GUARD_START
 
-		FileItem item;
-		item.severity = CSR_CS_SEVERITY_MEDIUM;
-		item.threat = CSR_CS_THREAT_RISKY;
-		item.filepath = "/opt/apps/csr/test/dummyfile";
+	CsDetected d;
+	d.targetName.clear(); // data's target name should be empty
+	d.malwareName = "dummy malware in data";
+	d.detailedUrl = "http://detailedurl/cs_prompt_data";
+	d.severity = CSR_CS_SEVERITY_MEDIUM;
+	d.threat = CSR_CS_THREAT_RISKY;
 
-		auto response = askuser.fileSingle("Message for file_single tc", item);
-		printPressed(response);
-	} catch (...) {
-		BOOST_REQUIRE_MESSAGE(0, "exception shouldn't be thrown.");
-	}
+	Ui::AskUser askuser;
+	printPressed(askuser.cs(Ui::CommandId::CS_PROMPT_DATA,
+							"Message for prompt data tc", d));
+
+	EXCEPTION_GUARD_END
 }
 
-BOOST_AUTO_TEST_CASE(wp_ask_permission)
+BOOST_AUTO_TEST_CASE(prompt_app)
 {
-	try {
-		AskUser askuser;
+	EXCEPTION_GUARD_START
 
-		UrlItem item;
-		item.risk = CSR_WP_RISK_MEDIUM;
-		item.url = "http://csr.test.dummyurl.com";
+	CsDetected d;
+	d.targetName = "pkg_id_of_app";
+	d.malwareName = "dummy malware in app";
+	d.detailedUrl = "http://detailedurl/cs_prompt_app";
+	d.severity = CSR_CS_SEVERITY_MEDIUM;
+	d.threat = CSR_CS_THREAT_RISKY;
 
-		auto response = askuser.wpAskPermission("Message for wp_ask_permission tc",
-												item);
-		printPressed(response);
-	} catch (...) {
-		BOOST_REQUIRE_MESSAGE(0, "exception shouldn't be thrown.");
-	}
+	Ui::AskUser askuser;
+	printPressed(askuser.cs(Ui::CommandId::CS_PROMPT_APP,
+							"Message for prompt app tc", d));
+
+	EXCEPTION_GUARD_END
 }
 
-BOOST_AUTO_TEST_CASE(wp_notify)
+BOOST_AUTO_TEST_CASE(prompt_file)
 {
-	try {
-		AskUser askuser;
+	EXCEPTION_GUARD_START
 
-		UrlItem item;
-		item.risk = CSR_WP_RISK_HIGH;
-		item.url = "http://csr.test.dummyurl.com";
+	CsDetected d;
+	d.targetName = "/opt/apps/csr/test/dummyfile";
+	d.malwareName = "dummy malware";
+	d.detailedUrl = "http://detailedurl/cs_prompt_file";
+	d.severity = CSR_CS_SEVERITY_MEDIUM;
+	d.threat = CSR_CS_THREAT_RISKY;
 
-		auto response = askuser.wpNotify("Message for wp_ask_permission tc", item);
-		printPressed(response);
-	} catch (...) {
-		BOOST_REQUIRE_MESSAGE(0, "exception shouldn't be thrown.");
-	}
+	Ui::AskUser askuser;
+	printPressed(askuser.cs(Ui::CommandId::CS_PROMPT_FILE,
+							"Message for prompt file tc", d));
+
+	EXCEPTION_GUARD_END
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_CASE(notify_data)
+{
+	EXCEPTION_GUARD_START
+
+	CsDetected d;
+	d.targetName.clear(); // data's target name should be empty
+	d.malwareName = "dummy malware in data";
+	d.detailedUrl = "http://detailedurl/cs_notify_data";
+	d.severity = CSR_CS_SEVERITY_HIGH;
+	d.threat = CSR_CS_THREAT_RISKY;
+
+	Ui::AskUser askuser;
+	printPressed(askuser.cs(Ui::CommandId::CS_NOTIFY_DATA,
+							"Message for notify data tc", d));
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(notify_app)
+{
+	EXCEPTION_GUARD_START
+
+	CsDetected d;
+	d.targetName = "pkg_id_of_app";
+	d.malwareName = "dummy malware in app";
+	d.detailedUrl = "http://detailedurl/cs_notify_app";
+	d.severity = CSR_CS_SEVERITY_HIGH;
+	d.threat = CSR_CS_THREAT_RISKY;
+
+	Ui::AskUser askuser;
+	printPressed(askuser.cs(Ui::CommandId::CS_NOTIFY_APP,
+							"Message for notify app tc", d));
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(notify_file)
+{
+	EXCEPTION_GUARD_START
+
+	CsDetected d;
+	d.targetName = "/opt/apps/csr/test/dummyfile";
+	d.malwareName = "dummy malware";
+	d.detailedUrl = "http://detailedurl/cs_notify_file";
+	d.severity = CSR_CS_SEVERITY_HIGH;
+	d.threat = CSR_CS_THREAT_RISKY;
+
+	Ui::AskUser askuser;
+	auto response = askuser.cs(Ui::CommandId::CS_NOTIFY_FILE,
+							   "Message for notify file tc", d);
+	printPressed(response);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_SUITE_END() // CS
+
+BOOST_AUTO_TEST_SUITE(WP)
+
+BOOST_AUTO_TEST_CASE(prompt)
+{
+	EXCEPTION_GUARD_START
+
+	Ui::UrlItem item;
+	item.risk = CSR_WP_RISK_MEDIUM;
+	item.url = "http://csr.test.dummyurl.com";
+
+	Ui::AskUser askuser;
+	printPressed(askuser.wp(Ui::CommandId::WP_PROMPT, "Message for wp_prompt tc",
+							item));
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(notify)
+{
+	EXCEPTION_GUARD_START
+
+	Ui::UrlItem item;
+	item.risk = CSR_WP_RISK_HIGH;
+	item.url = "http://csr.test.dummyurl.com";
+
+	Ui::AskUser askuser;
+	printPressed(askuser.wp(Ui::CommandId::WP_NOTIFY, "Message for wp_notify tc",
+							item));
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_SUITE_END() // WP
+
+BOOST_AUTO_TEST_SUITE_END() // POPUP

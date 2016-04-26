@@ -24,26 +24,6 @@
 namespace Csr {
 namespace Ui {
 
-FileItem::FileItem(IStream &stream)
-{
-	int int_severity;
-	Deserializer<int>::Deserialize(stream, int_severity);
-	severity = static_cast<csr_cs_severity_level_e>(int_severity);
-
-	int int_threat;
-	Deserializer<int>::Deserialize(stream, int_threat);
-	threat = static_cast<csr_cs_threat_type_e>(int_threat);
-
-	Deserializer<std::string>::Deserialize(stream, filepath);
-}
-
-void FileItem::Serialize(IStream &stream) const
-{
-	Serializer<int>::Serialize(stream, static_cast<int>(severity));
-	Serializer<int>::Serialize(stream, static_cast<int>(threat));
-	Serializer<std::string>::Serialize(stream, filepath);
-}
-
 UrlItem::UrlItem(IStream &stream)
 {
 	int int_risk;

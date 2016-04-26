@@ -26,10 +26,9 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "common/cs-detected.h"
-#include "common/wp-result.h"
 #include "common/audit/logger.h"
 #include "ui/askuser.h"
+#include "service/type-converter.h"
 #include "csr/error.h"
 
 namespace Csr {
@@ -172,8 +171,8 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 	}
 
 	default:
-		throw std::range_error(FORMAT("Command id[" << static_cast<int>(info.first)
-									  << "] isn't in range."));
+		throw std::range_error(FORMAT("Command id[" << static_cast<int>(info.first) <<
+									  "] isn't in range."));
 	}
 }
 
@@ -190,11 +189,47 @@ std::pair<CommandId, BinaryQueue> Logic::getRequestInfo(const RawBuffer &data)
 
 RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 {
-	INFO("Scan Data[size=" << data.size() << "] by engine");
+	CsEngineContext engineContext(m_cs);
+	auto &c = engineContext.get();
 
-	printCsContext(context);
+	csre_cs_detected_h result;
+	int ret = CSR_ERROR_NONE;
+	int eret = m_cs->scanData(c, data, &result);
 
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
+	if (eret != CSRE_ERROR_NONE) {
+		ERROR("Engine error. engine api ret: " << eret);
+		return BinaryQueue::Serialize(CSR_ERROR_ENGINE_INTERNAL, CsDetected()).pop();
+	}
+
+	// detected handle is null if it's safe
+	if (result == nullptr)
+		return BinaryQueue::Serialize(ret, CsDetected()).pop();
+
+	auto d = convert(result);
+
+	d.targetName.clear();
+
+	switch (d.severity) {
+	case CSR_CS_SEVERITY_LOW:
+		INFO("severity low for data scanned!");
+		break;
+
+	case CSR_CS_SEVERITY_MEDIUM:
+		INFO("severity medium for data scanned!");
+		d.response = getUserResponse(context, d);
+		break;
+
+	case CSR_CS_SEVERITY_HIGH:
+		INFO("severity high for data scanned!");
+		d.response = getUserResponse(context, d);
+		break;
+
+	default:
+		throw std::logic_error(FORMAT("Invalid severity: " <<
+									  static_cast<int>(d.severity)));
+	}
+
+	return BinaryQueue::Serialize(ret, d).pop();
 }
 
 RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
@@ -308,8 +343,8 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 	int eret = m_wp->checkUrl(c, url.c_str(), &result);
 
 	if (eret != CSRE_ERROR_NONE) {
-		ret = CSR_ERROR_ENGINE_INTERNAL;
 		ERROR("Engine error. engine api ret: " << eret);
+		return BinaryQueue::Serialize(CSR_ERROR_ENGINE_INTERNAL, WpResult()).pop();
 	}
 
 	auto wr = convert(result);
@@ -319,7 +354,7 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 	switch (wr.riskLevel) {
 	case CSR_WP_RISK_UNVERIFIED:
 		DEBUG("url[" << url << "] risk level is unverified");
-		return BinaryQueue::Serialize(ret, wr).pop();
+		break;
 
 	case CSR_WP_RISK_LOW:
 		DEBUG("url[" << url << "] risk level is low");
@@ -327,12 +362,12 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 
 	case CSR_WP_RISK_MEDIUM:
 		DEBUG("url[" << url << "] risk level is medium. let's ask user to process.");
-		getUserResponse(context, url, CSR_WP_RISK_MEDIUM, wr);
+		wr.response = getUserResponse(context, url, wr);
 		break;
 
 	case CSR_WP_RISK_HIGH:
 		DEBUG("url[" << url << "] risk level is high. let's notify user to deny url.");
-		getUserResponse(context, url, CSR_WP_RISK_HIGH, wr);
+		wr.response = getUserResponse(context, url, wr);
 		break;
 
 	default:
@@ -343,43 +378,105 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 	return BinaryQueue::Serialize(ret, wr).pop();
 }
 
-void Logic::getUserResponse(const WpContext &c, const std::string &url,
-							csr_wp_risk_level_e level, WpResult &wr)
+csr_cs_user_response_e Logic::getUserResponse(const CsContext &c,
+		const CsDetected &d)
 {
-	if (c.askUser == CSR_WP_NOT_ASK_USER)
-		return;
+	if (c.askUser == CSR_CS_NOT_ASK_USER)
+		return CSR_CS_NO_ASK_USER;
 
-	auto &popupMessage = c.popupMessage;
+	Ui::CommandId cid;
+
+	if (d.severity == CSR_CS_SEVERITY_MEDIUM) {
+		if (d.targetName.empty())
+			cid = Ui::CommandId::CS_PROMPT_DATA;
+		else if (d.isApp)
+			cid = Ui::CommandId::CS_PROMPT_APP;
+		else
+			cid = Ui::CommandId::CS_PROMPT_FILE;
+	} else {
+		if (d.targetName.empty())
+			cid = Ui::CommandId::CS_NOTIFY_DATA;
+		else if (d.isApp)
+			cid = Ui::CommandId::CS_NOTIFY_APP;
+		else
+			cid = Ui::CommandId::CS_NOTIFY_FILE;
+	}
 
 	Ui::AskUser askUser;
-	Ui::WpResponse response = Ui::WpResponse::CONFIRM;
+	return askUser.cs(cid, c.popupMessage, d);
+}
+
+csr_wp_user_response_e Logic::getUserResponse(const WpContext &c,
+		const std::string &url, const WpResult &wr)
+{
+	if (c.askUser == CSR_WP_NOT_ASK_USER)
+		return CSR_WP_NO_ASK_USER;
+
+	Ui::CommandId cid;
+
+	if (wr.riskLevel == CSR_WP_RISK_MEDIUM)
+		cid = Ui::CommandId::WP_PROMPT;
+	else
+		cid = Ui::CommandId::WP_NOTIFY;
+
 	Ui::UrlItem item;
 	item.url = url;
+	item.risk = wr.riskLevel;
 
-	if (level == CSR_WP_RISK_MEDIUM) {
-		item.risk = CSR_WP_RISK_MEDIUM;
-		response = askUser.wpAskPermission(popupMessage, item);
+	Ui::AskUser askUser;
+	return askUser.wp(cid, c.popupMessage, item);
+}
 
-		if (response == Ui::WpResponse::ALLOW)
-			wr.response = CSR_WP_PROCESSING_ALLOWED;
-		else if (response == Ui::WpResponse::DENY)
-			wr.response = CSR_WP_PROCESSING_DISALLOWED;
-		else
-			throw std::runtime_error("Invalid response from popup service.");
-	} else {
-		item.risk = CSR_WP_RISK_HIGH;
-		response = askUser.wpNotify(popupMessage, item);
+CsDetected Logic::convert(csre_cs_detected_h &result)
+{
+	DEBUG("convert engine result handle to CsDetected start");
 
-		if (response == Ui::WpResponse::CONFIRM)
-			wr.response = CSR_WP_PROCESSING_DISALLOWED;
-		else
-			throw std::runtime_error("Invalid response from popup service.");
-	}
+	CsDetected d;
+
+	csre_cs_severity_level_e eseverity = CSRE_CS_SEVERITY_LOW;
+	int eret = m_cs->getSeverity(result, &eseverity);
+
+	if (eret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("Converting cs detected[seveirty]. "
+										"ret: " << eret));
+
+	d.severity = Csr::convert(eseverity);
+
+	csre_cs_threat_type_e ethreat = CSRE_CS_THREAT_GENERIC;
+	eret = m_cs->getThreatType(result, &ethreat);
+
+	if (eret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("Converting cs detected[threat]. "
+										"ret: " << eret));
+
+	d.threat = Csr::convert(ethreat);
+
+	eret = m_cs->getMalwareName(result, d.malwareName);
+
+	if (eret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("Converting cs detected[name]. "
+										"ret: " << eret));
+
+	eret = m_cs->getDetailedUrl(result, d.detailedUrl);
+
+	if (eret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("Converting cs detected[detailed url]. "
+										"ret: " << eret));
+
+	eret = m_cs->getTimestamp(result, &d.ts);
+
+	if (eret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("Converting cs detected[timestamp]. "
+										"ret: " << eret));
+
+	return d;
 }
 
 WpResult Logic::convert(csre_wp_check_result_h &r)
 {
 	DEBUG("convert engine result handle to WpResult start");
+
+	WpResult wr;
 
 	csre_wp_risk_level_e elevel;
 	int eret = m_wp->getRiskLevel(r, &elevel);
@@ -387,43 +484,12 @@ WpResult Logic::convert(csre_wp_check_result_h &r)
 	if (eret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("Converting wp result. ret: " << eret));
 
-	DEBUG("Get engine risk level: " << static_cast<int>(elevel));
+	wr.riskLevel = Csr::convert(elevel);
 
-	csr_wp_risk_level_e level;
-
-	switch (elevel) {
-	case CSRE_WP_RISK_LOW:
-		level = CSR_WP_RISK_LOW;
-		break;
-
-	case CSRE_WP_RISK_UNVERIFIED:
-		level = CSR_WP_RISK_UNVERIFIED;
-		break;
-
-	case CSRE_WP_RISK_MEDIUM:
-		level = CSR_WP_RISK_MEDIUM;
-		break;
-
-	case CSRE_WP_RISK_HIGH:
-		level = CSR_WP_RISK_HIGH;
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid elevel: " << static_cast<int>(elevel)));
-	}
-
-	std::string detailedUrl;
-	eret = m_wp->getDetailedUrl(r, detailedUrl);
+	eret = m_wp->getDetailedUrl(r, wr.detailedUrl);
 
 	if (eret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("Converting wp result. ret: " << eret));
-
-	DEBUG("Get detailed url from engine: " << detailedUrl);
-
-	WpResult wr;
-
-	wr.detailedUrl = detailedUrl;
-	wr.riskLevel = level;
 
 	return wr;
 }

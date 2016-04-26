@@ -51,8 +51,7 @@ const char *APP_DIRS[4] = {
 //===========================================================================
 std::vector<std::regex> File::m_regexprs;
 
-File::File(const std::string &fpath)
-	: m_path(fpath), m_inApp(false)
+File::File(const std::string &fpath) : m_path(fpath), m_inApp(false)
 {
 	if (m_regexprs.size() == 0)
 		initRegex();
@@ -79,9 +78,9 @@ File::File(const std::string &fpath)
 }
 
 File::File(const std::string &fpath, bool belongToApp,
-		   const std::string &pkgId, const std::string &user, const std::string &pkgPath)
-	: m_path(fpath), m_inApp(belongToApp), m_appPkgId(pkgId), m_appUser(user),
-	  m_appPkgPath(pkgPath)
+		   const std::string &pkgId, const std::string &user, const std::string &pkgPath) :
+	m_path(fpath), m_inApp(belongToApp), m_appPkgId(pkgId), m_appUser(user),
+	m_appPkgPath(pkgPath)
 {
 }
 
@@ -140,9 +139,9 @@ FsVisitorShrPtr createVisitor(const std::string &fpath, time_t modifiedSince)
 	int ret = stat(fpath.c_str(), &s);
 
 	if (ret != 0) {
-		if (errno == ENOENT)
+		if (errno == ENOENT) {
 			WARN("file[" << fpath << "] not exist!");
-		else {
+		} else {
 			// TODO: throw exception? can we trust errno value?
 			ERROR("stat() failed with file[" << fpath << "]. errno: " << errno);
 		}
@@ -200,9 +199,8 @@ FileShrPtr FileVisitor::next()
 	return item;
 }
 
-DirVisitor::DirVisitor(const std::string &fpath, time_t modifiedSince)
-	: m_path(fpath), m_since(modifiedSince), m_currDir(nullptr),
-	  m_currEntry(nullptr)
+DirVisitor::DirVisitor(const std::string &fpath, time_t modifiedSince) :
+	m_path(fpath), m_since(modifiedSince), m_currDir(nullptr), m_currEntry(nullptr)
 {
 	m_dirs.push(m_path);
 }
@@ -254,16 +252,14 @@ FileShrPtr DirVisitor::next()
 		std::string fullPath;
 
 		if (m_dirs.front().size() > 0 &&
-				m_dirs.front().at(m_dirs.front().size() - 1) == '/') {
+				m_dirs.front().at(m_dirs.front().size() - 1) == '/')
 			fullPath = m_dirs.front() + result->d_name;
-		} else {
+		else
 			fullPath = m_dirs.front() + "/" + result->d_name;
-		}
 
 		if (result->d_type ==  DT_DIR) {
-			if (strcmp(result->d_name, ".") != 0 && strcmp(result->d_name, "..") != 0) {
+			if (strcmp(result->d_name, ".") != 0 && strcmp(result->d_name, "..") != 0)
 				m_dirs.push(fullPath);
-			}
 
 			continue;
 		}

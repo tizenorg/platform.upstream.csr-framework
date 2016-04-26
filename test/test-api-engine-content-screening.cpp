@@ -41,11 +41,11 @@
 namespace {
 
 inline void checkDetected(csre_cs_detected_h detected,
-		csre_cs_severity_level_e expected_severity,
-		csre_cs_threat_type_e expected_threat_type,
-		const char *expected_malware_name,
-		const char *expected_detailed_url,
-		long expected_timestamp)
+						  csre_cs_severity_level_e expected_severity,
+						  csre_cs_threat_type_e expected_threat_type,
+						  const char *expected_malware_name,
+						  const char *expected_detailed_url,
+						  long expected_timestamp)
 {
 	EXCEPTION_GUARD_START
 
@@ -54,47 +54,50 @@ inline void checkDetected(csre_cs_detected_h detected,
 	csre_cs_severity_level_e severity;
 	ASSERT_IF(csre_cs_detected_get_severity(detected, &severity), CSRE_ERROR_NONE);
 	BOOST_REQUIRE_MESSAGE(severity == expected_severity,
-		"severity isn't expected value. "
-		"val: " << severity << " expected: " << expected_severity);
+						  "severity isn't expected value. "
+						  "val: " << severity << " expected: " << expected_severity);
 
 	csre_cs_threat_type_e threat_type;
-	ASSERT_IF(csre_cs_detected_get_threat_type(detected, &threat_type), CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_detected_get_threat_type(detected, &threat_type),
+			  CSRE_ERROR_NONE);
 	BOOST_REQUIRE_MESSAGE(threat_type == expected_threat_type,
-		"threat type isn't expected value. "
-		"val: " << threat_type << " expected: " << expected_threat_type);
+						  "threat type isn't expected value. "
+						  "val: " << threat_type << " expected: " << expected_threat_type);
 
 	const char *malware_name = nullptr;
-	ASSERT_IF(csre_cs_detected_get_malware_name(detected, &malware_name), CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_detected_get_malware_name(detected, &malware_name),
+			  CSRE_ERROR_NONE);
 
 	if (expected_malware_name != nullptr) {
 		CHECK_IS_NOT_NULL(malware_name);
 		BOOST_REQUIRE_MESSAGE(
 			(strlen(malware_name) == strlen(expected_malware_name) &&
-				memcmp(malware_name, expected_malware_name, strlen(malware_name)) == 0),
+			 memcmp(malware_name, expected_malware_name, strlen(malware_name)) == 0),
 			"malware_name isn't expected value. "
-				"val: " << malware_name << " expected: " << expected_malware_name);
+			"val: " << malware_name << " expected: " << expected_malware_name);
 	}
 
 	const char *detailed_url = nullptr;
-	ASSERT_IF(csre_cs_detected_get_detailed_url(detected, &detailed_url), CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_detected_get_detailed_url(detected, &detailed_url),
+			  CSRE_ERROR_NONE);
 
 	if (expected_detailed_url != nullptr) {
 		CHECK_IS_NOT_NULL(detailed_url);
 		BOOST_REQUIRE_MESSAGE(
 			(strlen(detailed_url) == strlen(expected_detailed_url) &&
-				memcmp(detailed_url, expected_detailed_url, strlen(detailed_url)) == 0),
+			 memcmp(detailed_url, expected_detailed_url, strlen(detailed_url)) == 0),
 			"detailed_url isn't expected value. "
-				"val: " << detailed_url << " expected: " << expected_detailed_url);
-
+			"val: " << detailed_url << " expected: " << expected_detailed_url);
 	}
 
 	long timestamp;
-	ASSERT_IF(csre_cs_detected_get_timestamp(detected, &timestamp), CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_detected_get_timestamp(detected, &timestamp),
+			  CSRE_ERROR_NONE);
 
 	if (expected_timestamp != 0)
 		BOOST_REQUIRE_MESSAGE(timestamp == expected_timestamp,
-			"timestamp isn't expected value. "
-				"val: " << timestamp << " expected: " << expected_timestamp);
+							  "timestamp isn't expected value. "
+							  "val: " << timestamp << " expected: " << expected_timestamp);
 
 	EXCEPTION_GUARD_END
 }
@@ -120,14 +123,15 @@ BOOST_AUTO_TEST_CASE(scan_data_clear)
 	auto c = Test::Context<csre_cs_context_h>();
 	auto context = c.get();
 
-	const char *data = "abcd1234dfdfdf334dfdi8ffndsfdfdsfdasfagdfvdfdfafadfasdfsdfe";
+	const char *data =
+		"abcd1234dfdfdf334dfdi8ffndsfdfdsfdasfagdfvdfdfafadfasdfsdfe";
 
 	csre_cs_detected_h detected;
 	ASSERT_IF(csre_cs_scan_data(
-		context,
-		reinterpret_cast<const unsigned char *>(data),
-		strlen(data),
-		&detected), CSRE_ERROR_NONE);
+				  context,
+				  reinterpret_cast<const unsigned char *>(data),
+				  strlen(data),
+				  &detected), CSRE_ERROR_NONE);
 
 	CHECK_IS_NULL(detected);
 
@@ -147,19 +151,19 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 
 	csre_cs_detected_h detected;
 	ASSERT_IF(csre_cs_scan_data(
-		context,
-		reinterpret_cast<const unsigned char *>(data),
-		strlen(data),
-		&detected), CSRE_ERROR_NONE);
+				  context,
+				  reinterpret_cast<const unsigned char *>(data),
+				  strlen(data),
+				  &detected), CSRE_ERROR_NONE);
 
 	CHECK_IS_NOT_NULL(detected);
 
 	checkDetected(detected,
-		CSRE_CS_SEVERITY_HIGH,
-		CSRE_CS_THREAT_MALWARE,
-		"test_malware",
-		"http://high.malware.com",
-		0);
+				  CSRE_CS_SEVERITY_HIGH,
+				  CSRE_CS_THREAT_MALWARE,
+				  "test_malware",
+				  "http://high.malware.com",
+				  0);
 
 	EXCEPTION_GUARD_END
 }
@@ -175,19 +179,19 @@ BOOST_AUTO_TEST_CASE(scan_data_medium)
 
 	csre_cs_detected_h detected;
 	ASSERT_IF(csre_cs_scan_data(
-		context,
-		reinterpret_cast<const unsigned char *>(data),
-		strlen(data),
-		&detected), CSRE_ERROR_NONE);
+				  context,
+				  reinterpret_cast<const unsigned char *>(data),
+				  strlen(data),
+				  &detected), CSRE_ERROR_NONE);
 
 	CHECK_IS_NOT_NULL(detected);
 
 	checkDetected(detected,
-		CSRE_CS_SEVERITY_MEDIUM,
-		CSRE_CS_THREAT_RISKY,
-		"test_risk",
-		nullptr,
-		0);
+				  CSRE_CS_SEVERITY_MEDIUM,
+				  CSRE_CS_THREAT_RISKY,
+				  "test_risk",
+				  nullptr,
+				  0);
 
 	EXCEPTION_GUARD_END
 }
@@ -200,7 +204,8 @@ BOOST_AUTO_TEST_CASE(scan_file_normal)
 	auto context = c.get();
 
 	csre_cs_detected_h detected;
-	ASSERT_IF(csre_cs_scan_file(context, TEST_FILE_NORMAL, &detected), CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_scan_file(context, TEST_FILE_NORMAL, &detected),
+			  CSRE_ERROR_NONE);
 
 	CHECK_IS_NULL(detected);
 
@@ -215,16 +220,17 @@ BOOST_AUTO_TEST_CASE(scan_file_malware)
 	auto context = c.get();
 
 	csre_cs_detected_h detected;
-	ASSERT_IF(csre_cs_scan_file(context, TEST_FILE_MALWARE, &detected), CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_scan_file(context, TEST_FILE_MALWARE, &detected),
+			  CSRE_ERROR_NONE);
 
 	CHECK_IS_NOT_NULL(detected);
 
 	checkDetected(detected,
-		CSRE_CS_SEVERITY_HIGH,
-		CSRE_CS_THREAT_MALWARE,
-		"test_malware",
-		"http://high.malware.com",
-		0);
+				  CSRE_CS_SEVERITY_HIGH,
+				  CSRE_CS_THREAT_MALWARE,
+				  "test_malware",
+				  "http://high.malware.com",
+				  0);
 
 	EXCEPTION_GUARD_END
 }
@@ -237,16 +243,17 @@ BOOST_AUTO_TEST_CASE(scan_file_risky)
 	auto context = c.get();
 
 	csre_cs_detected_h detected;
-	ASSERT_IF(csre_cs_scan_file(context, TEST_FILE_RISKY, &detected), CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_scan_file(context, TEST_FILE_RISKY, &detected),
+			  CSRE_ERROR_NONE);
 
 	CHECK_IS_NOT_NULL(detected);
 
 	checkDetected(detected,
-		CSRE_CS_SEVERITY_MEDIUM,
-		CSRE_CS_THREAT_RISKY,
-		"test_risk",
-		"http://medium.malware.com",
-		0);
+				  CSRE_CS_SEVERITY_MEDIUM,
+				  CSRE_CS_THREAT_RISKY,
+				  "test_risk",
+				  "http://medium.malware.com",
+				  0);
 
 	EXCEPTION_GUARD_END
 }
@@ -259,16 +266,17 @@ BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 	auto context = c.get();
 
 	csre_cs_detected_h detected;
-	ASSERT_IF(csre_cs_scan_app_on_cloud(context, TEST_APP_ROOT,&detected), CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_scan_app_on_cloud(context, TEST_APP_ROOT, &detected),
+			  CSRE_ERROR_NONE);
 
 	CHECK_IS_NOT_NULL(detected);
 
 	checkDetected(detected,
-		CSRE_CS_SEVERITY_HIGH,
-		CSRE_CS_THREAT_MALWARE,
-		"test_malware",
-		"http://high.malware.com",
-		0);
+				  CSRE_CS_SEVERITY_HIGH,
+				  CSRE_CS_THREAT_MALWARE,
+				  "test_malware",
+				  "http://high.malware.com",
+				  0);
 
 	EXCEPTION_GUARD_END
 }
@@ -284,7 +292,8 @@ BOOST_AUTO_TEST_CASE(positive)
 
 	const char *string = nullptr;
 
-	ASSERT_IF(csre_cs_get_error_string(CSRE_ERROR_UNKNOWN, &string), CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_get_error_string(CSRE_ERROR_UNKNOWN, &string),
+			  CSRE_ERROR_NONE);
 
 	CHECK_IS_NOT_NULL(string);
 
@@ -328,7 +337,8 @@ BOOST_AUTO_TEST_CASE(get_vendor_logo)
 
 	unsigned char *vendor_logo_image = nullptr;
 	unsigned int size = 0;
-	ASSERT_IF(csre_cs_engine_get_vendor_logo(handle, &vendor_logo_image, &size), CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_engine_get_vendor_logo(handle, &vendor_logo_image, &size),
+			  CSRE_ERROR_NONE);
 
 	EXCEPTION_GUARD_END
 }
@@ -369,7 +379,8 @@ BOOST_AUTO_TEST_CASE(get_latest_update_time)
 	auto handle = c.get();
 
 	time_t time = 0;
-	ASSERT_IF(csre_cs_engine_get_latest_update_time(handle, &time), CSRE_ERROR_NONE);
+	ASSERT_IF(csre_cs_engine_get_latest_update_time(handle, &time),
+			  CSRE_ERROR_NONE);
 
 	struct tm t;
 	BOOST_MESSAGE(asctime(gmtime_r(&time, &t)));

@@ -89,7 +89,8 @@ int csre_wp_engine_destroy(csre_wp_engine_h engine);
  *
  * @see csre_wp_engine_get_info()
  */
-int csre_wp_engine_get_api_version(csre_wp_engine_h engine, const char **version);
+int csre_wp_engine_get_api_version(csre_wp_engine_h engine,
+								   const char **version);
 
 /**
  * @brief Extracts an vendor name from the engine information handle.
@@ -163,7 +164,8 @@ int csre_wp_engine_get_version(csre_wp_engine_h engine, const char **version);
  *
  * @see csre_wp_engine_get_info()
  */
-int csre_wp_engine_get_data_version(csre_wp_engine_h engine, const char **version);
+int csre_wp_engine_get_data_version(csre_wp_engine_h engine,
+									const char **version);
 
 /**
  * @brief Extracts the latest update time of an engine from the engine information handle.
@@ -182,7 +184,8 @@ int csre_wp_engine_get_data_version(csre_wp_engine_h engine, const char **versio
  *
  * @see csre_wp_get_engine_info()
  */
-int csre_wp_engine_get_latest_update_time(csre_wp_engine_h engine, time_t *time);
+int csre_wp_engine_get_latest_update_time(csre_wp_engine_h engine,
+		time_t *time);
 
 /**
  * @brief Extracts the state of engine activation from the engine information handle.
@@ -200,7 +203,8 @@ int csre_wp_engine_get_latest_update_time(csre_wp_engine_h engine, time_t *time)
  *
  * @see csre_wp_engine_get_info()
  */
-int csre_wp_engine_get_activated(csre_wp_engine_h engine, csre_wp_activated_e *pactivated);
+int csre_wp_engine_get_activated(csre_wp_engine_h engine,
+								 csre_wp_activated_e *pactivated);
 
 /**
  * @brief Extracts an vendor logo image from the engine information handle.
@@ -224,7 +228,8 @@ int csre_wp_engine_get_activated(csre_wp_engine_h engine, csre_wp_activated_e *p
  *
  * @see csre_wp_engine_get_info()
  */
-int csre_wp_engine_get_vendor_logo(csre_wp_engine_h engine, unsigned char** vendor_logo_image, unsigned int* image_size);
+int csre_wp_engine_get_vendor_logo(csre_wp_engine_h engine,
+								   unsigned char **vendor_logo_image, unsigned int *image_size);
 
 #ifdef __cplusplus
 }

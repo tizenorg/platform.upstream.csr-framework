@@ -98,7 +98,8 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message)
 }
 
 API
-int csr_wp_check_url(csr_wp_context_h handle, const char *url, csr_wp_check_result_h *presult)
+int csr_wp_check_url(csr_wp_context_h handle, const char *url,
+					 csr_wp_check_result_h *presult)
 {
 	EXCEPTION_SAFE_START
 
@@ -126,7 +127,8 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url, csr_wp_check_resu
 }
 
 API
-int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level_e *plevel)
+int csr_wp_result_get_risk_level(csr_wp_check_result_h result,
+								 csr_wp_risk_level_e *plevel)
 {
 	EXCEPTION_SAFE_START
 
@@ -144,7 +146,8 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level
 }
 
 API
-int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, const char **pdetailed_url)
+int csr_wp_result_get_detailed_url(csr_wp_check_result_h result,
+								   const char **pdetailed_url)
 {
 	EXCEPTION_SAFE_START
 
@@ -161,7 +164,8 @@ int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, const char **pd
 
 
 API
-int csr_wp_result_get_user_response(csr_wp_check_result_h result, csr_wp_user_response_e *presponse)
+int csr_wp_result_get_user_response(csr_wp_check_result_h result,
+									csr_wp_user_response_e *presponse)
 {
 	EXCEPTION_SAFE_START
 

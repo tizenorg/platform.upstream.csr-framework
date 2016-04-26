@@ -52,7 +52,8 @@ extern "C" {
  * @retval #CSRE_ERROR_UNKNOWN            Error with unknown reason
  * @retval -0x0100~-0xFF00                Engine defined error
  */
-int csre_wp_global_initialize(const char *ro_res_dir, const char *rw_working_dir);
+int csre_wp_global_initialize(const char *ro_res_dir,
+							  const char *rw_working_dir);
 
 /**
  * @brief Deinitializes web protection engine. This will be called only once before
@@ -89,7 +90,7 @@ int csre_wp_global_deinitialize();
  *
  * @see csre_wp_context_destroy()
  */
-int csre_wp_context_create(csre_wp_context_h* phandle);
+int csre_wp_context_create(csre_wp_context_h *phandle);
 
 /**
  * @brief Releases all system resources associated with a CSR WP engine API handle.
@@ -133,7 +134,8 @@ int csre_wp_context_destroy(csre_wp_context_h handle);
  *
  * @see csre_wp_context_create()
  */
-int csre_wp_check_url(csre_wp_context_h handle, const char *url, csre_wp_check_result_h *presult);
+int csre_wp_check_url(csre_wp_context_h handle, const char *url,
+					  csre_wp_check_result_h *presult);
 
 /**
  * @brief Extracts a risk level of the url from the result handle.
@@ -151,7 +153,8 @@ int csre_wp_check_url(csre_wp_context_h handle, const char *url, csre_wp_check_r
  *
  * @see csre_wp_check_url()
  */
-int csre_wp_result_get_risk_level(csre_wp_check_result_h result, csre_wp_risk_level_e* plevel);
+int csre_wp_result_get_risk_level(csre_wp_check_result_h result,
+								  csre_wp_risk_level_e *plevel);
 
 /**
  * @brief Extracts an url of vendor's web site that contains detailed information about the risk
@@ -171,7 +174,8 @@ int csre_wp_result_get_risk_level(csre_wp_check_result_h result, csre_wp_risk_le
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  * @retval -0x0100~-0xFF00                  Engine defined error
  */
-int csre_wp_result_get_detailed_url(csre_wp_check_result_h result, const char** detailed_url);
+int csre_wp_result_get_detailed_url(csre_wp_check_result_h result,
+									const char **detailed_url);
 
 /**
  * @brief Get the error string for a given engine-defined error code.
@@ -189,7 +193,7 @@ int csre_wp_result_get_detailed_url(csre_wp_check_result_h result, const char** 
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  * @retval -0x0100~-0xFF00                  Engine defined error
  */
-int csre_wp_get_error_string(int error_code, const char** string);
+int csre_wp_get_error_string(int error_code, const char **string);
 
 #ifdef __cplusplus
 }

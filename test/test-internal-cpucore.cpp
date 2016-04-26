@@ -19,47 +19,42 @@
  * @version     1.0
  * @brief       CSR Content screening DB internal test
  */
-
 #include "service/core-usage.h"
+
 #include <iostream>
 #include <fstream>
 #include <string>
-
 #include <boost/test/unit_test.hpp>
 
+#include "test-common.h"
 
 BOOST_AUTO_TEST_SUITE(INTERNAL_CORE_USAGE)
 
 BOOST_AUTO_TEST_CASE(set_core_usage)
 {
-	Csr::CpuUsageManager *inst = Csr::CpuUsageManager::getInstance();
+	EXCEPTION_GUARD_START
+
+	auto inst = Csr::CpuUsageManager::getInstance();
 
 	int total = inst->getCoreCnt();
 
-	inst->setThreadCoreUsage(Csr::USAGE_SINGLE);
-	BOOST_REQUIRE_MESSAGE(total == inst->getCoreCnt(),
-						  "Failed. setThreadCoreUsage. Total=" << inst->getCoreCnt() << ", expectd=" << total);
-	BOOST_REQUIRE_MESSAGE((1 * 100) / total == inst->getCoreUsage(),
-						  "Failed. setThreadCoreUsage. Usage=" << inst->getCoreUsage() << ", expectd=" << (1 * 100) / total);
+	ASSERT_IF(inst->setThreadCoreUsage(Csr::USAGE_SINGLE), true);
+	ASSERT_IF(total, inst->getCoreCnt());
+	ASSERT_IF((1 * 100) / total, inst->getCoreUsage());
 
-	inst->setThreadCoreUsage(Csr::USAGE_HALF);
-	BOOST_REQUIRE_MESSAGE(total == inst->getCoreCnt(),
-						  "Failed. setThreadCoreUsage. Total=" << inst->getCoreCnt() << ", expectd=" << total);
-	BOOST_REQUIRE_MESSAGE(((total > 1) ? total / 2 : 1) * 100 / total == inst->getCoreUsage(),
-						  "Failed. setThreadCoreUsage. Usage=" << inst->getCoreUsage()
-						  << ", expectd=" << ((total > 1) ? total / 2 : 1) * 100 / total);
+	ASSERT_IF(inst->setThreadCoreUsage(Csr::USAGE_HALF), true);
+	ASSERT_IF(total, inst->getCoreCnt());
+	ASSERT_IF(((total > 1) ? (total / 2) : 1) * 100 / total, inst->getCoreUsage());
 
-	inst->setThreadCoreUsage(Csr::USAGE_FULL);
-	BOOST_REQUIRE_MESSAGE(total == inst->getCoreCnt(),
-						  "Failed. setThreadCoreUsage. Total=" << inst->getCoreCnt() << ", expectd=" << total);
-	BOOST_REQUIRE_MESSAGE(100 == inst->getCoreUsage(),
-						  "Failed. setThreadCoreUsage. Usage=" << inst->getCoreUsage() << ", expectd=" << 100);
+	ASSERT_IF(inst->setThreadCoreUsage(Csr::USAGE_FULL), true);
+	ASSERT_IF(total, inst->getCoreCnt());
+	ASSERT_IF(100, inst->getCoreUsage());
 
-	inst->setThreadCoreUsage(Csr::USAGE_DEFAULT);
-	BOOST_REQUIRE_MESSAGE(total == inst->getCoreCnt(),
-						  "Failed. setThreadCoreUsage. Total=" << inst->getCoreCnt() << ", expectd=" << total);
-	BOOST_REQUIRE_MESSAGE(100 == inst->getCoreUsage(),
-						  "Failed. setThreadCoreUsage. Usage=" << inst->getCoreUsage() << ", expectd=" << 100);
+	ASSERT_IF(inst->setThreadCoreUsage(Csr::USAGE_DEFAULT), true);
+	ASSERT_IF(total, inst->getCoreCnt());
+	ASSERT_IF(100, inst->getCoreUsage());
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -88,7 +88,6 @@ inline void checkDetected(csre_cs_detected_h detected,
 			 memcmp(detailed_url, expected_detailed_url, strlen(detailed_url)) == 0),
 			"detailed_url isn't expected value. "
 			"val: " << detailed_url << " expected: " << expected_detailed_url);
-
 	}
 
 	long timestamp;

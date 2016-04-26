@@ -285,7 +285,6 @@ DetectedListShrPtr Manager::getDetectedMalwares(const std::string &dir) noexcept
 		ERROR("getDetectedMalwares failed. error_msg=" << e.what());
 		return nullptr;
 	}
-
 }
 
 DetectedShrPtr Manager::getDetectedMalware(const std::string &path) noexcept

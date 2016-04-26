@@ -27,24 +27,30 @@
 namespace Csr {
 namespace Audit {
 
-void DlogLogSink::sink(LogLevel level, const std::string &tag, const std::string &message)
+void DlogLogSink::sink(LogLevel level, const std::string &tag,
+					   const std::string &message)
 {
 	switch (level) {
 	case LogLevel::Error:
 		SLOG(LOG_ERROR, tag.c_str(), "%s", message.c_str());
 		return;
+
 	case LogLevel::Warning:
 		SLOG(LOG_WARN, tag.c_str(), "%s", message.c_str());
 		return;
+
 	case LogLevel::Debug:
 		SLOG(LOG_DEBUG, tag.c_str(), "%s", message.c_str());
 		return;
+
 	case LogLevel::Info:
 		SLOG(LOG_INFO, tag.c_str(), "%s", message.c_str());
 		return;
+
 	case LogLevel::Trace:
 		SLOG(LOG_VERBOSE, tag.c_str(), "%s", message.c_str());
 		return;
+
 	default:
 		SLOG(LOG_SILENT, tag.c_str(), "%s", message.c_str());
 		return;

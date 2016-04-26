@@ -33,9 +33,9 @@ public:
 	LogSink() {}
 	virtual ~LogSink() {}
 	virtual void sink(
-			LogLevel level,
-			const std::string &tag,
-			const std::string &message) = 0;
+		LogLevel level,
+		const std::string &tag,
+		const std::string &message) = 0;
 };
 
 }

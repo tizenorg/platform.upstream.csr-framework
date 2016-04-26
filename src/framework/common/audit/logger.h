@@ -60,24 +60,21 @@ private:
 #define __FILENAME__ (::strrchr(__FILE__, '/') ? ::strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
 
-#define FORMAT(ITEMS)                                              \
-	((dynamic_cast<std::ostringstream &>(                          \
-			std::ostringstream().seekp(0, std::ios_base::cur) << ITEMS) \
-	).str())
+#define FORMAT(ITEMS)                                                           \
+	(dynamic_cast<std::ostringstream &>(std::ostringstream().seekp(             \
+										0, std::ios_base::cur) << ITEMS)).str()
 
-#define LOG(LEVEL, MESSAGE)               \
-	Csr::Audit::Logger::log(              \
-		Csr::Audit::LogLevel::LEVEL,      \
-		__FILENAME__, __LINE__, __func__, \
+#define LOG(LEVEL, MESSAGE) Csr::Audit::Logger::log(                   \
+		Csr::Audit::LogLevel::LEVEL, __FILENAME__, __LINE__, __func__, \
 		FORMAT(MESSAGE))
 
-#define ERROR(MESSAGE)  LOG(Error, MESSAGE)
-#define WARN(MESSAGE)   LOG(Warning, MESSAGE)
-#define INFO(MESSAGE)   LOG(Info, MESSAGE)
+#define ERROR(MESSAGE) LOG(Error, MESSAGE)
+#define WARN(MESSAGE)  LOG(Warning, MESSAGE)
+#define INFO(MESSAGE)  LOG(Info, MESSAGE)
 
 #if !defined(NDEBUG)
-#define DEBUG(MESSAGE)  LOG(Debug, MESSAGE)
-#define TRACE(MESSAGE)  LOG(Trace, MESSAGE)
+#define DEBUG(MESSAGE) LOG(Debug, MESSAGE)
+#define TRACE(MESSAGE) LOG(Trace, MESSAGE)
 #else
 #define DEBUG(MESSAGE) do {} while (false)
 #define TRACE(MESSAGE) do {} while (false)

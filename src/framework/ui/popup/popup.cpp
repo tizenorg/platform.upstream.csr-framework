@@ -50,8 +50,10 @@ void Popup::stop()
 {
 	if (m_popup)
 		evas_object_del(m_popup);
+
 	if (m_win)
 		evas_object_del(m_win);
+
 	elm_exit();
 }
 

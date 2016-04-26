@@ -46,11 +46,11 @@ public:
 	RawBuffer read(void) const;
 	void write(const RawBuffer &data) const;
 
-	static Socket connect(const std::string &path); /* TODO: can it be constructor? */
+	/* TODO: can it be constructor? */
+	static Socket connect(const std::string &path);
 
 private:
 	int m_fd;
-
 };
 
 }

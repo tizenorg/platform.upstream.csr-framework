@@ -38,6 +38,7 @@ namespace {
 int createSystemdSocket(const std::string &path)
 {
 	int n = ::sd_listen_fds(-1);
+
 	if (n < 0)
 		throw std::system_error(std::error_code(), "failed to sd_listen_fds");
 
@@ -100,6 +101,7 @@ Socket::~Socket()
 Socket Socket::accept() const
 {
 	int fd = ::accept(m_fd, nullptr, nullptr);
+
 	if (fd < 0)
 		throw std::system_error(
 			std::error_code(errno, std::generic_category()),
@@ -116,6 +118,7 @@ Socket Socket::connect(const std::string &path)
 		throw std::invalid_argument("socket path size too long!");
 
 	int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+
 	if (fd < 0)
 		throw std::system_error(
 			std::error_code(errno, std::generic_category()),
@@ -126,7 +129,8 @@ Socket Socket::connect(const std::string &path)
 
 	strncpy(addr.sun_path, path.c_str(), sizeof(addr.sun_path));
 
-	if (::connect(fd, reinterpret_cast<sockaddr *>(&addr), sizeof(sockaddr_un)) == -1)
+	if (::connect(fd, reinterpret_cast<sockaddr *>(&addr),
+				  sizeof(sockaddr_un)) == -1)
 		throw std::system_error(
 			std::error_code(errno, std::generic_category()),
 			"socket connect failed!");
@@ -153,6 +157,7 @@ RawBuffer Socket::read(void) const
 
 	while (total < size) {
 		int bytes = ::read(m_fd, buf + total, size - total);
+
 		if (bytes < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 				continue;
@@ -170,7 +175,7 @@ RawBuffer Socket::read(void) const
 	data.resize(total);
 
 	DEBUG("Read data of size[" << total
-		<< "] from stream on socket fd[" << m_fd << "] done.");
+		  << "] from stream on socket fd[" << m_fd << "] done.");
 
 	return data;
 }
@@ -186,6 +191,7 @@ void Socket::write(const RawBuffer &data) const
 
 	while (total < size) {
 		int bytes = ::write(m_fd, buf + total, size - total);
+
 		if (bytes < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 				continue;
@@ -198,8 +204,8 @@ void Socket::write(const RawBuffer &data) const
 		total += bytes;
 	}
 
-	DEBUG("Write data of size[" << total
-		<< "] to stream on socket fd[" << m_fd << "] done.");
+	DEBUG("Write data of size[" << total <<
+		  "] to stream on socket fd[" << m_fd << "] done.");
 }
 
 }

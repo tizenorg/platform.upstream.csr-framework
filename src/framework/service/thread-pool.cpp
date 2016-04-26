@@ -49,7 +49,6 @@ ThreadPool::ThreadPool(size_t min, size_t max) :
 void ThreadPool::add(void)
 {
 	std::thread t([this]() {
-
 		DEBUG("Thread[" << std::this_thread::get_id() << "] start in pool");
 
 		while (true) {
@@ -60,7 +59,7 @@ void ThreadPool::add(void)
 
 			if (m_stop && m_tasks.empty()) {
 				DEBUG("Thread pool stop requested. "
-					"thread[" << std::this_thread::get_id() << "] returning.");
+					  "thread[" << std::this_thread::get_id() << "] returning.");
 				break;
 			}
 
@@ -99,7 +98,7 @@ ThreadPool::~ThreadPool()
 
 	m_cv.notify_all();
 
-	for (auto &worker: m_workers) {
+	for (auto &worker : m_workers) {
 		if (worker.second.joinable())
 			worker.second.join();
 	}

@@ -34,12 +34,12 @@ extern "C" {
 /**
  * CSR WP context handle.
  */
-typedef struct __csr_wp_context_s* csr_wp_context_h;
+typedef struct __csr_wp_context_s *csr_wp_context_h;
 
 /**
  * CSR WP scan result handle.
  */
-typedef struct __csr_wp_check_result_h* csr_wp_check_result_h;
+typedef struct __csr_wp_check_result_h *csr_wp_check_result_h;
 
 /**
  * @brief the options about prompting a popup to a user.

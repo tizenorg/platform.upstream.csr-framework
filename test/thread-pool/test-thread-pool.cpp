@@ -35,7 +35,8 @@ using namespace std::chrono;
 
 namespace {
 
-auto exceptionGuard = [&](std::function<void()> &&func) {
+auto exceptionGuard = [&](std::function<void()> && func)
+{
 	try {
 		func();
 	} catch (...) {
@@ -58,7 +59,8 @@ inline void START_TIME(void)
 
 inline long long int END_TIME(void)
 {
-	return duration_cast<milliseconds>(high_resolution_clock::now() - _start).count();
+	return duration_cast<milliseconds>(high_resolution_clock::now() -
+									   _start).count();
 }
 
 inline void INC_EXPECTED_TIME(long long int t)
@@ -72,9 +74,10 @@ inline void CHECK_TIME(void)
 	std::lock_guard<std::mutex> l(_m);
 
 	BOOST_MESSAGE("Elapsed time[" << END_TIME() << "]. "
-		"Expected scope: (" << _expected << ", " << _expected + PoolLogicUnit << ")");
+				  "Expected scope: (" << _expected << ", " << _expected + PoolLogicUnit << ")");
 
-	BOOST_REQUIRE_MESSAGE(END_TIME() < _expected + PoolLogicUnit, "Too much time elapsed");
+	BOOST_REQUIRE_MESSAGE(END_TIME() < _expected + PoolLogicUnit,
+						  "Too much time elapsed");
 	BOOST_REQUIRE_MESSAGE(END_TIME() >= _expected, "Too less time elapsed");
 }
 
@@ -91,8 +94,8 @@ void runStaticPool(size_t cnt)
 		Csr::ThreadPool pool(cnt, cnt);
 
 		BOOST_REQUIRE_MESSAGE(pool.size() == cnt,
-			"Thread pool isn't initialized well. "
-			"Pool size[" << pool.size() << "] and correct size[" << cnt << "]");
+							  "Thread pool isn't initialized well. "
+							  "Pool size[" << pool.size() << "] and correct size[" << cnt << "]");
 
 		for (size_t i = 0; i < cnt; i++)
 			pool.submit(task);
@@ -118,8 +121,8 @@ void runDynamicPool(size_t min, size_t max)
 		Csr::ThreadPool pool(min, max);
 
 		BOOST_REQUIRE_MESSAGE(pool.size() == min,
-			"Thread pool isn't initialized well. "
-			"Pool size[" << pool.size() << "] and corret min size[" << min << "]");
+							  "Thread pool isn't initialized well. "
+							  "Pool size[" << pool.size() << "] and corret min size[" << min << "]");
 
 		// Task assigned to already existing workers
 		for (size_t i = 0; i < min; i++)
@@ -134,19 +137,20 @@ void runDynamicPool(size_t min, size_t max)
 		INC_EXPECTED_TIME(PoolLogicUnit);
 		std::this_thread::sleep_for(milliseconds(TaskSleepUnit + PoolLogicUnit));
 		BOOST_REQUIRE_MESSAGE(pool.size() == min,
-			"To dtor idle threads in pool doesn't work well. "
-			"Pool size[" << pool.size() << "] shouldn't exceed given min[" << min << "]");
+							  "To dtor idle threads in pool doesn't work well. "
+							  "Pool size[" << pool.size() << "] shouldn't exceed given min[" << min << "]");
 
 		// make all(maximum) workers busy
 		INC_EXPECTED_TIME(TaskSleepUnit);
+
 		for (size_t i = 0; i < max; i++)
 			pool.submit(task);
 
 		INC_EXPECTED_TIME(TaskSleepUnit);
 		pool.submit(task); // One more task than maximum workers at the time
 		BOOST_REQUIRE_MESSAGE(pool.size() == max,
-			"Upper bound to make thread dynamically to pool doesn't work well. "
-			"Pool size[" << pool.size() << "] shouldn't exceed given max[" << max << "]");
+							  "Upper bound to make thread dynamically to pool doesn't work well. "
+							  "Pool size[" << pool.size() << "] shouldn't exceed given max[" << max << "]");
 	});
 
 	CHECK_TIME();

@@ -94,12 +94,14 @@ static std::list<csret_cs_malware_s> g_virus_sig;
 //==============================================================================
 // Utilities functions
 //==============================================================================
-std::string csret_cs_extract_value(const std::string &line, const std::string &key)
+std::string csret_cs_extract_value(const std::string &line,
+								   const std::string &key)
 {
 	if (line.empty() || key.empty())
 		return std::string();
 
 	auto pos = line.find(key);
+
 	if (pos == std::string::npos || pos != 0)
 		return std::string();
 
@@ -124,16 +126,19 @@ int csret_cs_read_virus_signatures(const std::string &path)
 	// detailed_url=http://medium.malware.com
 	// signature=RISKY_MALWARE
 	std::ifstream f(path.c_str());
+
 	if (!f.is_open())
 		return CSRET_CS_ERROR_NO_SIGNATURE_FILE;
 
 	std::string line;
 	csret_cs_malware_s node;
+
 	while (std::getline(f, line)) {
 		if (line.empty() || line[0] == '#')
 			continue;
 
 		auto value = csret_cs_extract_value(line, "name=");
+
 		if (!value.empty()) {
 			if (!node.name.empty()) {
 				g_virus_sig.push_back(node);
@@ -145,6 +150,7 @@ int csret_cs_read_virus_signatures(const std::string &path)
 		}
 
 		value = csret_cs_extract_value(line, "severity=");
+
 		if (!value.empty()) {
 			if (value.compare("LOW") == 0)
 				node.severity = CSRE_CS_SEVERITY_LOW;
@@ -157,6 +163,7 @@ int csret_cs_read_virus_signatures(const std::string &path)
 		}
 
 		value = csret_cs_extract_value(line, "threat_type=");
+
 		if (!value.empty()) {
 			if (value.compare("MALWARE") == 0)
 				node.threat_type = CSRE_CS_THREAT_MALWARE;
@@ -169,12 +176,14 @@ int csret_cs_read_virus_signatures(const std::string &path)
 		}
 
 		value = csret_cs_extract_value(line, "detailed_url=");
+
 		if (!value.empty()) {
 			node.detailed_url = std::move(value);
 			continue;
 		}
 
 		value = csret_cs_extract_value(line, "signature=");
+
 		if (!value.empty())
 			node.signature = std::move(value);
 	}
@@ -226,14 +235,18 @@ csret_cs_engine_s *csret_cs_init_engine()
 	ptr->engineVersion = ENGINE_VERSION;
 	ptr->dataVersion = ENGINE_VERSION;
 
-	int ret = csret_cs_read_binary(g_resdir + "/" PRIVATE_LOGO_FILE, ptr->logoImage);
+	int ret = csret_cs_read_binary(g_resdir + "/" PRIVATE_LOGO_FILE,
+								   ptr->logoImage);
+
 	if (ret != CSRE_ERROR_NONE) {
 		delete ptr;
 		return nullptr;
 	}
 
 	struct stat attrib;
+
 	stat(PRIVATE_DB_NAME, &attrib);
+
 	ptr->latestUpdate = attrib.st_mtime;
 
 	return ptr;
@@ -246,6 +259,7 @@ int csret_cs_compare_data(const RawBuffer &data, const std::string &needle)
 
 	for (size_t i = 0; i < data.size() - needle.length(); i++) {
 		bool isMatched = true;
+
 		for (size_t j = 0; j < needle.length(); j++) {
 			if (data[i + j] != static_cast<unsigned char>(needle[j])) {
 				isMatched = false;
@@ -261,7 +275,7 @@ int csret_cs_compare_data(const RawBuffer &data, const std::string &needle)
 }
 
 int csret_cs_detect_malware(csret_cs_context_s *context, const RawBuffer &data,
-						 csret_cs_detected_s **pdetected)
+							csret_cs_detected_s **pdetected)
 {
 	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
@@ -298,7 +312,8 @@ int csret_cs_detect_malware(csret_cs_context_s *context, const RawBuffer &data,
 // Main function related
 //==============================================================================
 API
-int csre_cs_global_initialize(const char *ro_res_dir, const char *rw_working_dir)
+int csre_cs_global_initialize(const char *ro_res_dir,
+							  const char *rw_working_dir)
 {
 	if (ro_res_dir == nullptr || rw_working_dir == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
@@ -360,6 +375,7 @@ int csre_cs_scan_data(csre_cs_context_h handle,
 	RawBuffer vec(data, data + length);
 	csret_cs_detected_s *detected = nullptr;
 	int ret = csret_cs_detect_malware(context, vec, &detected);
+
 	if (ret != CSRE_ERROR_NONE)
 		return ret;
 
@@ -377,6 +393,7 @@ int csre_cs_scan_file(csre_cs_context_h handle,
 		return CSRE_ERROR_INVALID_PARAMETER;
 
 	int fd = open(file_path, O_RDONLY);
+
 	if (fd < 0)
 		return CSRE_ERROR_FILE_NOT_FOUND;
 
@@ -387,11 +404,13 @@ int csre_cs_scan_file(csre_cs_context_h handle,
 
 	RawBuffer vec;
 	int ret = csret_cs_read_binary(file_path, vec);
+
 	if (ret != CSRE_ERROR_NONE)
 		return ret;
 
 	csret_cs_detected_s *detected = nullptr;
 	ret = csret_cs_detect_malware(context, vec, &detected);
+
 	if (ret != CSRE_ERROR_NONE)
 		return ret;
 
@@ -413,13 +432,16 @@ int csre_cs_scan_app_on_cloud(csre_cs_context_h handle,
 	csre_cs_detected_h most_detected = nullptr;
 	csre_cs_severity_level_e most = CSRE_CS_SEVERITY_LOW;
 
-	std::unique_ptr<DIR, std::function<int(DIR *)>> dirp(opendir(app_root_dir), closedir);
+	std::unique_ptr<DIR, std::function<int(DIR *)>> dirp(opendir(app_root_dir),
+			closedir);
+
 	if (!dirp)
 		return CSRE_ERROR_FILE_NOT_FOUND;
 
 
 	struct dirent entry;
 	struct dirent *result;
+
 	while (readdir_r(dirp.get(), &entry, &result) == 0 && result != nullptr) {
 		std::string fullpath(app_root_dir);
 		std::string filename(entry.d_name);
@@ -429,8 +451,8 @@ int csre_cs_scan_app_on_cloud(csre_cs_context_h handle,
 		if (entry.d_type & (DT_REG | DT_LNK))
 			ret = csre_cs_scan_file(handle, fullpath.c_str(), &detected);
 		else if ((entry.d_type & DT_DIR)
-				&& filename.compare("..") != 0
-				&& filename.compare(".") != 0)
+				 && filename.compare("..") != 0
+				 && filename.compare(".") != 0)
 			ret = csre_cs_scan_app_on_cloud(handle, fullpath.c_str(), &detected);
 		else
 			continue;
@@ -443,6 +465,7 @@ int csre_cs_scan_app_on_cloud(csre_cs_context_h handle,
 
 		csre_cs_severity_level_e s = CSRE_CS_SEVERITY_LOW;
 		ret = csre_cs_detected_get_severity(detected, &s);
+
 		if (ret != CSRE_ERROR_NONE)
 			return ret;
 
@@ -461,7 +484,8 @@ int csre_cs_scan_app_on_cloud(csre_cs_context_h handle,
 // Result related
 //==============================================================================
 API
-int csre_cs_detected_get_severity(csre_cs_detected_h detected, csre_cs_severity_level_e *pseverity)
+int csre_cs_detected_get_severity(csre_cs_detected_h detected,
+								  csre_cs_severity_level_e *pseverity)
 {
 	if (detected == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
@@ -490,7 +514,8 @@ int csre_cs_detected_get_threat_type(csre_cs_detected_h detected,
 }
 
 API
-int csre_cs_detected_get_malware_name(csre_cs_detected_h detected, const char **malware_name)
+int csre_cs_detected_get_malware_name(csre_cs_detected_h detected,
+									  const char **malware_name)
 {
 	if (detected == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
@@ -504,7 +529,8 @@ int csre_cs_detected_get_malware_name(csre_cs_detected_h detected, const char **
 }
 
 API
-int csre_cs_detected_get_detailed_url(csre_cs_detected_h detected, const char **detailed_url)
+int csre_cs_detected_get_detailed_url(csre_cs_detected_h detected,
+									  const char **detailed_url)
 {
 	if (detected == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
@@ -518,7 +544,8 @@ int csre_cs_detected_get_detailed_url(csre_cs_detected_h detected, const char **
 }
 
 API
-int csre_cs_detected_get_timestamp(csre_cs_detected_h detected, time_t *timestamp)
+int csre_cs_detected_get_timestamp(csre_cs_detected_h detected,
+								   time_t *timestamp)
 {
 	if (detected == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
@@ -590,7 +617,8 @@ int csre_cs_engine_get_name(csre_cs_engine_h engine, const char **name)
 }
 
 API
-int csre_cs_engine_get_vendor_logo(csre_cs_engine_h engine, unsigned char **logo_image,
+int csre_cs_engine_get_vendor_logo(csre_cs_engine_h engine,
+								   unsigned char **logo_image,
 								   unsigned int *image_size)
 {
 	auto eng = reinterpret_cast<csret_cs_engine_s *>(engine);
@@ -602,6 +630,7 @@ int csre_cs_engine_get_vendor_logo(csre_cs_engine_h engine, unsigned char **logo
 		return CSRE_ERROR_INVALID_PARAMETER;
 
 	auto s = eng->logoImage.size();
+
 	if (s > UINT_MAX - 1)
 		return CSRET_CS_ERROR_FILE_IO;
 
@@ -628,7 +657,8 @@ int csre_cs_engine_get_version(csre_cs_engine_h engine, const char **version)
 }
 
 API
-int csre_cs_engine_get_data_version(csre_cs_engine_h engine, const char **version)
+int csre_cs_engine_get_data_version(csre_cs_engine_h engine,
+									const char **version)
 {
 	auto eng = reinterpret_cast<csret_cs_engine_s *>(engine);
 
@@ -660,7 +690,8 @@ int csre_cs_engine_get_latest_update_time(csre_cs_engine_h engine, time_t *time)
 }
 
 API
-int csre_cs_engine_get_activated(csre_cs_engine_h engine, csre_cs_activated_e *pactivated)
+int csre_cs_engine_get_activated(csre_cs_engine_h engine,
+								 csre_cs_activated_e *pactivated)
 {
 	auto eng = reinterpret_cast<csret_cs_engine_s *>(engine);
 
@@ -679,7 +710,8 @@ int csre_cs_engine_get_activated(csre_cs_engine_h engine, csre_cs_activated_e *p
 }
 
 API
-int csre_cs_engine_get_api_version(csre_cs_engine_h engine, const char **version)
+int csre_cs_engine_get_api_version(csre_cs_engine_h engine,
+								   const char **version)
 {
 	auto eng = reinterpret_cast<csret_cs_engine_s *>(engine);
 

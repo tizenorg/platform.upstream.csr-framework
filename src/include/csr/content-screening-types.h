@@ -85,28 +85,29 @@ typedef enum {
 /**
  * @brief TCS context handle.
  */
-typedef struct __csr_cs_context_s* csr_cs_context_h;
+typedef struct __csr_cs_context_s *csr_cs_context_h;
 
 /**
  * @brief TCS detected malware info handle.
  */
-typedef struct __csr_cs_detected_s* csr_cs_detected_h;
+typedef struct __csr_cs_detected_s *csr_cs_detected_h;
 
 /**
  * @brief TCS detected malware list handle
  */
-typedef struct __csr_cs_detected_list_s* csr_cs_detected_list_h;
+typedef struct __csr_cs_detected_list_s *csr_cs_detected_list_h;
 
 /**
  * @brief TCS engine info handle.
  */
-typedef struct __csr_cs_engine_s* csr_cs_engine_h;
+typedef struct __csr_cs_engine_s *csr_cs_engine_h;
 
 /**
  * @brief The callback function is called  when a malware detected.\
  *        It's only for an asynchronous scan function.
  */
-typedef void (*csr_cs_on_detected_cb)(void *user_data, csr_cs_detected_h detected);
+typedef void (*csr_cs_on_detected_cb)(void *user_data,
+									  csr_cs_detected_h detected);
 
 /**
  * @brief The callback function is called  when scanning is fininshed without an error.\
@@ -130,7 +131,8 @@ typedef void (*csr_cs_on_error_cb)(void *user_data, int error_code);
  * @brief The callback function is called when a file scan is completed.\
  *        It's only for an asynchronous scan function.
  */
-typedef void (*csr_cs_on_file_scanned_cb)(void *user_data, const char* file_path);
+typedef void (*csr_cs_on_file_scanned_cb)(void *user_data,
+		const char *file_path);
 
 #ifdef __cplusplus
 }

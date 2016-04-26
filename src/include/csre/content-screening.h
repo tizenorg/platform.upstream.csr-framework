@@ -55,7 +55,8 @@ extern "C" {
  * @retval #CSRE_ERROR_UNKNOWN            Error with unknown reason
  * @retval -0x0100~-0xFF00                Engine defined error
  */
-int csre_cs_global_initialize(const char *ro_res_dir, const char *rw_working_dir);
+int csre_cs_global_initialize(const char *ro_res_dir,
+							  const char *rw_working_dir);
 
 /**
  * @brief Deinitializes content screening engine. This will be called only once before
@@ -92,7 +93,7 @@ int csre_cs_global_deinitialize();
  *
  * @see csre_cs_context_destroy()
  */
-int csre_cs_context_create(csre_cs_context_h* phandle);
+int csre_cs_context_create(csre_cs_context_h *phandle);
 
 /**
  * @brief Destroys context handle.
@@ -137,9 +138,9 @@ int csre_cs_context_destroy(csre_cs_context_h handle);
  * @see csre_cs_scan_file()
  */
 int csre_cs_scan_data(csre_cs_context_h handle,
-                    const unsigned char *data,
-                    size_t length,
-                    csre_cs_detected_h *pdetected);
+					  const unsigned char *data,
+					  size_t length,
+					  csre_cs_detected_h *pdetected);
 
 /**
  * @brief Main function for caller to scan a file specified by file path for malware.
@@ -166,11 +167,11 @@ int csre_cs_scan_data(csre_cs_context_h handle,
  * @see csre_cs_scan_data()
  */
 int csre_cs_scan_file(csre_cs_context_h handle,
-                  const char *file_path,
-                  csre_cs_detected_h *pdetected);
+					  const char *file_path,
+					  csre_cs_detected_h *pdetected);
 
 /**
- * @brief Main function for caller to scan an application specified 
+ * @brief Main function for caller to scan an application specified
  *        by an application's root directory for malware.
  *        The detection of a malware is done on the vendor's clould server.
  *
@@ -195,8 +196,9 @@ int csre_cs_scan_file(csre_cs_context_h handle,
  * @see csre_cs_context_create()
  * @see csre_cs_scan_data()
  */
-int csre_cs_scan_app_on_cloud(csre_cs_context_h handle, const char* app_root_dir,
-                  csre_cs_detected_h *pdetected);
+int csre_cs_scan_app_on_cloud(csre_cs_context_h handle,
+							  const char *app_root_dir,
+							  csre_cs_detected_h *pdetected);
 
 //==============================================================================
 // Result related
@@ -219,7 +221,8 @@ int csre_cs_scan_app_on_cloud(csre_cs_context_h handle, const char* app_root_dir
  * @see csre_cs_result_get_detected_by_idx()
  * @see csre_cs_result_get_detected_most_severe()
  */
-int csre_cs_detected_get_severity(csre_cs_detected_h detected, csre_cs_severity_level_e* pseverity);
+int csre_cs_detected_get_severity(csre_cs_detected_h detected,
+								  csre_cs_severity_level_e *pseverity);
 
 
 /**
@@ -235,7 +238,8 @@ int csre_cs_detected_get_severity(csre_cs_detected_h detected, csre_cs_severity_
  * @retval #CSRE_ERROR_INVALID_PARAMETER    pharmful_type is invalid.
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  */
-int csre_cs_detected_get_threat_type(csre_cs_detected_h detected, csre_cs_threat_type_e* pthreat_type);
+int csre_cs_detected_get_threat_type(csre_cs_detected_h detected,
+									 csre_cs_threat_type_e *pthreat_type);
 
 /**
  * @brief Extracts the name of a detected malware from the detected malware handle.
@@ -255,10 +259,11 @@ int csre_cs_detected_get_threat_type(csre_cs_detected_h detected, csre_cs_threat
  * @see csre_cs_result_get_detected_by_idx()
  * @see csre_cs_result_get_detected_most_severe()
  */
-int csre_cs_detected_get_malware_name(csre_cs_detected_h detected, const char** name);
+int csre_cs_detected_get_malware_name(csre_cs_detected_h detected,
+									  const char **name);
 
 /**
- * @brief Extracts an url of the vendor's web site that contains detailed information 
+ * @brief Extracts an url of the vendor's web site that contains detailed information
  *      about the detected malware from the detected malware handle.
  *
  * @param[in]  detected      A detected malware handle.
@@ -273,7 +278,8 @@ int csre_cs_detected_get_malware_name(csre_cs_detected_h detected, const char** 
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  * @retval -0x0100~-0xFF00                  Engine defined error
  */
-int csre_cs_detected_get_detailed_url(csre_cs_detected_h detected, const char** detailed_url);
+int csre_cs_detected_get_detailed_url(csre_cs_detected_h detected,
+									  const char **detailed_url);
 
 /**
  * @brief Extracts the time stamp when a malware is detected from the detected malware
@@ -291,7 +297,8 @@ int csre_cs_detected_get_detailed_url(csre_cs_detected_h detected, const char** 
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  * @retval -0x0100~-0xFF00                  Engine defined error
  */
-int csre_cs_detected_get_timestamp(csre_cs_detected_h detected, time_t* timestamp);
+int csre_cs_detected_get_timestamp(csre_cs_detected_h detected,
+								   time_t *timestamp);
 
 /**
  * @brief Get the error string for a given engine-defined error code.
@@ -309,7 +316,7 @@ int csre_cs_detected_get_timestamp(csre_cs_detected_h detected, time_t* timestam
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  * @retval -0x0100~-0xFF00                  Engine defined error
  */
-int csre_cs_get_error_string(int error_code, const char** string);
+int csre_cs_get_error_string(int error_code, const char **string);
 
 #ifdef __cplusplus
 }

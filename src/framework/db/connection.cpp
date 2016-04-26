@@ -36,7 +36,8 @@ Connection::~Connection()
 
 int Connection::exec(const std::string &query)
 {
-	if (::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK)
+	if (::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
+					   nullptr) != SQLITE_OK)
 		throw std::runtime_error(getErrorMessage());
 
 	return sqlite3_changes(m_handle);

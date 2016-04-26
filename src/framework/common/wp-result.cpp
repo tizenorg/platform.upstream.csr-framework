@@ -71,7 +71,7 @@ WpResult::WpResult(WpResult &&other) :
 {
 }
 
-WpResult &WpResult::operator=(WpResult && other)
+WpResult &WpResult::operator=(WpResult &&other)
 {
 	if (this == &other)
 		return *this;
@@ -97,8 +97,8 @@ void WpResult::set(int key, int value)
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to set as int. value=" << value));
+		throw std::logic_error(FORMAT("Invalid key[" << key <<
+									  "] comes in to set as int. value=" << value));
 	}
 
 	setValueFlag();
@@ -112,8 +112,8 @@ void WpResult::set(int key, const std::string &value)
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to set as std::string. value=" << value));
+		throw std::logic_error(FORMAT("Invalid key[" << key <<
+									  "] comes in to set as std::string. value=" << value));
 	}
 
 	setValueFlag();
@@ -127,8 +127,8 @@ void WpResult::set(int key, const char *value)
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to set as char*. value=" << value));
+		throw std::logic_error(FORMAT("Invalid key[" << key <<
+									  "] comes in to set as char*. value=" << value));
 	}
 
 	setValueFlag();
@@ -146,8 +146,8 @@ void WpResult::get(int key, int &value) const
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to set as int. value=" << value));
+		throw std::logic_error(FORMAT("Invalid key[" << key <<
+									  "] comes in to set as int. value=" << value));
 	}
 }
 
@@ -162,8 +162,8 @@ void WpResult::get(int key, const char **value) const
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to set as char**. value=" << value));
+		throw std::logic_error(FORMAT("Invalid key[" << key <<
+									  "] comes in to set as char**. value=" << value));
 	}
 }
 

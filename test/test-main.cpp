@@ -30,9 +30,11 @@
 struct TestConfig {
 	TestConfig()
 	{
-		boost::unit_test::unit_test_log.set_threshold_level(boost::unit_test::log_test_units);
+		boost::unit_test::unit_test_log.set_threshold_level(
+			boost::unit_test::log_test_units);
 		boost::unit_test::results_reporter::set_level(boost::unit_test::SHORT_REPORT);
-		boost::unit_test::unit_test_log.set_formatter(new Csr::Test::colour_log_formatter);
+		boost::unit_test::unit_test_log.set_formatter(new
+				Csr::Test::colour_log_formatter);
 	}
 };
 
@@ -42,13 +44,13 @@ struct Initializer {
 	{
 		if (!isEngineInitialized) {
 			int ret = csre_cs_global_initialize(
-				SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
+						  SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
 
 			if (ret != CSRE_ERROR_NONE)
 				throw std::logic_error("Failed to init content screening engine.");
 
 			ret = csre_wp_global_initialize(
-				SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
+					  SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
 
 			if (ret != CSRE_ERROR_NONE)
 				throw std::logic_error("Failed to init web protection engine.");
@@ -65,10 +67,12 @@ struct Initializer {
 			return;
 
 		int ret = csre_cs_global_deinitialize();
+
 		if (ret != CSRE_ERROR_NONE)
 			throw std::logic_error("Failed to deinit content screening engine.");
 
 		ret = csre_wp_global_deinitialize();
+
 		if (ret != CSRE_ERROR_NONE)
 			throw std::logic_error("Failed to deinit web protection engine.");
 

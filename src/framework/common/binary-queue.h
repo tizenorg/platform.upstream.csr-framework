@@ -36,8 +36,8 @@ public:
 	BinaryQueue();
 	virtual ~BinaryQueue();
 
-	BinaryQueue(BinaryQueue&&) = default;
-	BinaryQueue &operator=(BinaryQueue&&) = default;
+	BinaryQueue(BinaryQueue &&) = default;
+	BinaryQueue &operator=(BinaryQueue &&) = default;
 	BinaryQueue(const BinaryQueue &) = delete;
 	BinaryQueue &operator=(const BinaryQueue &) = delete;
 

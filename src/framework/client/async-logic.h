@@ -34,7 +34,8 @@ namespace Client {
 
 class AsyncLogic {
 public:
-	AsyncLogic(std::shared_ptr<Context> &context, const Callback &cb, void *userdata,
+	AsyncLogic(std::shared_ptr<Context> &context, const Callback &cb,
+			   void *userdata,
 			   const std::function<bool()> &isStopped);
 	virtual ~AsyncLogic();
 
@@ -51,13 +52,15 @@ private:
 	void add(Result *);
 
 	std::shared_ptr<Context> &m_origCtx; // for registering results for auto-release
-	std::unique_ptr<Context> m_ctx; // TODO: append it to handle context when destroyed
+
+	// TODO: append it to handle context when destroyed
+	std::unique_ptr<Context> m_ctx;
+
 	Callback m_cb;
 	void *m_userdata;
 	std::function<bool()> m_isStopped;
 
 	std::unique_ptr<Dispatcher> m_dispatcher;
-
 };
 
 template<typename T>

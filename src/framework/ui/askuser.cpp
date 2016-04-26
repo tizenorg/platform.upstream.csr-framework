@@ -35,36 +35,40 @@ AskUser::~AskUser()
 {
 }
 
-CsResponse AskUser::fileSingle(const std::string &message, const FileItem &item) const
+CsResponse AskUser::fileSingle(const std::string &message,
+							   const FileItem &item) const
 {
 	return static_cast<CsResponse>(m_dispatcher->methodCall<int>(
-		static_cast<int>(CommandId::FILE_SINGLE),
-		message,
-		item));
+									   static_cast<int>(CommandId::FILE_SINGLE),
+									   message,
+									   item));
 }
 
-ResponseMap AskUser::fileMultiple(const std::string &message, const FileItems &items) const
+ResponseMap AskUser::fileMultiple(const std::string &message,
+								  const FileItems &items) const
 {
 	return m_dispatcher->methodCall<ResponseMap>(
-		static_cast<int>(CommandId::FILE_MULTIPLE),
-		message,
-		items);
+			   static_cast<int>(CommandId::FILE_MULTIPLE),
+			   message,
+			   items);
 }
 
-WpResponse AskUser::wpAskPermission(const std::string &message, const UrlItem &item) const
+WpResponse AskUser::wpAskPermission(const std::string &message,
+									const UrlItem &item) const
 {
 	return static_cast<WpResponse>(m_dispatcher->methodCall<int>(
-		static_cast<int>(CommandId::WP_ASK_PERMISSION),
-		message,
-		item));
+									   static_cast<int>(CommandId::WP_ASK_PERMISSION),
+									   message,
+									   item));
 }
 
-WpResponse AskUser::wpNotify(const std::string &message, const UrlItem &item) const
+WpResponse AskUser::wpNotify(const std::string &message,
+							 const UrlItem &item) const
 {
 	return static_cast<WpResponse>(m_dispatcher->methodCall<int>(
-		static_cast<int>(CommandId::WP_NOTIFY),
-		message,
-		item));
+									   static_cast<int>(CommandId::WP_NOTIFY),
+									   message,
+									   item));
 }
 
 } // namespace Ui

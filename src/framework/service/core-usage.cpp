@@ -39,13 +39,16 @@ void CpuUsageManager::initialize()
 
 bool CpuUsageManager::setThreadCoreUsage(int percent)
 {
-	if(percent > 100 || percent <= 0)
+	if (percent > 100 || percent <= 0)
 		throw std::runtime_error("invalid core usage percent.");
+
 	cpu_set_t set;
 	CPU_ZERO(&set);
 	int cnt = (m_cores * percent) / 100;
+
 	if (cnt < MIN_CORE_USED)
 		cnt = MIN_CORE_USED;
+
 	for (int cpuid = m_cores - 1; cpuid >= (m_cores - cnt); cpuid--)
 		CPU_SET(cpuid, &set);
 
@@ -70,8 +73,10 @@ int CpuUsageManager::getUsedCnt()
 {
 	cpu_set_t usedCore;
 	CPU_ZERO(&usedCore);
+
 	if (sched_getaffinity(0, sizeof(cpu_set_t), &usedCore) != 0)
 		throw std::runtime_error("sched_getaffinity failed.");
+
 	return CPU_COUNT(&usedCore);
 }
 

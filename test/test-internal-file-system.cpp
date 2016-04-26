@@ -54,6 +54,7 @@ int __app_install_cb(int req_id, const char *pkg_type, const char *pkgid,
 	(void) data;
 
 	installed = false;
+
 	if (key && strncmp(key, "end", strlen("end")) == 0) {
 		if (strncmp(val, "ok", strlen("ok")) == 0) {
 			installed = true;
@@ -61,6 +62,7 @@ int __app_install_cb(int req_id, const char *pkg_type, const char *pkgid,
 			g_main_loop_unref(mainLoop);
 		}
 	}
+
 	return 0;
 }
 
@@ -71,19 +73,15 @@ gboolean __app_uninstall_timeout(gpointer)
 	return TRUE;
 }
 
-void __assertFile(const Csr::File &file, const std::string &path, const std::string &user,
+void __assertFile(const Csr::File &file, const std::string &path,
+				  const std::string &user,
 				  const std::string &pkgId, const std::string &pkgPath, bool inApp)
 {
-	BOOST_REQUIRE_MESSAGE(file.getPath() == path,
-						  "expected=" << path << ",actual=" << file.getPath());
-	BOOST_REQUIRE_MESSAGE(file.getAppUser() == user,
-						  "expected=" << user << ",actual=" << file.getAppUser());
-	BOOST_REQUIRE_MESSAGE(file.getAppPkgId() == pkgId,
-						  "expected=" << pkgId << ",actual=" << file.getAppPkgId());
-	BOOST_REQUIRE_MESSAGE(file.getAppPkgPath() == pkgPath,
-						  "expected=" << pkgPath << ",actual=" << file.getAppPkgPath());
-	BOOST_REQUIRE_MESSAGE(file.isInApp() == inApp,
-						  "expected=" << ((inApp) ? "APP" : "FILE") << ",actual=" << ((file.isInApp()) ? "APP" : "FILE"));
+	ASSERT_IF(file.getPath(), path);
+	ASSERT_IF(file.getAppUser(), user);
+	ASSERT_IF(file.getAppPkgId(), pkgId);
+	ASSERT_IF(file.getAppPkgPath(), pkgPath);
+	ASSERT_IF(file.isInApp(), inApp);
 }
 
 void __createFile(const std::string &path)
@@ -104,7 +102,7 @@ void __removeFile(const std::string &path)
 void __writeFile(const std::string &path)
 {
 	auto fp = fopen(path.c_str(), "w");
-	BOOST_REQUIRE(fp != nullptr);
+	CHECK_IS_NOT_NULL(fp);
 	char buffer[] = { 't', 'e', 's', 't' };
 	fwrite(buffer , sizeof(char), sizeof(buffer), fp);
 	fclose(fp);
@@ -118,40 +116,40 @@ BOOST_AUTO_TEST_CASE(check_in_app)
 {
 	std::string path1("/sdcard/text.txt");
 	Csr::File file1(path1);
-	__assertFile(file1, path1, "", "", "", false);
+	__assertFile(file1, path1, std::string(), std::string(), std::string(), false);
 
 	std::string path2("/usr/apps1/testpkg/test.txt");
 	Csr::File file2(path2);
-	__assertFile(file2, path2, "", "", "", false);
+	__assertFile(file2, path2, std::string(), std::string(), std::string(), false);
 
 	std::string path3("/opt/usr/apps1/testpkg/test.txt");
 	Csr::File file3(path3);
-	__assertFile(file3, path3, "", "", "", false);
+	__assertFile(file3, path3, std::string(), std::string(), std::string(), false);
 
 	std::string path4("/sdcard1/apps/testpkg/test.txt");
 	Csr::File file4(path4);
-	__assertFile(file4, path4, "", "", "", false);
+	__assertFile(file4, path4, std::string(), std::string(), std::string(), false);
 
 	std::string pkgid("testpkg");
 	std::string appPath1("/usr/apps/" + pkgid);
 	std::string appFilePath1(appPath1 + "/test.txt");
 	Csr::File app1(appFilePath1);
-	__assertFile(app1, appFilePath1,  "", pkgid, appPath1, true);
+	__assertFile(app1, appFilePath1, std::string(), pkgid, appPath1, true);
 
 	std::string appPath2("/opt/usr/apps/" + pkgid);
 	std::string appFilePath2(appPath2 + "/test.txt");
 	Csr::File app2(appFilePath2);
-	__assertFile(app2, appFilePath2,  "", pkgid, appPath2, true);
+	__assertFile(app2, appFilePath2, std::string(), pkgid, appPath2, true);
 
 	std::string appPath3("/sdcard/apps/" + pkgid);
 	std::string appFilePath3(appPath3 + "/test.txt");
 	Csr::File app3(appFilePath3);
-	__assertFile(app3, appFilePath3,  "", pkgid, appPath3, true);
+	__assertFile(app3, appFilePath3, std::string(), pkgid, appPath3, true);
 
 	std::string appPath4("/sdcard/app2sd/" + pkgid);
 	std::string appFilePath4(appPath4 + "/test.txt");
 	Csr::File app4(appFilePath4);
-	__assertFile(app4, appFilePath4,  "", pkgid, appPath4, true);
+	__assertFile(app4, appFilePath4, std::string(), pkgid, appPath4, true);
 }
 
 BOOST_AUTO_TEST_CASE(remove_file)
@@ -171,21 +169,23 @@ BOOST_AUTO_TEST_CASE(remove_file)
 
 BOOST_AUTO_TEST_CASE(remove_app)
 {
-	std::string fpath = "/opt/usr/apps/org.example.maliciousapp/shared/res/malicious.txt";
+	std::string fpath =
+		"/opt/usr/apps/org.example.maliciousapp/shared/res/malicious.txt";
 	std::string appPath = TEST_APP_PKG;
 
 	// install the test app
 	auto pkgmgr = pkgmgr_client_new(PC_REQUEST);
-	BOOST_REQUIRE(pkgmgr != nullptr);
+	CHECK_IS_NOT_NULL(pkgmgr);
 
 	int ret = pkgmgr_client_install(pkgmgr, nullptr, nullptr,
-								appPath.c_str(), nullptr, PM_QUIET, ::__app_install_cb, nullptr);
-	BOOST_REQUIRE_MESSAGE(ret > PKGMGR_R_OK, std::string("expected>") << PKGMGR_R_OK << ", actual=" << ret);
+									appPath.c_str(), nullptr, PM_QUIET, ::__app_install_cb, nullptr);
+	BOOST_REQUIRE_MESSAGE(ret > PKGMGR_R_OK,
+						  std::string("expected>") << PKGMGR_R_OK << ", actual=" << ret);
 	g_timeout_add_seconds(30, __app_uninstall_timeout, this);
 	mainLoop = g_main_loop_new(nullptr, false);
 	g_main_loop_run(mainLoop);
 	pkgmgr_client_free(pkgmgr);
-	BOOST_REQUIRE_MESSAGE(installed == true, "fail to install test app");
+	BOOST_REQUIRE_MESSAGE(installed, "fail to install test app");
 
 	// remove the app
 	Csr::File app(fpath);
@@ -205,6 +205,7 @@ BOOST_AUTO_TEST_CASE(file_visitor_positive_existing)
 	CHECK_IS_NOT_NULL(visitor);
 
 	int cnt = 0;
+
 	while (visitor->next())
 		cnt++;
 
@@ -221,6 +222,7 @@ BOOST_AUTO_TEST_CASE(file_visitor_positive_modified)
 	CHECK_IS_NOT_NULL(visitor);
 
 	int cnt = 0;
+
 	while (visitor->next())
 		cnt++;
 
@@ -243,6 +245,7 @@ BOOST_AUTO_TEST_CASE(directory_visitor_positive_existing)
 	CHECK_IS_NOT_NULL(visitor);
 
 	int cnt = 0;
+
 	while (visitor->next())
 		cnt++;
 
@@ -260,6 +263,7 @@ BOOST_AUTO_TEST_CASE(directory_visitor_positive_modified)
 	CHECK_IS_NOT_NULL(visitor);
 
 	int cnt = 0;
+
 	while (visitor->next())
 		cnt++;
 

@@ -189,9 +189,27 @@ std::pair<CommandId, BinaryQueue> Logic::getRequestInfo(const RawBuffer &data)
 
 RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 {
-	INFO("Scan Data[size=" << data.size() << "] by engine");
+	CsEngineContext engineContext(m_cs);
+	auto &c = engineContext.get();
 
-	printCsContext(context);
+	csre_cs_detected_h result;
+	int ret = CSR_ERROR_NONE;
+	int eret = m_cs->scanData(c, data, &result);
+	if (eret != CSRE_ERROR_NONE) {
+		ret = CSR_ERROR_ENGINE_INTERNAL;
+		ERROR("Engine error. engine api ret: " << eret);
+	}
+
+	// detected handle is null if it's safe
+	if (result == nullptr)
+		return BinaryQueue::Serialize(ret, CsDetected()).pop();
+
+	auto cd = convert(result);
+	int severity_level;
+	wr.get(static_cast<int>(CsDetected::Key::SeverityLevel), severity_level);
+
+	switch (static_cast<csr_cs_severity_level_e>(severity_level)) {
+	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
 }
@@ -381,6 +399,71 @@ void Logic::getUserResponse(const WpContext &c, const std::string &url,
 				   CSR_WP_PROCESSING_DISALLOWED);
 		else
 			throw std::runtime_error("Invalid response from popup service.");
+	}
+}
+
+CsDetected Logic::convert(csre_cs_detected_h &result)
+{
+	DEBUG("convert engine result handle to CsDetected start");
+
+	csre_cs_severity_level_e eseverity = CSRE_CS_SEVERITY_LOW;
+	int eret = m_cs->getSeverity(result, &eseverity);
+	if (eret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("Converting cs detected[seveirty]. ret: " << eret));
+
+	csre_cs_threat_type_e ethreat = CSRE_CS_THREAT_GENERIC;
+	eret = m_cs->getThreatType(result, &ethreat);
+	if (eret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("Converting cs detected[threat]. ret: " << eret));
+
+	std::string ename;
+	eret = m_cs->getMalwareName(result, ename);
+	if (eret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("Converting cs detected[name]. ret: " << eret));
+
+	std::string edurl;
+	eret = m_cs->getDetailedUrl(result, edurl);
+	if (eret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("Converting cs detected[detailed url]. ret: " << eret));
+
+	time_t ets;
+	eret = m_cs->getTimestamp(result, &ets);
+	if (eret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("Converting cs detected[timestamp]. ret: " << eret));
+
+	csr_cs_severity_level_e severity;
+	switch (eseverity) {
+	case CSRE_CS_SEVERITY_LOW:
+		severity = CSR_CS_SEVERITY_LOW;
+		break;
+
+	case CSRE_CS_SEVERITY_MEDIUM:
+		severity = CSR_CS_SEVERITY_MEDIUM;
+		break;
+
+	case CSRE_CS_SEVERITY_HIGH:
+		severity = CSR_CS_SEVERITY_HIGH;
+		break;
+
+	default:
+		throw std::logic_error(FORMAT("Invalid eseverity: " << static_cast<int>(eseverity)));
+	}
+
+	csr_cs_threat_type_e threat;
+	switch (ethreat) {
+	case CSRE_CS_THREAT_MALWARE:
+		threat = CSR_CS_THREAT_MALWARE;
+		break;
+
+	case CSRE_CS_THREAT_RISKY:
+		threat = CSR_CS_THREAT_RISKY;
+		break;
+
+	case CSRE_CS_THREAT_GENERIC:
+		threat = CSR_CS_THREAT_GENERIC;
+
+	default:
+		throw std::logic_error(FORMAT("Invalid ethreat: " << static_cast<int>(ethreat)));
 	}
 }
 

@@ -86,12 +86,14 @@ static std::list<csret_wp_risky_url_s> g_risky_urls;
 //==============================================================================
 // Utilities functions
 //==============================================================================
-std::string csret_wp_extract_value(const std::string &line, const std::string &key)
+std::string csret_wp_extract_value(const std::string &line,
+								   const std::string &key)
 {
 	if (line.empty() || key.empty())
 		return std::string();
 
 	auto pos = line.find(key);
+
 	if (pos == std::string::npos || pos != 0)
 		return std::string();
 
@@ -112,16 +114,19 @@ int csret_wp_read_risky_urls(const std::string &path)
 	// risk_level=MEDIUM
 	// detailed_url=http://medium.risky.com
 	std::ifstream f(path.c_str());
+
 	if (!f.is_open())
 		return CSRET_WP_ERROR_NO_RISKY_URL_FILE;
 
 	std::string line;
 	csret_wp_risky_url_s node;
+
 	while (std::getline(f, line)) {
 		if (line.empty() || line[0] == '#')
 			continue;
 
 		auto value = csret_wp_extract_value(line, "url=");
+
 		if (!value.empty()) {
 			if (!node.url.empty()) {
 				g_risky_urls.push_back(node);
@@ -133,6 +138,7 @@ int csret_wp_read_risky_urls(const std::string &path)
 		}
 
 		value = csret_wp_extract_value(line, "risk_level=");
+
 		if (!value.empty()) {
 			if (value.compare("LOW") == 0)
 				node.risk_level = CSRE_WP_RISK_LOW;
@@ -147,6 +153,7 @@ int csret_wp_read_risky_urls(const std::string &path)
 		}
 
 		value = csret_wp_extract_value(line, "detailed_url=");
+
 		if (!value.empty())
 			node.detailed_url = std::move(value);
 	}
@@ -191,14 +198,18 @@ csret_wp_engine_s *csret_wp_init_engine()
 	ptr->engineVersion = ENGINE_VERSION;
 	ptr->dataVersion = ENGINE_VERSION;
 
-	int ret = csret_wp_read_binary(g_resdir + "/" PRIVATE_LOGO_FILE, ptr->logoImage);
+	int ret = csret_wp_read_binary(g_resdir + "/" PRIVATE_LOGO_FILE,
+								   ptr->logoImage);
+
 	if (ret != CSRE_ERROR_NONE) {
 		delete ptr;
 		return nullptr;
 	}
 
 	struct stat attrib;
+
 	stat(PRIVATE_DB_NAME, &attrib);
+
 	ptr->latestUpdate = attrib.st_mtime;
 
 	return ptr;
@@ -209,7 +220,8 @@ csret_wp_engine_s *csret_wp_init_engine()
 // Main function related
 //==============================================================================
 API
-int csre_wp_global_initialize(const char *ro_res_dir, const char *rw_working_dir)
+int csre_wp_global_initialize(const char *ro_res_dir,
+							  const char *rw_working_dir)
 {
 	if (ro_res_dir == nullptr || rw_working_dir == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
@@ -220,6 +232,7 @@ int csre_wp_global_initialize(const char *ro_res_dir, const char *rw_working_dir
 	g_risky_urls.clear();
 
 	int ret = csret_wp_read_risky_urls(g_workingdir + "/" PRIVATE_DB_NAME);
+
 	if (ret != CSRE_ERROR_NONE && ret != CSRET_WP_ERROR_NO_RISKY_URL_FILE)
 		return ret;
 
@@ -263,7 +276,8 @@ int csre_wp_context_destroy(csre_wp_context_h handle)
 }
 
 API
-int csre_wp_check_url(csre_wp_context_h handle, const char *url, csre_wp_check_result_h *presult)
+int csre_wp_check_url(csre_wp_context_h handle, const char *url,
+					  csre_wp_check_result_h *presult)
 {
 	auto context = reinterpret_cast<csret_wp_context_s *>(handle);
 
@@ -277,6 +291,7 @@ int csre_wp_check_url(csre_wp_context_h handle, const char *url, csre_wp_check_r
 
 	csret_wp_risky_url_s detected;
 	detected.url = in_url;
+
 	// check url from static risky urls list
 	for (auto &item : g_risky_urls) {
 		if (in_url.find(item.url) == std::string::npos)
@@ -289,7 +304,8 @@ int csre_wp_check_url(csre_wp_context_h handle, const char *url, csre_wp_check_r
 	}
 
 	context->detected_list.push_back(detected);
-	*presult = reinterpret_cast<csre_wp_check_result_h>(&context->detected_list.back());
+	*presult = reinterpret_cast<csre_wp_check_result_h>
+			   (&context->detected_list.back());
 
 	return CSRE_ERROR_NONE;
 }
@@ -299,7 +315,8 @@ int csre_wp_check_url(csre_wp_context_h handle, const char *url, csre_wp_check_r
 // Result related
 //==============================================================================
 API
-int csre_wp_result_get_risk_level(csre_wp_check_result_h result, csre_wp_risk_level_e *plevel)
+int csre_wp_result_get_risk_level(csre_wp_check_result_h result,
+								  csre_wp_risk_level_e *plevel)
 {
 	if (result == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
@@ -315,7 +332,8 @@ int csre_wp_result_get_risk_level(csre_wp_check_result_h result, csre_wp_risk_le
 }
 
 API
-int csre_wp_result_get_detailed_url(csre_wp_check_result_h result, const char** detailed_url)
+int csre_wp_result_get_detailed_url(csre_wp_check_result_h result,
+									const char **detailed_url)
 {
 	if (result == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
@@ -389,7 +407,8 @@ int csre_wp_engine_get_name(csre_wp_engine_h engine, const char **name)
 }
 
 API
-int csre_wp_engine_get_vendor_logo(csre_wp_engine_h engine, unsigned char **vendor_logo_image,
+int csre_wp_engine_get_vendor_logo(csre_wp_engine_h engine,
+								   unsigned char **vendor_logo_image,
 								   unsigned int *image_size)
 {
 	auto eng = reinterpret_cast<csret_wp_engine_s *>(engine);
@@ -401,6 +420,7 @@ int csre_wp_engine_get_vendor_logo(csre_wp_engine_h engine, unsigned char **vend
 		return CSRE_ERROR_INVALID_PARAMETER;
 
 	auto s = eng->logoImage.size();
+
 	if (s > UINT_MAX - 1)
 		return CSRET_WP_ERROR_FILE_IO;
 
@@ -427,7 +447,8 @@ int csre_wp_engine_get_version(csre_wp_engine_h engine, const char **version)
 }
 
 API
-int csre_wp_engine_get_data_version(csre_wp_engine_h engine, const char **version)
+int csre_wp_engine_get_data_version(csre_wp_engine_h engine,
+									const char **version)
 {
 	auto eng = reinterpret_cast<csret_wp_engine_s *>(engine);
 
@@ -460,7 +481,8 @@ int csre_wp_engine_get_latest_update_time(csre_wp_engine_h engine, time_t *time)
 
 
 API
-int csre_wp_engine_get_activated(csre_wp_engine_h engine, csre_wp_activated_e *pactivated)
+int csre_wp_engine_get_activated(csre_wp_engine_h engine,
+								 csre_wp_activated_e *pactivated)
 {
 	auto eng = reinterpret_cast<csret_wp_engine_s *>(engine);
 
@@ -479,7 +501,8 @@ int csre_wp_engine_get_activated(csre_wp_engine_h engine, csre_wp_activated_e *p
 }
 
 API
-int csre_wp_engine_get_api_version(csre_wp_engine_h engine, const char **version)
+int csre_wp_engine_get_api_version(csre_wp_engine_h engine,
+								   const char **version)
 {
 	auto eng = reinterpret_cast<csret_wp_engine_s *>(engine);
 

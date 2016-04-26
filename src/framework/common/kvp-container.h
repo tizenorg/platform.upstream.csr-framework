@@ -40,7 +40,8 @@ public:
 	virtual void get(int, int &) const;
 	virtual void get(int, bool &) const;
 	virtual void get(int, std::string &) const;
-	virtual void get(int, const char **) const; // For not copy to string lifecycle within itself.
+	virtual void get(int, const char **)
+	const; // For not copy to string lifecycle within itself.
 	virtual void get(int, time_t &) const;
 };
 

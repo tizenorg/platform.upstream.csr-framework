@@ -55,7 +55,7 @@ extern "C" {
  *
  * @see csr_wp_context_destroy()
  */
-int csr_wp_context_create(csr_wp_context_h* phandle);
+int csr_wp_context_create(csr_wp_context_h *phandle);
 
 /**
  * @brief Releases all system resources associated with a CSR Web Protection API handle.
@@ -116,7 +116,7 @@ int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user);
  *
  * @see csr_wp_context_create()
  */
-int csr_wp_set_popup_message(csr_wp_context_h handle, const char* message);
+int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
 
 /**
  * @brief Main function for caller to check URL reputation against the engine vendor's
@@ -149,7 +149,8 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char* message);
  * @see csr_wp_set_ask_user()
  * @see csr_wp_set_popup_message()
  */
-int csr_wp_check_url(csr_wp_context_h handle, const char *url, csr_wp_check_result_h *presult);
+int csr_wp_check_url(csr_wp_context_h handle, const char *url,
+					 csr_wp_check_result_h *presult);
 
 //==============================================================================
 // Result related
@@ -169,7 +170,8 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url, csr_wp_check_resu
  *
  * @see csr_wp_check_url()
  */
-int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level_e* plevel);
+int csr_wp_result_get_risk_level(csr_wp_check_result_h result,
+								 csr_wp_risk_level_e *plevel);
 
 /**
  * @brief Extracts an url of vendor's web site that contains detailed information about the risk
@@ -190,7 +192,8 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level
  *
  * @see csr_wp_check_url()
  */
-int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, const char** detailed_url);
+int csr_wp_result_get_detailed_url(csr_wp_check_result_h result,
+								   const char **detailed_url);
 
 /**
  * @brief Extracts a user reponse of a popup from the result handle.
@@ -208,7 +211,8 @@ int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, const char** de
  * @see csr_wp_check_url()
  * @see #csr_wp_user_response_e
  */
-int csr_wp_result_get_user_response(csr_wp_check_result_h result, csr_wp_user_response_e* presponse);
+int csr_wp_result_get_user_response(csr_wp_check_result_h result,
+									csr_wp_user_response_e *presponse);
 
 
 #ifdef __cplusplus

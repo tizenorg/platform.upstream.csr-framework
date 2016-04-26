@@ -34,12 +34,12 @@ extern "C" {
 /**
  * CSR CS engine's context handle.
  */
-typedef struct csre_cs_context_s* csre_cs_context_h;
+typedef struct csre_cs_context_s *csre_cs_context_h;
 
 /**
  * CSR CS engine's detected malware info handle.
  */
-typedef struct csre_cs_detected_s* csre_cs_detected_h;
+typedef struct csre_cs_detected_s *csre_cs_detected_h;
 
 /**
  * @brief Severity level of an detected malware

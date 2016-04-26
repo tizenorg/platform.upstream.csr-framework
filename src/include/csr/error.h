@@ -66,7 +66,7 @@ typedef enum {
  * @retval #CSR_ERROR_INVALID_PARAMETER    error_code or error_string is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_get_error_string(int error_code, char** string);
+int csr_get_error_string(int error_code, char **string);
 
 
 #ifdef __cplusplus

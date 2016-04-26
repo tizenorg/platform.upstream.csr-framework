@@ -42,9 +42,11 @@ public:
 	AskUser &operator=(const AskUser &) = delete;
 
 	CsResponse fileSingle(const std::string &message, const FileItem &item) const;
-	ResponseMap fileMultiple(const std::string &message, const FileItems &items) const;
+	ResponseMap fileMultiple(const std::string &message,
+							 const FileItems &items) const;
 
-	WpResponse wpAskPermission(const std::string &message, const UrlItem &item) const;
+	WpResponse wpAskPermission(const std::string &message,
+							   const UrlItem &item) const;
 	WpResponse wpNotify(const std::string &message, const UrlItem &item) const;
 
 private:

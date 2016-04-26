@@ -54,6 +54,7 @@ int __app_install_cb(int req_id, const char *pkg_type, const char *pkgid,
 	(void) data;
 
 	installed = false;
+
 	if (key && strncmp(key, "end", strlen("end")) == 0) {
 		if (strncmp(val, "ok", strlen("ok")) == 0) {
 			installed = true;
@@ -61,6 +62,7 @@ int __app_install_cb(int req_id, const char *pkg_type, const char *pkgid,
 			g_main_loop_unref(mainLoop);
 		}
 	}
+
 	return 0;
 }
 
@@ -71,7 +73,8 @@ gboolean __app_uninstall_timeout(gpointer)
 	return TRUE;
 }
 
-void __assertFile(const Csr::File &file, const std::string &path, const std::string &user,
+void __assertFile(const Csr::File &file, const std::string &path,
+				  const std::string &user,
 				  const std::string &pkgId, const std::string &pkgPath, bool inApp)
 {
 	BOOST_REQUIRE_MESSAGE(file.getPath() == path,
@@ -83,7 +86,8 @@ void __assertFile(const Csr::File &file, const std::string &path, const std::str
 	BOOST_REQUIRE_MESSAGE(file.getAppPkgPath() == pkgPath,
 						  "expected=" << pkgPath << ",actual=" << file.getAppPkgPath());
 	BOOST_REQUIRE_MESSAGE(file.isInApp() == inApp,
-						  "expected=" << ((inApp) ? "APP" : "FILE") << ",actual=" << ((file.isInApp()) ? "APP" : "FILE"));
+						  "expected=" << ((inApp) ? "APP" : "FILE") << ",actual=" << ((
+									  file.isInApp()) ? "APP" : "FILE"));
 }
 
 void __createFile(const std::string &path)
@@ -171,7 +175,8 @@ BOOST_AUTO_TEST_CASE(remove_file)
 
 BOOST_AUTO_TEST_CASE(remove_app)
 {
-	std::string fpath = "/opt/usr/apps/org.example.maliciousapp/shared/res/malicious.txt";
+	std::string fpath =
+		"/opt/usr/apps/org.example.maliciousapp/shared/res/malicious.txt";
 	std::string appPath = TEST_APP_PKG;
 
 	// install the test app
@@ -179,8 +184,9 @@ BOOST_AUTO_TEST_CASE(remove_app)
 	BOOST_REQUIRE(pkgmgr != nullptr);
 
 	int ret = pkgmgr_client_install(pkgmgr, nullptr, nullptr,
-								appPath.c_str(), nullptr, PM_QUIET, ::__app_install_cb, nullptr);
-	BOOST_REQUIRE_MESSAGE(ret > PKGMGR_R_OK, std::string("expected>") << PKGMGR_R_OK << ", actual=" << ret);
+									appPath.c_str(), nullptr, PM_QUIET, ::__app_install_cb, nullptr);
+	BOOST_REQUIRE_MESSAGE(ret > PKGMGR_R_OK,
+						  std::string("expected>") << PKGMGR_R_OK << ", actual=" << ret);
 	g_timeout_add_seconds(30, __app_uninstall_timeout, this);
 	mainLoop = g_main_loop_new(nullptr, false);
 	g_main_loop_run(mainLoop);
@@ -205,6 +211,7 @@ BOOST_AUTO_TEST_CASE(file_visitor_positive_existing)
 	CHECK_IS_NOT_NULL(visitor);
 
 	int cnt = 0;
+
 	while (visitor->next())
 		cnt++;
 
@@ -221,6 +228,7 @@ BOOST_AUTO_TEST_CASE(file_visitor_positive_modified)
 	CHECK_IS_NOT_NULL(visitor);
 
 	int cnt = 0;
+
 	while (visitor->next())
 		cnt++;
 
@@ -243,6 +251,7 @@ BOOST_AUTO_TEST_CASE(directory_visitor_positive_existing)
 	CHECK_IS_NOT_NULL(visitor);
 
 	int cnt = 0;
+
 	while (visitor->next())
 		cnt++;
 
@@ -260,6 +269,7 @@ BOOST_AUTO_TEST_CASE(directory_visitor_positive_modified)
 	CHECK_IS_NOT_NULL(visitor);
 
 	int cnt = 0;
+
 	while (visitor->next())
 		cnt++;
 

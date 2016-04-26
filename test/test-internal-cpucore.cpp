@@ -38,28 +38,36 @@ BOOST_AUTO_TEST_CASE(set_core_usage)
 
 	inst->setThreadCoreUsage(Csr::USAGE_SINGLE);
 	BOOST_REQUIRE_MESSAGE(total == inst->getCoreCnt(),
-						  "Failed. setThreadCoreUsage. Total=" << inst->getCoreCnt() << ", expectd=" << total);
+						  "Failed. setThreadCoreUsage. Total=" << inst->getCoreCnt() << ", expectd=" <<
+						  total);
 	BOOST_REQUIRE_MESSAGE((1 * 100) / total == inst->getCoreUsage(),
-						  "Failed. setThreadCoreUsage. Usage=" << inst->getCoreUsage() << ", expectd=" << (1 * 100) / total);
+						  "Failed. setThreadCoreUsage. Usage=" << inst->getCoreUsage() << ", expectd="
+						  << (1 * 100) / total);
 
 	inst->setThreadCoreUsage(Csr::USAGE_HALF);
 	BOOST_REQUIRE_MESSAGE(total == inst->getCoreCnt(),
-						  "Failed. setThreadCoreUsage. Total=" << inst->getCoreCnt() << ", expectd=" << total);
-	BOOST_REQUIRE_MESSAGE(((total > 1) ? total / 2 : 1) * 100 / total == inst->getCoreUsage(),
+						  "Failed. setThreadCoreUsage. Total=" << inst->getCoreCnt() << ", expectd=" <<
+						  total);
+	BOOST_REQUIRE_MESSAGE(((total > 1) ? total / 2 : 1) * 100 / total ==
+						  inst->getCoreUsage(),
 						  "Failed. setThreadCoreUsage. Usage=" << inst->getCoreUsage()
 						  << ", expectd=" << ((total > 1) ? total / 2 : 1) * 100 / total);
 
 	inst->setThreadCoreUsage(Csr::USAGE_FULL);
 	BOOST_REQUIRE_MESSAGE(total == inst->getCoreCnt(),
-						  "Failed. setThreadCoreUsage. Total=" << inst->getCoreCnt() << ", expectd=" << total);
+						  "Failed. setThreadCoreUsage. Total=" << inst->getCoreCnt() << ", expectd=" <<
+						  total);
 	BOOST_REQUIRE_MESSAGE(100 == inst->getCoreUsage(),
-						  "Failed. setThreadCoreUsage. Usage=" << inst->getCoreUsage() << ", expectd=" << 100);
+						  "Failed. setThreadCoreUsage. Usage=" << inst->getCoreUsage() << ", expectd=" <<
+						  100);
 
 	inst->setThreadCoreUsage(Csr::USAGE_DEFAULT);
 	BOOST_REQUIRE_MESSAGE(total == inst->getCoreCnt(),
-						  "Failed. setThreadCoreUsage. Total=" << inst->getCoreCnt() << ", expectd=" << total);
+						  "Failed. setThreadCoreUsage. Total=" << inst->getCoreCnt() << ", expectd=" <<
+						  total);
 	BOOST_REQUIRE_MESSAGE(100 == inst->getCoreUsage(),
-						  "Failed. setThreadCoreUsage. Usage=" << inst->getCoreUsage() << ", expectd=" << 100);
+						  "Failed. setThreadCoreUsage. Usage=" << inst->getCoreUsage() << ", expectd=" <<
+						  100);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

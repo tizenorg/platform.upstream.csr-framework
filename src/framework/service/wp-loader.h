@@ -39,7 +39,8 @@ public:
 	int globalDeinit();
 	int contextCreate(csre_wp_context_h &);
 	int contextDestroy(csre_wp_context_h);
-	int checkUrl(csre_wp_context_h handle, const std::string &, csre_wp_check_result_h *);
+	int checkUrl(csre_wp_context_h handle, const std::string &,
+				 csre_wp_check_result_h *);
 	int getRiskLevel(csre_wp_check_result_h, csre_wp_risk_level_e *);
 	int getDetailedUrl(csre_wp_check_result_h, std::string &);
 	int getErrorString(int, std::string &);
@@ -59,7 +60,8 @@ private:
 	using FpGlobalDeinit = int(*)();
 	using FpContextCreate = int(*)(csre_wp_context_h *);
 	using FpContextDestroy = int(*)(csre_wp_context_h);
-	using FpCheckUrl = int(*)(csre_wp_context_h , const char *, csre_wp_check_result_h *);
+	using FpCheckUrl = int(*)(csre_wp_context_h , const char *,
+							  csre_wp_check_result_h *);
 	using FpGetRiskLevel = int(*)(csre_wp_check_result_h, csre_wp_risk_level_e *);
 	using FPGetDetailedUrl = int(*)(csre_wp_check_result_h, const char **);
 	using FpGetErrorString = int(*)(int, const char **);
@@ -72,7 +74,8 @@ private:
 	using FpGetEngineDataVersion = int(*)(csre_wp_engine_h, const char **);
 	using FpGetEngineLatestUpdateTime = int(*)(csre_wp_engine_h, time_t *);
 	using FpGetEngineActivated = int(*)(csre_wp_engine_h, csre_wp_activated_e *);
-	using FpGetEngineVendorLogo = int(*)(csre_wp_engine_h, unsigned char **, unsigned int *);
+	using FpGetEngineVendorLogo = int(*)(csre_wp_engine_h, unsigned char **,
+										 unsigned int *);
 
 	struct PluginContext {
 		void *dlhandle;

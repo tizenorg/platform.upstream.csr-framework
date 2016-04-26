@@ -42,30 +42,41 @@ namespace {
 std::string toString(LogLevel level)
 {
 	switch (level) {
-	case LogLevel::Error:   return "ERROR";
-	case LogLevel::Warning: return "WARN";
-	case LogLevel::Debug:   return "DEBUG";
-	case LogLevel::Info:    return "INFO";
-	case LogLevel::Trace:   return "TRACE";
-	default:                return "UNKNOWN";
+	case LogLevel::Error:
+		return "ERROR";
+
+	case LogLevel::Warning:
+		return "WARN";
+
+	case LogLevel::Debug:
+		return "DEBUG";
+
+	case LogLevel::Info:
+		return "INFO";
+
+	case LogLevel::Trace:
+		return "TRACE";
+
+	default:
+		return "UNKNOWN";
 	}
 }
 
 } // namespace anonymous
 
 void Logger::log(LogLevel level,
-				const std::string &file,
-				unsigned int line,
-				const std::string &func,
-				const std::string &message)
+				 const std::string &file,
+				 unsigned int line,
+				 const std::string &func,
+				 const std::string &message)
 {
 	std::ostringstream buffer;
 
 	buffer << toString(level)
-		<< "<" << ::getpid() << ">:"
-		<< "[" << file << ":" << line << "]"
-		<< " " << func << "() " << message
-		<< std::endl;
+		   << "<" << ::getpid() << ">:"
+		   << "[" << file << ":" << line << "]"
+		   << " " << func << "() " << message
+		   << std::endl;
 
 	g_backend->sink(level, g_tag, buffer.str());
 }

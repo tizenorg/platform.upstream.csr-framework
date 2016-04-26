@@ -39,7 +39,7 @@ void ServerService::onMessageProcess(const ConnShPtr &connection)
 {
 	DEBUG("let's dispatch it to worker threads.");
 
-	auto process = [&](RawBuffer &buffer) {
+	auto process = [&](RawBuffer & buffer) {
 		connection->send(m_logic.dispatch(buffer));
 	};
 

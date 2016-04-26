@@ -38,16 +38,20 @@ void printPressed(CsResponse response)
 	std::cout << "###################################################" << std::endl;
 
 	bool isValid = true;
+
 	switch (response) {
 	case CsResponse::REMOVE:
 		std::cout << "############## REMOVE BUTTON PRESSED  #############" << std::endl;
 		break;
+
 	case CsResponse::IGNORE:
 		std::cout << "############## IGNORE BUTTON PRESSED  #############" << std::endl;
 		break;
+
 	case CsResponse::SKIP:
 		std::cout << "##############  SKIP  BUTTON PRESSED  #############" << std::endl;
 		break;
+
 	default:
 		std::cout << "############## Invalid Response!!!    #############" << std::endl;
 		isValid = false;
@@ -68,16 +72,20 @@ void printPressed(WpResponse response)
 	std::cout << "###################################################" << std::endl;
 
 	bool isValid = true;
+
 	switch (response) {
 	case WpResponse::ALLOW:
 		std::cout << "##############  ALLOW BUTTON PRESSED  #############" << std::endl;
 		break;
+
 	case WpResponse::DENY:
 		std::cout << "##############  DENY  BUTTON PRESSED  #############" << std::endl;
 		break;
+
 	case WpResponse::CONFIRM:
 		std::cout << "############## CONFIRM BUTTON PRESSED #############" << std::endl;
 		break;
+
 	default:
 		std::cout << "############## Invalid Response!!!    #############" << std::endl;
 		isValid = false;
@@ -121,7 +129,8 @@ BOOST_AUTO_TEST_CASE(wp_ask_permission)
 		item.risk = CSR_WP_RISK_MEDIUM;
 		item.url = "http://csr.test.dummyurl.com";
 
-		auto response = askuser.wpAskPermission("Message for wp_ask_permission tc", item);
+		auto response = askuser.wpAskPermission("Message for wp_ask_permission tc",
+												item);
 		printPressed(response);
 	} catch (...) {
 		BOOST_REQUIRE_MESSAGE(0, "exception shouldn't be thrown.");

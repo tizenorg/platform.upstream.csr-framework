@@ -52,9 +52,9 @@ CsDetected::CsDetected(IStream &stream) : Result(stream)
 	int intThreat;
 	int intResponse;
 	Deserializer<std::string, std::string, std::string, int, int, int, time_t>
-		::Deserialize(stream,
-			m_targetName, m_malwareName, m_detailedUrl,
-			intSeverity, intThreat, intResponse, m_ts);
+	::Deserialize(stream,
+				  m_targetName, m_malwareName, m_detailedUrl,
+				  intSeverity, intThreat, intResponse, m_ts);
 
 	m_severity = static_cast<csr_cs_severity_level_e>(intSeverity);
 	m_threat = static_cast<csr_cs_threat_type_e>(intThreat);
@@ -69,10 +69,10 @@ void CsDetected::Serialize(IStream &stream) const
 		return;
 
 	Serializer<std::string, std::string, std::string, int, int, int, time_t>
-		::Serialize(stream,
-			m_targetName, m_malwareName, m_detailedUrl,
-			static_cast<int>(m_severity), static_cast<int>(m_threat),
-			static_cast<int>(m_response), m_ts);
+	::Serialize(stream,
+				m_targetName, m_malwareName, m_detailedUrl,
+				static_cast<int>(m_severity), static_cast<int>(m_threat),
+				static_cast<int>(m_response), m_ts);
 }
 
 CsDetected::CsDetected(CsDetected &&other) :
@@ -122,7 +122,7 @@ void CsDetected::set(int key, int value)
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to set as int."));
+									  << "] comes in to set as int."));
 	}
 
 	setValueFlag();
@@ -137,7 +137,7 @@ void CsDetected::set(int key, bool value)
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to set as bool."));
+									  << "] comes in to set as bool."));
 	}
 
 	setValueFlag();
@@ -164,7 +164,7 @@ void CsDetected::set(int key, const std::string &value)
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to set as string."));
+									  << "] comes in to set as string."));
 	}
 
 	setValueFlag();
@@ -187,7 +187,7 @@ void CsDetected::set(int key, const char *value)
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to set as string."));
+									  << "] comes in to set as string."));
 	}
 
 	setValueFlag();
@@ -202,7 +202,7 @@ void CsDetected::set(int key, time_t value)
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to set as time_t."));
+									  << "] comes in to set as time_t."));
 	}
 
 	setValueFlag();
@@ -225,7 +225,7 @@ void CsDetected::get(int key, int &value) const
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to get as int."));
+									  << "] comes in to get as int."));
 	}
 }
 
@@ -238,7 +238,7 @@ void CsDetected::get(int key, bool &value) const
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to get as bool."));
+									  << "] comes in to get as bool."));
 	}
 }
 
@@ -266,7 +266,7 @@ void CsDetected::get(int key, const char **value) const
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to get as string."));
+									  << "] comes in to get as string."));
 	}
 }
 
@@ -279,7 +279,7 @@ void CsDetected::get(int key, time_t &value) const
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			<< "] comes in to get as time_t."));
+									  << "] comes in to get as time_t."));
 	}
 }
 

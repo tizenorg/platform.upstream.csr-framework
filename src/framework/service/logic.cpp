@@ -49,10 +49,10 @@ void printCsContext(const CsContext &context)
 	context.get(static_cast<int>(CsContext::Key::ScanOnCloud), scanOnCloud);
 
 	INFO("Context info:"
-		" PopupMessage: " << popupMessage <<
-		" AskUser: " << askUser <<
-		" CoreUsage: " << coreUsage <<
-		" ScanOnCloud: " << scanOnCloud);
+		 " PopupMessage: " << popupMessage <<
+		 " AskUser: " << askUser <<
+		 " CoreUsage: " << coreUsage <<
+		 " ScanOnCloud: " << scanOnCloud);
 }
 
 }
@@ -62,11 +62,14 @@ Logic::Logic() :
 	m_wp(new WpLoader(WP_ENGINE_PATH))
 {
 	// TODO: Provide engine-specific res/working dirs
-	int ret = m_cs->globalInit(SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
+	int ret = m_cs->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
+							   SAMPLE_ENGINE_RW_WORKING_DIR);
+
 	if (ret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("global init cs engine. ret: " << ret));
 
 	ret = m_wp->globalInit(SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
+
 	if (ret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("global init wp engine. ret: " << ret));
 
@@ -76,10 +79,12 @@ Logic::Logic() :
 Logic::~Logic()
 {
 	int ret = m_cs->globalDeinit();
+
 	if (ret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("global deinit cs engine. ret: " << ret));
 
 	ret = m_wp->globalDeinit();
+
 	if (ret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("global deinit wp engine. ret: " << ret));
 }
@@ -169,7 +174,7 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 
 	default:
 		throw std::range_error(FORMAT("Command id[" << static_cast<int>(info.first)
-			<< "] isn't in range."));
+									  << "] isn't in range."));
 	}
 }
 
@@ -220,7 +225,8 @@ RawBuffer Logic::dirGetFiles(const CsContext &context, const std::string &dir)
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
 }
 
-RawBuffer Logic::judgeStatus(const CsContext &context, const std::string &filepath)
+RawBuffer Logic::judgeStatus(const CsContext &context,
+							 const std::string &filepath)
 {
 	INFO("Judge Status[" << filepath << "] by engine");
 
@@ -229,7 +235,8 @@ RawBuffer Logic::judgeStatus(const CsContext &context, const std::string &filepa
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 }
 
-RawBuffer Logic::getDetected(const CsContext &context, const std::string &filepath)
+RawBuffer Logic::getDetected(const CsContext &context,
+							 const std::string &filepath)
 {
 	INFO("Get Detected[" << filepath << "] by engine");
 
@@ -241,7 +248,8 @@ RawBuffer Logic::getDetected(const CsContext &context, const std::string &filepa
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, detected).pop();
 }
 
-RawBuffer Logic::getDetectedList(const CsContext &context, const std::string &dir)
+RawBuffer Logic::getDetectedList(const CsContext &context,
+								 const std::string &dir)
 {
 	INFO("Get Detected List[" << dir << "] by engine");
 
@@ -256,7 +264,8 @@ RawBuffer Logic::getDetectedList(const CsContext &context, const std::string &di
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, list).pop();
 }
 
-RawBuffer Logic::getIgnored(const CsContext &context, const std::string &filepath)
+RawBuffer Logic::getIgnored(const CsContext &context,
+							const std::string &filepath)
 {
 	INFO("Get Ignored[" << filepath << "] by engine");
 
@@ -268,7 +277,8 @@ RawBuffer Logic::getIgnored(const CsContext &context, const std::string &filepat
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, detected).pop();
 }
 
-RawBuffer Logic::getIgnoredList(const CsContext &context, const std::string &dir)
+RawBuffer Logic::getIgnoredList(const CsContext &context,
+								const std::string &dir)
 {
 	INFO("Get Ignored List[" << dir << "] by engine");
 
@@ -293,6 +303,7 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 	csre_wp_check_result_h result;
 	int ret = CSR_ERROR_NONE;
 	int eret = m_wp->checkUrl(c, url.c_str(), &result);
+
 	if (eret != CSRE_ERROR_NONE) {
 		ret = CSR_ERROR_ENGINE_INTERNAL;
 		ERROR("Engine error. engine api ret: " << eret);
@@ -330,10 +341,12 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 	return BinaryQueue::Serialize(ret, wr).pop();
 }
 
-void Logic::getUserResponse(const WpContext &c, const std::string &url, csr_wp_risk_level_e level, WpResult &wr)
+void Logic::getUserResponse(const WpContext &c, const std::string &url,
+							csr_wp_risk_level_e level, WpResult &wr)
 {
 	int isAsk;
 	c.get(static_cast<int>(WpContext::Key::AskUser), isAsk);
+
 	if (static_cast<csr_wp_ask_user_e>(isAsk) == CSR_WP_NOT_ASK_USER)
 		return;
 
@@ -350,16 +363,20 @@ void Logic::getUserResponse(const WpContext &c, const std::string &url, csr_wp_r
 		response = askUser.wpAskPermission(popupMessage, item);
 
 		if (response == Ui::WpResponse::ALLOW)
-			wr.set(static_cast<int>(WpResult::Key::UserResponse), CSR_WP_PROCESSING_ALLOWED);
+			wr.set(static_cast<int>(WpResult::Key::UserResponse),
+				   CSR_WP_PROCESSING_ALLOWED);
 		else if (response == Ui::WpResponse::DENY)
-			wr.set(static_cast<int>(WpResult::Key::UserResponse), CSR_WP_PROCESSING_DISALLOWED);
+			wr.set(static_cast<int>(WpResult::Key::UserResponse),
+				   CSR_WP_PROCESSING_DISALLOWED);
 		else
 			throw std::runtime_error("Invalid response from popup service.");
 	} else {
 		item.risk = CSR_WP_RISK_HIGH;
 		response = askUser.wpNotify(popupMessage, item);
+
 		if (response == Ui::WpResponse::CONFIRM)
-			wr.set(static_cast<int>(WpResult::Key::UserResponse), CSR_WP_PROCESSING_DISALLOWED);
+			wr.set(static_cast<int>(WpResult::Key::UserResponse),
+				   CSR_WP_PROCESSING_DISALLOWED);
 		else
 			throw std::runtime_error("Invalid response from popup service.");
 	}
@@ -371,31 +388,38 @@ WpResult Logic::convert(csre_wp_check_result_h &r)
 
 	csre_wp_risk_level_e elevel;
 	int eret = m_wp->getRiskLevel(r, &elevel);
+
 	if (eret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("Converting wp result. ret: " << eret));
 
 	DEBUG("Get engine risk level: " << static_cast<int>(elevel));
 
 	csr_wp_risk_level_e level;
+
 	switch (elevel) {
 	case CSRE_WP_RISK_LOW:
 		level = CSR_WP_RISK_LOW;
 		break;
+
 	case CSRE_WP_RISK_UNVERIFIED:
 		level = CSR_WP_RISK_UNVERIFIED;
 		break;
+
 	case CSRE_WP_RISK_MEDIUM:
 		level = CSR_WP_RISK_MEDIUM;
 		break;
+
 	case CSRE_WP_RISK_HIGH:
 		level = CSR_WP_RISK_HIGH;
 		break;
+
 	default:
 		throw std::logic_error(FORMAT("Invalid elevel: " << static_cast<int>(elevel)));
 	}
 
 	std::string detailedUrl;
 	eret = m_wp->getDetailedUrl(r, detailedUrl);
+
 	if (eret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("Converting wp result. ret: " << eret));
 

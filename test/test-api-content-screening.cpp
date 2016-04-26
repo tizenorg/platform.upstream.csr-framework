@@ -149,7 +149,8 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares)
 	csr_cs_detected_list_h detected_list;
 	size_t cnt = 0;
 
-	ASSERT_IF(csr_cs_get_detected_malwares(context, "dummy_dir_path", &detected_list, &cnt),
+	ASSERT_IF(csr_cs_get_detected_malwares(context, "dummy_dir_path",
+										   &detected_list, &cnt),
 			  CSR_ERROR_NONE);
 
 	// no malware detected
@@ -185,7 +186,8 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares)
 	csr_cs_detected_list_h ignored_list;
 	size_t cnt = 0;
 
-	ASSERT_IF(csr_cs_get_ignored_malwares(context, "dummy_dir_path", &ignored_list, &cnt),
+	ASSERT_IF(csr_cs_get_ignored_malwares(context, "dummy_dir_path", &ignored_list,
+										  &cnt),
 			  CSR_ERROR_NONE);
 
 	CHECK_IS_NOT_NULL(ignored_list);
@@ -207,7 +209,8 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware)
 			  CSR_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
 
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE),
+	ASSERT_IF(csr_cs_judge_detected_malware(context, detected,
+											CSR_CS_ACTION_REMOVE),
 			  CSR_ERROR_NONE);
 
 	EXCEPTION_GUARD_END

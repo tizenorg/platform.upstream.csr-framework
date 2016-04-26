@@ -48,7 +48,8 @@ WpContext::WpContext(IStream &stream)
 
 void WpContext::Serialize(IStream &stream) const
 {
-	Serializer<std::string, int>::Serialize(stream, m_popupMessage, static_cast<int>(m_askUser));
+	Serializer<std::string, int>::Serialize(stream, m_popupMessage,
+											static_cast<int>(m_askUser));
 }
 
 WpContext::WpContext(WpContext &&other) :
@@ -58,7 +59,7 @@ WpContext::WpContext(WpContext &&other) :
 {
 }
 
-WpContext &WpContext::operator=(WpContext && other)
+WpContext &WpContext::operator=(WpContext &&other)
 {
 	if (this == &other)
 		return *this;
@@ -94,9 +95,10 @@ void WpContext::set(int key, int value)
 	case Key::AskUser:
 		m_askUser = static_cast<csr_wp_ask_user_e>(value);
 		break;
+
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			  << "] comes in to set as int. value=" << value));
+									  << "] comes in to set as int. value=" << value));
 	}
 }
 
@@ -109,7 +111,7 @@ void WpContext::set(int key, const std::string &value)
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			  << "] comes in to set as std::string. value=" << value));
+									  << "] comes in to set as std::string. value=" << value));
 	}
 }
 
@@ -122,7 +124,7 @@ void WpContext::set(int key, const char *value)
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			  << "] comes in to set as char*. value=" << value));
+									  << "] comes in to set as char*. value=" << value));
 	}
 }
 
@@ -135,7 +137,7 @@ void WpContext::get(int key, int &value) const
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			  << "] comes in to set as int. value=" << value));
+									  << "] comes in to set as int. value=" << value));
 	}
 }
 
@@ -148,7 +150,7 @@ void WpContext::get(int key, std::string &value) const
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			  << "] comes in to set as std::string. value=" << value));
+									  << "] comes in to set as std::string. value=" << value));
 	}
 }
 
@@ -164,7 +166,7 @@ void WpContext::get(int key, const char **value) const
 
 	default:
 		throw std::logic_error(FORMAT("Invalid key[" << key
-			  << "] comes in to set as char*. value=" << value));
+									  << "] comes in to set as char*. value=" << value));
 	}
 }
 

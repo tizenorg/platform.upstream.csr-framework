@@ -47,15 +47,15 @@ void Service::start(int timeout)
 	Socket socket(m_address);
 
 	DEBUG("Get systemd socket[" << socket.getFd()
-		<< "] with address[" << m_address << "]");
+		  << "] with address[" << m_address << "]");
 
 	m_loop.addEventSource(socket.getFd(), EPOLLIN | EPOLLHUP | EPOLLRDHUP,
-		[&](uint32_t event) {
-			if (event != EPOLLIN)
-				return;
+	[&](uint32_t event) {
+		if (event != EPOLLIN)
+			return;
 
-			m_onNewConnection(std::make_shared<Connection>(socket.accept()));
-		});
+		m_onNewConnection(std::make_shared<Connection>(socket.accept()));
+	});
 
 	m_loop.run(timeout);
 }
@@ -68,7 +68,7 @@ void Service::stop()
 void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
 {
 	/* TODO: scoped-lock */
-	m_onNewConnection = [&](const ConnShPtr &connection) {
+	m_onNewConnection = [&](const ConnShPtr & connection) {
 		if (!connection)
 			throw std::logic_error("onNewConnection called but ConnShPtr is nullptr.");
 
@@ -76,32 +76,32 @@ void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
 
 		INFO("welcome! accepted client socket fd[" << fd << "]");
 
-/*
-		// TODO: disable temporarily
-		if (callback)
-			callback(connection);
-*/
+		/*
+		        // TODO: disable temporarily
+		        if (callback)
+		            callback(connection);
+		*/
 
 		m_loop.addEventSource(fd, EPOLLIN | EPOLLHUP | EPOLLRDHUP,
-			[&, fd](uint32_t event) {
-				DEBUG("read event comes in to fd[" << fd << "]");
+		[ &, fd](uint32_t event) {
+			DEBUG("read event comes in to fd[" << fd << "]");
 
-				if (m_connectionRegistry.count(fd) == 0)
-					throw std::logic_error(FORMAT("get event on fd[" << fd
-						<< "] but no associated connection exist"));
+			if (m_connectionRegistry.count(fd) == 0)
+				throw std::logic_error(FORMAT("get event on fd[" << fd
+											  << "] but no associated connection exist"));
 
-				auto &conn = m_connectionRegistry[fd];
+			auto &conn = m_connectionRegistry[fd];
 
-				if (event & (EPOLLHUP | EPOLLRDHUP)) {
-					DEBUG("event of epoll hup. close connection on fd[" << fd << "]");
-					m_onCloseConnection(conn);
-					return;
-				}
+			if (event & (EPOLLHUP | EPOLLRDHUP)) {
+				DEBUG("event of epoll hup. close connection on fd[" << fd << "]");
+				m_onCloseConnection(conn);
+				return;
+			}
 
-				DEBUG("Start message process on fd[" << fd << "]");
+			DEBUG("Start message process on fd[" << fd << "]");
 
-				onMessageProcess(conn);
-			});
+			onMessageProcess(conn);
+		});
 
 		m_connectionRegistry[fd] = connection;
 	};
@@ -110,7 +110,7 @@ void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
 void Service::setCloseConnectionCallback(const ConnCallback &/*callback*/)
 {
 	/* TODO: scoped-lock */
-	m_onCloseConnection = [&](const ConnShPtr &connection) {
+	m_onCloseConnection = [&](const ConnShPtr & connection) {
 		if (!connection)
 			throw std::logic_error("no connection to close");
 
@@ -118,18 +118,18 @@ void Service::setCloseConnectionCallback(const ConnCallback &/*callback*/)
 
 		if (m_connectionRegistry.count(fd) == 0)
 			throw std::logic_error(FORMAT("no connection in registry to remove "
-				"associated to fd[" << fd << "]"));
+										  "associated to fd[" << fd << "]"));
 
 		INFO("good-bye! close socket fd[" << fd << "]");
 
 		m_loop.removeEventSource(fd);
 		m_connectionRegistry.erase(fd); /* scoped-lock needed? */
 
-/*
-		// TODO: disable temporarily
-		if (callback)
-			callback(connection);
-*/
+		/*
+		        // TODO: disable temporarily
+		        if (callback)
+		            callback(connection);
+		*/
 	};
 }
 

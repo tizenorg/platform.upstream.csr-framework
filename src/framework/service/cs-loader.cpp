@@ -35,6 +35,7 @@ int getValueCstr(std::string &value,
 {
 	const char *cvalue = nullptr;
 	auto retval = getfunc(&cvalue);
+
 	if (retval == CSRE_ERROR_NONE && cvalue != nullptr)
 		value = cvalue;
 
@@ -228,7 +229,8 @@ int CsLoader::getEngineActivated(csre_cs_engine_h e,
 	return m_pc.fpGetEngineActivated(e, pactivated);
 }
 
-int CsLoader::getEngineVendorLogo(csre_cs_engine_h e, std::vector<unsigned char> &value)
+int CsLoader::getEngineVendorLogo(csre_cs_engine_h e,
+								  std::vector<unsigned char> &value)
 {
 	if (e == nullptr)
 		throw std::invalid_argument("cs loader get engine vendor logo");
@@ -250,33 +252,58 @@ CsLoader::CsLoader(const std::string &enginePath)
 	void *handle = dlopen(enginePath.c_str(), RTLD_LAZY);
 
 	if (handle == nullptr)
-		throw std::logic_error(FORMAT("engine dlopen error. path: " << enginePath <<" errno: " << errno));
+		throw std::logic_error(FORMAT("engine dlopen error. path: " << enginePath <<
+									  " errno: " << errno));
 
 	m_pc.dlhandle = handle;
 
-	m_pc.fpGlobalInit = reinterpret_cast<FpGlobalInit>(dlsym(handle, "csre_cs_global_initialize"));
-	m_pc.fpGlobalDeinit = reinterpret_cast<FpGlobalDeinit>(dlsym(handle, "csre_cs_global_deinitialize"));
-	m_pc.fpContextCreate = reinterpret_cast<FpContextCreate>(dlsym(handle, "csre_cs_context_create"));
-	m_pc.fpContextDestroy = reinterpret_cast<FpContextDestroy>(dlsym(handle, "csre_cs_context_destroy"));
-	m_pc.fpScanData = reinterpret_cast<FpScanData>(dlsym(handle, "csre_cs_scan_data"));
-	m_pc.fpScanFile = reinterpret_cast<FpScanFile>(dlsym(handle, "csre_cs_scan_file"));
-	m_pc.fpScanAppOnCloud = reinterpret_cast<FpScanAppOnCloud>(dlsym(handle, "csre_cs_scan_app_on_cloud"));
-	m_pc.fpGetSeverity = reinterpret_cast<FpGetSeverity>(dlsym(handle, "csre_cs_detected_get_severity"));
-	m_pc.fpGetThreatType = reinterpret_cast<FpGetThreatType>(dlsym(handle, "csre_cs_detected_get_threat_type"));
-	m_pc.fpGetMalwareName = reinterpret_cast<FpGetMalwareName>(dlsym(handle, "csre_cs_detected_get_malware_name"));
-	m_pc.fpGetDetailedUrl = reinterpret_cast<FpGetDetailedUrl>(dlsym(handle, "csre_cs_detected_get_detailed_url"));
-	m_pc.fpGetTimestamp = reinterpret_cast<FpGetTimestamp>(dlsym(handle, "csre_cs_detected_get_timestamp"));
-	m_pc.fpGetErrorString = reinterpret_cast <FpGetErrorString>(dlsym(handle, "csre_cs_get_error_string"));
-	m_pc.fpGetEngineInfo = reinterpret_cast<FpGetEngineInfo>(dlsym(handle, "csre_cs_engine_get_info"));
-	m_pc.fpDestroyEngine = reinterpret_cast<FpDestroyEngine>(dlsym(handle, "csre_cs_engine_destroy"));
-	m_pc.fpGetEngineApiVersion = reinterpret_cast<FpGetEngineApiVersion>(dlsym(handle, "csre_cs_engine_get_api_version"));
-	m_pc.fpGetEngineVendor = reinterpret_cast<FpGetEngineVendor>(dlsym(handle, "csre_cs_engine_get_vendor"));
-	m_pc.fpGetEngineName = reinterpret_cast<FpGetEngineName>(dlsym(handle, "csre_cs_engine_get_name"));
-	m_pc.fpGetEngineVersion = reinterpret_cast<FpGetEngineVersion>(dlsym(handle, "csre_cs_engine_get_version"));
-	m_pc.fpGetEngineDataVersion = reinterpret_cast<FpGetEngineDataVersion>(dlsym(handle, "csre_cs_engine_get_data_version"));
-	m_pc.fpGetEngineLatestUpdateTime = reinterpret_cast<FpGetEngineLatestUpdateTime>(dlsym(handle, "csre_cs_engine_get_latest_update_time"));
-	m_pc.fpGetEngineActivated = reinterpret_cast<FpGetEngineActivated>(dlsym(handle, "csre_cs_engine_get_activated"));
-	m_pc.fpGetEngineVendorLogo = reinterpret_cast<FpGetEngineVendorLogo>(dlsym(handle, "csre_cs_engine_get_vendor_logo"));
+	m_pc.fpGlobalInit = reinterpret_cast<FpGlobalInit>(dlsym(handle,
+						"csre_cs_global_initialize"));
+	m_pc.fpGlobalDeinit = reinterpret_cast<FpGlobalDeinit>(dlsym(handle,
+						  "csre_cs_global_deinitialize"));
+	m_pc.fpContextCreate = reinterpret_cast<FpContextCreate>(dlsym(handle,
+						   "csre_cs_context_create"));
+	m_pc.fpContextDestroy = reinterpret_cast<FpContextDestroy>(dlsym(handle,
+							"csre_cs_context_destroy"));
+	m_pc.fpScanData = reinterpret_cast<FpScanData>(dlsym(handle,
+					  "csre_cs_scan_data"));
+	m_pc.fpScanFile = reinterpret_cast<FpScanFile>(dlsym(handle,
+					  "csre_cs_scan_file"));
+	m_pc.fpScanAppOnCloud = reinterpret_cast<FpScanAppOnCloud>(dlsym(handle,
+							"csre_cs_scan_app_on_cloud"));
+	m_pc.fpGetSeverity = reinterpret_cast<FpGetSeverity>(dlsym(handle,
+						 "csre_cs_detected_get_severity"));
+	m_pc.fpGetThreatType = reinterpret_cast<FpGetThreatType>(dlsym(handle,
+						   "csre_cs_detected_get_threat_type"));
+	m_pc.fpGetMalwareName = reinterpret_cast<FpGetMalwareName>(dlsym(handle,
+							"csre_cs_detected_get_malware_name"));
+	m_pc.fpGetDetailedUrl = reinterpret_cast<FpGetDetailedUrl>(dlsym(handle,
+							"csre_cs_detected_get_detailed_url"));
+	m_pc.fpGetTimestamp = reinterpret_cast<FpGetTimestamp>(dlsym(handle,
+						  "csre_cs_detected_get_timestamp"));
+	m_pc.fpGetErrorString = reinterpret_cast <FpGetErrorString>(dlsym(handle,
+							"csre_cs_get_error_string"));
+	m_pc.fpGetEngineInfo = reinterpret_cast<FpGetEngineInfo>(dlsym(handle,
+						   "csre_cs_engine_get_info"));
+	m_pc.fpDestroyEngine = reinterpret_cast<FpDestroyEngine>(dlsym(handle,
+						   "csre_cs_engine_destroy"));
+	m_pc.fpGetEngineApiVersion = reinterpret_cast<FpGetEngineApiVersion>(dlsym(
+									 handle, "csre_cs_engine_get_api_version"));
+	m_pc.fpGetEngineVendor = reinterpret_cast<FpGetEngineVendor>(dlsym(handle,
+							 "csre_cs_engine_get_vendor"));
+	m_pc.fpGetEngineName = reinterpret_cast<FpGetEngineName>(dlsym(handle,
+						   "csre_cs_engine_get_name"));
+	m_pc.fpGetEngineVersion = reinterpret_cast<FpGetEngineVersion>(dlsym(handle,
+							  "csre_cs_engine_get_version"));
+	m_pc.fpGetEngineDataVersion = reinterpret_cast<FpGetEngineDataVersion>(dlsym(
+									  handle, "csre_cs_engine_get_data_version"));
+	m_pc.fpGetEngineLatestUpdateTime =
+		reinterpret_cast<FpGetEngineLatestUpdateTime>(dlsym(handle,
+				"csre_cs_engine_get_latest_update_time"));
+	m_pc.fpGetEngineActivated = reinterpret_cast<FpGetEngineActivated>(dlsym(handle,
+								"csre_cs_engine_get_activated"));
+	m_pc.fpGetEngineVendorLogo = reinterpret_cast<FpGetEngineVendorLogo>(dlsym(
+									 handle, "csre_cs_engine_get_vendor_logo"));
 
 	if (m_pc.fpGlobalInit == nullptr || m_pc.fpGlobalDeinit == nullptr ||
 			m_pc.fpContextCreate == nullptr || m_pc.fpContextDestroy == nullptr ||
@@ -309,6 +336,7 @@ CsEngineContext::CsEngineContext(std::shared_ptr<CsLoader> &loader) :
 		throw std::logic_error("invalid argument. shouldn't be null.");
 
 	auto ret = m_loader->contextCreate(m_context);
+
 	if (ret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("get engine context by loader. ret: " << ret));
 }
@@ -316,8 +344,10 @@ CsEngineContext::CsEngineContext(std::shared_ptr<CsLoader> &loader) :
 CsEngineContext::~CsEngineContext()
 {
 	auto ret = m_loader->contextDestroy(m_context);
+
 	if (ret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("destroy engine context by loader. ret: " << ret));
+		throw std::runtime_error(FORMAT("destroy engine context by loader. ret: " <<
+										ret));
 }
 
 csre_cs_context_h &CsEngineContext::get(void)
@@ -332,6 +362,7 @@ CsEngineInfo::CsEngineInfo(std::shared_ptr<CsLoader> &loader) :
 		throw std::logic_error("invalid argument. shouldn't be null.");
 
 	auto ret = m_loader->getEngineInfo(m_info);
+
 	if (ret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("get engine info by loader. ret: " << ret));
 }
@@ -339,6 +370,7 @@ CsEngineInfo::CsEngineInfo(std::shared_ptr<CsLoader> &loader) :
 CsEngineInfo::~CsEngineInfo()
 {
 	auto ret = m_loader->destroyEngine(m_info);
+
 	if (ret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("destroy engine info by loader. ret: " << ret));
 }

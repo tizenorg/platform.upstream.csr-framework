@@ -44,7 +44,8 @@ void evasCbWrapper(void *data, Evas_Object *, void *)
 	g_callbackRegistry[*response]();
 }
 
-void registerCb(Evas_Object *button, int *response, std::function<void()> &&func)
+void registerCb(Evas_Object *button, int *response,
+				std::function<void()> &&func)
 {
 	evas_object_smart_callback_add(button, "clicked", evasCbWrapper, response);
 	g_callbackRegistry[*response] = std::move(func);
@@ -68,7 +69,8 @@ Logic::~Logic()
 RawBuffer Logic::dispatch(const RawBuffer &in)
 {
 	auto info = getRequestInfo(in);
-	INFO("Request dispatch on popup-service. CommandId: " << static_cast<int>(info.first));
+	INFO("Request dispatch on popup-service. CommandId: " << static_cast<int>
+		 (info.first));
 
 	switch (info.first) {
 	case CommandId::FILE_SINGLE: {
@@ -118,13 +120,14 @@ std::pair<CommandId, BinaryQueue> Logic::getRequestInfo(const RawBuffer &data)
 	return std::make_pair(static_cast<CommandId>(int_id), std::move(q));
 }
 
-RawBuffer Logic::fileSingle(const std::string &message, const FileItem &item) const
+RawBuffer Logic::fileSingle(const std::string &message,
+							const FileItem &item) const
 {
 	INFO("fileSingle start with param.. "
-		"message[" << message << "] "
-		"filepath[" << item.filepath << "] "
-		"severity[" << static_cast<int>(item.severity) << "] "
-		"threat[" << static_cast<int>(item.threat) << "]");
+		 "message[" << message << "] "
+		 "filepath[" << item.filepath << "] "
+		 "severity[" << static_cast<int>(item.severity) << "] "
+		 "threat[" << static_cast<int>(item.threat) << "]");
 
 	Popup popup;
 
@@ -170,22 +173,24 @@ RawBuffer Logic::fileSingle(const std::string &message, const FileItem &item) co
 	return q.pop();
 }
 
-RawBuffer Logic::fileMultiple(const std::string &message, const FileItems &items) const
+RawBuffer Logic::fileMultiple(const std::string &message,
+							  const FileItems &items) const
 {
 	(void) message;
 	(void) items;
 	return RawBuffer();
 }
 
-RawBuffer Logic::wpAskPermission(const std::string &message, const UrlItem &item) const
+RawBuffer Logic::wpAskPermission(const std::string &message,
+								 const UrlItem &item) const
 {
 	Popup popup;
 
 	popup.fillText("Danger URL", FORMAT(
-			"URL: " << item.url << "\n" <<
-			"Risky: " << (item.risk == CSR_WP_RISK_HIGH
-				? "High" : "Medium") << "\n" <<
-			message.c_str()));
+					   "URL: " << item.url << "\n" <<
+					   "Risky: " << (item.risk == CSR_WP_RISK_HIGH
+									 ? "High" : "Medium") << "\n" <<
+					   message.c_str()));
 
 	BinaryQueue q;
 
@@ -222,10 +227,10 @@ RawBuffer Logic::wpNotify(const std::string &message, const UrlItem &item) const
 	Popup popup;
 
 	popup.fillText("Danger URL", FORMAT(
-			"URL: " << item.url << "\n" <<
-			"Risky: " << (item.risk == CSR_WP_RISK_HIGH
-				? "High" : "Medium") << "\n" <<
-			message.c_str()));
+					   "URL: " << item.url << "\n" <<
+					   "Risky: " << (item.risk == CSR_WP_RISK_HIGH
+									 ? "High" : "Medium") << "\n" <<
+					   message.c_str()));
 
 	BinaryQueue q;
 

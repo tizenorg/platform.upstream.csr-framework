@@ -35,7 +35,8 @@ struct Result {
 	csre_wp_risk_level_e risk_level;
 	std::string detailed_url;
 
-	Result(csre_wp_risk_level_e r, const char* durl) : risk_level(r), detailed_url(durl) {}
+	Result(csre_wp_risk_level_e r, const char *durl) : risk_level(r),
+		detailed_url(durl) {}
 };
 
 std::unordered_map<std::string, Result> ExpectedResult = {
@@ -45,7 +46,8 @@ std::unordered_map<std::string, Result> ExpectedResult = {
 	{"http://lowrisky.test.com",    Result(CSRE_WP_RISK_LOW, "")}
 };
 
-inline void checkResult(const std::string &url, csre_wp_check_result_h &result, const Result &expected)
+inline void checkResult(const std::string &url, csre_wp_check_result_h &result,
+						const Result &expected)
 {
 	EXCEPTION_GUARD_START
 
@@ -54,14 +56,15 @@ inline void checkResult(const std::string &url, csre_wp_check_result_h &result, 
 	csre_wp_risk_level_e risk_level;
 	ASSERT_IF(csre_wp_result_get_risk_level(result, &risk_level), CSRE_ERROR_NONE);
 	BOOST_REQUIRE_MESSAGE(risk_level == expected.risk_level,
-		"url[" << url << "] risk level isn't expected value. "
-			"val: " << risk_level << " expected: " << expected.risk_level);
+						  "url[" << url << "] risk level isn't expected value. "
+						  "val: " << risk_level << " expected: " << expected.risk_level);
 
 	const char *detailed_url = nullptr;
-	ASSERT_IF(csre_wp_result_get_detailed_url(result, &detailed_url), CSRE_ERROR_NONE);
+	ASSERT_IF(csre_wp_result_get_detailed_url(result, &detailed_url),
+			  CSRE_ERROR_NONE);
 	BOOST_REQUIRE_MESSAGE(expected.detailed_url.compare(detailed_url) == 0,
-		"url[" << url << "] detailed url isn't expected value. "
-			"val: " << detailed_url <<" expected: " << expected.detailed_url);
+						  "url[" << url << "] detailed url isn't expected value. "
+						  "val: " << detailed_url << " expected: " << expected.detailed_url);
 
 	EXCEPTION_GUARD_END
 }
@@ -89,7 +92,8 @@ BOOST_AUTO_TEST_CASE(check_url)
 
 	for (const auto &pair : ExpectedResult) {
 		csre_wp_check_result_h result;
-		ASSERT_IF(csre_wp_check_url(context, pair.first.c_str(), &result), CSRE_ERROR_NONE);
+		ASSERT_IF(csre_wp_check_url(context, pair.first.c_str(), &result),
+				  CSRE_ERROR_NONE);
 		checkResult(pair.first, result, pair.second);
 	}
 
@@ -153,7 +157,7 @@ BOOST_AUTO_TEST_CASE(get_vendor_logo)
 	unsigned char *vendor_logo_image = nullptr;
 	unsigned int size = 0;
 	ASSERT_IF(csre_wp_engine_get_vendor_logo(handle, &vendor_logo_image, &size),
-			CSRE_ERROR_NONE);
+			  CSRE_ERROR_NONE);
 
 	EXCEPTION_GUARD_END
 }
@@ -194,7 +198,8 @@ BOOST_AUTO_TEST_CASE(get_latest_update_time)
 	auto handle = c.get();
 
 	time_t time = 0;
-	ASSERT_IF(csre_wp_engine_get_latest_update_time(handle, &time), CSRE_ERROR_NONE);
+	ASSERT_IF(csre_wp_engine_get_latest_update_time(handle, &time),
+			  CSRE_ERROR_NONE);
 
 	struct tm t;
 	BOOST_MESSAGE(asctime(gmtime_r(&time, &t)));

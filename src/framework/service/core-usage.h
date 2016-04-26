@@ -36,7 +36,8 @@ enum CORE_USAGE : int {
 
 class CpuUsageManager {
 public:
-	static CpuUsageManager *getInstance() {
+	static CpuUsageManager *getInstance()
+	{
 		static CpuUsageManager instance;
 		return &instance;
 	}
@@ -48,7 +49,8 @@ public:
 private:
 	int m_cores;
 
-	CpuUsageManager() : m_cores(1) {
+	CpuUsageManager() : m_cores(1)
+	{
 		initialize();
 	};
 	~CpuUsageManager() {};

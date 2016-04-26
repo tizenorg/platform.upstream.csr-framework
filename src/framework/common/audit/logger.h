@@ -63,13 +63,13 @@ private:
 #define FORMAT(ITEMS)                                              \
 	((dynamic_cast<std::ostringstream &>(                          \
 			std::ostringstream().seekp(0, std::ios_base::cur) << ITEMS) \
-	).str())
+	 ).str())
 
 #define LOG(LEVEL, MESSAGE)               \
 	Csr::Audit::Logger::log(              \
-		Csr::Audit::LogLevel::LEVEL,      \
-		__FILENAME__, __LINE__, __func__, \
-		FORMAT(MESSAGE))
+										  Csr::Audit::LogLevel::LEVEL,      \
+										  __FILENAME__, __LINE__, __func__, \
+										  FORMAT(MESSAGE))
 
 #define ERROR(MESSAGE)  LOG(Error, MESSAGE)
 #define WARN(MESSAGE)   LOG(Warning, MESSAGE)

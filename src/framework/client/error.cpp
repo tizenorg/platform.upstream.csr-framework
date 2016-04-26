@@ -26,7 +26,7 @@
 
 
 API
-int csr_get_error_string(int error_code, char** string)
+int csr_get_error_string(int error_code, char **string)
 {
 	(void) error_code;
 	(void) string;

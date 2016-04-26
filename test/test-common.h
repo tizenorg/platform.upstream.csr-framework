@@ -56,12 +56,13 @@
 namespace Test {
 
 template <typename T, typename U>
-void _assert(const T &value, const U &expected, const std::string &filename, const std::string &funcname, unsigned int line)
+void _assert(const T &value, const U &expected, const std::string &filename,
+			 const std::string &funcname, unsigned int line)
 {
 	BOOST_REQUIRE_MESSAGE(value == expected,
-		"[" << filename << " > " << funcname << " : " << line << "]"
-			<< " returned code: " << value
-			<< " expected: " << expected);
+						  "[" << filename << " > " << funcname << " : " << line << "]"
+						  << " returned code: " << value
+						  << " expected: " << expected);
 }
 
 void exceptionGuard(const std::function<void()> &);
@@ -72,19 +73,19 @@ public:
 	Context() : m_context(nullptr)
 	{
 		BOOST_REQUIRE_MESSAGE(0, "Type[" << typeid(T).name()
-				<< "] isn't specialized for context template");
+							  << "] isn't specialized for context template");
 	}
 
 	virtual ~Context()
 	{
 		BOOST_REQUIRE_MESSAGE(0, "Type[" << typeid(T).name()
-				<< "] isn't specialized for context template");
+							  << "] isn't specialized for context template");
 	}
 
 	T get(void) const
 	{
 		BOOST_REQUIRE_MESSAGE(0, "Type[" << typeid(T).name()
-				<< "] isn't specialized for context template");
+							  << "] isn't specialized for context template");
 
 		return nullptr;
 	}

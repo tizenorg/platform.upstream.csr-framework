@@ -34,12 +34,12 @@ extern "C" {
 /**
  * TWP Engine context handle.
  */
-typedef struct csre_wp_context_s* csre_wp_context_h;
+typedef struct csre_wp_context_s *csre_wp_context_h;
 
 /**
  * TWP Engine's check result handle.
  */
-typedef struct csre_wp_check_result_s* csre_wp_check_result_h;
+typedef struct csre_wp_check_result_s *csre_wp_check_result_h;
 
 /**
  * @brief Risk level of a url

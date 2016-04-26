@@ -81,6 +81,7 @@ void BinaryQueue::read(size_t size, void *bytes)
 
 		size -= count;
 		m_size -= count;
+
 		if (m_buckets.front()->left == 0)
 			m_buckets.pop();
 	}

@@ -29,6 +29,7 @@
 #include "common/cs-detected.h"
 #include "common/wp-result.h"
 #include "common/audit/logger.h"
+#include "service/type-converter.h"
 #include "ui/askuser.h"
 #include "csr/error.h"
 
@@ -381,49 +382,22 @@ WpResult Logic::convert(csre_wp_check_result_h &r)
 {
 	DEBUG("convert engine result handle to WpResult start");
 
+	WpResult wr;
+
+	// getting risk level
 	csre_wp_risk_level_e elevel;
 	int eret = m_wp->getRiskLevel(r, &elevel);
 
 	if (eret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("Converting wp result. ret: " << eret));
 
-	DEBUG("Get engine risk level: " << static_cast<int>(elevel));
+	wr.riskLevel = Csr::convert(elevel);
 
-	csr_wp_risk_level_e level;
-
-	switch (elevel) {
-	case CSRE_WP_RISK_LOW:
-		level = CSR_WP_RISK_LOW;
-		break;
-
-	case CSRE_WP_RISK_UNVERIFIED:
-		level = CSR_WP_RISK_UNVERIFIED;
-		break;
-
-	case CSRE_WP_RISK_MEDIUM:
-		level = CSR_WP_RISK_MEDIUM;
-		break;
-
-	case CSRE_WP_RISK_HIGH:
-		level = CSR_WP_RISK_HIGH;
-		break;
-
-	default:
-		throw std::logic_error(FORMAT("Invalid elevel: " << static_cast<int>(elevel)));
-	}
-
-	std::string detailedUrl;
-	eret = m_wp->getDetailedUrl(r, detailedUrl);
+	// getting detailed url
+	eret = m_wp->getDetailedUrl(r, wr.detailedUrl);
 
 	if (eret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("Converting wp result. ret: " << eret));
-
-	DEBUG("Get detailed url from engine: " << detailedUrl);
-
-	WpResult wr;
-
-	wr.detailedUrl = detailedUrl;
-	wr.riskLevel = level;
 
 	return wr;
 }

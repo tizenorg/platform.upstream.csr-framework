@@ -36,7 +36,7 @@ public:
 	void fillText(const std::string &title, const std::string &content);
 
 	/* add button to popup on given part of */
-	Evas_Object *addButton(const char *part);
+	Evas_Object *addButton(const std::string &part);
 
 	void start(void);
 	void stop(void);

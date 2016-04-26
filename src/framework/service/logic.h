@@ -27,6 +27,7 @@
 #include "common/types.h"
 #include "common/cs-context.h"
 #include "common/wp-context.h"
+#include "common/cs-detected.h"
 #include "common/wp-result.h"
 #include "common/command-id.h"
 #include "common/binary-queue.h"
@@ -55,12 +56,15 @@ private:
 	RawBuffer getIgnored(const CsContext &context, const std::string &filepath);
 	RawBuffer getIgnoredList(const CsContext &context, const StrSet &dirSet);
 
-
 	RawBuffer checkUrl(const WpContext &context, const std::string &url);
 
+	CsDetected convert(csre_cs_detected_h &);
 	WpResult convert(csre_wp_check_result_h &);
-	void getUserResponse(const WpContext &, const std::string &url,
-						 csr_wp_risk_level_e, WpResult &);
+
+	static csr_cs_user_response_e getUserResponse(const CsContext &,
+			const CsDetected &);
+	static csr_wp_user_response_e getUserResponse(const WpContext &,
+			const std::string &url, const WpResult &);
 
 	std::shared_ptr<CsLoader> m_cs;
 	std::shared_ptr<WpLoader> m_wp;

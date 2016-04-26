@@ -24,6 +24,7 @@ SET(${TARGET_CSR_POPUP_TEST}_SRCS
 	${PROJECT_SOURCE_DIR}/src/framework/ui/askuser.cpp
 	${PROJECT_SOURCE_DIR}/src/framework/ui/common.cpp
 	${PROJECT_SOURCE_DIR}/test/colour_log_formatter.cpp
+	${PROJECT_SOURCE_DIR}/test/test-common.cpp
 	test-main.cpp
 	test-popup.cpp
 )

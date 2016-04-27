@@ -56,11 +56,13 @@ typedef enum {
  * @brief the user response for a popup.
  */
 typedef enum {
-	CSR_CS_NO_ASK_USER   = 0x00, /**< There was no popup for asking the user. */
-	CSR_CS_REMOVE        = 0x01, /**< A user decided to remove a detected malicious content and it was removed */
-	CSR_CS_IGNORE        = 0x02, /**< A user decided to ignore a detected malicious content.*/
-	CSR_CS_SKIP          = 0x03, /**< A user decided to skip a detected malicious content.*/
-	CSR_CS_REMOVE_FAILED = 0x04  /**< A user decided to remove but removal failed.*/
+	CSR_CS_NO_ASK_USER            = 0x00, /**< There was no popup for asking the user. */
+	CSR_CS_REMOVE                 = 0x01, /**< A user decided to remove a detected malicious content and it was removed */
+	CSR_CS_IGNORE                 = 0x02, /**< A user decided to ignore a detected malicious content. */
+	CSR_CS_SKIP                   = 0x03, /**< A user decided to skip a detected malicious content. */
+	CSR_CS_PROCESSING_ALLOWED     = 0x04, /**< A user decided to process a detected malicious data. */
+	CSR_CS_PROCESSING_DISALLOWED  = 0x05, /**< A user decided not to process a detected malicious data. */
+	CSR_CS_REMOVE_FAILED          = 0x99  /**< A user decided to remove but removal failed. */
 } csr_cs_user_response_e;
 
 /**

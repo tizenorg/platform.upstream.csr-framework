@@ -105,10 +105,6 @@ mkdir -p %{buildroot}%{_unitdir}/multi-user.target.wants
 mkdir -p %{buildroot}%{_unitdir}/sockets.target.wants
 ln -s ../%{service_name}.service %{buildroot}%{_unitdir}/multi-user.target.wants/%{service_name}.service
 ln -s ../%{service_name}.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}.socket
-
-mkdir -p %{buildroot}%{_unitdir}/default.target.wants
-mkdir -p %{buildroot}%{_unitdir}/sockets.target.wants
-ln -s ../%{service_name}-popup.service %{buildroot}%{_unitdir}/default.target.wants/%{service_name}-popup.service
 ln -s ../%{service_name}-popup.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}-popup.socket
 
 mkdir -p %{buildroot}%{ro_data_dir}/license
@@ -166,7 +162,6 @@ fi
 %{_unitdir}/%{service_name}.service
 %{_unitdir}/sockets.target.wants/%{service_name}.socket
 %{_unitdir}/%{service_name}.socket
-%{_unitdir}/default.target.wants/%{service_name}-popup.service
 %{_unitdir}/%{service_name}-popup.service
 %{_unitdir}/sockets.target.wants/%{service_name}-popup.socket
 %{_unitdir}/%{service_name}-popup.socket

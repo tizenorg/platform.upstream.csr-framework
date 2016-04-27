@@ -64,7 +64,10 @@ int main(int argc, char **argv)
 
 		Csr::Ui::PopupService service("/tmp/." SERVICE_NAME "-popup.socket");
 
-		service.start(0);
+		// timeout when idle for 10 sec. If timeout time is too small and
+		// popup service wakes up repeatedly too quickly, it can be refused
+		// by systemd.
+		service.start(1000 * 10);
 
 		return 0;
 	} catch (const std::exception &e) {

@@ -19,6 +19,9 @@ namespace Csr {
 namespace Db {
 namespace Query {
 
+const std::string CHK_TABLE =
+	"select name from sqlite_master where type = 'table' and name = ?";
+
 const std::string SEL_SCHEMA_INFO =
 	"select value from SCHEMA_INFO where name = ?";
 
@@ -26,13 +29,13 @@ const std::string INS_SCHEMA_INFO =
 	"insert or replace into SCHEMA_INFO (name, value) values (?, ?)";
 
 const std::string SEL_ENGINE_STATE =
-	"select state from ENGINE_STATE where engine_id = ?";
+	"select state from ENGINE_STATE where id = ?";
 
 const std::string INS_ENGINE_STATE =
-	"insert or replace into ENGINE_STATE (engine_id, state) values (?, ?)";
+	"insert or replace into ENGINE_STATE (id, state) values (?, ?)";
 
 const std::string SEL_SCAN_REQUEST =
-	"select dir, last_scan from SCAN_REQUEST where dir = ? and data_version = ?";
+	"select last_scan from SCAN_REQUEST where dir = ? and data_version = ?";
 
 const std::string INS_SCAN_REQUEST =
 	"insert or replace into SCAN_REQUEST (dir, last_scan, data_version) "
@@ -47,21 +50,21 @@ const std::string DEL_SCAN_REQUEST =
 
 const std::string SEL_DETECTED_BY_DIR =
 	"SELECT path, data_version, "
-	" severity_level, threat_type, malware_name, "
-	" detailed_url, detected_time, modified_time, ignored "
+	" severity, threat, malware_name, "
+	" detailed_url, detected_time, ignored "
 	" FROM detected_malware_file where path like ? || '%' ";
 
 const std::string SEL_DETECTED_BY_PATH =
 	"SELECT path, data_version, "
-	" severity_level, threat_type, malware_name, "
-	" detailed_url, detected_time, modified_time, ignored "
+	" severity, threat, malware_name, "
+	" detailed_url, detected_time, ignored "
 	" FROM detected_malware_file where path = ? ";
 
 const std::string INS_DETECTED =
 	"insert or replace into DETECTED_MALWARE_FILE "
-	" (path, data_version, severity_level, threat_type, malware_name, "
-	" detailed_url, detected_time, modified_time, ignored) "
-	" values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	" (path, data_version, severity, threat, malware_name, "
+	" detailed_url, detected_time, ignored) "
+	" values (?, ?, ?, ?, ?, ?, ?, ?)";
 
 const std::string UPD_DETECTED_INGNORED =
 	"update DETECTED_MALWARE_FILE set ignored = ? where path = ?";

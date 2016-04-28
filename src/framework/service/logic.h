@@ -23,6 +23,7 @@
 
 #include <string>
 #include <utility>
+#include <memory>
 
 #include "common/types.h"
 #include "common/cs-context.h"
@@ -31,6 +32,7 @@
 #include "common/wp-result.h"
 #include "common/command-id.h"
 #include "common/binary-queue.h"
+#include "db/manager.h"
 #include "service/cs-loader.h"
 #include "service/wp-loader.h"
 
@@ -68,6 +70,10 @@ private:
 
 	std::shared_ptr<CsLoader> m_cs;
 	std::shared_ptr<WpLoader> m_wp;
+	std::unique_ptr<Db::Manager> m_db;
+
+	std::string m_csDataVersion;
+	std::string m_wpDataVersion;
 };
 
 }

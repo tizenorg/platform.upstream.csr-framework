@@ -162,8 +162,8 @@ BOOST_AUTO_TEST_CASE(scan_files_async_positive)
 	std::unique_lock<std::mutex> l(testCtx.m);
 	testCtx.cv.wait(l);
 	l.unlock();
-	BOOST_REQUIRE_MESSAGE(testCtx.completedCnt == 1 && testCtx.scannedCnt == 3 &&
-						  testCtx.detectedCnt == 0 && testCtx.cancelledCnt == 0 && testCtx.errorCnt == 0,
+	BOOST_REQUIRE_MESSAGE(testCtx.completedCnt == 1 && testCtx.scannedCnt == 1 &&
+						  testCtx.detectedCnt == 2 && testCtx.cancelledCnt == 0 && testCtx.errorCnt == 0,
 						  "Async request result isn't expected.");
 
 	EXCEPTION_GUARD_END

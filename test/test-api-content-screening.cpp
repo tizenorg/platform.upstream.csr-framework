@@ -30,6 +30,11 @@
 
 #include "test-common.h"
 
+#define TEST_FILE_NORMAL   TEST_DIR "/test_normal_file"
+#define TEST_FILE_MALWARE  TEST_DIR "/test_malware_file"
+#define TEST_FILE_RISKY    TEST_DIR "/test_risky_file"
+#define TEST_APP_ROOT      TEST_DIR "/test_app"
+
 BOOST_AUTO_TEST_SUITE(API_CONTENT_SCREENING)
 
 BOOST_AUTO_TEST_CASE(context_create_destroy)
@@ -106,7 +111,7 @@ BOOST_AUTO_TEST_CASE(scan_data)
 	EXCEPTION_GUARD_END
 }
 
-BOOST_AUTO_TEST_CASE(scan_file)
+BOOST_AUTO_TEST_CASE(scan_file_normal)
 {
 	EXCEPTION_GUARD_START
 
@@ -114,11 +119,43 @@ BOOST_AUTO_TEST_CASE(scan_file)
 	auto context = c.get();
 	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_scan_file(context, "dummy_file_path", &detected),
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NORMAL, &detected),
 			  CSR_ERROR_NONE);
 
 	// no malware detected
 	CHECK_IS_NULL(detected);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(scan_file_malware)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_detected_h detected;
+
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected),
+			  CSR_ERROR_NONE);
+
+	CHECK_IS_NOT_NULL(detected);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(scan_file_risky)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_detected_h detected;
+
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_RISKY, &detected),
+			  CSR_ERROR_NONE);
+
+	CHECK_IS_NOT_NULL(detected);
 
 	EXCEPTION_GUARD_END
 }

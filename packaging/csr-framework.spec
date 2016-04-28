@@ -21,6 +21,8 @@ Requires:      lib%{name}-common = %{version}-%{release}
 General purpose content screening and reputation solution. Can scan
 file contents and checking url to prevent malicious items.
 
+%global service_user                 system
+%global service_group                system
 %global service_name                 csr
 %global bin_dir                      %{_bindir}
 %global sbin_dir                     /sbin
@@ -84,6 +86,8 @@ test program of csr-framework
     -DCMAKE_BUILD_TYPE=%{?build_type:%build_type}%{!?build_type:RELEASE} \
     -DCMAKE_VERBOSE_MAKEFILE=ON \
     -DCMAKE_INSTALL_PREFIX=%{_prefix} \
+    -DSERVICE_USER=%{service_user} \
+    -DSERVICE_GROUP=%{service_group} \
     -DSERVICE_NAME=%{service_name} \
     -DVERSION=%{version} \
     -DINCLUDE_INSTALL_DIR:PATH=%{_includedir} \
@@ -167,18 +171,18 @@ fi
 %{_unitdir}/%{service_name}-popup.socket
 
 %dir %{ro_data_dir}/%{service_name}
-%dir %{rw_data_dir}/%{service_name}
+%dir %attr(-, %{service_user}, %{service_group}) %{rw_data_dir}/%{service_name}
 %dir %{ro_db_dir}
-%dir %{rw_db_dir}
-%attr(444, system, system) %{ro_db_dir}/*.sql
+%dir %attr(-, %{service_user}, %{service_group}) %{rw_db_dir}
+%attr(444, %{service_user}, %{service_group}) %{ro_db_dir}/*.sql
 
 # sample engine related files
 %dir %{sample_engine_dir}
 %dir %{sample_engine_ro_res_dir}
-%dir %attr(775, system, system) %{sample_engine_rw_working_dir}
+%dir %attr(775, %{service_user}, %{service_group}) %{sample_engine_rw_working_dir}
 %{sample_engine_dir}/lib%{service_name}-cs-engine.so
 %{sample_engine_dir}/lib%{service_name}-wp-engine.so
-%attr(-, system, system) %{sample_engine_rw_working_dir}/*
+%attr(-, %{service_user}, %{service_group}) %{sample_engine_rw_working_dir}/*
 
 %files -n lib%{name}-common
 %defattr(-,root,root,-)

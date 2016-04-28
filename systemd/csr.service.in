@@ -3,8 +3,8 @@ Description=Content Screening and Reputation service
 Requires=@SERVICE_NAME@.socket
 
 [Service]
-User=system
-Group=system
+User=@SERVICE_USER@
+Group=@SERVICE_GROUP@
 SmackProcessLabel=@SERVICE_NAME@
 ExecStart=@BIN_DIR@/@SERVICE_NAME@-server
 Sockets=@SERVICE_NAME@.socket

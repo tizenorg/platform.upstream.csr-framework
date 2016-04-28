@@ -28,6 +28,7 @@
 
 #include "common/audit/logger.h"
 #include "service/type-converter.h"
+#include "service/file-system.h"
 #include "ui/askuser.h"
 #include "csr/error.h"
 
@@ -59,7 +60,8 @@ void printCsContext(const CsContext &context)
 
 Logic::Logic() :
 	m_cs(new CsLoader(CS_ENGINE_PATH)),
-	m_wp(new WpLoader(WP_ENGINE_PATH))
+	m_wp(new WpLoader(WP_ENGINE_PATH)),
+	m_db(new Db::Manager(RW_DBSPACE "/.csr.db", RO_DBSPACE))
 {
 	// TODO: Provide engine-specific res/working dirs
 	int ret = m_cs->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
@@ -68,10 +70,22 @@ Logic::Logic() :
 	if (ret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("global init cs engine. ret: " << ret));
 
+	CsEngineInfo csEngineInfo(m_cs);
+	ret = m_cs->getEngineDataVersion(csEngineInfo.get(), m_csDataVersion);
+
+	if (ret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("get cs engine data version. ret: " << ret));
+
 	ret = m_wp->globalInit(SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
 
 	if (ret != CSRE_ERROR_NONE)
 		throw std::runtime_error(FORMAT("global init wp engine. ret: " << ret));
+
+	WpEngineInfo wpEngineInfo(m_wp);
+	ret = m_wp->getEngineDataVersion(wpEngineInfo.get(), m_wpDataVersion);
+
+	if (ret != CSRE_ERROR_NONE)
+		throw std::runtime_error(FORMAT("get cs engine data version. ret: " << ret));
 
 	DEBUG("Service logic ctor done");
 }
@@ -234,11 +248,76 @@ RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 
 RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 {
-	INFO("Scan file[" << filepath << "] by engine");
+	auto history = m_db->getDetectedMalware(filepath);
 
-	printCsContext(context);
+	if (history) {
+		// history exist of malware detected for the file.
+		// let's check file modified since the detected time.
+		auto file = createVisitor(filepath, static_cast<time_t>(history->ts))->next();
 
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
+		if (file == nullptr) {
+			// file isn't modified since the detected time. history can be used.
+			// TODO: case should be separated. (file isn't exist) and (not modified)
+			if (context.askUser) {
+				if (history->isIgnored) {
+					history->response = CSR_CS_IGNORE;
+				} else {
+					if ((history->response = getUserResponse(context, *history))
+							== CSR_CS_IGNORE)
+						m_db->setDetectedMalwareIgnored(filepath, true);
+				}
+			}
+
+			return BinaryQueue::Serialize(CSR_ERROR_NONE, history).pop();
+		} else {
+			// file is modified since the detected time. let's remove history!
+			m_db->deleteDetectedMalware(filepath);
+		}
+	}
+
+	CsEngineContext engineContext(m_cs);
+	auto &c = engineContext.get();
+
+	csre_cs_detected_h result;
+	int ret = CSR_ERROR_NONE;
+	int eret = m_cs->scanFile(c, filepath, &result);
+
+	if (eret != CSRE_ERROR_NONE) {
+		ERROR("Engine error. engine api ret: " << eret);
+		return BinaryQueue::Serialize(CSR_ERROR_ENGINE_INTERNAL, CsDetected()).pop();
+	}
+
+	// detected handle is null if it's safe
+	if (result == nullptr)
+		return BinaryQueue::Serialize(ret, CsDetected()).pop();
+
+	auto d = convert(result);
+
+	d.targetName = filepath;
+
+	switch (d.severity) {
+	case CSR_CS_SEVERITY_LOW:
+		INFO("severity low for file scanned!");
+		break;
+
+	case CSR_CS_SEVERITY_MEDIUM:
+		INFO("severity medium for file scanned!");
+		d.response = getUserResponse(context, d);
+		break;
+
+	case CSR_CS_SEVERITY_HIGH:
+		INFO("severity high for file scanned!");
+		d.response = getUserResponse(context, d);
+		break;
+
+	default:
+		throw std::logic_error(FORMAT("Invalid severity: " <<
+									  static_cast<int>(d.severity)));
+	}
+
+	m_db->insertDetectedMalware(d, m_csDataVersion, d.response == CSR_CS_IGNORE);
+
+	return BinaryQueue::Serialize(ret, d).pop();
 }
 
 RawBuffer Logic::dirGetResults(const CsContext &context, const std::string &dir)

@@ -17,6 +17,8 @@
 			<smack request="pulseaudio" type="w" />
 			<smack request="sdbd" type="rx" />
 			<smack request="pkgmgr::db" type="rwx" />
+
+			<smack request="csr-test" type="rwxat" />
 		</request>
 		<permit>
 			<smack permit="_" type="rx" />

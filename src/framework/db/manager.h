@@ -26,40 +26,18 @@
 #include <memory>
 
 #include "db/connection.h"
+#include "db/row.h"
+#include "common/cs-detected.h"
 
 namespace Csr {
 namespace Db {
-
-struct RowDetected {
-	std::string path;
-	std::string dataVersion; // engine's data version
-	std::string name;
-	std::string detailedUrl;
-	int severityLevel;
-	int threatType;
-	int ignored;
-	long detected_time;
-	long modified_time;
-
-	RowDetected() :
-		severityLevel(-1),
-		threatType(-1),
-		ignored(-1),
-		detected_time(-1),
-		modified_time(-1) {}
-
-	virtual ~RowDetected() {}
-};
-
-using DetectedShrPtr = std::shared_ptr<RowDetected>;
-using DetectedListShrPtr = std::shared_ptr<std::vector<DetectedShrPtr>>;
 
 class Manager {
 public:
 	Manager(const std::string &dbfile, const std::string &scriptsDir);
 	virtual ~Manager();
 
-	// SCHEMA_INFO
+	// SCHEMA_INFO. it's public only for testing for now...
 	int getSchemaVersion();
 
 	// ENGINE_STATE
@@ -68,24 +46,23 @@ public:
 
 	// SCAN_REQUEST
 	long getLastScanTime(const std::string &dir,
-						 const std::string &dataVersion)  noexcept;
+						 const std::string &dataVersion) noexcept;
 	bool insertLastScanTime(const std::string &dir, long scanTime,
-							const std::string &dataVersion)  noexcept;
-	bool deleteLastScanTime(const std::string &dir)  noexcept;
-	bool cleanLastScanTime()  noexcept;
+							const std::string &dataVersion) noexcept;
+	bool deleteLastScanTime(const std::string &dir) noexcept;
+	bool cleanLastScanTime() noexcept;
 
 	// DETECTED_MALWARE_FILE & USER_RESPONSE
-	DetectedListShrPtr getDetectedMalwares(const std::string &dir)  noexcept;
-	DetectedShrPtr getDetectedMalware(const std::string &path)  noexcept;
-	bool insertDetectedMalware(const RowDetected &malware)  noexcept;
-	bool setDetectedMalwareIgnored(const std::string &path,
-								   int userResponse)  noexcept;
-	bool deleteDetecedMalware(const std::string &path) noexcept;
+	RowsShPtr getDetectedMalwares(const std::string &dirpath) noexcept;
+	RowShPtr getDetectedMalware(const std::string &filepath) noexcept;
+	bool insertDetectedMalware(const CsDetected &, const std::string &dataVersion,
+							   bool isIgnored) noexcept;
+	bool setDetectedMalwareIgnored(const std::string &path, bool) noexcept;
+	bool deleteDetectedMalware(const std::string &path) noexcept;
 	bool deleteDeprecatedDetecedMalwares(const std::string &dir,
-										 const std::string &dataVersion)  noexcept;
+										 const std::string &dataVersion) noexcept;
 
 private:
-	void initDatabase();
 	void resetDatabase();
 	std::string getScript(const std::string &scriptName);
 	std::string getMigrationScript(int schemaVersion);

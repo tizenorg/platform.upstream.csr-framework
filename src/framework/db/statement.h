@@ -16,7 +16,6 @@
 #pragma once
 
 #include <string>
-#include <map>
 
 #include <sqlite3.h>
 
@@ -27,51 +26,37 @@ namespace Db {
 
 class Statement {
 public:
-	Statement(const Connection &db, const std::string &query);
+	Statement() = delete;
+	explicit Statement(const Connection &db, const std::string &query);
 	virtual ~Statement();
 
 	int exec();
 	bool step();
 
 	void reset();
-	void clearBindings();
+	void clearBindings() const;
 
-	// bind values to query
-	void bind(int index, int value);
-	void bind(int index, sqlite3_int64 value);
-	void bind(int index, double value);
-	void bind(int index, const std::string &value);
-	void bind(int index, const char *value);
-	void bind(int index, const void *value, int size);
-	void bind(int index);
+	// bind values to query. index of column auto-incremented
+	void bind(int value) const;
+	void bind(sqlite3_int64 value) const;
+	void bind(double value) const;
+	void bind(const std::string &value) const;
+	void bind() const;
 
-	void bind(const std::string &name, int value);
-	void bind(const std::string &name, sqlite3_int64 value);
-	void bind(const std::string &name, double value);
-	void bind(const std::string &name, const std::string &value);
-	void bind(const std::string &name, const char *value);
-	void bind(const std::string &name, const void *value, int size);
-	void bind(const std::string &name);
+	// get column values. index of column auto-incremented
+	int getInt() const;
+	sqlite3_int64 getInt64() const;
+	const char *getText() const;
 
-	// get column values
-	std::string getColumnName(int index) const;
-	bool isNullColumn(int index) const;
-
-	int getInt(int index) const;
-	sqlite3_int64 getInt64(int index) const;
-	double getDouble(int index) const;
-	const char *getText(int index) const;
-	const void *getBlob(int index) const;
-	int getType(int index) const;
-	int getBytes(int index) const;
+	bool isNullColumn() const; // it's checking func. not auto incremented.
 
 private:
+	bool isColumnValid() const noexcept;
 	std::string getErrorMessage() const;
-	std::string getErrorMessage(int errorCode) const;
-	bool isColumnValid(int index) const noexcept;
 
 	sqlite3_stmt *m_stmt;
-	int m_columnCount;
+	int m_count;
+	mutable int m_index;
 	bool m_validRow;
 };
 

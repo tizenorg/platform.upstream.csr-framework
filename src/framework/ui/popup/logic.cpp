@@ -21,13 +21,13 @@
  */
 #include "logic.h"
 
-#include <stdexcept>
 #include <functional>
 #include <unordered_map>
 #include <Elementary.h>
 
 #include "common/binary-queue.h"
 #include "common/audit/logger.h"
+#include "common/exception.h"
 #include "ui/common.h"
 
 #include "csr/content-screening-types.h"
@@ -69,7 +69,7 @@ bool isCsCommand(const CommandId &cid)
 		return false;
 
 	default:
-		throw std::logic_error("Protocol error. unknown popup-service command id.");
+		ThrowExc(InternalError, "Protocol error. unknown popup-service command id.");
 	}
 }
 
@@ -128,7 +128,7 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 			return csNotifyFile(message, d);
 
 		default:
-			throw std::logic_error("Cannot be happened.");
+			ThrowExc(InternalError, "protocol error. invalid ui command id.");
 		}
 	} else {
 		std::string message;
@@ -143,7 +143,7 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 			return wpNotify(message, item);
 
 		default:
-			throw std::logic_error("Cannot be happened.");
+			ThrowExc(InternalError, "protocol error. invalid ui command id.");
 		}
 	}
 }

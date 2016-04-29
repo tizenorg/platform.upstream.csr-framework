@@ -21,10 +21,6 @@
  */
 #include "common/wp-result.h"
 
-#include <stdexcept>
-
-#include "common/audit/logger.h"
-
 namespace Csr {
 
 WpResult::WpResult() :

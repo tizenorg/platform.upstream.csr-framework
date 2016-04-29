@@ -25,6 +25,7 @@
 #include <sys/epoll.h>
 
 #include "common/audit/logger.h"
+#include "common/exception.h"
 
 namespace Csr {
 
@@ -70,7 +71,7 @@ void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
 	/* TODO: scoped-lock */
 	m_onNewConnection = [&](const ConnShPtr & connection) {
 		if (!connection)
-			throw std::logic_error("onNewConnection called but ConnShPtr is nullptr.");
+			ThrowExc(InternalError, "onNewConnection called but ConnShPtr is nullptr.");
 
 		int fd = connection->getFd();
 
@@ -87,8 +88,8 @@ void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
 			DEBUG("read event comes in to fd[" << fd << "]");
 
 			if (m_connectionRegistry.count(fd) == 0)
-				throw std::logic_error(FORMAT("get event on fd[" << fd
-											  << "] but no associated connection exist"));
+				ThrowExc(InternalError, "get event on fd[" << fd <<
+						 "] but no associated connection exist");
 
 			auto &conn = m_connectionRegistry[fd];
 
@@ -112,13 +113,13 @@ void Service::setCloseConnectionCallback(const ConnCallback &/*callback*/)
 	/* TODO: scoped-lock */
 	m_onCloseConnection = [&](const ConnShPtr & connection) {
 		if (!connection)
-			throw std::logic_error("no connection to close");
+			ThrowExc(InternalError, "no connection to close");
 
 		int fd = connection->getFd();
 
 		if (m_connectionRegistry.count(fd) == 0)
-			throw std::logic_error(FORMAT("no connection in registry to remove "
-										  "associated to fd[" << fd << "]"));
+			ThrowExc(InternalError, "no connection in registry to remove "
+					 "associated to fd[" << fd << "]");
 
 		INFO("good-bye! close socket fd[" << fd << "]");
 

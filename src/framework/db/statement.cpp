@@ -16,10 +16,10 @@
 #include "db/statement.h"
 
 #include <string>
-#include <stdexcept>
 
 #include "db/connection.h"
 #include "common/audit/logger.h"
+#include "common/exception.h"
 
 namespace Csr {
 namespace Db {
@@ -34,7 +34,8 @@ const int ColumnStartIndex = -1;
 Statement::Statement(const Connection &db, const std::string &query) :
 	m_stmt(nullptr), m_bindingIndex(BindingStartIndex)
 {
-	switch (sqlite3_prepare_v2(db.get(), query.c_str(), query.size(), &m_stmt, nullptr)) {
+	switch (sqlite3_prepare_v2(db.get(), query.c_str(), query.size(), &m_stmt,
+							   nullptr)) {
 	case SQLITE_OK:
 		m_bindParamCount = ::sqlite3_bind_parameter_count(m_stmt);
 		m_columnCount = ::sqlite3_column_count(m_stmt);
@@ -44,7 +45,7 @@ Statement::Statement(const Connection &db, const std::string &query) :
 		break;
 
 	default:
-		throw std::runtime_error(db.getErrorMessage());
+		ThrowExc(DbFailed, db.getErrorMessage());
 	}
 
 }
@@ -52,7 +53,7 @@ Statement::Statement(const Connection &db, const std::string &query) :
 Statement::~Statement()
 {
 	if (SQLITE_OK != ::sqlite3_finalize(m_stmt))
-		throw std::runtime_error(getErrorMessage());
+		ThrowExc(DbFailed, getErrorMessage());
 }
 
 void Statement::reset()
@@ -60,7 +61,7 @@ void Statement::reset()
 	clearBindings();
 
 	if (::sqlite3_reset(m_stmt) != SQLITE_OK)
-		throw std::runtime_error(getErrorMessage());
+		ThrowExc(DbFailed, getErrorMessage());
 
 	m_columnIndex = m_columnCount + 1;
 }
@@ -68,7 +69,7 @@ void Statement::reset()
 void Statement::clearBindings() const
 {
 	if (::sqlite3_clear_bindings(m_stmt) != SQLITE_OK)
-		throw std::runtime_error(getErrorMessage());
+		ThrowExc(DbFailed, getErrorMessage());
 
 	m_bindingIndex = BindingStartIndex;
 }
@@ -91,14 +92,14 @@ bool Statement::step()
 		return false;
 
 	default:
-		throw std::runtime_error(getErrorMessage());
+		ThrowExc(DbFailed, getErrorMessage());
 	}
 }
 
 int Statement::exec()
 {
 	if (::sqlite3_step(m_stmt) != SQLITE_DONE)
-		throw std::runtime_error(getErrorMessage());
+		ThrowExc(DbFailed, getErrorMessage());
 
 	// column cannot be 'get' after sqlite done, so make index overflow.
 	m_columnIndex = m_columnCount + 1;
@@ -108,45 +109,45 @@ int Statement::exec()
 void Statement::bind(int value) const
 {
 	if (!isBindingIndexValid())
-		throw std::logic_error("index overflowed when binding int to stmt.");
+		ThrowExc(DbFailed, "index overflowed when binding int to stmt.");
 
 	if (SQLITE_OK != ::sqlite3_bind_int(m_stmt, ++m_bindingIndex, value))
-		throw std::runtime_error(getErrorMessage());
+		ThrowExc(DbFailed, getErrorMessage());
 }
 
 void Statement::bind(sqlite3_int64 value) const
 {
 	if (!isBindingIndexValid())
-		throw std::logic_error("index overflowed when binding int64 to stmt.");
+		ThrowExc(DbFailed, "index overflowed when binding int64 to stmt.");
 
 	if (SQLITE_OK != ::sqlite3_bind_int64(m_stmt, ++m_bindingIndex, value))
-		throw std::runtime_error(getErrorMessage());
+		ThrowExc(DbFailed, getErrorMessage());
 }
 
 void Statement::bind(const std::string &value) const
 {
 	if (!isBindingIndexValid())
-		throw std::logic_error("index overflowed when binding string to stmt.");
+		ThrowExc(DbFailed, "index overflowed when binding string to stmt.");
 
-	if (SQLITE_OK != ::sqlite3_bind_text(m_stmt, ++m_bindingIndex, value.c_str(), -1,
+	if (SQLITE_OK != ::sqlite3_bind_text(m_stmt, ++m_bindingIndex, value.c_str(),
+										 -1,
 										 SQLITE_STATIC))
-		throw std::runtime_error(getErrorMessage());
+		ThrowExc(DbFailed, getErrorMessage());
 }
 
 void Statement::bind(void) const
 {
 	if (!isBindingIndexValid())
-		throw std::logic_error("index overflowed when binding fields from row");
+		ThrowExc(DbFailed, "index overflowed when binding fields from row");
 
 	if (SQLITE_OK != ::sqlite3_bind_null(m_stmt, ++m_bindingIndex))
-		throw std::runtime_error(getErrorMessage());
+		ThrowExc(DbFailed, getErrorMessage());
 }
 
 bool Statement::isNullColumn() const
 {
 	if (!isColumnIndexValid())
-		throw std::runtime_error(FORMAT("column isn't valud for index: " <<
-										m_columnIndex));
+		ThrowExc(DbFailed, "column isn't valud for index: " << m_columnIndex);
 
 	return SQLITE_NULL == sqlite3_column_type(m_stmt, (m_columnIndex + 1));
 }
@@ -154,7 +155,7 @@ bool Statement::isNullColumn() const
 int Statement::getInt() const
 {
 	if (!isColumnIndexValid())
-		throw std::logic_error("index overflowed when getting fields from row");
+		ThrowExc(DbFailed, "index overflowed when getting fields from row");
 
 	return sqlite3_column_int(m_stmt, ++m_columnIndex);
 }
@@ -162,7 +163,7 @@ int Statement::getInt() const
 sqlite3_int64 Statement::getInt64() const
 {
 	if (!isColumnIndexValid())
-		throw std::logic_error("index overflowed when getting fields from row");
+		ThrowExc(DbFailed, "index overflowed when getting fields from row");
 
 	return sqlite3_column_int64(m_stmt, ++m_columnIndex);
 }
@@ -170,9 +171,10 @@ sqlite3_int64 Statement::getInt64() const
 const char *Statement::getText() const
 {
 	if (!isColumnIndexValid())
-		throw std::logic_error("index overflowed when getting fields from row");
+		ThrowExc(DbFailed, "index overflowed when getting fields from row");
 
-	return reinterpret_cast<const char *>(sqlite3_column_text(m_stmt, ++m_columnIndex));
+	return reinterpret_cast<const char *>(sqlite3_column_text(m_stmt,
+										  ++m_columnIndex));
 }
 
 } // namespace Db

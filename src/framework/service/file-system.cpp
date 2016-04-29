@@ -21,7 +21,7 @@
  */
 #include "service/file-system.h"
 
-#include <stdexcept>
+#include <system_error>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -239,7 +239,8 @@ FileShrPtr DirVisitor::next()
 
 	while (true) {
 		if (readdir_r(m_currDir.get(), m_currEntry.get(), &result) != 0)
-			throw std::runtime_error("exception occurred. reading dir = " + m_dirs.front());
+			throw std::system_error(std::error_code(),
+									FORMAT("reading dir = " << m_dirs.front()));
 
 		if (result == nullptr) { // end of dir stream
 			DEBUG("DirVisitor: end visiting. dir=" << m_dirs.front());

@@ -22,10 +22,10 @@
  */
 #include "service/thread-pool.h"
 
-#include <stdexcept>
 #include <utility>
 
 #include "common/audit/logger.h"
+#include "common/exception.h"
 
 #define __BEGIN_CRITICAL__ { std::lock_guard<std::mutex> lock(this->m_mutex);
 #define __END_CRITICAL__   }
@@ -38,7 +38,7 @@ ThreadPool::ThreadPool(size_t min, size_t max) :
 	m_stop(false)
 {
 	if (m_min > m_max)
-		throw std::logic_error("thread pool MIN shouldn't be bigger than MAX");
+		ThrowExc(InvalidParam, "thread pool MIN shouldn't be bigger than MAX");
 
 	for (size_t i = 0; i < m_min; i++)
 		add();

@@ -20,15 +20,14 @@
  * @version     1.0
  * @brief
  */
+#include "service/core-usage.h"
 
-#include <stdexcept>
 #include <sched.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
 
-#include "service/core-usage.h"
-
+#include "common/exception.h"
 
 namespace Csr {
 
@@ -40,7 +39,7 @@ void CpuUsageManager::initialize()
 bool CpuUsageManager::setThreadCoreUsage(int percent)
 {
 	if (percent > 100 || percent <= 0)
-		throw std::runtime_error("invalid core usage percent.");
+		ThrowExc(InternalError, "invalid core usage percent: " << percent);
 
 	cpu_set_t set;
 	CPU_ZERO(&set);
@@ -75,7 +74,7 @@ int CpuUsageManager::getUsedCnt()
 	CPU_ZERO(&usedCore);
 
 	if (sched_getaffinity(0, sizeof(cpu_set_t), &usedCore) != 0)
-		throw std::runtime_error("sched_getaffinity failed.");
+		ThrowExc(InternalError, "sched_getaffinity failed.");
 
 	return CPU_COUNT(&usedCore);
 }

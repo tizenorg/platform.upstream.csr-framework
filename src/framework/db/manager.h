@@ -41,26 +41,25 @@ public:
 	int getSchemaVersion();
 
 	// ENGINE_STATE
-	int getEngineState(int engineId) noexcept;
-	bool setEngineState(int engineId, int state) noexcept;
+	int getEngineState(int engineId);
+	void setEngineState(int engineId, int state);
 
 	// SCAN_REQUEST
-	long getLastScanTime(const std::string &dir,
-						 const std::string &dataVersion) noexcept;
-	bool insertLastScanTime(const std::string &dir, long scanTime,
-							const std::string &dataVersion) noexcept;
-	bool deleteLastScanTime(const std::string &dir) noexcept;
-	bool cleanLastScanTime() noexcept;
+	time_t getLastScanTime(const std::string &dir, const std::string &dataVersion);
+	void insertLastScanTime(const std::string &dir, long scanTime,
+							const std::string &dataVersion);
+	void deleteLastScanTime(const std::string &dir);
+	void cleanLastScanTime();
 
 	// DETECTED_MALWARE_FILE & USER_RESPONSE
-	RowsShPtr getDetectedMalwares(const std::string &dirpath) noexcept;
-	RowShPtr getDetectedMalware(const std::string &filepath) noexcept;
-	bool insertDetectedMalware(const CsDetected &, const std::string &dataVersion,
-							   bool isIgnored) noexcept;
-	bool setDetectedMalwareIgnored(const std::string &path, bool flag) noexcept;
-	bool deleteDetectedMalware(const std::string &path) noexcept;
-	bool deleteDeprecatedDetectedMalwares(const std::string &dir,
-										  const std::string &dataVersion) noexcept;
+	RowsShPtr getDetectedMalwares(const std::string &dirpath);
+	RowShPtr getDetectedMalware(const std::string &filepath);
+	void insertDetectedMalware(const CsDetected &, const std::string &dataVersion,
+							   bool isIgnored);
+	void setDetectedMalwareIgnored(const std::string &path, bool flag);
+	void deleteDetectedMalware(const std::string &path);
+	void deleteDeprecatedDetectedMalwares(const std::string &dir,
+										  const std::string &dataVersion);
 
 private:
 	void resetDatabase();

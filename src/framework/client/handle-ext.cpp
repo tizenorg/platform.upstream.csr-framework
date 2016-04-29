@@ -26,6 +26,7 @@
 #include "client/utils.h"
 #include "common/dispatcher.h"
 #include "common/audit/logger.h"
+#include "common/exception.h"
 
 namespace Csr {
 namespace Client {
@@ -65,8 +66,8 @@ void HandleExt::eraseJoinableIf(std::function<bool(const WorkerMapPair &)> pred)
 		DEBUG("Worker map traversing to erase! current iter tid: " << it->first);
 
 		if (!it->second.t.joinable())
-			throw std::logic_error(FORMAT("All workers should be joinable "
-										  "but it isn't. tid: " << it->first));
+			ThrowExc(InternalError, "All workers should be joinable but it isn't. "
+					 "tid: " << it->first);
 
 		if (!pred(*it)) {
 			++it;
@@ -88,8 +89,8 @@ void HandleExt::done()
 	auto it = m_workerMap.find(std::this_thread::get_id());
 
 	if (it == m_workerMap.end())
-		throw std::logic_error(FORMAT("worker done but it's not registered in map. "
-									  "tid: " << std::this_thread::get_id()));
+		ThrowExc(InternalError, "worker done but it's not registered in map. "
+				 "tid: " << std::this_thread::get_id());
 
 	it->second.isDone = true;
 }

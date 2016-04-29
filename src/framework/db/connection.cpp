@@ -14,9 +14,9 @@
  *  limitations under the License
  */
 #include <iostream>
-#include <stdexcept>
 
 #include "db/connection.h"
+#include "common/exception.h"
 
 namespace Csr {
 namespace Db {
@@ -26,7 +26,7 @@ Connection::Connection(const std::string &name, const int flags) :
 	m_filename(name)
 {
 	if (::sqlite3_open_v2(m_filename.c_str(), &m_handle, flags, nullptr))
-		throw std::runtime_error(getErrorMessage());
+		ThrowExc(DbFailed, "db connection ctor failed: " << getErrorMessage());
 }
 
 Connection::~Connection()
@@ -38,7 +38,7 @@ int Connection::exec(const std::string &query)
 {
 	if (::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
 					   nullptr) != SQLITE_OK)
-		throw std::runtime_error(getErrorMessage());
+		ThrowExc(DbFailed, "db connection exec failed: " << getErrorMessage());
 
 	return sqlite3_changes(m_handle);
 }

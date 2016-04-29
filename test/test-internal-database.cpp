@@ -67,13 +67,13 @@ BOOST_AUTO_TEST_CASE(engine_state)
 
 	Db::Manager db(TEST_DB_FILE, TEST_DB_SCRIPTS);
 
-	ASSERT_IF(db.setEngineState(1, 1), true);
-	ASSERT_IF(db.setEngineState(2, 2), true);
+	db.setEngineState(1, 1);
+	db.setEngineState(2, 2);
 
 	ASSERT_IF(db.getEngineState(1), 1);
 	ASSERT_IF(db.getEngineState(2), 2);
 
-	ASSERT_IF(db.setEngineState(1, 2), true);
+	db.setEngineState(1, 2);
 	ASSERT_IF(db.getEngineState(1), 2);
 
 	EXCEPTION_GUARD_END
@@ -89,17 +89,15 @@ BOOST_AUTO_TEST_CASE(scan_time)
 	long scantime = 100;
 	std::string dataVersion = "1.0.0";
 
-	ASSERT_IF(db.cleanLastScanTime(), true);
+	db.cleanLastScanTime();
 	ASSERT_IF(db.getLastScanTime(dir, dataVersion), -1);
-	ASSERT_IF(db.insertLastScanTime(dir, scantime, dataVersion), true);
+	db.insertLastScanTime(dir, scantime, dataVersion);
 
-	ASSERT_IF(db.insertLastScanTime("/opt/data", scantime + 100, dataVersion),
-			  true);
-	ASSERT_IF(db.insertLastScanTime("/opt/data/etc", scantime + 200, dataVersion),
-			  true);
+	db.insertLastScanTime("/opt/data", scantime + 100, dataVersion);
+	db.insertLastScanTime("/opt/data/etc", scantime + 200, dataVersion);
 
 	ASSERT_IF(db.getLastScanTime(dir, dataVersion), scantime);
-	ASSERT_IF(db.cleanLastScanTime(), true);
+	db.cleanLastScanTime();
 
 	EXCEPTION_GUARD_END
 }
@@ -145,13 +143,13 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	auto detectedList = db.getDetectedMalwares("/opt");
 	ASSERT_IF(detectedList->empty(), true);
 
-	ASSERT_IF(db.insertDetectedMalware(malware1, initDataVersion, false), true);
+	db.insertDetectedMalware(malware1, initDataVersion, false);
 	detected = db.getDetectedMalware(malware1.targetName);
 	checkSameMalware(malware1, *detected);
 	ASSERT_IF(detected->dataVersion, initDataVersion);
 	ASSERT_IF(detected->isIgnored, false);
 
-	ASSERT_IF(db.insertDetectedMalware(malware2, initDataVersion, true), true);
+	db.insertDetectedMalware(malware2, initDataVersion, true);
 	detected = db.getDetectedMalware(malware2.targetName);
 	checkSameMalware(malware2, *detected);
 	ASSERT_IF(detected->dataVersion, initDataVersion);
@@ -171,14 +169,14 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	}
 
 	// setDetectedMalwareIgnored test
-	ASSERT_IF(db.setDetectedMalwareIgnored(malware1.targetName, true), true);
+	db.setDetectedMalwareIgnored(malware1.targetName, true);
 	detected = db.getDetectedMalware(malware1.targetName);
 	checkSameMalware(malware1, *detected);
 	ASSERT_IF(detected->isIgnored, true);
 
 	// deleteDeprecatedDetectedMalwares test
-	ASSERT_IF(db.insertDetectedMalware(malware3, changedDataVersion, false), true);
-	ASSERT_IF(db.deleteDeprecatedDetectedMalwares("/opt", changedDataVersion), true);
+	db.insertDetectedMalware(malware3, changedDataVersion, false);
+	db.deleteDeprecatedDetectedMalwares("/opt", changedDataVersion);
 	detected = db.getDetectedMalware(malware3.targetName);
 	checkSameMalware(malware3, *detected);
 	ASSERT_IF(detected->dataVersion, changedDataVersion);
@@ -188,7 +186,7 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	CHECK_IS_NULL(db.getDetectedMalware(malware2.targetName));
 
 	// deleteDetectedMalware test
-	ASSERT_IF(db.deleteDetectedMalware(malware3.targetName), true);
+	db.deleteDetectedMalware(malware3.targetName);
 	CHECK_IS_NULL(db.getDetectedMalware(malware3.targetName));
 
 	EXCEPTION_GUARD_END

@@ -21,7 +21,6 @@
  */
 #include "common/socket.h"
 
-#include <exception>
 #include <system_error>
 
 #include <sys/socket.h>
@@ -32,6 +31,7 @@
 #include <systemd/sd-daemon.h>
 
 #include "common/audit/logger.h"
+#include "common/exception.h"
 
 namespace {
 
@@ -59,7 +59,7 @@ namespace Csr {
 Socket::Socket(int fd) : m_fd(fd)
 {
 	if (m_fd < 0)
-		throw std::logic_error("Socket fd from constructor is invalid!!");
+		ThrowExc(InternalError, "Socket fd from constructor is invalid!!");
 }
 
 Socket::Socket(const std::string &path) : m_fd(createSystemdSocket(path))
@@ -68,9 +68,6 @@ Socket::Socket(const std::string &path) : m_fd(createSystemdSocket(path))
 
 Socket::Socket(Socket &&other)
 {
-	if (other.m_fd < 0)
-		throw std::logic_error("Socket fd from move constructor is invalid!!");
-
 	m_fd = other.m_fd;
 	other.m_fd = 0;
 }
@@ -79,9 +76,6 @@ Socket &Socket::operator=(Socket &&other)
 {
 	if (this == &other)
 		return *this;
-
-	if (other.m_fd < 0)
-		throw std::logic_error("Socket fd from move assignment is invalid!!");
 
 	m_fd = other.m_fd;
 	other.m_fd = 0;
@@ -115,7 +109,7 @@ Socket Socket::accept() const
 Socket Socket::connect(const std::string &path)
 {
 	if (path.size() >= sizeof(sockaddr_un::sun_path))
-		throw std::invalid_argument("socket path size too long!");
+		ThrowExc(InternalError, "socket path size too long!");
 
 	int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
 

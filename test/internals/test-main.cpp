@@ -17,9 +17,9 @@
  * @file       test-main.cpp
  * @author     Kyungwook Tak(k.tak@samsung.com)
  * @version    1.0
- * @brief      CSR popup service test main
+ * @brief      internal test main
  */
-#define BOOST_TEST_MODULE CSR_POPUP_TEST
+#define BOOST_TEST_MODULE CSR_INTERNAL_TEST
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include <boost/test/results_reporter.hpp>

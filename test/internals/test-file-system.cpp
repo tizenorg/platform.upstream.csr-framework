@@ -14,10 +14,10 @@
  *  limitations under the License
  */
 /*
- * @file        test-internal-file-system.cpp
+ * @file        test-file-system.cpp
  * @author      Dongsun Lee(ds73.lee@samsung.com)
  * @version     1.0
- * @brief       File system releated class test
+ * @brief       filesystem class unit test
  */
 #include <service/file-system.h>
 
@@ -110,7 +110,7 @@ void __writeFile(const std::string &path)
 
 }
 
-BOOST_AUTO_TEST_SUITE(INTERNAL_FILE_SYSTEM)
+BOOST_AUTO_TEST_SUITE(FILE_SYSTEM)
 
 BOOST_AUTO_TEST_CASE(check_in_app)
 {

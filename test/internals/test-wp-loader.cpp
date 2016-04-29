@@ -51,26 +51,21 @@ std::unordered_map<std::string, Result> ExpectedResult = {
 	{"http://lowrisky.test.com",    Result(CSRE_WP_RISK_LOW, "")}
 };
 
-inline void checkResult(const std::string &url, csre_wp_check_result_h &result,
-						const Result &expected)
+inline void checkResult(Csr::WpLoader &loader,
+						csre_wp_check_result_h &result,
+						const std::pair<const std::string, Result> &expected)
 {
 	EXCEPTION_GUARD_START
 
 	CHECK_IS_NOT_NULL(result);
 
 	csre_wp_risk_level_e risk_level;
-	ASSERT_IF(csre_wp_result_get_risk_level(result, &risk_level), CSRE_ERROR_NONE);
-	BOOST_REQUIRE_MESSAGE(risk_level == expected.risk_level,
-						  "url[" << url << "] risk level isn't expected value. "
-						  "val: " << risk_level << " expected: " << expected.risk_level);
+	ASSERT_IF(loader.getRiskLevel(result, &risk_level), CSRE_ERROR_NONE);
+	ASSERT_IF(risk_level, expected.second.risk_level);
 
-	const char *detailed_url = nullptr;
-	ASSERT_IF(csre_wp_result_get_detailed_url(result, &detailed_url),
-			  CSRE_ERROR_NONE);
-	BOOST_REQUIRE_MESSAGE(expected.detailed_url.compare(detailed_url) == 0,
-						  "url[" << url << "] detailed url isn't expected value. "
-						  "val: " << detailed_url << " expected: " << expected.detailed_url);
-
+	std::string detailed_url;
+	ASSERT_IF(loader.getDetailedUrl(result, detailed_url), CSRE_ERROR_NONE);
+	ASSERT_IF(detailed_url, expected.second.detailed_url);
 
 	EXCEPTION_GUARD_END
 }
@@ -134,7 +129,6 @@ struct Handle<csre_wp_engine_h> {
 } // namespace anonymous
 
 
-
 BOOST_AUTO_TEST_SUITE(WP_LOADER)
 
 BOOST_AUTO_TEST_CASE(context_create_destroy)
@@ -153,11 +147,11 @@ BOOST_AUTO_TEST_CASE(check_url)
 
 	Handle<csre_wp_context_h> h;
 
-	for (const auto &pair : ExpectedResult) {
+	for (const auto &expected : ExpectedResult) {
 		csre_wp_check_result_h result;
-		ASSERT_IF(h.loader.checkUrl(h.context, pair.first.c_str(), &result),
+		ASSERT_IF(h.loader.checkUrl(h.context, expected.first.c_str(), &result),
 				  CSRE_ERROR_NONE);
-		checkResult(pair.first, result, pair.second);
+		checkResult(h.loader, result, expected);
 	}
 
 	EXCEPTION_GUARD_END

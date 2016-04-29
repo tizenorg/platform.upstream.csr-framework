@@ -19,7 +19,6 @@
  * @version     1.0
  * @brief       CSR popup service test
  */
-#define BOOST_TEST_MODULE CSR_POPUP_TEST
 #include "ui/askuser.h"
 #include "ui/common.h"
 #include "common/cs-detected.h"

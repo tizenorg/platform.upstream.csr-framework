@@ -14,10 +14,10 @@
  *  limitations under the License
  */
 /*
- * @file        test-internal-database.cpp
+ * @file        test-cpucore.cpp
  * @author      Dongsun Lee(ds73.lee@samsung.com)
  * @version     1.0
- * @brief       CSR Content screening DB internal test
+ * @brief       cpu core internal test
  */
 #include "service/core-usage.h"
 
@@ -28,7 +28,7 @@
 
 #include "test-common.h"
 
-BOOST_AUTO_TEST_SUITE(INTERNAL_CORE_USAGE)
+BOOST_AUTO_TEST_SUITE(CPU_CORE)
 
 BOOST_AUTO_TEST_CASE(set_core_usage)
 {

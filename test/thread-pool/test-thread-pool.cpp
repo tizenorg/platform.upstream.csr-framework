@@ -19,7 +19,6 @@
  * @version     1.0
  * @brief       CSR threadpool test
  */
-#define BOOST_TEST_MODULE CSR_THREADPOOL_TEST
 #include "service/thread-pool.h"
 
 #include <iostream>

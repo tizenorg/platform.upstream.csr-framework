@@ -23,6 +23,7 @@
 
 #include <cstring>
 #include <cstdio>
+#include <ctime>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -37,67 +38,42 @@
 #define TEST_FILE_RISKY    TEST_DIR "/test_risky_file"
 #define TEST_APP_ROOT      TEST_DIR "/test_app"
 
-
 namespace {
 
-inline void checkDetected(csre_cs_detected_h detected,
+inline void checkDetected(Csr::CsLoader &loader,
+						  csre_cs_detected_h detected,
 						  csre_cs_severity_level_e expected_severity,
 						  csre_cs_threat_type_e expected_threat_type,
 						  const char *expected_malware_name,
 						  const char *expected_detailed_url,
-						  long expected_timestamp)
+						  time_t expected_timestamp)
 {
 	EXCEPTION_GUARD_START
 
 	CHECK_IS_NOT_NULL(detected);
 
 	csre_cs_severity_level_e severity;
-	ASSERT_IF(csre_cs_detected_get_severity(detected, &severity), CSRE_ERROR_NONE);
-	BOOST_REQUIRE_MESSAGE(severity == expected_severity,
-						  "severity isn't expected value. "
-						  "val: " << severity << " expected: " << expected_severity);
+	ASSERT_IF(loader.getSeverity(detected, &severity), CSRE_ERROR_NONE);
+	ASSERT_IF(severity, expected_severity);
 
 	csre_cs_threat_type_e threat_type;
-	ASSERT_IF(csre_cs_detected_get_threat_type(detected, &threat_type),
-			  CSRE_ERROR_NONE);
-	BOOST_REQUIRE_MESSAGE(threat_type == expected_threat_type,
-						  "threat type isn't expected value. "
-						  "val: " << threat_type << " expected: " << expected_threat_type);
+	ASSERT_IF(loader.getThreatType(detected, &threat_type), CSRE_ERROR_NONE);
+	ASSERT_IF(threat_type, expected_threat_type);
 
-	const char *malware_name = nullptr;
-	ASSERT_IF(csre_cs_detected_get_malware_name(detected, &malware_name),
-			  CSRE_ERROR_NONE);
+	std::string malware_name;
+	ASSERT_IF(loader.getMalwareName(detected, malware_name), CSRE_ERROR_NONE);
+	if (expected_malware_name != nullptr)
+		ASSERT_IF(malware_name, expected_malware_name);
 
-	if (expected_malware_name != nullptr) {
-		CHECK_IS_NOT_NULL(malware_name);
-		BOOST_REQUIRE_MESSAGE(
-			(strlen(malware_name) == strlen(expected_malware_name) &&
-			 memcmp(malware_name, expected_malware_name, strlen(malware_name)) == 0),
-			"malware_name isn't expected value. "
-			"val: " << malware_name << " expected: " << expected_malware_name);
-	}
+	std::string detailed_url;
+	ASSERT_IF(loader.getDetailedUrl(detected, detailed_url), CSRE_ERROR_NONE);
+	if (expected_detailed_url != nullptr)
+		ASSERT_IF(detailed_url, expected_detailed_url);
 
-	const char *detailed_url = nullptr;
-	ASSERT_IF(csre_cs_detected_get_detailed_url(detected, &detailed_url),
-			  CSRE_ERROR_NONE);
-
-	if (expected_detailed_url != nullptr) {
-		CHECK_IS_NOT_NULL(detailed_url);
-		BOOST_REQUIRE_MESSAGE(
-			(strlen(detailed_url) == strlen(expected_detailed_url) &&
-			 memcmp(detailed_url, expected_detailed_url, strlen(detailed_url)) == 0),
-			"detailed_url isn't expected value. "
-			"val: " << detailed_url << " expected: " << expected_detailed_url);
-	}
-
-	long timestamp;
-	ASSERT_IF(csre_cs_detected_get_timestamp(detected, &timestamp),
-			  CSRE_ERROR_NONE);
-
+	time_t timestamp;
+	ASSERT_IF(loader.getTimestamp(detected, &timestamp), CSRE_ERROR_NONE);
 	if (expected_timestamp != 0)
-		BOOST_REQUIRE_MESSAGE(timestamp == expected_timestamp,
-							  "timestamp isn't expected value. "
-							  "val: " << timestamp << " expected: " << expected_timestamp);
+		ASSERT_IF(timestamp, expected_timestamp);
 
 	EXCEPTION_GUARD_END
 }
@@ -206,7 +182,8 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 
 	CHECK_IS_NOT_NULL(detected);
 
-	checkDetected(detected,
+	checkDetected(h.loader,
+				  detected,
 				  CSRE_CS_SEVERITY_HIGH,
 				  CSRE_CS_THREAT_MALWARE,
 				  "test_malware",
@@ -230,7 +207,8 @@ BOOST_AUTO_TEST_CASE(scan_data_medium)
 
 	CHECK_IS_NOT_NULL(detected);
 
-	checkDetected(detected,
+	checkDetected(h.loader,
+				  detected,
 				  CSRE_CS_SEVERITY_MEDIUM,
 				  CSRE_CS_THREAT_RISKY,
 				  "test_risk",
@@ -267,7 +245,8 @@ BOOST_AUTO_TEST_CASE(scan_file_malware)
 
 	CHECK_IS_NOT_NULL(detected);
 
-	checkDetected(detected,
+	checkDetected(h.loader,
+				  detected,
 				  CSRE_CS_SEVERITY_HIGH,
 				  CSRE_CS_THREAT_MALWARE,
 				  "test_malware",
@@ -289,7 +268,8 @@ BOOST_AUTO_TEST_CASE(scan_file_risky)
 
 	CHECK_IS_NOT_NULL(detected);
 
-	checkDetected(detected,
+	checkDetected(h.loader,
+				  detected,
 				  CSRE_CS_SEVERITY_MEDIUM,
 				  CSRE_CS_THREAT_RISKY,
 				  "test_risk",
@@ -311,7 +291,8 @@ BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 
 	CHECK_IS_NOT_NULL(detected);
 
-	checkDetected(detected,
+	checkDetected(h.loader,
+				  detected,
 				  CSRE_CS_SEVERITY_HIGH,
 				  CSRE_CS_THREAT_MALWARE,
 				  "test_malware",

@@ -22,13 +22,14 @@
 #include "service/file-system.h"
 
 #include <system_error>
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
+#include <cstdio>
+#include <cstring>
+#include <cerrno>
 #include <sys/stat.h>
 
 #include "service/app-deleter.h"
 #include "common/audit/logger.h"
+#include "common/exception.h"
 
 namespace Csr {
 
@@ -174,9 +175,14 @@ bool FileSystemVisitor::isModifiedSince(const std::string &path, time_t since)
 	struct stat s;
 
 	if (stat(path.c_str(), &s) != 0)
-		return false;
-	else
-		return s.st_mtim.tv_sec >= since;
+		ThrowExc(InternalError, "Failed to stat() on file: " << path <<
+				 ". errno: " << errno);
+
+	DEBUG("Modified since called with file: " << path <<
+		  " file mtime: " << s.st_mtim.tv_sec <<
+		  " since: " << since);
+
+	return s.st_mtim.tv_sec > since;
 }
 
 FileVisitor::FileVisitor(const std::string &fpath, time_t modifiedSince) :
@@ -190,8 +196,10 @@ FileVisitor::~FileVisitor()
 
 FileShrPtr FileVisitor::next()
 {
-	if (m_nextItem && !FileSystemVisitor::isModifiedSince(m_path, m_since))
+	if (m_nextItem && FileSystemVisitor::isModifiedSince(m_path, m_since)) {
+		DEBUG("visitied file is modified since the time. file: " << m_path);
 		m_nextItem.reset();
+	}
 
 	FileShrPtr item = m_nextItem;
 	m_nextItem.reset();

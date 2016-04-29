@@ -36,6 +36,8 @@
 #include "service/cs-loader.h"
 #include "service/wp-loader.h"
 
+#include "csr/content-screening-types.h"
+
 namespace Csr {
 
 class Logic {
@@ -50,13 +52,13 @@ private:
 
 	RawBuffer scanData(const CsContext &context, const RawBuffer &data);
 	RawBuffer scanFile(const CsContext &context, const std::string &filepath);
-	RawBuffer dirGetResults(const CsContext &context, const std::string &dir);
+	RawBuffer scanFileHelper(const CsContext &context, const std::string &filepath);
 	RawBuffer dirGetFiles(const CsContext &context, const std::string &dir);
-	RawBuffer judgeStatus(const CsContext &context, const std::string &filepath);
-	RawBuffer getDetected(const CsContext &context, const std::string &filepath);
-	RawBuffer getDetectedList(const CsContext &context, const StrSet &dirSet);
-	RawBuffer getIgnored(const CsContext &context, const std::string &filepath);
-	RawBuffer getIgnoredList(const CsContext &context, const StrSet &dirSet);
+	RawBuffer judgeStatus(const std::string &filepath, csr_cs_action_e action);
+	RawBuffer getDetected(const std::string &filepath);
+	RawBuffer getDetectedList(const StrSet &dirSet);
+	RawBuffer getIgnored(const std::string &filepath);
+	RawBuffer getIgnoredList(const StrSet &dirSet);
 
 	RawBuffer checkUrl(const WpContext &context, const std::string &url);
 

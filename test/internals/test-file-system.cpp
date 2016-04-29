@@ -23,16 +23,18 @@
 
 #include <string>
 #include <iostream>
+#include <climits>
+#include <ctime>
+#include <cstdio>
 #include <fcntl.h>
-#include <stdio.h>
 #include <sys/stat.h>
-#include <boost/test/unit_test.hpp>
 #include <unistd.h>
-#include <time.h>
 #include <glib.h>
 
 #include <package-manager.h>
 #include <pkgmgr-info.h>
+
+#include <boost/test/unit_test.hpp>
 
 #include "test-common.h"
 
@@ -201,32 +203,34 @@ BOOST_AUTO_TEST_CASE(file_visitor_positive_existing)
 {
 	std::string file = TEST_WRITE_FILE;
 
-	auto visitor = Csr::createVisitor(file, 0);
+	auto visitor = Csr::createVisitor(file, LONG_MAX);
 	CHECK_IS_NOT_NULL(visitor);
-
-	int cnt = 0;
-
-	while (visitor->next())
-		cnt++;
-
-	ASSERT_IF(cnt, 1);
+	CHECK_IS_NOT_NULL(visitor->next());
+	CHECK_IS_NULL(visitor->next());
 }
 
 BOOST_AUTO_TEST_CASE(file_visitor_positive_modified)
 {
 	std::string file = TEST_WRITE_FILE;
 
+	auto beforeWrite = time(nullptr);
+
+	sleep(1);
+
 	__writeFile(file);
 
-	auto visitor = Csr::createVisitor(file, time(0) - 1);
+	sleep(1);
+
+	auto afterWrite = time(nullptr);
+
+	auto visitor = Csr::createVisitor(file, beforeWrite);
 	CHECK_IS_NOT_NULL(visitor);
+	CHECK_IS_NULL(visitor->next());
 
-	int cnt = 0;
-
-	while (visitor->next())
-		cnt++;
-
-	ASSERT_IF(cnt, 1);
+	visitor = Csr::createVisitor(file, afterWrite);
+	CHECK_IS_NOT_NULL(visitor);
+	CHECK_IS_NOT_NULL(visitor->next());
+	CHECK_IS_NULL(visitor->next());
 }
 
 BOOST_AUTO_TEST_CASE(file_visitor_negative_non_existing)

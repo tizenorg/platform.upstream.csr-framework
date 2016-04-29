@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	CHECK_IS_NULL(detected);
 
 	auto detectedList = db.getDetectedMalwares("/opt");
-	ASSERT_IF(detectedList->empty(), true);
+	ASSERT_IF(detectedList.empty(), true);
 
 	db.insertDetectedMalware(malware1, initDataVersion, false);
 	detected = db.getDetectedMalware(malware1.targetName);
@@ -157,9 +157,9 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 
 	// getDetectedMalwares test
 	detectedList = db.getDetectedMalwares("/opt");
-	ASSERT_IF(detectedList->size(), static_cast<size_t>(2));
+	ASSERT_IF(detectedList.size(), static_cast<size_t>(2));
 
-	for (auto &item : *detectedList) {
+	for (auto &item : detectedList) {
 		if (malware1.targetName == item->targetName)
 			checkSameMalware(malware1, *item);
 		else if (malware2.targetName == item->targetName)

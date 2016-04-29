@@ -95,15 +95,11 @@ BOOST_AUTO_TEST_CASE(set_callbacks_positive)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 
-	ASSERT_IF(csr_cs_set_callback_on_detected(context, on_detected),
-			  CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_completed(context, on_completed),
-			  CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_cancelled(context, on_cancelled),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_detected(context, on_detected), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_completed(context, on_completed), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_cancelled(context, on_cancelled), CSR_ERROR_NONE);
 	ASSERT_IF(csr_cs_set_callback_on_error(context, on_error), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_file_scanned(context, on_scanned),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_file_scanned(context, on_scanned), CSR_ERROR_NONE);
 
 	EXCEPTION_GUARD_END
 }
@@ -136,15 +132,11 @@ BOOST_AUTO_TEST_CASE(scan_files_async_positive)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 
-	ASSERT_IF(csr_cs_set_callback_on_completed(context, on_completed),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_completed(context, on_completed), CSR_ERROR_NONE);
 	ASSERT_IF(csr_cs_set_callback_on_error(context, on_error), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_cancelled(context, on_cancelled),
-			  CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_detected(context, on_detected),
-			  CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_file_scanned(context, on_scanned),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_cancelled(context, on_cancelled), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_detected(context, on_detected), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_file_scanned(context, on_scanned), CSR_ERROR_NONE);
 
 	const char *files[3] = {
 		TEST_DIR "/test_malware_file",
@@ -162,9 +154,12 @@ BOOST_AUTO_TEST_CASE(scan_files_async_positive)
 	std::unique_lock<std::mutex> l(testCtx.m);
 	testCtx.cv.wait(l);
 	l.unlock();
-	BOOST_REQUIRE_MESSAGE(testCtx.completedCnt == 1 && testCtx.scannedCnt == 1 &&
-						  testCtx.detectedCnt == 2 && testCtx.cancelledCnt == 0 && testCtx.errorCnt == 0,
-						  "Async request result isn't expected.");
+
+	ASSERT_IF(testCtx.completedCnt, 1);
+	ASSERT_IF(testCtx.scannedCnt, 1);
+	ASSERT_IF(testCtx.detectedCnt, 2);
+	ASSERT_IF(testCtx.cancelledCnt, 0);
+	ASSERT_IF(testCtx.errorCnt, 0);
 
 	EXCEPTION_GUARD_END
 }
@@ -178,15 +173,11 @@ BOOST_AUTO_TEST_CASE(scan_dir_positive)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 
-	ASSERT_IF(csr_cs_set_callback_on_completed(context, on_completed),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_completed(context, on_completed), CSR_ERROR_NONE);
 	ASSERT_IF(csr_cs_set_callback_on_error(context, on_error), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_cancelled(context, on_cancelled),
-			  CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_detected(context, on_detected),
-			  CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_file_scanned(context, on_scanned),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_cancelled(context, on_cancelled), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_detected(context, on_detected), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_file_scanned(context, on_scanned), CSR_ERROR_NONE);
 
 	AsyncTestContext testCtx;
 
@@ -195,9 +186,12 @@ BOOST_AUTO_TEST_CASE(scan_dir_positive)
 	std::unique_lock<std::mutex> l(testCtx.m);
 	testCtx.cv.wait(l);
 	l.unlock();
-	BOOST_REQUIRE_MESSAGE(testCtx.completedCnt == 1 && testCtx.scannedCnt == 0 &&
-						  testCtx.detectedCnt == 0 && testCtx.cancelledCnt == 0 && testCtx.errorCnt == 0,
-						  "Async request result isn't expected.");
+
+	ASSERT_IF(testCtx.completedCnt, 1);
+	ASSERT_IF(testCtx.scannedCnt, 0); // should be 1 after dir_get_files implemented
+	ASSERT_IF(testCtx.detectedCnt, 2);
+	ASSERT_IF(testCtx.cancelledCnt, 0);
+	ASSERT_IF(testCtx.errorCnt, 0);
 
 	EXCEPTION_GUARD_END
 }
@@ -209,15 +203,11 @@ BOOST_AUTO_TEST_CASE(scan_dirs_positive)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 
-	ASSERT_IF(csr_cs_set_callback_on_completed(context, on_completed),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_completed(context, on_completed), CSR_ERROR_NONE);
 	ASSERT_IF(csr_cs_set_callback_on_error(context, on_error), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_cancelled(context, on_cancelled),
-			  CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_detected(context, on_detected),
-			  CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_file_scanned(context, on_scanned),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_cancelled(context, on_cancelled), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_detected(context, on_detected), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_callback_on_file_scanned(context, on_scanned), CSR_ERROR_NONE);
 
 	AsyncTestContext testCtx;
 
@@ -233,9 +223,12 @@ BOOST_AUTO_TEST_CASE(scan_dirs_positive)
 	std::unique_lock<std::mutex> l(testCtx.m);
 	testCtx.cv.wait(l);
 	l.unlock();
-	BOOST_REQUIRE_MESSAGE(testCtx.completedCnt == 1 && testCtx.scannedCnt == 0 &&
-						  testCtx.detectedCnt == 0 && testCtx.cancelledCnt == 0 && testCtx.errorCnt == 0,
-						  "Async request result isn't expected.");
+
+	ASSERT_IF(testCtx.completedCnt, 1);
+	ASSERT_IF(testCtx.scannedCnt, 0); // should be 1 after dir_get_files implemented
+	ASSERT_IF(testCtx.detectedCnt, 2);
+	ASSERT_IF(testCtx.cancelledCnt, 0);
+	ASSERT_IF(testCtx.errorCnt, 0);
 
 	EXCEPTION_GUARD_END
 }

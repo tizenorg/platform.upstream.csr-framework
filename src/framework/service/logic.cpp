@@ -24,6 +24,7 @@
 #include <string>
 #include <utility>
 #include <algorithm>
+#include <climits>
 
 #include "common/audit/logger.h"
 #include "common/exception.h"
@@ -126,13 +127,6 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 		return scanFile(*cptr, filepath);
 	}
 
-	case CommandId::DIR_GET_RESULTS: {
-		CsContextShPtr cptr;
-		std::string dir;
-		info.second.Deserialize(cptr, dir);
-		return dirGetResults(*cptr, dir);
-	}
-
 	case CommandId::DIR_GET_FILES: {
 		CsContextShPtr cptr;
 		std::string dir;
@@ -141,38 +135,34 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 	}
 
 	case CommandId::JUDGE_STATUS: {
-		CsContextShPtr cptr;
 		std::string filepath;
-		info.second.Deserialize(cptr, filepath);
-		return judgeStatus(*cptr, filepath);
+		int intAction;
+		info.second.Deserialize(filepath, intAction);
+		return judgeStatus(filepath, static_cast<csr_cs_action_e>(intAction));
 	}
 
 	case CommandId::GET_DETECTED: {
-		CsContextShPtr cptr;
 		std::string filepath;
-		info.second.Deserialize(cptr, filepath);
-		return getDetected(*cptr, filepath);
+		info.second.Deserialize(filepath);
+		return getDetected(filepath);
 	}
 
 	case CommandId::GET_DETECTED_LIST: {
-		CsContextShPtr cptr;
 		StrSet dirSet;
-		info.second.Deserialize(cptr, dirSet);
-		return getDetectedList(*cptr, dirSet);
+		info.second.Deserialize(dirSet);
+		return getDetectedList(dirSet);
 	}
 
 	case CommandId::GET_IGNORED: {
-		CsContextShPtr cptr;
 		std::string filepath;
-		info.second.Deserialize(cptr, filepath);
-		return getIgnored(*cptr, filepath);
+		info.second.Deserialize(filepath);
+		return getIgnored(filepath);
 	}
 
 	case CommandId::GET_IGNORED_LIST: {
-		CsContextShPtr cptr;
 		StrSet dirSet;
-		info.second.Deserialize(cptr, dirSet);
-		return getIgnoredList(*cptr, dirSet);
+		info.second.Deserialize(dirSet);
+		return getIgnoredList(dirSet);
 	}
 
 	// Web protection
@@ -245,35 +235,9 @@ RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 	return BinaryQueue::Serialize(ret, d).pop();
 }
 
-RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
+RawBuffer Logic::scanFileHelper(const CsContext &context,
+								const std::string &filepath)
 {
-	auto history = m_db->getDetectedMalware(filepath);
-
-	if (history) {
-		// history exist of malware detected for the file.
-		// let's check file modified since the detected time.
-		auto file = createVisitor(filepath, static_cast<time_t>(history->ts))->next();
-
-		if (file == nullptr) {
-			// file isn't modified since the detected time. history can be used.
-			// TODO: case should be separated. (file isn't exist) and (not modified)
-			if (context.askUser) {
-				if (history->isIgnored) {
-					history->response = CSR_CS_IGNORE;
-				} else {
-					if ((history->response = getUserResponse(context, *history))
-							== CSR_CS_IGNORE)
-						m_db->setDetectedMalwareIgnored(filepath, true);
-				}
-			}
-
-			return BinaryQueue::Serialize(CSR_ERROR_NONE, history).pop();
-		} else {
-			// file is modified since the detected time. let's remove history!
-			m_db->deleteDetectedMalware(filepath);
-		}
-	}
-
 	CsEngineContext engineContext(m_cs);
 	auto &c = engineContext.get();
 
@@ -318,13 +282,54 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 	return BinaryQueue::Serialize(ret, d).pop();
 }
 
-RawBuffer Logic::dirGetResults(const CsContext &context, const std::string &dir)
+RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 {
-	INFO("Dir[" << dir << "] get results");
+	auto history = m_db->getDetectedMalware(filepath);
 
-	printCsContext(context);
+	if (!history)
+		return scanFileHelper(context, filepath);
 
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, std::vector<CsDetected>()).pop();
+	// history exist of malware detected for the file.
+	// let's check file modified since the detected time.
+	auto file = createVisitor(filepath, static_cast<time_t>(history->ts))->next();
+
+	// file is modified since the detected time. let's remove history!
+	if (!file) {
+		m_db->deleteDetectedMalware(filepath);
+		return scanFileHelper(context, filepath);
+	}
+
+	// file isn't modified since the detected time. history can be used.
+	if (!context.askUser)
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, history).pop();
+
+	if (history->isIgnored) {
+		history->response = CSR_CS_IGNORE;
+	} else {
+		switch (history->response = getUserResponse(context, *history)) {
+		case CSR_CS_IGNORE:
+			m_db->setDetectedMalwareIgnored(filepath, true);
+			break;
+
+		case CSR_CS_REMOVE:
+			if (!file->remove()) {
+				ERROR("Failed to remove filepath: " << filepath);
+				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, CsDetected()).pop();
+			}
+
+			m_db->deleteDetectedMalware(filepath);
+			break;
+
+		case CSR_CS_SKIP:
+			break;
+
+		default:
+			ThrowExc(InternalError, "Invalid response from popup: " <<
+					 static_cast<int>(history->response));
+		}
+	}
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, history).pop();
 }
 
 RawBuffer Logic::dirGetFiles(const CsContext &context, const std::string &dir)
@@ -336,76 +341,96 @@ RawBuffer Logic::dirGetFiles(const CsContext &context, const std::string &dir)
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
 }
 
-RawBuffer Logic::judgeStatus(const CsContext &context,
-							 const std::string &filepath)
+RawBuffer Logic::judgeStatus(const std::string &filepath,
+							 csr_cs_action_e action)
 {
-	INFO("Judge Status[" << filepath << "] by engine");
+	auto history = m_db->getDetectedMalware(filepath);
 
-	printCsContext(context);
+	if (!history) {
+		ERROR("Target to be judged doesn't exist in db. name: " << filepath);
+		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
+	}
+
+	auto file = createVisitor(filepath, static_cast<time_t>(history->ts))->next();
+
+	if (!file) {
+		ERROR("Target doesn't exist on target path on filesystem or "
+			  "modified since db delta inserted. name: " << filepath);
+		m_db->deleteDetectedMalware(filepath);
+		// TODO: is it okay to just refresh db and return success?
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+	}
+
+	switch (action) {
+	case CSR_CS_ACTION_REMOVE:
+		if (!file->remove()) {
+			ERROR("Failed to remove filepath: " << filepath);
+			return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED).pop();
+		}
+
+		m_db->deleteDetectedMalware(filepath);
+		break;
+
+	case CSR_CS_ACTION_IGNORE:
+		m_db->setDetectedMalwareIgnored(filepath, true);
+		break;
+
+	case CSR_CS_ACTION_UNIGNORE:
+		m_db->setDetectedMalwareIgnored(filepath, false);
+		break;
+
+	default:
+		ThrowExc(InternalError, "Invalid acation enum val: " <<
+				 static_cast<csr_cs_action_e>(action));
+	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 }
 
-RawBuffer Logic::getDetected(const CsContext &context,
-							 const std::string &filepath)
+RawBuffer Logic::getDetected(const std::string &filepath)
 {
-	INFO("Get Detected[" << filepath << "] by engine");
+	auto row = m_db->getDetectedMalware(filepath);
 
-	printCsContext(context);
-
-	CsDetected detected;
-	detected.targetName = "test_file";
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, detected).pop();
+	if (row)
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
+	else
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
 }
 
-RawBuffer Logic::getDetectedList(const CsContext &context, const StrSet &dirSet)
+RawBuffer Logic::getDetectedList(const StrSet &dirSet)
 {
-	INFO("Get detected list logic");
-	std::for_each(dirSet.begin(), dirSet.end(), [](const std::string & dir) {
-		INFO("dir[" << dir << "] in directory set of get detected list logic");
+	Db::RowShPtrs rows;
+	std::for_each(dirSet.begin(), dirSet.end(),
+	[this, &rows](const std::string & dir) {
+		for (auto &row : m_db->getDetectedMalwares(dir))
+			rows.emplace_back(std::move(row));
 	});
 
-	printCsContext(context);
-
-	CsDetectedPtr detected(new CsDetected());
-	detected->targetName = "test_file";
-
-	CsDetectedList list;
-	list.emplace_back(std::move(detected));
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, list).pop();
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
 }
 
-RawBuffer Logic::getIgnored(const CsContext &context,
-							const std::string &filepath)
+// TODO: is this command needed?
+RawBuffer Logic::getIgnored(const std::string &filepath)
 {
-	INFO("Get Ignored[" << filepath << "] by engine");
+	auto row = m_db->getDetectedMalware(filepath);
 
-	printCsContext(context);
-
-	CsDetected detected;
-	detected.targetName = "test_file";
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, detected).pop();
+	if (row && row->isIgnored)
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
+	else
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
 }
 
-RawBuffer Logic::getIgnoredList(const CsContext &context, const StrSet &dirSet)
+RawBuffer Logic::getIgnoredList(const StrSet &dirSet)
 {
-	INFO("Get ignored list logic");
-	std::for_each(dirSet.begin(), dirSet.end(), [](const std::string & dir) {
-		INFO("dir[" << dir << "] in directory set of get ignored list logic");
+	Db::RowShPtrs rows;
+	std::for_each(dirSet.begin(), dirSet.end(),
+	[this, &rows](const std::string & dir) {
+		for (auto &row : m_db->getDetectedMalwares(dir))
+			if (row->isIgnored)
+				rows.emplace_back(std::move(row));
 	});
 
-	printCsContext(context);
-
-	CsDetectedPtr detected(new CsDetected());
-	detected->targetName = "test_file";
-
-	CsDetectedList list;
-	list.emplace_back(std::move(detected));
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, list).pop();
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
 }
 
 RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)

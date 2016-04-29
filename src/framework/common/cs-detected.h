@@ -31,7 +31,6 @@ namespace Csr {
 
 class CsDetected;
 using CsDetectedPtr = std::unique_ptr<CsDetected>;
-using CsDetectedList = std::vector<CsDetectedPtr>;
 
 struct CsDetected : public IResult {
 	CsDetected();

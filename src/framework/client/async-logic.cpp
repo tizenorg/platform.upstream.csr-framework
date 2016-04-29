@@ -72,9 +72,12 @@ AsyncLogic::Ending AsyncLogic::scanDirs(const std::shared_ptr<StrSet> &dirs)
 AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 {
 	// For in case of there's already detected malware for dir
+	StrSet dirset;
+	dirset.insert(dir);
+
 	auto retResults =
 		m_dispatcher->methodCall<std::pair<int, std::vector<CsDetected *>>>(
-			CommandId::DIR_GET_RESULTS, m_ctx, dir);
+			CommandId::GET_DETECTED_LIST, dirset);
 
 	if (retResults.first != CSR_ERROR_NONE) {
 		ERROR("[Error] ret: " << retResults.first);

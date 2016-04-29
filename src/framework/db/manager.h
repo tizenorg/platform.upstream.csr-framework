@@ -52,7 +52,7 @@ public:
 	void cleanLastScanTime();
 
 	// DETECTED_MALWARE_FILE & USER_RESPONSE
-	RowsShPtr getDetectedMalwares(const std::string &dirpath);
+	RowShPtrs getDetectedMalwares(const std::string &dirpath);
 	RowShPtr getDetectedMalware(const std::string &filepath);
 	void insertDetectedMalware(const CsDetected &, const std::string &dataVersion,
 							   bool isIgnored);

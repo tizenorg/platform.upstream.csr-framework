@@ -167,10 +167,12 @@ BOOST_AUTO_TEST_CASE(get_detected_malware)
 	auto context = c.get();
 	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_get_detected_malware(context, "dummy_file_path", &detected),
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_RISKY, &detected),
 			  CSR_ERROR_NONE);
+	CHECK_IS_NOT_NULL(detected);
 
-	// no malware detected
+	ASSERT_IF(csr_cs_get_detected_malware(context, TEST_FILE_RISKY, &detected),
+			  CSR_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
 
 	EXCEPTION_GUARD_END
@@ -183,25 +185,25 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 	csr_cs_detected_list_h detected_list;
+	csr_cs_detected_h detected;
 	size_t cnt = 0;
 
-	const char *dirs[5] = {
-		"dummy_dir_path1",
-		"dummy_dir_path2",
-		"dummy_dir_path3",
-		"dummy_dir_path4",
-		"dummy_dir_path5",
+	const char *dirs[1] = {
+		TEST_DIR
 	};
 
-	ASSERT_IF(
-		csr_cs_get_detected_malwares(context, dirs, sizeof(dirs) / sizeof(const char *),
-									 &detected_list, &cnt),
-		CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected),
+			  CSR_ERROR_NONE);
+	CHECK_IS_NOT_NULL(detected);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_RISKY, &detected),
+			  CSR_ERROR_NONE);
+	CHECK_IS_NOT_NULL(detected);
 
-	// no malware detected
+	ASSERT_IF(csr_cs_get_detected_malwares(context, dirs,
+										   sizeof(dirs) / sizeof(const char *),
+										   &detected_list, &cnt), CSR_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected_list);
-
-	ASSERT_IF(cnt, static_cast<size_t>(1));
+	ASSERT_IF(cnt, static_cast<size_t>(2));
 
 	EXCEPTION_GUARD_END
 }
@@ -212,12 +214,18 @@ BOOST_AUTO_TEST_CASE(get_ignored_malware)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h ignored;
+	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_get_ignored_malware(context, "dummy_file_path", &ignored),
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected),
+			  CSR_ERROR_NONE);
+	CHECK_IS_NOT_NULL(detected);
+	ASSERT_IF(csr_cs_judge_detected_malware(context, detected,
+											CSR_CS_ACTION_IGNORE), CSR_ERROR_NONE);
+
+	ASSERT_IF(csr_cs_get_ignored_malware(context, TEST_FILE_MALWARE, &detected),
 			  CSR_ERROR_NONE);
 
-	CHECK_IS_NOT_NULL(ignored);
+	CHECK_IS_NOT_NULL(detected);
 
 	EXCEPTION_GUARD_END
 }
@@ -229,24 +237,29 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 	csr_cs_detected_list_h ignored_list;
+	csr_cs_detected_h detected;
 	size_t cnt = 0;
 
-	const char *dirs[5] = {
-		"dummy_dir_path1",
-		"dummy_dir_path2",
-		"dummy_dir_path3",
-		"dummy_dir_path4",
-		"dummy_dir_path5",
+	const char *dirs[1] = {
+		TEST_DIR
 	};
 
-	ASSERT_IF(
-		csr_cs_get_ignored_malwares(context, dirs, sizeof(dirs) / sizeof(const char *),
-									&ignored_list, &cnt),
-		CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected),
+			  CSR_ERROR_NONE);
+	CHECK_IS_NOT_NULL(detected);
+	ASSERT_IF(csr_cs_judge_detected_malware(context, detected,
+											CSR_CS_ACTION_IGNORE), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_RISKY, &detected),
+			  CSR_ERROR_NONE);
+	CHECK_IS_NOT_NULL(detected);
+	ASSERT_IF(csr_cs_judge_detected_malware(context, detected,
+											CSR_CS_ACTION_IGNORE), CSR_ERROR_NONE);
 
+	ASSERT_IF(csr_cs_get_ignored_malwares(context, dirs,
+										  sizeof(dirs) / sizeof(const char *),
+										  &ignored_list, &cnt), CSR_ERROR_NONE);
 	CHECK_IS_NOT_NULL(ignored_list);
-
-	ASSERT_IF(cnt, static_cast<size_t>(1));
+	ASSERT_IF(cnt, static_cast<size_t>(2));
 
 	EXCEPTION_GUARD_END
 }
@@ -259,13 +272,11 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware)
 	auto context = c.get();
 	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_get_detected_malware(context, "dummy_file_path", &detected),
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected),
 			  CSR_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
-
 	ASSERT_IF(csr_cs_judge_detected_malware(context, detected,
-											CSR_CS_ACTION_REMOVE),
-			  CSR_ERROR_NONE);
+											CSR_CS_ACTION_UNIGNORE), CSR_ERROR_NONE);
 
 	EXCEPTION_GUARD_END
 }

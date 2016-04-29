@@ -621,7 +621,6 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle,
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 	auto ret = hExt->dispatch<int>(
 				   CommandId::JUDGE_STATUS,
-				   hExt->getContext(),
 				   reinterpret_cast<CsDetected *>(detected)->targetName,
 				   static_cast<int>(action));
 
@@ -646,9 +645,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 	auto ret = hExt->dispatch<std::pair<int, CsDetected *>>(
-				   CommandId::GET_DETECTED,
-				   hExt->getContext(),
-				   std::string(file_path));
+				   CommandId::GET_DETECTED, std::string(file_path));
 
 	if (ret.first != CSR_ERROR_NONE) {
 		ERROR("Error! ret: " << ret.first);
@@ -697,7 +694,7 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto ret = hExt->dispatch<std::pair<int, std::vector<CsDetected *>>>(
-				   CommandId::GET_DETECTED_LIST, hExt->getContext(), dirSet);
+				   CommandId::GET_DETECTED_LIST, dirSet);
 
 	if (ret.first != CSR_ERROR_NONE) {
 		ERROR("Error! ret: " << ret.first);
@@ -738,9 +735,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 	auto ret = hExt->dispatch<std::pair<int, CsDetected *>>(
-				   CommandId::GET_IGNORED,
-				   hExt->getContext(),
-				   std::string(file_path));
+				   CommandId::GET_IGNORED, std::string(file_path));
 
 	if (ret.first != CSR_ERROR_NONE) {
 		ERROR("Error! ret: " << ret.first);
@@ -789,7 +784,7 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto ret = hExt->dispatch<std::pair<int, std::vector<CsDetected *>>>(
-				   CommandId::GET_IGNORED_LIST, hExt->getContext(), dirSet);
+				   CommandId::GET_IGNORED_LIST, dirSet);
 
 	if (ret.first != CSR_ERROR_NONE) {
 		ERROR("Error! ret: " << ret.first);

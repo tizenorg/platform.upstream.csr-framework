@@ -23,11 +23,11 @@
 
 #include <fstream>
 #include <iostream>
-#include <stdexcept>
 
 #include "db/query.h"
 #include "db/statement.h"
 #include "common/audit/logger.h"
+#include "common/exception.h"
 
 namespace Csr {
 namespace Db {
@@ -104,13 +104,13 @@ std::string Manager::getScript(const std::string &scriptName)
 	std::ifstream is(scriptPath);
 
 	if (is.fail())
-		throw std::runtime_error(FORMAT("Cannot open script: " << scriptPath));
+		ThrowExc(DbFailed, "Cannot open script: " << scriptPath);
 
 	std::istreambuf_iterator<char> begin(is), end;
 	auto str = std::string(begin, end);
 
 	if (str.empty())
-		throw std::runtime_error(FORMAT("Script file empty: " << scriptPath));
+		ThrowExc(DbFailed, "Script file empty: " << scriptPath);
 
 	return str;
 }
@@ -128,7 +128,7 @@ int Manager::getSchemaVersion()
 {
 	if (!isTableExist(SCHEMA_INFO_TABLE)) {
 		WARN("Schema table doesn't exist. This case would be the first time of "
-             "db manager instantiated in target");
+			 "db manager instantiated in target");
 		return SchemaVersion::NOT_EXIST;
 	}
 
@@ -137,7 +137,7 @@ int Manager::getSchemaVersion()
 	stmt.bind(DB_VERSION_STR);
 
 	if (!stmt.step())
-		throw std::logic_error(FORMAT("schema info table should exist!"));
+		ThrowExc(DbFailed, "schema info table should exist!");
 
 	return stmt.getInt();
 }
@@ -150,150 +150,85 @@ void Manager::setSchemaVersion(int sv)
 	stmt.bind(sv);
 
 	if (stmt.exec() == 0)
-		throw std::runtime_error(FORMAT("Failed to set schema version!"));
+		ThrowExc(DbFailed, "Failed to set schema version to: " << sv);
 }
 
 //===========================================================================
 // ENGINE_STATE table
 //===========================================================================
-int Manager::getEngineState(int engineId) noexcept
+int Manager::getEngineState(int engineId)
 {
-	try {
-		Statement stmt(m_conn, Query::SEL_ENGINE_STATE);
+	Statement stmt(m_conn, Query::SEL_ENGINE_STATE);
 
-		stmt.bind(engineId);
+	stmt.bind(engineId);
 
-		return stmt.step() ? stmt.getInt() : -1;
-	} catch (const std::exception &e) {
-		ERROR("getEngineState failed. error_msg=" << e.what());
-		return -1;
-	}
+	return stmt.step() ? stmt.getInt() : -1;
 }
 
-bool Manager::setEngineState(int engineId, int state) noexcept
+void Manager::setEngineState(int engineId, int state)
 {
-	try {
-		Statement stmt(m_conn, Query::INS_ENGINE_STATE);
+	Statement stmt(m_conn, Query::INS_ENGINE_STATE);
 
-		stmt.bind(engineId);
-		stmt.bind(state);
+	stmt.bind(engineId);
+	stmt.bind(state);
 
-		return stmt.exec() != 0;
-	} catch (const std::exception &e) {
-		ERROR("setEngineState failed. error_msg=" << e.what());
-		return false;
-	}
+	stmt.exec();
 }
 
 //===========================================================================
 // SCAN_REQUEST table
 //===========================================================================
 
-long Manager::getLastScanTime(const std::string &dir,
-							  const std::string &dataVersion) noexcept
+time_t Manager::getLastScanTime(const std::string &dir,
+								const std::string &dataVersion)
 {
-	try {
-		Statement stmt(m_conn, Query::SEL_SCAN_REQUEST);
+	Statement stmt(m_conn, Query::SEL_SCAN_REQUEST);
 
-		stmt.bind(dir);
-		stmt.bind(dataVersion);
+	stmt.bind(dir);
+	stmt.bind(dataVersion);
 
-		return stmt.step() ? static_cast<time_t>(stmt.getInt64()) : -1;
-	} catch (const std::exception &e) {
-		ERROR("getLastScanTime failed. error_msg=" << e.what());
-		return -1;
-	}
+	return stmt.step() ? static_cast<time_t>(stmt.getInt64()) : -1;
 }
 
-bool Manager::insertLastScanTime(const std::string &dir, long scanTime,
-								 const std::string &dataVersion) noexcept
+void Manager::insertLastScanTime(const std::string &dir, long scanTime,
+								 const std::string &dataVersion)
 {
-	try {
-		Statement stmt(m_conn, Query::INS_SCAN_REQUEST);
+	Statement stmt(m_conn, Query::INS_SCAN_REQUEST);
 
-		stmt.bind(dir);
-		stmt.bind(static_cast<sqlite3_int64>(scanTime));
-		stmt.bind(dataVersion);
-
-		return stmt.exec() != 0;
-	} catch (const std::exception &e) {
-		ERROR("insertLastScanTime failed. error_msg=" << e.what());
-		return false;
-	}
+	stmt.bind(dir);
+	stmt.bind(static_cast<sqlite3_int64>(scanTime));
+	stmt.bind(dataVersion);
+	stmt.exec();
 }
 
-bool Manager::deleteLastScanTime(const std::string &dir) noexcept
+void Manager::deleteLastScanTime(const std::string &dir)
 {
-	try {
-		Statement stmt(m_conn, Query::DEL_SCAN_REQUEST_BY_DIR);
+	Statement stmt(m_conn, Query::DEL_SCAN_REQUEST_BY_DIR);
 
-		stmt.bind(dir);
-
-		stmt.exec();
-		return true; // even if no rows are deleted
-	} catch (const std::exception &e) {
-		ERROR("deleteLastScanTime failed. error_msg=" << e.what());
-		return false;
-	}
+	stmt.bind(dir);
+	stmt.exec();
 }
 
-bool Manager::cleanLastScanTime() noexcept
+void Manager::cleanLastScanTime()
 {
-	try {
-		Statement stmt(m_conn, Query::DEL_SCAN_REQUEST);
+	Statement stmt(m_conn, Query::DEL_SCAN_REQUEST);
 
-		stmt.exec();
-
-		return true; // even if no rows are deleted
-	} catch (const std::exception &e) {
-		ERROR("cleanLastScanTime failed. error_msg=" << e.what());
-		return false;
-	}
+	stmt.exec();
 }
 
 //===========================================================================
 // DETECTED_MALWARE_FILE table
 //===========================================================================
-RowsShPtr Manager::getDetectedMalwares(const std::string &dir) noexcept
+RowsShPtr Manager::getDetectedMalwares(const std::string &dir)
 {
-	try {
-		Statement stmt(m_conn, Query::SEL_DETECTED_BY_DIR);
-		stmt.bind(dir);
+	Statement stmt(m_conn, Query::SEL_DETECTED_BY_DIR);
+	stmt.bind(dir);
 
-		RowsShPtr rows = std::make_shared<std::vector<RowShPtr>>();
+	RowsShPtr rows = std::make_shared<std::vector<RowShPtr>>();
 
-		while (stmt.step()) {
-			RowShPtr row = std::make_shared<Row>();
-
-			row->targetName = stmt.getText();
-			row->dataVersion = stmt.getText();
-			row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt());
-			row->threat = static_cast<csr_cs_threat_type_e>(stmt.getInt());
-			row->malwareName = stmt.getText();
-			row->detailedUrl = stmt.getText();
-			row->ts = static_cast<time_t>(stmt.getInt64());
-			row->isIgnored = static_cast<bool>(stmt.getInt());
-
-			rows->emplace_back(std::move(row));
-		}
-
-		return rows;
-	} catch (const std::exception &e) {
-		ERROR("getDetectedMalwares failed. error_msg=" << e.what());
-		return nullptr;
-	}
-}
-
-RowShPtr Manager::getDetectedMalware(const std::string &path) noexcept
-{
-	try {
-		Statement stmt(m_conn, Query::SEL_DETECTED_BY_PATH);
-		stmt.bind(path);
-
-		if (!stmt.step())
-			return nullptr;
-
+	while (stmt.step()) {
 		RowShPtr row = std::make_shared<Row>();
+
 		row->targetName = stmt.getText();
 		row->dataVersion = stmt.getText();
 		row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt());
@@ -303,84 +238,78 @@ RowShPtr Manager::getDetectedMalware(const std::string &path) noexcept
 		row->ts = static_cast<time_t>(stmt.getInt64());
 		row->isIgnored = static_cast<bool>(stmt.getInt());
 
-		return row;
-	} catch (const std::exception &e) {
-		ERROR("getDetectedMalware failed. error_msg=" << e.what());
+		rows->emplace_back(std::move(row));
+	}
+
+	return rows;
+}
+
+RowShPtr Manager::getDetectedMalware(const std::string &path)
+{
+	Statement stmt(m_conn, Query::SEL_DETECTED_BY_PATH);
+	stmt.bind(path);
+
+	if (!stmt.step())
 		return nullptr;
-	}
+
+	RowShPtr row = std::make_shared<Row>();
+
+	row->targetName = stmt.getText();
+	row->dataVersion = stmt.getText();
+	row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt());
+	row->threat = static_cast<csr_cs_threat_type_e>(stmt.getInt());
+	row->malwareName = stmt.getText();
+	row->detailedUrl = stmt.getText();
+	row->ts = static_cast<time_t>(stmt.getInt64());
+	row->isIgnored = static_cast<bool>(stmt.getInt());
+
+	return row;
 }
 
-bool Manager::insertDetectedMalware(const CsDetected &d,
+void Manager::insertDetectedMalware(const CsDetected &d,
 									const std::string &dataVersion,
-									bool isIgnored) noexcept
+									bool isIgnored)
 {
-	try {
-		Statement stmt(m_conn, Query::INS_DETECTED);
+	Statement stmt(m_conn, Query::INS_DETECTED);
 
-		stmt.bind(d.targetName);
-		stmt.bind(dataVersion);
-		stmt.bind(static_cast<int>(d.severity));
-		stmt.bind(static_cast<int>(d.threat));
-		stmt.bind(d.malwareName);
-		stmt.bind(d.detailedUrl);
-		stmt.bind(static_cast<sqlite3_int64>(d.ts));
-		stmt.bind(static_cast<int>(isIgnored));
-
-		return stmt.exec() == 1;
-	} catch (const std::exception &e) {
-		ERROR("insertDetectedMalware failed. error_msg=" << e.what());
-		return false;
-	}
+	stmt.bind(d.targetName);
+	stmt.bind(dataVersion);
+	stmt.bind(static_cast<int>(d.severity));
+	stmt.bind(static_cast<int>(d.threat));
+	stmt.bind(d.malwareName);
+	stmt.bind(d.detailedUrl);
+	stmt.bind(static_cast<sqlite3_int64>(d.ts));
+	stmt.bind(static_cast<int>(isIgnored));
+	stmt.exec();
 }
 
-bool Manager::setDetectedMalwareIgnored(const std::string &path,
-										bool flag) noexcept
+void Manager::setDetectedMalwareIgnored(const std::string &path,
+										bool flag)
 {
-	try {
-		Statement stmt(m_conn, Query::UPD_DETECTED_INGNORED);
+	Statement stmt(m_conn, Query::UPD_DETECTED_INGNORED);
 
-		stmt.bind(flag);
-		stmt.bind(path);
-
-		return stmt.exec() == 1;
-	} catch (const std::exception &e) {
-		ERROR("setDetectedMalwareIgnored failed. error_msg=" << e.what());
-		return false;
-	}
+	stmt.bind(flag);
+	stmt.bind(path);
+	stmt.exec();
 }
 
-bool Manager::deleteDetectedMalware(const std::string &path) noexcept
+void Manager::deleteDetectedMalware(const std::string &path)
 {
-	try {
-		Statement stmt(m_conn, Query::DEL_DETECTED_BY_PATH);
+	Statement stmt(m_conn, Query::DEL_DETECTED_BY_PATH);
 
-		stmt.bind(path);
-
-		stmt.exec();
-
-		return true; // even if no rows are deleted
-	} catch (const std::exception &e) {
-		ERROR("deleteDetectedMalware failed.error_msg=" << e.what());
-		return false;
-	}
+	stmt.bind(path);
+	stmt.exec();
 }
 
-bool Manager::deleteDeprecatedDetectedMalwares(const std::string &dir,
-		const std::string &dataVersion) noexcept
+void Manager::deleteDeprecatedDetectedMalwares(const std::string &dir,
+		const std::string &dataVersion)
 {
-	try {
-		Statement stmt(m_conn, Query::DEL_DETECTED_DEPRECATED);
+	Statement stmt(m_conn, Query::DEL_DETECTED_DEPRECATED);
 
-		stmt.bind(dir);
-		stmt.bind(dataVersion);
+	stmt.bind(dir);
+	stmt.bind(dataVersion);
 
-		stmt.exec();
-
-		return true; // even if no rows are deleted
-	} catch (const std::exception &e) {
-		ERROR("deleteDeprecatedDetectedMalwares failed.error_msg=" << e.what());
-		return false;
-	}
+	stmt.exec();
 }
 
 } // namespace Db

@@ -21,7 +21,7 @@
  */
 #include "common/kvp-container.h"
 
-#include <stdexcept>
+#include "common/exception.h"
 
 namespace Csr {
 
@@ -31,53 +31,52 @@ KvpContainer::~KvpContainer()
 
 void KvpContainer::set(int, int)
 {
-	throw std::logic_error("Not implemented key-value pair interface used!");
+	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::set(int, bool)
 {
-	throw std::logic_error("Not implemented key-value pair interface used!");
+	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::set(int, const std::string &)
 {
-	throw std::logic_error("Not implemented key-value pair interface used!");
+	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::set(int, const char *)
 {
-	throw std::logic_error("Not implemented key-value pair interface used!");
+	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::set(int, time_t)
 {
-	throw std::logic_error("Not implemented key-value pair interface used!");
+	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::get(int, int &) const
 {
-	throw std::logic_error("Not implemented key-value pair interface used!");
+	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::get(int, bool &) const
 {
-	throw std::logic_error("Not implemented key-value pair interface used!");
+	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::get(int, std::string &) const
 {
-	throw std::logic_error("Not implemented key-value pair interface used!");
+	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::get(int, const char **) const
 {
-	throw std::logic_error("Not implemented key-value pair interface used!");
+	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::get(int, time_t &) const
 {
-	throw std::logic_error("Not implemented key-value pair interface used!");
+	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
 }
-
 
 }

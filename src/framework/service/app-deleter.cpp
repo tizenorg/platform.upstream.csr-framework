@@ -22,13 +22,13 @@
 #include "service/app-deleter.h"
 
 #include <memory>
-#include <stdexcept>
 #include <cstring>
 
 #include <glib.h>
 #include <package-manager.h>
 
 #include "common/audit/logger.h"
+#include "common/exception.h"
 
 #define MAX_WAIT_SEC 10
 
@@ -85,7 +85,7 @@ namespace Csr {
 bool AppDeleter::remove(const std::string &pkgid)
 {
 	if (pkgid.empty())
-		throw std::logic_error("pkgid shouldn't be empty in AppDeleter");
+		ThrowExc(InternalError, "pkgid shouldn't be empty in AppDeleter");
 
 	std::unique_ptr<pkgmgr_client, int(*)(pkgmgr_client *)> client(
 		pkgmgr_client_new(PC_REQUEST), pkgmgr_client_free);

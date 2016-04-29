@@ -46,6 +46,7 @@ typedef enum {
 	CSR_ERROR_INVALID_HANDLE        = TIZEN_ERROR_CSR | 0x02,        /**< The given handle is invalid */
 	CSR_ERROR_SERVER                = TIZEN_ERROR_CSR | 0x03,        /**< Server has been failed for some reason */
 	CSR_ERROR_NO_TASK               = TIZEN_ERROR_CSR | 0x04,        /**< No Task exists*/
+	CSR_ERROR_DB                    = TIZEN_ERROR_CSR | 0x05,        /**< DB transaction error */
 	CSR_ERROR_ENGINE_PERMISSION     = TIZEN_ERROR_CSR | 0x11,        /**< Insufficient permission of engine */
 	CSR_ERROR_ENGINE_NOT_EXIST      = TIZEN_ERROR_CSR | 0x12,        /**< No engine exists*/
 	CSR_ERROR_ENGINE_DIASABLED      = TIZEN_ERROR_CSR | 0x13,        /**< Engine is in disabled state*/

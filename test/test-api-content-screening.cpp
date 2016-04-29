@@ -19,7 +19,6 @@
  * @version     1.0
  * @brief       CSR Content screening API test
  */
-#define BOOST_TEST_MODULE CSR_API_TEST
 #include <csr/content-screening.h>
 
 #include <string>

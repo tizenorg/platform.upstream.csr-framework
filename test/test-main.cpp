@@ -18,7 +18,7 @@
  * @author     Kyungwook Tak(k.tak@samsung.com)
  * @version    1.0
  */
-
+#define BOOST_TEST_MODULE CSR_API_TEST
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include <boost/test/results_reporter.hpp>

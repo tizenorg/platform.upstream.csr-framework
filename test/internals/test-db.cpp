@@ -14,10 +14,10 @@
  *  limitations under the License
  */
 /*
- * @file        test-internal-database.cpp
+ * @file        test-db.cpp
  * @author      Dongsun Lee(ds73.lee@samsung.com)
  * @version     1.0
- * @brief       CSR Content screening DB internal test
+ * @brief       database module unit test
  */
 #include "db/manager.h"
 
@@ -48,7 +48,7 @@ void checkSameMalware(const CsDetected &d, const Db::Row &r)
 
 } // namespace anonymous
 
-BOOST_AUTO_TEST_SUITE(INTERNAL_DATABASE)
+BOOST_AUTO_TEST_SUITE(DB)
 
 BOOST_AUTO_TEST_CASE(schema_info)
 {

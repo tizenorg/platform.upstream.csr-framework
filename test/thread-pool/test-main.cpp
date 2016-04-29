@@ -19,7 +19,7 @@
  * @version    1.0
  * @brief      CSR thread pool test main
  */
-
+#define BOOST_TEST_MODULE CSR_THREADPOOL_TEST
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include <boost/test/results_reporter.hpp>

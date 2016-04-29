@@ -219,12 +219,12 @@ void Manager::cleanLastScanTime()
 //===========================================================================
 // DETECTED_MALWARE_FILE table
 //===========================================================================
-RowsShPtr Manager::getDetectedMalwares(const std::string &dir)
+RowShPtrs Manager::getDetectedMalwares(const std::string &dir)
 {
 	Statement stmt(m_conn, Query::SEL_DETECTED_BY_DIR);
 	stmt.bind(dir);
 
-	RowsShPtr rows = std::make_shared<std::vector<RowShPtr>>();
+	RowShPtrs rows;
 
 	while (stmt.step()) {
 		RowShPtr row = std::make_shared<Row>();
@@ -238,7 +238,7 @@ RowsShPtr Manager::getDetectedMalwares(const std::string &dir)
 		row->ts = static_cast<time_t>(stmt.getInt64());
 		row->isIgnored = static_cast<bool>(stmt.getInt());
 
-		rows->emplace_back(std::move(row));
+		rows.emplace_back(std::move(row));
 	}
 
 	return rows;

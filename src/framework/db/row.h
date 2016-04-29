@@ -30,7 +30,7 @@ namespace Db {
 
 class Row;
 using RowShPtr = std::shared_ptr<Row>;
-using RowsShPtr = std::shared_ptr<std::vector<RowShPtr>>;
+using RowShPtrs = std::vector<RowShPtr>;
 
 struct Row : public Csr::CsDetected {
 	std::string dataVersion; // engine's data version

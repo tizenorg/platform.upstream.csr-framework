@@ -24,9 +24,9 @@
 #include <string>
 #include <utility>
 #include <algorithm>
-#include <stdexcept>
 
 #include "common/audit/logger.h"
+#include "common/exception.h"
 #include "service/type-converter.h"
 #include "service/file-system.h"
 #include "ui/askuser.h"
@@ -68,24 +68,24 @@ Logic::Logic() :
 							   SAMPLE_ENGINE_RW_WORKING_DIR);
 
 	if (ret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("global init cs engine. ret: " << ret));
+		ThrowExc(EngineError, "global init cs engine. ret: " << ret);
 
 	CsEngineInfo csEngineInfo(m_cs);
 	ret = m_cs->getEngineDataVersion(csEngineInfo.get(), m_csDataVersion);
 
 	if (ret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("get cs engine data version. ret: " << ret));
+		ThrowExc(EngineError, "get cs engine data version. ret: " << ret);
 
 	ret = m_wp->globalInit(SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
 
 	if (ret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("global init wp engine. ret: " << ret));
+		ThrowExc(EngineError, "global init wp engine. ret: " << ret);
 
 	WpEngineInfo wpEngineInfo(m_wp);
 	ret = m_wp->getEngineDataVersion(wpEngineInfo.get(), m_wpDataVersion);
 
 	if (ret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("get wp engine data version. ret: " << ret));
+		ThrowExc(EngineError, "get wp engine data version. ret: " << ret);
 
 	DEBUG("Service logic ctor done");
 }
@@ -95,12 +95,12 @@ Logic::~Logic()
 	int ret = m_cs->globalDeinit();
 
 	if (ret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("global deinit cs engine. ret: " << ret));
+		ThrowExc(EngineError, "global deinit cs engine. ret: " << ret);
 
 	ret = m_wp->globalDeinit();
 
 	if (ret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("global deinit wp engine. ret: " << ret));
+		ThrowExc(EngineError, "global deinit wp engine. ret: " << ret);
 }
 
 RawBuffer Logic::dispatch(const RawBuffer &in)
@@ -185,8 +185,8 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 	}
 
 	default:
-		throw std::range_error(FORMAT("Command id[" << static_cast<int>(info.first) <<
-									  "] isn't in range."));
+		ThrowExc(InternalError, "Command id[" << static_cast<int>(info.first) <<
+				 "] isn't in range.");
 	}
 }
 
@@ -239,8 +239,7 @@ RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid severity: " <<
-									  static_cast<int>(d.severity)));
+		ThrowExc(InternalError, "Invalid severity: " << static_cast<int>(d.severity));
 	}
 
 	return BinaryQueue::Serialize(ret, d).pop();
@@ -311,8 +310,7 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid severity: " <<
-									  static_cast<int>(d.severity)));
+		ThrowExc(InternalError, "Invalid severity: " << static_cast<int>(d.severity));
 	}
 
 	m_db->insertDetectedMalware(d, m_csDataVersion, d.response == CSR_CS_IGNORE);
@@ -450,8 +448,7 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid level: " <<
-									  static_cast<int>(wr.riskLevel)));
+		ThrowExc(InternalError, "Invalid level: " << static_cast<int>(wr.riskLevel));
 	}
 
 	return BinaryQueue::Serialize(ret, wr).pop();
@@ -517,8 +514,7 @@ CsDetected Logic::convert(csre_cs_detected_h &result)
 	int eret = m_cs->getSeverity(result, &eseverity);
 
 	if (eret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("Converting cs detected[seveirty]. "
-										"ret: " << eret));
+		ThrowExc(EngineError, "getting severity of cs detected. ret: " << eret);
 
 	d.severity = Csr::convert(eseverity);
 
@@ -527,8 +523,7 @@ CsDetected Logic::convert(csre_cs_detected_h &result)
 	eret = m_cs->getThreatType(result, &ethreat);
 
 	if (eret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("Converting cs detected[threat]. "
-										"ret: " << eret));
+		ThrowExc(EngineError, "getting threat of cs detected. ret: " << eret);
 
 	d.threat = Csr::convert(ethreat);
 
@@ -536,22 +531,19 @@ CsDetected Logic::convert(csre_cs_detected_h &result)
 	eret = m_cs->getMalwareName(result, d.malwareName);
 
 	if (eret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("Converting cs detected[name]. "
-										"ret: " << eret));
+		ThrowExc(EngineError, "getting malware name of cs detected. ret: " << eret);
 
 	// getting detailed url
 	eret = m_cs->getDetailedUrl(result, d.detailedUrl);
 
 	if (eret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("Converting cs detected[detailed url]. "
-										"ret: " << eret));
+		ThrowExc(EngineError, "getting detailed url of cs detected. ret: " << eret);
 
 	// getting time stamp
 	eret = m_cs->getTimestamp(result, &d.ts);
 
 	if (eret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("Converting cs detected[timestamp]. "
-										"ret: " << eret));
+		ThrowExc(EngineError, "getting time stamp of cs detected. ret: " << eret);
 
 	return d;
 }
@@ -567,7 +559,7 @@ WpResult Logic::convert(csre_wp_check_result_h &r)
 	int eret = m_wp->getRiskLevel(r, &elevel);
 
 	if (eret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("Converting wp result. ret: " << eret));
+		ThrowExc(EngineError, "getting risk level of wp result. ret: " << eret);
 
 	wr.riskLevel = Csr::convert(elevel);
 
@@ -575,7 +567,7 @@ WpResult Logic::convert(csre_wp_check_result_h &r)
 	eret = m_wp->getDetailedUrl(r, wr.detailedUrl);
 
 	if (eret != CSRE_ERROR_NONE)
-		throw std::runtime_error(FORMAT("Converting wp result. ret: " << eret));
+		ThrowExc(EngineError, "getting detailed url of wp result. ret: " << eret);
 
 	return wr;
 }

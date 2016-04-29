@@ -24,6 +24,7 @@
 #include <exception>
 
 #include "common/audit/logger.h"
+#include "common/exception.h"
 #include "csr/error.h"
 
 __attribute__((constructor))
@@ -39,6 +40,9 @@ int exceptionGuard(const std::function<int()> &func)
 {
 	try {
 		return func();
+	} catch (const Exception &e) {
+		ERROR("Exception caught. code: " << e.error() << " message: " << e.what());
+		return e.error();
 	} catch (const std::bad_alloc &e) {
 		ERROR("memory allocation failed.");
 		return CSR_ERROR_OUT_OF_MEMORY;

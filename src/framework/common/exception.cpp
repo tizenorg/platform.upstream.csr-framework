@@ -14,45 +14,31 @@
  *  limitations under the License
  */
 /*
- * @file        handle.cpp
+ * @file        exception.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       Client request handle with dispatcher in it
+ * @brief       custom exception derived from std
  */
-#include "client/handle.h"
-
-#include <utility>
-
 #include "common/exception.h"
 
+#include "common/audit/logger.h"
+
 namespace Csr {
-namespace Client {
 
-Handle::Handle(ContextShPtr &&context) :
-	m_ctx(std::forward<ContextShPtr>(context))
-{
-	if (!m_ctx)
-		ThrowExc(InvalidParam, "context shouldn't be null");
-}
-
-Handle::~Handle()
+Exception::Exception(const char *file, const char *function, unsigned int line,
+					 const std::string &message) :
+	m_message(FORMAT("[" << file << ":" << line << " " << function << "()]" <<
+					 message))
 {
 }
 
-ContextShPtr &Handle::getContext() noexcept
+Exception::~Exception() noexcept
 {
-	return m_ctx;
 }
 
-void Handle::add(ResultPtr &&ptr)
+const char *Exception::what() const noexcept
 {
-	m_results.emplace_back(std::forward<ResultPtr>(ptr));
+	return m_message.c_str();
 }
 
-void Handle::add(ResultListPtr &&ptr)
-{
-	m_resultLists.emplace_back(std::forward<ResultListPtr>(ptr));
 }
-
-} // namespace Client
-} // namespace Csr

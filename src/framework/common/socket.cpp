@@ -21,9 +21,6 @@
  */
 #include "common/socket.h"
 
-#include <exception>
-#include <system_error>
-
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
@@ -32,6 +29,9 @@
 #include <systemd/sd-daemon.h>
 
 #include "common/audit/logger.h"
+#include "common/exception.h"
+
+namespace Csr {
 
 namespace {
 
@@ -40,7 +40,7 @@ int createSystemdSocket(const std::string &path)
 	int n = ::sd_listen_fds(-1);
 
 	if (n < 0)
-		throw std::system_error(std::error_code(), "failed to sd_listen_fds");
+		ThrowExc(SocketError, "failed to sd_listen_fds");
 
 	for (int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START + n; ++fd) {
 		if (::sd_is_socket_unix(fd, SOCK_STREAM, 1, path.c_str(), 0) > 0) {
@@ -49,17 +49,15 @@ int createSystemdSocket(const std::string &path)
 		}
 	}
 
-	throw std::system_error(std::error_code(), "get systemd socket failed!");
+	ThrowExc(SocketError, "get systemd socket failed!");
 }
 
-}
-
-namespace Csr {
+} // namespace anonymous
 
 Socket::Socket(int fd) : m_fd(fd)
 {
 	if (m_fd < 0)
-		throw std::logic_error("Socket fd from constructor is invalid!!");
+		ThrowExc(SocketError, "Socket fd from constructor is invalid!!");
 }
 
 Socket::Socket(const std::string &path) : m_fd(createSystemdSocket(path))
@@ -68,9 +66,6 @@ Socket::Socket(const std::string &path) : m_fd(createSystemdSocket(path))
 
 Socket::Socket(Socket &&other)
 {
-	if (other.m_fd < 0)
-		throw std::logic_error("Socket fd from move constructor is invalid!!");
-
 	m_fd = other.m_fd;
 	other.m_fd = 0;
 }
@@ -79,9 +74,6 @@ Socket &Socket::operator=(Socket &&other)
 {
 	if (this == &other)
 		return *this;
-
-	if (other.m_fd < 0)
-		throw std::logic_error("Socket fd from move assignment is invalid!!");
 
 	m_fd = other.m_fd;
 	other.m_fd = 0;
@@ -103,9 +95,7 @@ Socket Socket::accept() const
 	int fd = ::accept(m_fd, nullptr, nullptr);
 
 	if (fd < 0)
-		throw std::system_error(
-			std::error_code(errno, std::generic_category()),
-			"socket accept failed!");
+		ThrowExc(SocketError, "socket accept failed with errno: " << errno);
 
 	INFO("Accept client success with fd: " << fd);
 
@@ -115,14 +105,12 @@ Socket Socket::accept() const
 Socket Socket::connect(const std::string &path)
 {
 	if (path.size() >= sizeof(sockaddr_un::sun_path))
-		throw std::invalid_argument("socket path size too long!");
+		ThrowExc(InternalError, "socket path size too long!");
 
 	int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
 
 	if (fd < 0)
-		throw std::system_error(
-			std::error_code(errno, std::generic_category()),
-			"socket create failed!");
+		ThrowExc(SocketError, "Socket create failed with errno: " << errno);
 
 	sockaddr_un addr;
 	addr.sun_family = AF_UNIX;
@@ -131,9 +119,7 @@ Socket Socket::connect(const std::string &path)
 
 	if (::connect(fd, reinterpret_cast<sockaddr *>(&addr),
 				  sizeof(sockaddr_un)) == -1)
-		throw std::system_error(
-			std::error_code(errno, std::generic_category()),
-			"socket connect failed!");
+		ThrowExc(SocketError, "Socket connect failed with errno: " << errno);
 
 	INFO("Connect to CSR server success with fd:" << fd);
 
@@ -162,9 +148,7 @@ RawBuffer Socket::read(void) const
 			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 				continue;
 			else
-				throw std::system_error(
-					std::error_code(errno, std::generic_category()),
-					"socket read failed!");
+				ThrowExc(SocketError, "Socket read failed with errno: " << errno);
 		}
 
 		/* TODO: handle the case of more bytes in stream to read than buffer size */
@@ -196,9 +180,7 @@ void Socket::write(const RawBuffer &data) const
 			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 				continue;
 			else
-				throw std::system_error(
-					std::error_code(errno, std::generic_category()),
-					"socket write failed!");
+				ThrowExc(SocketError, "Socket write failed with errno: " << errno);
 		}
 
 		total += bytes;

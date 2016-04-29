@@ -21,9 +21,8 @@
  */
 #include "service/type-converter.h"
 
-#include <stdexcept>
-
 #include "common/audit/logger.h"
+#include "common/exception.h"
 
 namespace Csr {
 
@@ -40,7 +39,7 @@ csr_cs_severity_level_e convert(const csre_cs_severity_level_e &e)
 		return CSR_CS_SEVERITY_HIGH;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid eseverity: " << static_cast<int>(e)));
+		ThrowExc(InternalError, "Invalid eseverity: " << static_cast<int>(e));
 	}
 }
 
@@ -57,7 +56,7 @@ csr_cs_threat_type_e convert(const csre_cs_threat_type_e &e)
 		return CSR_CS_THREAT_GENERIC;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid ethreat: " << static_cast<int>(e)));
+		ThrowExc(InternalError, "Invalid ethreat: " << static_cast<int>(e));
 	}
 }
 
@@ -77,7 +76,7 @@ csr_wp_risk_level_e convert(const csre_wp_risk_level_e &e)
 		return CSR_WP_RISK_HIGH;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid elevel: " << static_cast<int>(e)));
+		ThrowExc(InternalError, "Invalid elevel: " << static_cast<int>(e));
 	}
 }
 

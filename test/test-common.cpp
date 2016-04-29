@@ -28,9 +28,9 @@ void exceptionGuard(const std::function<void()> &f)
 	try {
 		f();
 	} catch (const std::exception &e) {
-		BOOST_REQUIRE_MESSAGE(0, "std::exception catched: " << e.what());
+		BOOST_REQUIRE_MESSAGE(0, "std::exception caught: " << e.what());
 	} catch (...) {
-		BOOST_REQUIRE_MESSAGE(0, "Unknown exception catched");
+		BOOST_REQUIRE_MESSAGE(0, "Unknown exception caught");
 	}
 }
 

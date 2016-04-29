@@ -21,9 +21,8 @@
  */
 #include "common/cs-context.h"
 
-#include <stdexcept>
-
 #include "common/audit/logger.h"
+#include "common/exception.h"
 
 namespace Csr {
 
@@ -70,8 +69,7 @@ void CsContext::set(int key, int value)
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as int."));
+		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to set as int.");
 	}
 }
 
@@ -83,8 +81,8 @@ void CsContext::set(int key, const std::string &value)
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as string."));
+		ThrowExc(InternalError, "Invalid key[" << key <<
+				 "] comes in to set as string.");
 	}
 }
 
@@ -96,8 +94,8 @@ void CsContext::set(int key, const char *value)
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as string."));
+		ThrowExc(InternalError, "Invalid key[" << key <<
+				 "] comes in to set as string.");
 	}
 }
 
@@ -109,8 +107,7 @@ void CsContext::set(int key, bool value)
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to set as bool."));
+		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to set as bool.");
 	}
 }
 
@@ -126,8 +123,7 @@ void CsContext::get(int key, int &value) const
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to get as int."));
+		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to get as int.");
 	}
 }
 
@@ -139,15 +135,15 @@ void CsContext::get(int key, std::string &value) const
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to get as string."));
+		ThrowExc(InternalError, "Invalid key[" << key <<
+				 "] comes in to get as string.");
 	}
 }
 
 void CsContext::get(int key, const char **value) const
 {
 	if (value == nullptr)
-		throw std::logic_error("invalud argument. output storage pointer is null.");
+		ThrowExc(InvalidParam, "output storage pointer is null.");
 
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:
@@ -155,8 +151,8 @@ void CsContext::get(int key, const char **value) const
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to get as string."));
+		ThrowExc(InternalError, "Invalid key[" << key <<
+				 "] comes in to get as string.");
 	}
 }
 
@@ -168,8 +164,7 @@ void CsContext::get(int key, bool &value) const
 		break;
 
 	default:
-		throw std::logic_error(FORMAT("Invalid key[" << key <<
-									  "] comes in to get as bool."));
+		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to get as bool.");
 	}
 }
 

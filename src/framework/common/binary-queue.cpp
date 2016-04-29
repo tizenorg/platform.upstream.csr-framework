@@ -26,6 +26,8 @@
 #include <stdexcept>
 #include <new>
 
+#include "common/exception.h"
+
 namespace Csr {
 
 BinaryQueue::BinaryQueue() : m_size(0)
@@ -68,13 +70,13 @@ void BinaryQueue::read(size_t size, void *bytes)
 		return;
 
 	if (size > m_size)
-		throw std::logic_error("protocol broken. no more binary to flatten in queue");
+		ThrowExc(SocketError, "protocol broken. no more binary to flatten in queue");
 
 	void *cur = bytes;
 
 	while (size > 0) {
 		if (m_buckets.empty())
-			throw std::logic_error("protocol broken. no more buckets to extract");
+			ThrowExc(SocketError, "protocol broken. no more buckets to extract");
 
 		size_t count = std::min(size, m_buckets.front()->left);
 		cur = m_buckets.front()->extractTo(cur, count);
@@ -93,7 +95,7 @@ BinaryQueue::Bucket::Bucket(unsigned char *_data, size_t _size) :
 	left(_size)
 {
 	if (_data == nullptr || _size == 0)
-		throw std::invalid_argument("Bucket construct failed.");
+		ThrowExc(InternalError, "Bucket construct failed.");
 }
 
 BinaryQueue::Bucket::~Bucket()
@@ -104,7 +106,7 @@ BinaryQueue::Bucket::~Bucket()
 void *BinaryQueue::Bucket::extractTo(void *dest, size_t size)
 {
 	if (dest == nullptr || size == 0)
-		throw std::logic_error("logic error. invalid input to Bucket::extractTo.");
+		ThrowExc(InternalError, "logic error. invalid input to Bucket::extractTo.");
 
 	memcpy(dest, cur, size);
 

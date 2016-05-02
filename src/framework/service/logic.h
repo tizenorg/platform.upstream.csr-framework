@@ -53,7 +53,7 @@ private:
 	RawBuffer scanData(const CsContext &context, const RawBuffer &data);
 	RawBuffer scanFile(const CsContext &context, const std::string &filepath);
 	RawBuffer scanFileHelper(const CsContext &context, const std::string &filepath);
-	RawBuffer dirGetFiles(const CsContext &context, const std::string &dir);
+	RawBuffer getScannableFiles(const std::string &dir);
 	RawBuffer judgeStatus(const std::string &filepath, csr_cs_action_e action);
 	RawBuffer getDetected(const std::string &filepath);
 	RawBuffer getDetectedList(const StrSet &dirSet);

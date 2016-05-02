@@ -102,7 +102,7 @@ AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 
 	// Already scanned files are excluded according to history
 	auto retFiles = m_dispatcher->methodCall<std::pair<int, StrSet *>>(
-						CommandId::DIR_GET_FILES, m_ctx, dir);
+						CommandId::GET_SCANNABLE_FILES, dir);
 
 	if (retFiles.first != CSR_ERROR_NONE) {
 		ERROR("[Error] ret: " << retFiles.first);

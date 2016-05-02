@@ -127,11 +127,10 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 		return scanFile(*cptr, filepath);
 	}
 
-	case CommandId::DIR_GET_FILES: {
-		CsContextShPtr cptr;
+	case CommandId::GET_SCANNABLE_FILES: {
 		std::string dir;
-		info.second.Deserialize(cptr, dir);
-		return dirGetFiles(*cptr, dir);
+		info.second.Deserialize(dir);
+		return dirGetFiles(dir);
 	}
 
 	case CommandId::JUDGE_STATUS: {
@@ -332,11 +331,14 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, history).pop();
 }
 
-RawBuffer Logic::dirGetFiles(const CsContext &context, const std::string &dir)
+RawBuffer Logic::getScannableFiles(const std::string &dir)
 {
-	INFO("Dir[" << dir << "] get files");
+	auto lastScanTime = m_db->getLastScanTime(dir, m_csDataVersion);
 
-	printCsContext(context);
+	// scan history doesn't exist
+	if (lastScanTime == -1) {
+		auto visitor = createVisitor(dir, LONG_MAX);
+	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
 }

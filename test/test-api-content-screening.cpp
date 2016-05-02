@@ -56,15 +56,12 @@ BOOST_AUTO_TEST_CASE(set_values_to_context_positive)
 	ASSERT_IF(csr_cs_set_ask_user(context, CSR_CS_NOT_ASK_USER), CSR_ERROR_NONE);
 	ASSERT_IF(csr_cs_set_ask_user(context, CSR_CS_ASK_USER), CSR_ERROR_NONE);
 
-	ASSERT_IF(csr_cs_set_popup_message(context, "Test popup message"),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_popup_message(context, "Test popup message"), CSR_ERROR_NONE);
 
-	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_DEFAULT),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_DEFAULT), CSR_ERROR_NONE);
 	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_ALL), CSR_ERROR_NONE);
 	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_HALF), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_SINGLE),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_SINGLE), CSR_ERROR_NONE);
 
 	ASSERT_IF(csr_cs_set_scan_on_cloud(context), CSR_ERROR_NONE);
 
@@ -81,8 +78,7 @@ BOOST_AUTO_TEST_CASE(set_values_to_context_negative)
 	ASSERT_IF(csr_cs_set_ask_user(context, static_cast<csr_cs_ask_user_e>(0x926ce)),
 			  CSR_ERROR_INVALID_PARAMETER);
 
-	ASSERT_IF(csr_cs_set_popup_message(context, nullptr),
-			  CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_set_popup_message(context, nullptr), CSR_ERROR_INVALID_PARAMETER);
 	ASSERT_IF(csr_cs_set_popup_message(context, ""), CSR_ERROR_INVALID_PARAMETER);
 
 	ASSERT_IF(csr_cs_set_core_usage(context,
@@ -101,8 +97,7 @@ BOOST_AUTO_TEST_CASE(scan_data)
 	csr_cs_detected_h detected;
 	unsigned char data[100] = {0, };
 
-	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected), CSR_ERROR_NONE);
 
 	// no malware detected
 	CHECK_IS_NULL(detected);
@@ -118,8 +113,7 @@ BOOST_AUTO_TEST_CASE(scan_file_normal)
 	auto context = c.get();
 	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NORMAL, &detected),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NORMAL, &detected), CSR_ERROR_NONE);
 
 	// no malware detected
 	CHECK_IS_NULL(detected);
@@ -135,8 +129,7 @@ BOOST_AUTO_TEST_CASE(scan_file_malware)
 	auto context = c.get();
 	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected), CSR_ERROR_NONE);
 
 	CHECK_IS_NOT_NULL(detected);
 
@@ -151,8 +144,7 @@ BOOST_AUTO_TEST_CASE(scan_file_risky)
 	auto context = c.get();
 	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_RISKY, &detected),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_RISKY, &detected), CSR_ERROR_NONE);
 
 	CHECK_IS_NOT_NULL(detected);
 
@@ -167,8 +159,7 @@ BOOST_AUTO_TEST_CASE(get_detected_malware)
 	auto context = c.get();
 	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_RISKY, &detected),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_RISKY, &detected), CSR_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
 
 	ASSERT_IF(csr_cs_get_detected_malware(context, TEST_FILE_RISKY, &detected),
@@ -192,18 +183,18 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares)
 		TEST_DIR
 	};
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected), CSR_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_RISKY, &detected),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_RISKY, &detected), CSR_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
 
 	ASSERT_IF(csr_cs_get_detected_malwares(context, dirs,
 										   sizeof(dirs) / sizeof(const char *),
 										   &detected_list, &cnt), CSR_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected_list);
-	ASSERT_IF(cnt, static_cast<size_t>(2));
+
+	BOOST_REQUIRE_MESSAGE(cnt >= 2, "Detected malware count is invalid. "
+									"expected: >= 2, cnt: " << cnt);
 
 	EXCEPTION_GUARD_END
 }
@@ -216,11 +207,11 @@ BOOST_AUTO_TEST_CASE(get_ignored_malware)
 	auto context = c.get();
 	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected), CSR_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected,
-											CSR_CS_ACTION_IGNORE), CSR_ERROR_NONE);
+
+	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_IGNORE),
+			  CSR_ERROR_NONE);
 
 	ASSERT_IF(csr_cs_get_ignored_malware(context, TEST_FILE_MALWARE, &detected),
 			  CSR_ERROR_NONE);
@@ -247,13 +238,13 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares)
 	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected),
 			  CSR_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected,
-											CSR_CS_ACTION_IGNORE), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_IGNORE),
+			  CSR_ERROR_NONE);
 	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_RISKY, &detected),
 			  CSR_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected,
-											CSR_CS_ACTION_IGNORE), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_IGNORE),
+			  CSR_ERROR_NONE);
 
 	ASSERT_IF(csr_cs_get_ignored_malwares(context, dirs,
 										  sizeof(dirs) / sizeof(const char *),
@@ -272,11 +263,10 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware)
 	auto context = c.get();
 	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected),
-			  CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MALWARE, &detected), CSR_ERROR_NONE);
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected,
-											CSR_CS_ACTION_UNIGNORE), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_UNIGNORE),
+			  CSR_ERROR_NONE);
 
 	EXCEPTION_GUARD_END
 }

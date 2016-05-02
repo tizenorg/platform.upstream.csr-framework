@@ -71,38 +71,10 @@ AsyncLogic::Ending AsyncLogic::scanDirs(const std::shared_ptr<StrSet> &dirs)
 
 AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 {
-	// For in case of there's already detected malware for dir
-	StrSet dirset;
-	dirset.insert(dir);
-
-	auto retResults =
-		m_dispatcher->methodCall<std::pair<int, std::vector<CsDetected *>>>(
-			CommandId::GET_DETECTED_LIST, dirset);
-
-	if (retResults.first != CSR_ERROR_NONE) {
-		ERROR("[Error] ret: " << retResults.first);
-
-		for (auto r : retResults.second)
-			delete r;
-
-		auto ec = retResults.first;
-		return std::make_pair(Callback::Id::OnError, [this, ec] {
-			if (this->m_cb.onError)
-				this->m_cb.onError(this->m_userdata, ec);
-		});
-	}
-
-	// Register already detected malwares to context to be freed with context.
-	for (auto r : retResults.second) {
-		m_results.emplace_back(r);
-
-		if (m_cb.onDetected)
-			m_cb.onDetected(m_userdata, reinterpret_cast<csr_cs_detected_h>(r));
-	}
-
-	// Already scanned files are excluded according to history
+	// Already scanned files are included in history. it'll be skipped later
+	// on server side by every single scan_file request.
 	auto retFiles = m_dispatcher->methodCall<std::pair<int, StrSet *>>(
-						CommandId::DIR_GET_FILES, m_ctx, dir);
+						CommandId::GET_SCANNABLE_FILES, dir);
 
 	if (retFiles.first != CSR_ERROR_NONE) {
 		ERROR("[Error] ret: " << retFiles.first);
@@ -136,7 +108,7 @@ AsyncLogic::Ending AsyncLogic::scanFiles(const std::shared_ptr<StrSet> &fileSet)
 					   CommandId::SCAN_FILE, m_ctx, file);
 
 		if (ret.first != CSR_ERROR_NONE) {
-			ERROR("[Error] ret: " << ret.first);
+			ERROR("[Error] ret: " << ret.first << " while scan file: " << file);
 			delete ret.second;
 			auto ec = ret.first;
 			return std::make_pair(Callback::Id::OnError, [this, ec] {

@@ -32,9 +32,6 @@
 
 namespace Csr {
 
-// visitor traverses file which is modified since the time of 'modifiedSince'
-// if modifiedSince is -1, traverse regardless of time
-
 class File;
 using FilePtr = std::unique_ptr<File>;
 
@@ -45,6 +42,7 @@ public:
 	const std::string &getAppPkgId() const;
 	const std::string &getAppUser() const;
 	const std::string &getAppPkgPath() const;
+	bool isModified() const;
 
 	bool remove();
 
@@ -55,15 +53,18 @@ private:
 
 	static std::vector<std::regex> m_regexprs;
 
-	File(const std::string &fpath);
+	File(const std::string &fpath, time_t modifiedSince = -1);
 
 	std::string m_path;
 	bool m_inApp;              // in app or not
 	std::string m_appPkgId;    // meaningful only if inApp == true
 	std::string m_appUser;     // meaningful only if inApp == true
 	std::string m_appPkgPath;  // meaningful only if inApp == true
+	bool m_isModified;
 };
 
+// visitor traverses file which is modified since the time of 'modifiedSince'
+// if modifiedSince is -1, traverse regardless of time
 class FsVisitor;
 using FsVisitorPtr = std::unique_ptr<FsVisitor>;
 

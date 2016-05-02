@@ -35,30 +35,6 @@
 
 namespace Csr {
 
-namespace {
-
-// temporal function for debugging until modules integrated to logic.
-void printCsContext(const CsContext &context)
-{
-	std::string popupMessage;
-	int askUser;
-	int coreUsage;
-	bool scanOnCloud;
-
-	context.get(static_cast<int>(CsContext::Key::PopupMessage), popupMessage);
-	context.get(static_cast<int>(CsContext::Key::AskUser), askUser);
-	context.get(static_cast<int>(CsContext::Key::CoreUsage), coreUsage);
-	context.get(static_cast<int>(CsContext::Key::ScanOnCloud), scanOnCloud);
-
-	INFO("Context info:"
-		 " PopupMessage: " << popupMessage <<
-		 " AskUser: " << askUser <<
-		 " CoreUsage: " << coreUsage <<
-		 " ScanOnCloud: " << scanOnCloud);
-}
-
-}
-
 Logic::Logic() :
 	m_cs(new CsLoader(CS_ENGINE_PATH)),
 	m_wp(new WpLoader(WP_ENGINE_PATH)),
@@ -127,11 +103,10 @@ RawBuffer Logic::dispatch(const RawBuffer &in)
 		return scanFile(*cptr, filepath);
 	}
 
-	case CommandId::DIR_GET_FILES: {
-		CsContextShPtr cptr;
+	case CommandId::GET_SCANNABLE_FILES: {
 		std::string dir;
-		info.second.Deserialize(cptr, dir);
-		return dirGetFiles(*cptr, dir);
+		info.second.Deserialize(dir);
+		return getScannableFiles(dir);
 	}
 
 	case CommandId::JUDGE_STATUS: {
@@ -284,61 +259,79 @@ RawBuffer Logic::scanFileHelper(const CsContext &context,
 
 RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 {
+	DEBUG("Scan request on file: " << filepath);
 	auto history = m_db->getDetectedMalware(filepath);
 
 	if (!history)
 		return scanFileHelper(context, filepath);
 
-	// history exist of malware detected for the file.
-	// let's check file modified since the detected time.
+	DEBUG("Scan history exist on file: " << filepath);
 	auto file = File::create(filepath, static_cast<time_t>(history->ts));
 
-	// file is modified since the detected time. let's remove history!
-	if (!file) {
+	if (file->isModified()) {
+		DEBUG("file[" << filepath << "] is modified since the detected time. "
+			  "let's remove history and re-scan");
 		m_db->deleteDetectedMalware(filepath);
 		return scanFileHelper(context, filepath);
 	}
 
-	// file isn't modified since the detected time. history can be used.
-	if (!context.askUser)
+	DEBUG("file[" << filepath << "] isn't modified since the detected time. "
+		  "history can be used.");
+	if (!context.askUser) {
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, history).pop();
-
-	if (history->isIgnored) {
+	} else if (history->isIgnored) {
 		history->response = CSR_CS_IGNORE;
-	} else {
-		switch (history->response = getUserResponse(context, *history)) {
-		case CSR_CS_IGNORE:
-			m_db->setDetectedMalwareIgnored(filepath, true);
-			break;
-
-		case CSR_CS_REMOVE:
-			if (!file->remove()) {
-				ERROR("Failed to remove filepath: " << filepath);
-				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, CsDetected()).pop();
-			}
-
-			m_db->deleteDetectedMalware(filepath);
-			break;
-
-		case CSR_CS_SKIP:
-			break;
-
-		default:
-			ThrowExc(InternalError, "Invalid response from popup: " <<
-					 static_cast<int>(history->response));
-		}
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, history).pop();
 	}
+
+	DEBUG("user response is needed.");
+
+	switch (history->response = getUserResponse(context, *history)) {
+	case CSR_CS_IGNORE:
+		m_db->setDetectedMalwareIgnored(filepath, true);
+		break;
+
+	case CSR_CS_REMOVE:
+		if (!file->remove()) {
+			ERROR("Failed to remove filepath: " << filepath);
+			return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, CsDetected()).pop();
+		}
+
+		m_db->deleteDetectedMalware(filepath);
+		break;
+
+	case CSR_CS_SKIP:
+		break;
+
+	default:
+		ThrowExc(InternalError, "Invalid response from popup: " <<
+				 static_cast<int>(history->response));
+	}
+
+	DEBUG("file[" << filepath << "] user response: " << static_cast<int>(history->response));
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, history).pop();
 }
 
-RawBuffer Logic::dirGetFiles(const CsContext &context, const std::string &dir)
+RawBuffer Logic::getScannableFiles(const std::string &dir)
 {
-	INFO("Dir[" << dir << "] get files");
+	auto lastScanTime = m_db->getLastScanTime(dir, m_csDataVersion);
+	auto visitor = (lastScanTime == -1) ?
+			FsVisitor::create(dir) : FsVisitor::create(dir, lastScanTime);
 
-	printCsContext(context);
+	StrSet fileset;
+	while (auto file = visitor->next()) {
+		DEBUG("In dir[" << dir << "], Scannable file[" << file->getPath() << "]");
+		fileset.insert(file->getPath());
+	}
 
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
+	if (lastScanTime != -1) {
+		// for case: scan history exist and not modified.
+		for (auto &row : m_db->getDetectedMalwares(dir))
+			fileset.insert(row->targetName);
+	}
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
 }
 
 RawBuffer Logic::judgeStatus(const std::string &filepath,
@@ -353,9 +346,8 @@ RawBuffer Logic::judgeStatus(const std::string &filepath,
 
 	auto file = File::create(filepath, static_cast<time_t>(history->ts));
 
-	if (!file) {
-		ERROR("Target doesn't exist on target path on filesystem or "
-			  "modified since db delta inserted. name: " << filepath);
+	if (file->isModified()) {
+		ERROR("Target modified since db delta inserted. name: " << filepath);
 		m_db->deleteDetectedMalware(filepath);
 		// TODO: is it okay to just refresh db and return success?
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();

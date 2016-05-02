@@ -44,7 +44,7 @@ struct CsDetected : public IResult {
 
 	bool hasValue(void) const noexcept;
 
-	std::string targetName; // file path or app id which contains malware
+	std::string targetName; // file(app) path which contains malware
 
 	std::string malwareName;
 	std::string detailedUrl;

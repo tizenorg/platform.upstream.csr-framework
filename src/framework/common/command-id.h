@@ -33,7 +33,7 @@ enum class CommandId : int {
 	GET_DETECTED_LIST   = 0x1102,
 	GET_IGNORED         = 0x1103,
 	GET_IGNORED_LIST    = 0x1104,
-	DIR_GET_FILES       = 0x1105,
+	GET_SCANNABLE_FILES = 0x1105,
 	// handle result
 	JUDGE_STATUS        = 0x1201,
 

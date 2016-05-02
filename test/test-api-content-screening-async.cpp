@@ -54,19 +54,20 @@ void on_scanned(void *userdata, const char *file)
 	ctx->scannedCnt++;
 }
 
-void on_error(void *userdata, int ec)
-{
-	BOOST_MESSAGE("on_error. async request done with error code[" << ec << "]");
-	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
-	ctx->errorCnt++;
-}
-
 void on_detected(void *userdata, csr_cs_detected_h detected)
 {
 	(void) detected;
 	BOOST_MESSAGE("on_detected.");
 	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
 	ctx->detectedCnt++;
+}
+
+void on_error(void *userdata, int ec)
+{
+	BOOST_MESSAGE("on_error. async request done with error code[" << ec << "]");
+	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
+	ctx->errorCnt++;
+	ctx->cv.notify_one();
 }
 
 void on_completed(void *userdata)
@@ -82,6 +83,7 @@ void on_cancelled(void *userdata)
 	BOOST_MESSAGE("on_cancelled. async request canceled!");
 	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
 	ctx->cancelledCnt++;
+	ctx->cv.notify_one();
 }
 
 }
@@ -188,8 +190,7 @@ BOOST_AUTO_TEST_CASE(scan_dir_positive)
 	l.unlock();
 
 	ASSERT_IF(testCtx.completedCnt, 1);
-	ASSERT_IF(testCtx.scannedCnt, 0); // should be 1 after dir_get_files implemented
-	ASSERT_IF(testCtx.detectedCnt, 2);
+	ASSERT_IF(testCtx.scannedCnt + testCtx.detectedCnt, 14);
 	ASSERT_IF(testCtx.cancelledCnt, 0);
 	ASSERT_IF(testCtx.errorCnt, 0);
 
@@ -225,8 +226,7 @@ BOOST_AUTO_TEST_CASE(scan_dirs_positive)
 	l.unlock();
 
 	ASSERT_IF(testCtx.completedCnt, 1);
-	ASSERT_IF(testCtx.scannedCnt, 0); // should be 1 after dir_get_files implemented
-	ASSERT_IF(testCtx.detectedCnt, 2);
+	ASSERT_IF(testCtx.scannedCnt + testCtx.detectedCnt, 14);
 	ASSERT_IF(testCtx.cancelledCnt, 0);
 	ASSERT_IF(testCtx.errorCnt, 0);
 

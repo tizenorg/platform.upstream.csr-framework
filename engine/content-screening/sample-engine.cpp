@@ -280,9 +280,6 @@ int csret_cs_detect_malware(csret_cs_context_s *context, const RawBuffer &data,
 	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
-	if (data.empty())
-		return CSRE_ERROR_INVALID_PARAMETER;
-
 	if (g_virus_sig.empty())
 		return CSRE_ERROR_ENGINE_NOT_ACTIVATED;
 

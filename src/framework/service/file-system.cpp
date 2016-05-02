@@ -72,7 +72,9 @@ const char *APP_DIRS[4] = {
 //===========================================================================
 std::vector<std::regex> File::m_regexprs;
 
-File::File(const std::string &fpath) : m_path(fpath), m_inApp(false)
+File::File(const std::string &fpath, time_t modifiedSince) :
+	m_path(fpath), m_inApp(false),
+	m_isModified((modifiedSince != -1 && isModifiedSince(fpath, modifiedSince)))
 {
 	if (m_regexprs.size() == 0)
 		initRegex();
@@ -96,6 +98,11 @@ File::File(const std::string &fpath) : m_path(fpath), m_inApp(false)
 
 		m_inApp = true;
 	}
+}
+
+bool File::isModified() const
+{
+	return m_isModified;
 }
 
 const std::string &File::getPath() const
@@ -141,12 +148,7 @@ bool File::remove()
 
 FilePtr File::create(const std::string &fpath, time_t modifiedSince)
 {
-	if (modifiedSince != -1 && !isModifiedSince(fpath, modifiedSince)) {
-		DEBUG("visitied file is not modified since the time. file: " << fpath);
-		return nullptr;
-	} else {
-		return FilePtr(new File(fpath));
-	}
+	return FilePtr(new File(fpath, modifiedSince));
 }
 
 FsVisitor::DirPtr FsVisitor::openDir(const std::string &dir)
@@ -186,7 +188,7 @@ FsVisitor::FsVisitor(const std::string &dirpath, time_t modifiedSince) :
 	if (!m_currDir)
 		ThrowExc(InternalError, "Failed to open dir: " << dirpath);
 
-	m_dirs.push(dirpath);
+	m_dirs.push((dirpath.back() == '/') ? dirpath : (dirpath + '/'));
 }
 
 FilePtr FsVisitor::next()
@@ -209,14 +211,11 @@ FilePtr FsVisitor::next()
 		std::string filepath(result->d_name);
 
 		if (result->d_type == DT_DIR) {
-			if (filepath.compare(".") == 0 || filepath.compare("..") == 0) {
+			if (filepath.compare(".") == 0 || filepath.compare("..") == 0)
 				continue;
-			} else {
-				if (filepath.back() != '/')
-					filepath.push_back('/');
-
-				m_dirs.emplace(dir + filepath);
-			}
+			else
+				m_dirs.emplace((filepath.back() == '/') ?
+					(dir + filepath) : (dir + filepath + '/'));
 		} else if (result->d_type == DT_REG) {
 			auto fileptr = File::create(dir + filepath, m_since);
 

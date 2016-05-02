@@ -26,19 +26,20 @@
 #include <regex>
 #include <queue>
 
+#include <cstddef>
+#include <ctime>
 #include <dirent.h>
-#include <stddef.h>
-#include <time.h>
 
 namespace Csr {
 
+// visitor traverses file which is modified since the time of 'modifiedSince'
+// if modifiedSince is -1, traverse regardless of time
+
+class File;
+using FilePtr = std::unique_ptr<File>;
+
 class File {
 public:
-	File(const std::string &fpath);
-	File(const std::string &fpath, bool belongToApp,
-		 const std::string &pkgId, const std::string &user, const std::string &pkgPath);
-	virtual ~File();
-
 	const std::string &getPath() const;
 	bool isInApp() const;
 	const std::string &getAppPkgId() const;
@@ -47,10 +48,14 @@ public:
 
 	bool remove();
 
+	static FilePtr create(const std::string &fpath, time_t modifiedSince = -1);
+
 private:
 	static void initRegex();
 
 	static std::vector<std::regex> m_regexprs;
+
+	File(const std::string &fpath);
 
 	std::string m_path;
 	bool m_inApp;              // in app or not
@@ -59,56 +64,27 @@ private:
 	std::string m_appPkgPath;  // meaningful only if inApp == true
 };
 
-class FileSystemVisitor;
-using FileShrPtr = std::shared_ptr<File>;
-using FsVisitorShrPtr = std::shared_ptr<FileSystemVisitor>;
+class FsVisitor;
+using FsVisitorPtr = std::unique_ptr<FsVisitor>;
 
-FsVisitorShrPtr createVisitor(const std::string &fpath, time_t modifiedSince);
-
-class FileSystemVisitor {
+class FsVisitor {
 public:
-	virtual ~FileSystemVisitor() = 0;
+	FilePtr next();
 
-	// returns nullprt when there is no next element.
-	virtual FileShrPtr next() = 0;
-
-protected:
-	FileSystemVisitor();
-
-	// return true if a file was modified since "since" parameter.
-	static bool isModifiedSince(const std::string &path, time_t since);
-};
-
-class FileVisitor : public FileSystemVisitor {
-public:
-	virtual ~FileVisitor();
-	virtual FileShrPtr next() override;
+	static FsVisitorPtr create(const std::string &dirpath, time_t modifiedSince = -1);
 
 private:
-	friend FsVisitorShrPtr createVisitor(const std::string &, time_t);
+	using DirPtr = std::unique_ptr<DIR, int(*)(DIR *)>;
+	using EntryPtr = std::unique_ptr<struct dirent, void(*)(void *)>;
 
-	FileVisitor(const std::string &fpath, time_t modifiedSince);
+	static DirPtr openDir(const std::string &);
 
-	std::string m_path;
-	time_t m_since;
-	FileShrPtr m_nextItem;
-};
+	FsVisitor(const std::string &dirpath, time_t modifiedSince = -1);
 
-class DirVisitor : public FileSystemVisitor {
-public:
-	virtual ~DirVisitor();
-	virtual FileShrPtr next() override;
-
-private:
-	friend FsVisitorShrPtr createVisitor(const std::string &, time_t);
-
-	DirVisitor(const std::string &fpath, time_t modifiedSince);
-
-	std::string m_path;
 	time_t m_since;
 	std::queue<std::string> m_dirs;
-	std::unique_ptr<DIR, std::function<int(DIR *)>> m_currDir;
-	std::unique_ptr<struct dirent, std::function<void(void *)>> m_currEntry;
+	DirPtr m_currDir;
+	EntryPtr m_currEntry;
 };
 
 } // namespace Csr

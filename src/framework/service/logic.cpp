@@ -291,7 +291,7 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 
 	// history exist of malware detected for the file.
 	// let's check file modified since the detected time.
-	auto file = createVisitor(filepath, static_cast<time_t>(history->ts))->next();
+	auto file = File::create(filepath, static_cast<time_t>(history->ts));
 
 	// file is modified since the detected time. let's remove history!
 	if (!file) {
@@ -351,7 +351,7 @@ RawBuffer Logic::judgeStatus(const std::string &filepath,
 		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
 	}
 
-	auto file = createVisitor(filepath, static_cast<time_t>(history->ts))->next();
+	auto file = File::create(filepath, static_cast<time_t>(history->ts));
 
 	if (!file) {
 		ERROR("Target doesn't exist on target path on filesystem or "

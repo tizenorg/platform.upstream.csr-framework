@@ -80,92 +80,6 @@ Logic::~Logic()
 		ThrowExc(EngineError, "global deinit wp engine. ret: " << ret);
 }
 
-RawBuffer Logic::dispatch(const RawBuffer &in)
-{
-	auto info = getRequestInfo(in);
-
-	INFO("Request dispatch! CommandId: " << static_cast<int>(info.first));
-
-	switch (info.first) {
-	// Content scanning
-	case CommandId::SCAN_DATA: {
-		CsContextShPtr cptr;
-		RawBuffer data;
-		info.second.Deserialize(cptr, data);
-
-		return scanData(*cptr, data);
-	}
-
-	case CommandId::SCAN_FILE: {
-		CsContextShPtr cptr;
-		std::string filepath;
-		info.second.Deserialize(cptr, filepath);
-		return scanFile(*cptr, filepath);
-	}
-
-	case CommandId::GET_SCANNABLE_FILES: {
-		std::string dir;
-		info.second.Deserialize(dir);
-		return getScannableFiles(dir);
-	}
-
-	case CommandId::JUDGE_STATUS: {
-		std::string filepath;
-		int intAction;
-		info.second.Deserialize(filepath, intAction);
-		return judgeStatus(filepath, static_cast<csr_cs_action_e>(intAction));
-	}
-
-	case CommandId::GET_DETECTED: {
-		std::string filepath;
-		info.second.Deserialize(filepath);
-		return getDetected(filepath);
-	}
-
-	case CommandId::GET_DETECTED_LIST: {
-		StrSet dirSet;
-		info.second.Deserialize(dirSet);
-		return getDetectedList(dirSet);
-	}
-
-	case CommandId::GET_IGNORED: {
-		std::string filepath;
-		info.second.Deserialize(filepath);
-		return getIgnored(filepath);
-	}
-
-	case CommandId::GET_IGNORED_LIST: {
-		StrSet dirSet;
-		info.second.Deserialize(dirSet);
-		return getIgnoredList(dirSet);
-	}
-
-	// Web protection
-	/* TODO: should we separate command->logic mapping of CS and WP ? */
-	case CommandId::CHECK_URL: {
-		WpContextShPtr cptr;
-		std::string url;
-		info.second.Deserialize(cptr, url);
-		return checkUrl(*cptr, url);
-	}
-
-	default:
-		ThrowExc(InternalError, "Command id[" << static_cast<int>(info.first) <<
-				 "] isn't in range.");
-	}
-}
-
-std::pair<CommandId, BinaryQueue> Logic::getRequestInfo(const RawBuffer &data)
-{
-	CommandId id;
-
-	BinaryQueue q;
-	q.push(data);
-	q.Deserialize(id);
-
-	return std::make_pair(id, std::move(q));
-}
-
 RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 {
 	CsEngineContext engineContext(m_cs);
@@ -210,8 +124,7 @@ RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 	return BinaryQueue::Serialize(ret, d).pop();
 }
 
-RawBuffer Logic::scanFileHelper(const CsContext &context,
-								const std::string &filepath)
+RawBuffer Logic::scanFileHelper(const CsContext &context, const std::string &filepath)
 {
 	CsEngineContext engineContext(m_cs);
 	auto &c = engineContext.get();
@@ -316,8 +229,7 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 RawBuffer Logic::getScannableFiles(const std::string &dir)
 {
 	auto lastScanTime = m_db->getLastScanTime(dir, m_csDataVersion);
-	auto visitor = (lastScanTime == -1) ?
-			FsVisitor::create(dir) : FsVisitor::create(dir, lastScanTime);
+	auto visitor = FsVisitor::create(dir, lastScanTime);
 
 	StrSet fileset;
 	while (auto file = visitor->next()) {
@@ -334,8 +246,7 @@ RawBuffer Logic::getScannableFiles(const std::string &dir)
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
 }
 
-RawBuffer Logic::judgeStatus(const std::string &filepath,
-							 csr_cs_action_e action)
+RawBuffer Logic::judgeStatus(const std::string &filepath, csr_cs_action_e action)
 {
 	auto history = m_db->getDetectedMalware(filepath);
 
@@ -471,8 +382,7 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 	return BinaryQueue::Serialize(ret, wr).pop();
 }
 
-csr_cs_user_response_e Logic::getUserResponse(const CsContext &c,
-		const CsDetected &d)
+csr_cs_user_response_e Logic::getUserResponse(const CsContext &c, const CsDetected &d)
 {
 	if (c.askUser == CSR_CS_NOT_ASK_USER)
 		return CSR_CS_NO_ASK_USER;
@@ -499,8 +409,8 @@ csr_cs_user_response_e Logic::getUserResponse(const CsContext &c,
 	return askUser.cs(cid, c.popupMessage, d);
 }
 
-csr_wp_user_response_e Logic::getUserResponse(const WpContext &c,
-		const std::string &url, const WpResult &wr)
+csr_wp_user_response_e Logic::getUserResponse(const WpContext &c, const std::string &url,
+											  const WpResult &wr)
 {
 	if (c.askUser == CSR_WP_NOT_ASK_USER)
 		return CSR_WP_NO_ASK_USER;

@@ -35,7 +35,35 @@
 #include "ui/askuser.h"
 #include "csr/error.h"
 
+#define EXCEPTION_GUARD_START          return Csr::exceptionGuard([&]() {
+#define EXCEPTION_GUARD_CLOSER(retArg) }, [](int retArg) {
+#define EXCEPTION_GUARD_END            });
+
 namespace Csr {
+
+namespace {
+
+RawBuffer exceptionGuard(const std::function<RawBuffer()> &func,
+						 const std::function<RawBuffer(int)> &closer)
+{
+	try {
+		return func();
+	} catch (const Exception &e) {
+		ERROR("Exception caught. code: " << e.error() << " message: " << e.what());
+		return closer(e.error());
+	} catch (const std::bad_alloc &) {
+		ERROR("memory alloc failed.");
+		return closer(CSR_ERROR_OUT_OF_MEMORY);
+	} catch (const std::exception &e) {
+		ERROR("std exception: " << e.what());
+		return closer(CSR_ERROR_UNKNOWN);
+	} catch (...) {
+		ERROR("Unknown exception occured in logic");
+		return closer(CSR_ERROR_UNKNOWN);
+	}
+}
+
+} // namespace anonymous
 
 Logic::Logic(ThreadPool &pool) :
 	m_workqueue(pool),
@@ -85,11 +113,12 @@ Logic::~Logic()
 
 RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 {
+	EXCEPTION_GUARD_START
+
 	CsEngineContext engineContext(m_cs);
 	auto &c = engineContext.get();
 
 	csre_cs_detected_h result;
-	int ret = CSR_ERROR_NONE;
 	int eret = m_cs->scanData(c, data, &result);
 
 	if (eret != CSRE_ERROR_NONE) {
@@ -99,7 +128,7 @@ RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 
 	// detected handle is null if it's safe
 	if (result == nullptr)
-		return BinaryQueue::Serialize(ret, CsDetected()).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
 
 	auto d = convert(result);
 
@@ -124,7 +153,13 @@ RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 		ThrowExc(InternalError, "Invalid severity: " << static_cast<int>(d.severity));
 	}
 
-	return BinaryQueue::Serialize(ret, d).pop();
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, CsDetected()).pop();
+
+	EXCEPTION_GUARD_END
 }
 
 RawBuffer Logic::scanFileHelper(const CsContext &context, const std::string &filepath)
@@ -133,7 +168,6 @@ RawBuffer Logic::scanFileHelper(const CsContext &context, const std::string &fil
 	auto &c = engineContext.get();
 
 	csre_cs_detected_h result;
-	int ret = CSR_ERROR_NONE;
 	int eret = m_cs->scanFile(c, filepath, &result);
 
 	if (eret != CSRE_ERROR_NONE) {
@@ -143,7 +177,7 @@ RawBuffer Logic::scanFileHelper(const CsContext &context, const std::string &fil
 
 	// detected handle is null if it's safe
 	if (result == nullptr)
-		return BinaryQueue::Serialize(ret, CsDetected()).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
 
 	auto d = convert(result);
 
@@ -170,11 +204,13 @@ RawBuffer Logic::scanFileHelper(const CsContext &context, const std::string &fil
 
 	m_db->insertDetectedMalware(d, m_csDataVersion, d.response == CSR_CS_IGNORE);
 
-	return BinaryQueue::Serialize(ret, d).pop();
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
 }
 
 RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 {
+	EXCEPTION_GUARD_START
+
 	DEBUG("Scan request on file: " << filepath);
 	auto history = m_db->getDetectedMalware(filepath);
 
@@ -198,6 +234,7 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 
 	DEBUG("file[" << filepath << "] isn't modified since the detected time. "
 		  "history can be used.");
+
 	if (!context.askUser) {
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, history).pop();
 	} else if (history->isIgnored) {
@@ -215,6 +252,7 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 	case CSR_CS_REMOVE:
 		try {
 			auto file = File::create(filepath);
+
 			if (!file && !file->remove()) {
 				ERROR("Failed to remove filepath: " << filepath);
 				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, CsDetected()).pop();
@@ -240,14 +278,23 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 	DEBUG("file[" << filepath << "] user response: " << static_cast<int>(history->response));
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, history).pop();
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, CsDetected()).pop();
+
+	EXCEPTION_GUARD_END
 }
 
 RawBuffer Logic::getScannableFiles(const Credential &cred, const std::string &dir)
 {
+	EXCEPTION_GUARD_START
+
 	auto lastScanTime = m_db->getLastScanTime(dir, m_csDataVersion);
 
 	StrSet filesetForClient;
 	auto filesetForServer = std::make_shared<StrSet>();
+
 	try {
 		auto visitor = FsVisitor::create(dir, lastScanTime);
 
@@ -256,6 +303,7 @@ RawBuffer Logic::getScannableFiles(const Credential &cred, const std::string &di
 
 		while (auto file = visitor->next()) {
 			DEBUG("In dir[" << dir << "], Scannable file[" << file->getPath() << "]");
+
 			if (hasPermToRemove(cred, file->getPath()))
 				filesetForClient.insert(file->getPath());
 			else
@@ -312,10 +360,18 @@ RawBuffer Logic::getScannableFiles(const Credential &cred, const std::string &di
 	});
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, filesetForClient).pop();
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, StrSet()).pop();
+
+	EXCEPTION_GUARD_END
 }
 
 RawBuffer Logic::judgeStatus(const std::string &filepath, csr_cs_action_e action)
 {
+	EXCEPTION_GUARD_START
+
 	auto history = m_db->getDetectedMalware(filepath);
 
 	if (!history) {
@@ -340,6 +396,7 @@ RawBuffer Logic::judgeStatus(const std::string &filepath, csr_cs_action_e action
 	case CSR_CS_ACTION_REMOVE:
 		try {
 			auto file = File::create(filepath);
+
 			if (!file && !file->remove()) {
 				ERROR("Failed to remove filepath: " << filepath);
 				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED).pop();
@@ -368,20 +425,36 @@ RawBuffer Logic::judgeStatus(const std::string &filepath, csr_cs_action_e action
 	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret).pop();
+
+	EXCEPTION_GUARD_END
 }
 
 RawBuffer Logic::getDetected(const std::string &filepath)
 {
+	EXCEPTION_GUARD_START
+
 	auto row = m_db->getDetectedMalware(filepath);
 
 	if (row)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
 	else
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, CsDetected()).pop();
+
+	EXCEPTION_GUARD_END
 }
 
 RawBuffer Logic::getDetectedList(const StrSet &dirSet)
 {
+	EXCEPTION_GUARD_START
+
 	Db::RowShPtrs rows;
 	std::for_each(dirSet.begin(), dirSet.end(),
 	[this, &rows](const std::string & dir) {
@@ -390,21 +463,37 @@ RawBuffer Logic::getDetectedList(const StrSet &dirSet)
 	});
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, Db::RowShPtrs()).pop();
+
+	EXCEPTION_GUARD_END
 }
 
 // TODO: is this command needed?
 RawBuffer Logic::getIgnored(const std::string &filepath)
 {
+	EXCEPTION_GUARD_START
+
 	auto row = m_db->getDetectedMalware(filepath);
 
 	if (row && row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
 	else
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, CsDetected()).pop();
+
+	EXCEPTION_GUARD_END
 }
 
 RawBuffer Logic::getIgnoredList(const StrSet &dirSet)
 {
+	EXCEPTION_GUARD_START
+
 	Db::RowShPtrs rows;
 	std::for_each(dirSet.begin(), dirSet.end(),
 	[this, &rows](const std::string & dir) {
@@ -414,17 +503,24 @@ RawBuffer Logic::getIgnoredList(const StrSet &dirSet)
 	});
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, Db::RowShPtrs()).pop();
+
+	EXCEPTION_GUARD_END
 }
 
 RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 {
+	EXCEPTION_GUARD_START
+
 	DEBUG("Logic::checkUrl start");
 
 	WpEngineContext engineContext(m_wp);
 	auto &c = engineContext.get();
 
 	csre_wp_check_result_h result;
-	int ret = CSR_ERROR_NONE;
 	int eret = m_wp->checkUrl(c, url.c_str(), &result);
 
 	if (eret != CSRE_ERROR_NONE) {
@@ -459,7 +555,13 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 		ThrowExc(InternalError, "Invalid level: " << static_cast<int>(wr.riskLevel));
 	}
 
-	return BinaryQueue::Serialize(ret, wr).pop();
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, wr).pop();
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, WpResult()).pop();
+
+	EXCEPTION_GUARD_END
 }
 
 csr_cs_user_response_e Logic::getUserResponse(const CsContext &c, const CsDetected &d)
@@ -490,7 +592,7 @@ csr_cs_user_response_e Logic::getUserResponse(const CsContext &c, const CsDetect
 }
 
 csr_wp_user_response_e Logic::getUserResponse(const WpContext &c, const std::string &url,
-											  const WpResult &wr)
+		const WpResult &wr)
 {
 	if (c.askUser == CSR_WP_NOT_ASK_USER)
 		return CSR_WP_NO_ASK_USER;

@@ -22,14 +22,10 @@
 #pragma once
 
 #include <string>
-#include <functional>
-#include <utility>
 
 #include "common/types.h"
 #include "common/cs-detected.h"
-#include "common/binary-queue.h"
 #include "ui/common.h"
-#include "popup.h"
 
 namespace Csr {
 namespace Ui {
@@ -38,11 +34,6 @@ class Logic {
 public:
 	Logic();
 	virtual ~Logic();
-
-	RawBuffer dispatch(const RawBuffer &);
-
-private:
-	std::pair<CommandId, BinaryQueue> getRequestInfo(const RawBuffer &);
 
 	RawBuffer csPromptData(const std::string &, const CsDetected &) const;
 	RawBuffer csPromptApp(const std::string &, const CsDetected &) const;

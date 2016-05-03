@@ -24,6 +24,7 @@
 #include <string>
 
 #include "common/service.h"
+#include "common/types.h"
 #include "logic.h"
 
 namespace Csr {
@@ -36,6 +37,9 @@ public:
 
 private:
 	virtual void onMessageProcess(const ConnShPtr &) override;
+
+	RawBuffer process(const ConnShPtr &, RawBuffer &);
+
 	Logic m_logic;
 };
 

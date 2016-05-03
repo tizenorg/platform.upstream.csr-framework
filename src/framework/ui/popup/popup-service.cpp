@@ -21,10 +21,37 @@
  */
 #include "popup-service.h"
 
+#include "common/binary-queue.h"
 #include "common/audit/logger.h"
+#include "common/exception.h"
+#include "common/cs-detected.h"
 
 namespace Csr {
 namespace Ui {
+
+namespace {
+
+bool isCsCommand(const CommandId &cid)
+{
+	switch (cid) {
+	case CommandId::CS_PROMPT_DATA:
+	case CommandId::CS_PROMPT_APP:
+	case CommandId::CS_PROMPT_FILE:
+	case CommandId::CS_NOTIFY_DATA:
+	case CommandId::CS_NOTIFY_APP:
+	case CommandId::CS_NOTIFY_FILE:
+		return true;
+
+	case CommandId::WP_PROMPT:
+	case CommandId::WP_NOTIFY:
+		return false;
+
+	default:
+		ThrowExc(InternalError, "Protocol error. unknown popup-service command id.");
+	}
+}
+
+} // namespace nonymous
 
 PopupService::PopupService(const std::string &address) : Service(address)
 {
@@ -34,11 +61,67 @@ PopupService::~PopupService()
 {
 }
 
+RawBuffer PopupService::process(const ConnShPtr &, RawBuffer &data)
+{
+	BinaryQueue q;
+	q.push(data);
+
+	int intCid;
+	q.Deserialize(intCid);
+
+	INFO("Request dispatch on popup-service. CommandId: " << static_cast<int>(intCid));
+
+	if (isCsCommand(static_cast<Ui::CommandId>(intCid))) {
+		std::string message;
+		CsDetected d;
+		q.Deserialize(message, d);
+
+		switch (static_cast<Ui::CommandId>(intCid)) {
+		case CommandId::CS_PROMPT_DATA:
+			return m_logic.csPromptData(message, d);
+
+		case CommandId::CS_PROMPT_APP:
+			return m_logic.csPromptApp(message, d);
+
+		case CommandId::CS_PROMPT_FILE:
+			return m_logic.csPromptFile(message, d);
+
+		case CommandId::CS_NOTIFY_DATA:
+			return m_logic.csNotifyData(message, d);
+
+		case CommandId::CS_NOTIFY_APP:
+			return m_logic.csNotifyApp(message, d);
+
+		case CommandId::CS_NOTIFY_FILE:
+			return m_logic.csNotifyFile(message, d);
+
+		default:
+			ThrowExc(InternalError, "protocol error. invalid ui command id.");
+		}
+	} else {
+		std::string message;
+		UrlItem item;
+		q.Deserialize(message, item);
+
+		switch (static_cast<Ui::CommandId>(intCid)) {
+		case CommandId::WP_PROMPT:
+			return m_logic.wpPrompt(message, item);
+
+		case CommandId::WP_NOTIFY:
+			return m_logic.wpNotify(message, item);
+
+		default:
+			ThrowExc(InternalError, "protocol error. invalid ui command id.");
+		}
+	}
+}
+
 void PopupService::onMessageProcess(const ConnShPtr &connection)
 {
 	DEBUG("process message on popup service");
 
-	connection->send(m_logic.dispatch(connection->receive()));
+	auto in = connection->receive();
+	connection->send(this->process(connection, in));
 
 	DEBUG("process done on popup service");
 }

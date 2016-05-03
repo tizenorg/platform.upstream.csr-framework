@@ -29,6 +29,7 @@
 #include "common/audit/logger.h"
 #include "common/exception.h"
 #include "ui/common.h"
+#include "popup.h"
 
 #include "csr/content-screening-types.h"
 #include "csr/web-protection-types.h"
@@ -53,26 +54,6 @@ void registerCb(Evas_Object *button, int *rp, std::function<void()> &&func)
 	g_callbackRegistry[*rp] = std::move(func);
 }
 
-bool isCsCommand(const CommandId &cid)
-{
-	switch (cid) {
-	case CommandId::CS_PROMPT_DATA:
-	case CommandId::CS_PROMPT_APP:
-	case CommandId::CS_PROMPT_FILE:
-	case CommandId::CS_NOTIFY_DATA:
-	case CommandId::CS_NOTIFY_APP:
-	case CommandId::CS_NOTIFY_FILE:
-		return true;
-
-	case CommandId::WP_PROMPT:
-	case CommandId::WP_NOTIFY:
-		return false;
-
-	default:
-		ThrowExc(InternalError, "Protocol error. unknown popup-service command id.");
-	}
-}
-
 void addButton(int *rp, const std::string &buttonPart,
 			   const std::string &buttonText,
 			   Popup &popup, RawBuffer &result)
@@ -95,68 +76,6 @@ Logic::Logic()
 
 Logic::~Logic()
 {
-}
-
-RawBuffer Logic::dispatch(const RawBuffer &in)
-{
-	auto info = getRequestInfo(in);
-	INFO("Request dispatch on popup-service. CommandId: " << static_cast<int>
-		 (info.first));
-
-	if (isCsCommand(info.first)) {
-		std::string message;
-		CsDetected d;
-		info.second.Deserialize(message, d);
-
-		switch (info.first) {
-		case CommandId::CS_PROMPT_DATA:
-			return csPromptData(message, d);
-
-		case CommandId::CS_PROMPT_APP:
-			return csPromptApp(message, d);
-
-		case CommandId::CS_PROMPT_FILE:
-			return csPromptFile(message, d);
-
-		case CommandId::CS_NOTIFY_DATA:
-			return csNotifyData(message, d);
-
-		case CommandId::CS_NOTIFY_APP:
-			return csNotifyApp(message, d);
-
-		case CommandId::CS_NOTIFY_FILE:
-			return csNotifyFile(message, d);
-
-		default:
-			ThrowExc(InternalError, "protocol error. invalid ui command id.");
-		}
-	} else {
-		std::string message;
-		UrlItem item;
-		info.second.Deserialize(message, item);
-
-		switch (info.first) {
-		case CommandId::WP_PROMPT:
-			return wpPrompt(message, item);
-
-		case CommandId::WP_NOTIFY:
-			return wpNotify(message, item);
-
-		default:
-			ThrowExc(InternalError, "protocol error. invalid ui command id.");
-		}
-	}
-}
-
-std::pair<CommandId, BinaryQueue> Logic::getRequestInfo(const RawBuffer &data)
-{
-	BinaryQueue q;
-	q.push(data);
-
-	int int_id;
-	q.Deserialize(int_id);
-
-	return std::make_pair(static_cast<CommandId>(int_id), std::move(q));
 }
 
 RawBuffer Logic::csPromptData(const std::string &message,

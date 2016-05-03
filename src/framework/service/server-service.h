@@ -22,6 +22,7 @@
 #pragma once
 
 #include "common/service.h"
+#include "common/types.h"
 #include "service/logic.h"
 #include "service/thread-pool.h"
 
@@ -34,6 +35,8 @@ public:
 
 private:
 	virtual void onMessageProcess(const ConnShPtr &) override;
+
+	RawBuffer process(const ConnShPtr &, RawBuffer &);
 
 	Logic m_logic;
 	ThreadPool m_workqueue;

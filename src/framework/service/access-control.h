@@ -14,46 +14,20 @@
  *  limitations under the License
  */
 /*
- * @file        connection.h
+ * @file        access-control.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
  * @brief
  */
 #pragma once
 
-#include <memory>
-#include <mutex>
+#include <string>
 
-#include "common/socket.h"
-#include "common/types.h"
 #include "common/credential.h"
 
 namespace Csr {
 
-class Connection {
-public:
-	explicit Connection(Socket &&socket);
-	virtual ~Connection();
-
-	Connection(const Connection &) = delete;
-	Connection &operator=(const Connection &) = delete;
-
-	Connection(Connection &&);
-	Connection &operator=(Connection &&);
-
-	void send(const RawBuffer &) const;
-	RawBuffer receive(void) const;
-	int getFd(void) const;
-	const Credential &getCredential();
-
-private:
-	Socket m_socket;
-	mutable std::mutex m_mSend;
-	mutable std::mutex m_mRecv;
-
-	std::unique_ptr<Credential> m_cred;
-};
-
-using ConnShPtr = std::shared_ptr<Connection>;
+// filepath should be absolute and not ended with '/'
+bool hasPermToRemove(const Credential &cred, const std::string &filepath);
 
 }

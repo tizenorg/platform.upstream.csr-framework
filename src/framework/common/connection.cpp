@@ -63,4 +63,14 @@ int Connection::getFd() const
 	return m_socket.getFd();
 }
 
+const Credential &Connection::getCredential()
+{
+	if (m_cred)
+		return *m_cred;
+
+	m_cred = Credential::get(getFd());
+
+	return *m_cred;
+}
+
 }

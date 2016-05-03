@@ -25,35 +25,13 @@
 #include <cstdio>
 #include <cstring>
 #include <cerrno>
-#include <sys/stat.h>
 
-#include "service/app-deleter.h"
 #include "common/audit/logger.h"
 #include "common/exception.h"
+#include "service/app-deleter.h"
+#include "service/fs-utils.h"
 
 namespace Csr {
-
-namespace {
-
-std::unique_ptr<struct stat> getStat(const std::string &target)
-{
-	std::unique_ptr<struct stat> statptr(new struct stat);
-	memset(statptr.get(), 0x00, sizeof(struct stat));
-
-	if (stat(target.c_str(), statptr.get()) != 0) {
-		if (errno == ENOENT) {
-			WARN("target not exist: " << target);
-		} else {
-			ERROR("stat() failed on target: " << target << " errno: " << errno);
-		}
-
-		return nullptr;
-	}
-
-	return statptr;
-}
-
-} // namespace anonymous
 
 const char *APP_DIRS[4] = {
 	// Tizen 2.4 app directories
@@ -69,9 +47,6 @@ const char *APP_DIRS[4] = {
 	//"^(/sdcard/apps/([^/]+)/apps_rw/([^/]+))"    // /sdcard/apps/{user}/apps_rw/{pkgid}/
 };
 
-//===========================================================================
-// File
-//===========================================================================
 std::vector<std::regex> File::m_regexprs;
 
 File::File(const std::string &fpath) : m_path(fpath), m_inApp(false)
@@ -133,7 +108,7 @@ void File::initRegex()
 	}
 }
 
-bool File::remove()
+bool File::remove() const
 {
 	if (m_inApp)
 		return AppDeleter::remove(m_appPkgId);

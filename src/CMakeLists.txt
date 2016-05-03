@@ -33,6 +33,8 @@ SET(${TARGET_CSR_SERVER}_SRCS
 	framework/service/server-service.cpp
 	framework/service/thread-pool.cpp
 	framework/service/core-usage.cpp
+	framework/service/fs-utils.cpp
+	framework/service/access-control.cpp
 	framework/service/file-system.cpp
 	framework/service/app-deleter.cpp
 	framework/service/cs-loader.cpp

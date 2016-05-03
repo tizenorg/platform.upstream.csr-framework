@@ -14,46 +14,36 @@
  *  limitations under the License
  */
 /*
- * @file        connection.h
+ * @file        fs-utils.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
  * @brief
  */
-#pragma once
+#include "service/fs-utils.h"
 
-#include <memory>
-#include <mutex>
+#include <cstring>
+#include <cerrno>
 
-#include "common/socket.h"
-#include "common/types.h"
-#include "common/credential.h"
+#include "common/audit/logger.h"
 
 namespace Csr {
 
-class Connection {
-public:
-	explicit Connection(Socket &&socket);
-	virtual ~Connection();
+std::unique_ptr<struct stat> getStat(const std::string &target)
+{
+	std::unique_ptr<struct stat> statptr(new struct stat);
+	memset(statptr.get(), 0x00, sizeof(struct stat));
 
-	Connection(const Connection &) = delete;
-	Connection &operator=(const Connection &) = delete;
+	if (stat(target.c_str(), statptr.get()) != 0) {
+		if (errno == ENOENT) {
+			WARN("target not exist: " << target);
+		} else {
+			ERROR("stat() failed on target: " << target << " errno: " << errno);
+		}
 
-	Connection(Connection &&);
-	Connection &operator=(Connection &&);
+		return nullptr;
+	}
 
-	void send(const RawBuffer &) const;
-	RawBuffer receive(void) const;
-	int getFd(void) const;
-	const Credential &getCredential();
-
-private:
-	Socket m_socket;
-	mutable std::mutex m_mSend;
-	mutable std::mutex m_mRecv;
-
-	std::unique_ptr<Credential> m_cred;
-};
-
-using ConnShPtr = std::shared_ptr<Connection>;
+	return statptr;
+}
 
 }

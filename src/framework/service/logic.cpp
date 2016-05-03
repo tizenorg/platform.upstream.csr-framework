@@ -179,11 +179,18 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 		return scanFileHelper(context, filepath);
 
 	DEBUG("Scan history exist on file: " << filepath);
-	if (File::create(filepath, static_cast<time_t>(history->ts))) {
-		DEBUG("file[" << filepath << "] is modified since the detected time. "
-			  "let's remove history and re-scan");
-		m_db->deleteDetectedMalware(filepath);
-		return scanFileHelper(context, filepath);
+
+	try {
+		if (File::create(filepath, static_cast<time_t>(history->ts))) {
+			DEBUG("file[" << filepath << "] is modified since the detected time. "
+				  "let's remove history and re-scan");
+			m_db->deleteDetectedMalware(filepath);
+			return scanFileHelper(context, filepath);
+		}
+	} catch (const FileSystemError &e) {
+		ERROR("file doesn't exist or type isn't regular: " << filepath <<
+			  " " << e.what());
+		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER, CsDetected()).pop();
 	}
 
 	DEBUG("file[" << filepath << "] isn't modified since the detected time. "
@@ -202,16 +209,22 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 		m_db->setDetectedMalwareIgnored(filepath, true);
 		break;
 
-	case CSR_CS_REMOVE: {
-		auto file = File::create(filepath);
-		if (!file && !file->remove()) {
-			ERROR("Failed to remove filepath: " << filepath);
-			return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, CsDetected()).pop();
+	case CSR_CS_REMOVE:
+		try {
+			auto file = File::create(filepath);
+			if (!file && !file->remove()) {
+				ERROR("Failed to remove filepath: " << filepath);
+				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, CsDetected()).pop();
+			}
+		} catch (const FileDoNotExist &) {
+			WARN("File already removed... : " << filepath);
+		} catch (const FileSystemError &) {
+			WARN("File type is changed... it's considered as different file "
+				 "in same path: " << filepath);
 		}
 
 		m_db->deleteDetectedMalware(filepath);
 		break;
-	}
 
 	case CSR_CS_SKIP:
 		break;
@@ -229,12 +242,26 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 RawBuffer Logic::getScannableFiles(const std::string &dir)
 {
 	auto lastScanTime = m_db->getLastScanTime(dir, m_csDataVersion);
-	auto visitor = FsVisitor::create(dir, lastScanTime);
 
 	StrSet fileset;
-	while (auto file = visitor->next()) {
-		DEBUG("In dir[" << dir << "], Scannable file[" << file->getPath() << "]");
-		fileset.insert(file->getPath());
+	try {
+		auto visitor = FsVisitor::create(dir, lastScanTime);
+
+		if (visitor == nullptr)
+			return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER, StrSet()).pop();
+
+		while (auto file = visitor->next()) {
+			DEBUG("In dir[" << dir << "], Scannable file[" << file->getPath() << "]");
+			fileset.insert(file->getPath());
+		}
+	} catch (const FileDoNotExist &) {
+		WARN("Directory isn't exist: " << dir << " return success with empty file set "
+			 "to skip it softly.");
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
+	} catch (const FileSystemError &) {
+		WARN("Directory isn't directory... file type changed: " << dir << " return "
+			 "empty file set to skip it softly.");
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
 	}
 
 	if (lastScanTime != -1) {
@@ -255,24 +282,36 @@ RawBuffer Logic::judgeStatus(const std::string &filepath, csr_cs_action_e action
 		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
 	}
 
-	if (File::create(filepath, static_cast<time_t>(history->ts))) {
-		ERROR("Target modified since db delta inserted. name: " << filepath);
-		m_db->deleteDetectedMalware(filepath);
-		// TODO: is it okay to just refresh db and return success?
-		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+	try {
+		if (File::create(filepath, static_cast<time_t>(history->ts))) {
+			ERROR("Target modified since db delta inserted. name: " << filepath);
+			m_db->deleteDetectedMalware(filepath);
+			// TODO: is it okay to just refresh db and return success?
+			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+		}
+	} catch (const FileSystemError &e) {
+		ERROR("file doesn't exist or type isn't regular: " << filepath <<
+			  " " << e.what());
+		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
 	}
 
 	switch (action) {
-	case CSR_CS_ACTION_REMOVE: {
-		auto file = File::create(filepath);
-		if (!file && !file->remove()) {
-			ERROR("Failed to remove filepath: " << filepath);
-			return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED).pop();
+	case CSR_CS_ACTION_REMOVE:
+		try {
+			auto file = File::create(filepath);
+			if (!file && !file->remove()) {
+				ERROR("Failed to remove filepath: " << filepath);
+				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED).pop();
+			}
+		} catch (const FileDoNotExist &) {
+			WARN("File already removed... : " << filepath);
+		} catch (const FileSystemError &) {
+			WARN("File type is changed... it's considered as different file "
+				 "in same path: " << filepath);
 		}
 
 		m_db->deleteDetectedMalware(filepath);
 		break;
-	}
 
 	case CSR_CS_ACTION_IGNORE:
 		m_db->setDetectedMalwareIgnored(filepath, true);

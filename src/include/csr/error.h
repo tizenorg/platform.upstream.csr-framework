@@ -48,6 +48,8 @@ typedef enum {
 	CSR_ERROR_NO_TASK               = TIZEN_ERROR_CSR | 0x04,        /**< No Task exists*/
 	CSR_ERROR_DB                    = TIZEN_ERROR_CSR | 0x05,        /**< DB transaction error */
 	CSR_ERROR_REMOVE_FAILED         = TIZEN_ERROR_CSR | 0x06,        /**< Removing file or application is failed */
+	CSR_ERROR_FILE_DO_NOT_EXIST     = TIZEN_ERROR_CSR | 0x07,        /**< File not exist */
+	CSR_ERROR_FILE_SYSTEM           = TIZEN_ERROR_CSR | 0x08,        /**< File type is invalid */
 	CSR_ERROR_ENGINE_PERMISSION     = TIZEN_ERROR_CSR | 0x11,        /**< Insufficient permission of engine */
 	CSR_ERROR_ENGINE_NOT_EXIST      = TIZEN_ERROR_CSR | 0x12,        /**< No engine exists*/
 	CSR_ERROR_ENGINE_DIASABLED      = TIZEN_ERROR_CSR | 0x13,        /**< Engine is in disabled state*/

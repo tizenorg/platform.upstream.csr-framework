@@ -45,6 +45,7 @@ public:
 
 	bool remove();
 
+	// throws FileNotExist and FileSystemError
 	static FilePtr create(const std::string &fpath, time_t modifiedSince = -1);
 
 private:
@@ -72,6 +73,7 @@ public:
 
 	FilePtr next();
 
+	// throws FileNotExist and FileSystemError
 	static FsVisitorPtr create(const std::string &dirpath, time_t modifiedSince = -1);
 
 private:

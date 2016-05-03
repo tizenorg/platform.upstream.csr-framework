@@ -145,11 +145,9 @@ FilePtr File::create(const std::string &fpath, time_t modifiedSince)
 {
 	auto statptr = getStat(fpath);
 	if (statptr == nullptr) {
-		// target doesn't exist
-		return nullptr;
+		ThrowExc(FileDoNotExist, "file not exist: " << fpath);
 	} else if (!S_ISREG(statptr->st_mode)) {
-		INFO("File type is not regular: " << fpath);
-		return nullptr;
+		ThrowExc(FileSystemError, "file type is not reguler: " << fpath);
 	} else if (modifiedSince != -1 && statptr->st_mtim.tv_sec < modifiedSince) {
 		DEBUG("file[" << fpath << "] isn't modified since[" << modifiedSince << "]");
 		return nullptr;
@@ -166,15 +164,12 @@ FsVisitor::DirPtr FsVisitor::openDir(const std::string &dir)
 FsVisitorPtr FsVisitor::create(const std::string &dirpath, time_t modifiedSince)
 {
 	auto statptr = getStat(dirpath);
-	if (statptr == nullptr) {
-		// target doesn't exist
-		return nullptr;
-	} else if (!S_ISDIR(statptr->st_mode)) {
-		INFO("File type is not directory: " << dirpath);
-		return nullptr;
-	} else {
+	if (statptr == nullptr)
+		ThrowExc(FileDoNotExist, "directory not exist: " << dirpath);
+	else if (!S_ISDIR(statptr->st_mode))
+		ThrowExc(FileSystemError, "file type is not directory: " << dirpath);
+	else
 		return FsVisitorPtr(new FsVisitor(dirpath, modifiedSince));
-	}
 }
 
 FsVisitor::FsVisitor(const std::string &dirpath, time_t modifiedSince) :
@@ -199,9 +194,8 @@ FilePtr FsVisitor::next()
 	while (readdir_r(m_dirptr.get(), m_entryBuf, &result) == 0) {
 		if (result == nullptr) { // end of dir stream
 			m_dirs.pop();
-			while (!m_dirs.empty() && !(m_dirptr = openDir(m_dirs.front()))) {
+			while (!m_dirs.empty() && !(m_dirptr = openDir(m_dirs.front())))
 				m_dirs.pop();
-			}
 
 			if (m_dirs.empty())
 				return nullptr;
@@ -213,18 +207,22 @@ FilePtr FsVisitor::next()
 		std::string filepath(result->d_name);
 
 		if (result->d_type == DT_DIR) {
-			if (filepath.compare(".") == 0 || filepath.compare("..") == 0)
-				continue;
-			else
+			if (filepath.compare(".") != 0 && filepath.compare("..") != 0)
 				m_dirs.emplace(
 					dir + ((filepath.back() == '/') ? filepath : (filepath + '/')));
 		} else if (result->d_type == DT_REG) {
-			auto fileptr = File::create(dir + filepath, m_since);
+			try {
+				auto fileptr = File::create(dir + filepath, m_since);
 
-			if (!fileptr)
-				continue;
-			else
-				return fileptr;
+				if (fileptr)
+					return fileptr;
+			} catch (const FileDoNotExist &e) {
+				WARN("file not exist: " << dir << filepath <<
+					 " msg: " << e.what());
+			} catch (const FileSystemError &e) {
+				WARN("file type is not regular...? can it be happened?"
+					 " :" << dir << filepath << " msg: " << e.what());
+			}
 		}
 	}
 

@@ -34,6 +34,8 @@ SET(${TARGET_CSR_INTERNAL_TEST}_SRCS
 	${CSR_TEST_SRC_PATH}/colour_log_formatter.cpp
 	${CSR_TEST_SRC_PATH}/test-common.cpp
 
+	${CSR_FW_SRC_PATH}/common/exception.cpp
+
 	${CSR_FW_SRC_PATH}/db/connection.cpp
 	${CSR_FW_SRC_PATH}/db/statement.cpp
 	${CSR_FW_SRC_PATH}/db/manager.cpp

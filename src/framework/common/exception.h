@@ -77,11 +77,13 @@ public:
 	}
 };
 
-using DbFailed      = DerivedException<CSR_ERROR_DB>;
-using InvalidParam  = DerivedException<CSR_ERROR_INVALID_PARAMETER>;
-using InternalError = DerivedException<CSR_ERROR_SERVER>;
-using EngineError   = DerivedException<CSR_ERROR_ENGINE_INTERNAL>;
-using SocketError   = DerivedException<CSR_ERROR_SOCKET>;
+using DbFailed        = DerivedException<CSR_ERROR_DB>;
+using InvalidParam    = DerivedException<CSR_ERROR_INVALID_PARAMETER>;
+using InternalError   = DerivedException<CSR_ERROR_SERVER>;
+using EngineError     = DerivedException<CSR_ERROR_ENGINE_INTERNAL>;
+using SocketError     = DerivedException<CSR_ERROR_SOCKET>;
+using FileDoNotExist  = DerivedException<CSR_ERROR_FILE_DO_NOT_EXIST>;
+using FileSystemError = DerivedException<CSR_ERROR_FILE_SYSTEM>;
 
 } // namespace Csr
 

@@ -36,7 +36,8 @@ namespace Csr {
 
 ServerService::ServerService(const std::string &address) :
 	Service(address),
-	m_workqueue(2, 10)
+	m_workqueue(2, 10),
+	m_logic(m_workqueue)
 {
 }
 
@@ -44,7 +45,7 @@ ServerService::~ServerService()
 {
 }
 
-RawBuffer ServerService::process(const ConnShPtr &, RawBuffer &data)
+RawBuffer ServerService::process(const ConnShPtr &conn, RawBuffer &data)
 {
 	CommandId id;
 
@@ -73,7 +74,7 @@ RawBuffer ServerService::process(const ConnShPtr &, RawBuffer &data)
 		std::string dir;
 		q.Deserialize(dir);
 
-		return m_logic.getScannableFiles(dir);
+		return m_logic.getScannableFiles(conn->getCredential(), dir);
 	}
 
 	case CommandId::JUDGE_STATUS: {

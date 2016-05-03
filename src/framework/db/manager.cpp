@@ -190,7 +190,7 @@ time_t Manager::getLastScanTime(const std::string &dir,
 	return stmt.step() ? static_cast<time_t>(stmt.getInt64()) : -1;
 }
 
-void Manager::insertLastScanTime(const std::string &dir, long scanTime,
+void Manager::insertLastScanTime(const std::string &dir, time_t scanTime,
 								 const std::string &dataVersion)
 {
 	Statement stmt(m_conn, Query::INS_SCAN_REQUEST);

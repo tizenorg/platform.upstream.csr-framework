@@ -38,8 +38,8 @@ private:
 
 	RawBuffer process(const ConnShPtr &, RawBuffer &);
 
-	Logic m_logic;
 	ThreadPool m_workqueue;
+	Logic m_logic;
 };
 
 }

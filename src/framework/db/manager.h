@@ -46,7 +46,7 @@ public:
 
 	// SCAN_REQUEST
 	time_t getLastScanTime(const std::string &dir, const std::string &dataVersion);
-	void insertLastScanTime(const std::string &dir, long scanTime,
+	void insertLastScanTime(const std::string &dir, time_t scanTime,
 							const std::string &dataVersion);
 	void deleteLastScanTime(const std::string &dir);
 	void cleanLastScanTime();

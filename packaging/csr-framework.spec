@@ -41,7 +41,6 @@ Summary: Common library package for %{name}
 License: Apache-2.0
 Group:   Security/Libraries
 Requires: %{sbin_dir}/ldconfig
-Requires: %{sbin_dir}/ldconfig
 
 %description -n lib%{name}-common
 csr-framework common library package.
@@ -52,7 +51,6 @@ License: Apache-2.0
 Group:   Security/Libraries
 BuildRequires: pkgconfig(capi-base-common)
 Requires: %{name} = %{version}-%{release}
-Requires: %{sbin_dir}/ldconfig
 Requires: %{sbin_dir}/ldconfig
 
 %description -n lib%{name}-client

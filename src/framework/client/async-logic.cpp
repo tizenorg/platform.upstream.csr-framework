@@ -38,7 +38,7 @@ AsyncLogic::AsyncLogic(HandleExt *handle, void *userdata,
 	m_isStopped(isStopped),
 	m_dispatcher(new Dispatcher("/tmp/." SERVICE_NAME ".socket"))
 {
-	copyKvp<int>(CsContext::Key::AskUser);
+	// disable ask user option for async request for now
 	copyKvp<int>(CsContext::Key::CoreUsage);
 	copyKvp<std::string>(CsContext::Key::PopupMessage);
 	copyKvp<bool>(CsContext::Key::ScanOnCloud);

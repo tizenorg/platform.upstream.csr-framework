@@ -252,7 +252,7 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 				   hExt->getContext(),
 				   std::string(file_path));
 
-	if (ret.first != CSR_ERROR_NONE) {
+	if (ret.first != CSR_ERROR_NONE && ret.first != CSR_ERROR_REMOVE_FAILED) {
 		ERROR("Error! ret: " << ret.first);
 		return ret.first;
 	}
@@ -268,7 +268,7 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 		delete ret.second;
 	}
 
-	return CSR_ERROR_NONE;
+	return ret.first;
 
 	EXCEPTION_SAFE_END
 }

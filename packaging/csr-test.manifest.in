@@ -6,7 +6,7 @@
 			<smack request="device::app_logging" type="rw" />
 			<smack request="sys-assert::core" type="rwxat" />
 			<smack request="systemd" type="rx" />
-			<smack request="csr" type="rwxat" />
+			<smack request="@SERVICE_NAME@" type="rwxat" />
 			<smack request="sdbd" type="rx" />
 			<smack request="pkgmgr::db" type="rwx" />
 		</request>
@@ -14,6 +14,7 @@
 			<smack permit="_" type="rx" />
 			<smack permit="pkgmgr" type="rx" />
 			<smack permit="pkgmgr-server" type="rx" />
+			<smack permit="@SERVICE_NAME@" type="rwxat" />
 		</permit>
 	</define>
 	<request>

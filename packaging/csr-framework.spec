@@ -233,10 +233,10 @@ fi
 %manifest %{service_name}-test.manifest
 %{ro_data_dir}/license/%{name}-test
 %{ro_data_dir}/license/%{name}-test.BSL-1.0
-%{bin_dir}/%{service_name}-test
-%{bin_dir}/%{service_name}-internal-test
-%{bin_dir}/%{service_name}-popup-test
-%{bin_dir}/%{service_name}-threadpool-test
+%attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-test
+%attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-internal-test
+%attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-popup-test
+%attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-threadpool-test
 # test resources
-%dir %{test_dir}
-%{test_dir}/*
+%dir %attr(-, %{service_user}, %{service_group}) %{test_dir}
+%attr(-, %{service_user}, %{service_group}) %{test_dir}/*

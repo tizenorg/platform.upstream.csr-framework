@@ -43,14 +43,14 @@ namespace Csr {
 
 class Logic {
 public:
-	Logic(ThreadPool &);
+	Logic();
 	virtual ~Logic();
 
 	void submit(std::function<void()> &&task);
 
 	RawBuffer scanData(const CsContext &context, const RawBuffer &data);
 	RawBuffer scanFile(const CsContext &context, const std::string &filepath);
-	RawBuffer getScannableFiles(const Credential &cred, const std::string &dir);
+	RawBuffer getScannableFiles(const std::string &dir);
 	RawBuffer judgeStatus(const std::string &filepath, csr_cs_action_e action);
 	RawBuffer getDetected(const std::string &filepath);
 	RawBuffer getDetectedList(const StrSet &dirSet);
@@ -68,11 +68,6 @@ private:
 			const CsDetected &);
 	static csr_wp_user_response_e getUserResponse(const WpContext &,
 			const std::string &url, const WpResult &);
-
-	// internal task submit to thread pool for background scanning
-	ThreadPool &m_workqueue;
-	std::mutex m_mutex;
-	StrSet m_scanningDirs;
 
 	std::shared_ptr<CsLoader> m_cs;
 	std::shared_ptr<WpLoader> m_wp;

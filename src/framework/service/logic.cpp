@@ -65,8 +65,7 @@ RawBuffer exceptionGuard(const std::function<RawBuffer()> &func,
 
 } // namespace anonymous
 
-Logic::Logic(ThreadPool &pool) :
-	m_workqueue(pool),
+Logic::Logic() :
 	m_cs(new CsLoader(CS_ENGINE_PATH)),
 	m_wp(new WpLoader(WP_ENGINE_PATH)),
 	m_db(new Db::Manager(RW_DBSPACE "/.csr.db", RO_DBSPACE))
@@ -286,29 +285,16 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 	EXCEPTION_GUARD_END
 }
 
-RawBuffer Logic::getScannableFiles(const Credential &cred, const std::string &dir)
+RawBuffer Logic::getScannableFiles(const std::string &dir)
 {
 	EXCEPTION_GUARD_START
 
 	auto lastScanTime = m_db->getLastScanTime(dir, m_csDataVersion);
 
-	StrSet filesetForClient;
-	auto filesetForServer = std::make_shared<StrSet>();
+	FsVisitorPtr visitor;
 
 	try {
-		auto visitor = FsVisitor::create(dir, lastScanTime);
-
-		if (visitor == nullptr)
-			return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER, StrSet()).pop();
-
-		while (auto file = visitor->next()) {
-			DEBUG("In dir[" << dir << "], Scannable file[" << file->getPath() << "]");
-
-			if (hasPermToRemove(cred, file->getPath()))
-				filesetForClient.insert(file->getPath());
-			else
-				filesetForServer->insert(file->getPath());
-		}
+		visitor = FsVisitor::create(dir, lastScanTime);
 	} catch (const FileDoNotExist &) {
 		WARN("Directory isn't exist: " << dir << " return success with empty file set "
 			 "to skip it softly.");
@@ -319,15 +305,20 @@ RawBuffer Logic::getScannableFiles(const Credential &cred, const std::string &di
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
 	}
 
+	StrSet fileset;
+
+	while (auto file = visitor->next()) {
+		if (hasPermToRemove(file->getPath())) {
+			DEBUG("Scannable file[" << file->getPath() << "]");
+			fileset.insert(file->getPath());
+		}
+	}
+
 	if (lastScanTime != -1) {
 		// for case: scan history exist and not modified.
 		for (auto &row : m_db->getDetectedMalwares(dir))
-			filesetForClient.insert(row->targetName);
+			fileset.insert(row->targetName);
 	}
-
-	// no fileset for server-only or dir is scanning in background already.. just skip
-	if (filesetForServer->empty() || m_scanningDirs.count(dir) != 0)
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, filesetForClient).pop();
 
 	// update last scan time before start.
 	// to set scan time early is safe because file which is modified between
@@ -335,31 +326,7 @@ RawBuffer Logic::getScannableFiles(const Credential &cred, const std::string &di
 	// being compared to start time as modified since.
 	m_db->insertLastScanTime(dir, time(nullptr), m_csDataVersion);
 
-	m_workqueue.submit([this, dir, filesetForServer]() {
-		{
-			std::lock_guard<std::mutex> l(this->m_mutex);
-			this->m_scanningDirs.insert(dir);
-		}
-
-		// TODO: how to set default option of scan on cloud?
-		// ask user -> not ask user
-		// message -> none because not ask user
-		// core usage -> default
-		CsContext context;
-
-		for (auto file : *filesetForServer) {
-			// results are registered to db automatically
-			// so need not to handle returned data
-			this->scanFileHelper(context, file);
-		}
-
-		{
-			std::lock_guard<std::mutex> l(this->m_mutex);
-			this->m_scanningDirs.erase(dir);
-		}
-	});
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, filesetForClient).pop();
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
 
 	EXCEPTION_GUARD_CLOSER(ret)
 

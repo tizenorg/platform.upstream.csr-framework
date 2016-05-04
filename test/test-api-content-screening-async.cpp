@@ -190,9 +190,10 @@ BOOST_AUTO_TEST_CASE(scan_dir_positive)
 	l.unlock();
 
 	ASSERT_IF(testCtx.completedCnt, 1);
-	ASSERT_IF(testCtx.scannedCnt + testCtx.detectedCnt, 8);
+	ASSERT_IF(testCtx.detectedCnt, 0);
 	ASSERT_IF(testCtx.cancelledCnt, 0);
 	ASSERT_IF(testCtx.errorCnt, 0);
+	ASSERT_IF(testCtx.scannedCnt == 8 || testCtx.scannedCnt == 0, true); // in case of delta
 
 	EXCEPTION_GUARD_END
 }
@@ -226,9 +227,10 @@ BOOST_AUTO_TEST_CASE(scan_dirs_positive)
 	l.unlock();
 
 	ASSERT_IF(testCtx.completedCnt, 1);
-	ASSERT_IF(testCtx.scannedCnt + testCtx.detectedCnt, 8);
+	ASSERT_IF(testCtx.detectedCnt, 0);
 	ASSERT_IF(testCtx.cancelledCnt, 0);
 	ASSERT_IF(testCtx.errorCnt, 0);
+	ASSERT_IF(testCtx.scannedCnt == 8 || testCtx.scannedCnt == 0, true); // in case of delta
 
 	EXCEPTION_GUARD_END
 }

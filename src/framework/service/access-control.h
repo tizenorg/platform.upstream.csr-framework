@@ -23,11 +23,9 @@
 
 #include <string>
 
-#include "common/credential.h"
-
 namespace Csr {
 
 // filepath should be absolute and not ended with '/'
-bool hasPermToRemove(const Credential &cred, const std::string &filepath);
+bool hasPermToRemove(const std::string &filepath);
 
 }

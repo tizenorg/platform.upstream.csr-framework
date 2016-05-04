@@ -108,7 +108,8 @@ int csr_cs_set_ask_user(csr_cs_context_h handle, csr_cs_ask_user_e ask_user);
  *
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_INVALID_PARAMETER     message is invalid. Max size is 64 bytes.
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a message is too long or empty. Max size
+ *                                          is 64 bytes.
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  *
  * @see csr_cs_context_create()

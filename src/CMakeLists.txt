@@ -24,6 +24,7 @@ PKG_CHECK_MODULES(${TARGET_CSR_SERVER}_DEP
 	sqlite3
 	glib-2.0
 	pkgmgr
+	libsmack
 )
 
 SET(${TARGET_CSR_SERVER}_SRCS

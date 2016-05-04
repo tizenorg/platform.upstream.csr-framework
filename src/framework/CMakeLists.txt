@@ -20,6 +20,7 @@ PKG_CHECK_MODULES(${TARGET_CSR_COMMON}_DEP
 	REQUIRED
 	dlog
 	libsystemd-daemon
+	libsmack
 )
 
 SET(${TARGET_CSR_COMMON}_SRCS

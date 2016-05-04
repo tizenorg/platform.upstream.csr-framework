@@ -65,7 +65,15 @@ BuildRequires: pkgconfig(capi-base-common)
 Requires:      %{name} = %{version}-%{release}
 
 %description devel
-csr-framework developemnt files including headers and pkgconfig file.
+csr-framework development files including headers and pkgconfig file.
+
+%package engine-devel
+Summary: Development files for %{name} engine
+LICENSE: Apache-2.0
+Group:   Security/Development
+
+%description engine-devel
+csr-framework engine development files including headers and pkgconfig file.
 
 %package test
 Summary: test program for %{name}
@@ -207,6 +215,17 @@ fi
 %{_libdir}/pkgconfig/%{service_name}.pc
 %{_libdir}/lib%{service_name}-client.so
 %{_libdir}/lib%{service_name}-common.so
+
+%files engine-devel
+%defattr(-,root,root,-)
+%{_includedir}/csre/content-screening-engine-info.h
+%{_includedir}/csre/content-screening.h
+%{_includedir}/csre/content-screening-types.h
+%{_includedir}/csre/error.h
+%{_includedir}/csre/web-protection-engine-info.h
+%{_includedir}/csre/web-protection.h
+%{_includedir}/csre/web-protection-types.h
+%{_libdir}/pkgconfig/%{service_name}-engine.pc
 
 %files test
 %defattr(-,root,root,-)

@@ -27,11 +27,6 @@ extern "C" {
 #endif
 
 /**
- * @brief Maximum message size.
- */
-#define MAX_MESSAGE_SIZE 64
-
-/**
  * CSR WP context handle.
  */
 typedef struct __csr_wp_context_s *csr_wp_context_h;

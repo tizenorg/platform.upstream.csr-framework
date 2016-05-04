@@ -62,7 +62,6 @@ typedef enum {
 	CSR_CS_SKIP                   = 0x03, /**< A user decided to skip a detected malicious content. */
 	CSR_CS_PROCESSING_ALLOWED     = 0x04, /**< A user decided to process a detected malicious data. */
 	CSR_CS_PROCESSING_DISALLOWED  = 0x05, /**< A user decided not to process a detected malicious data. */
-	CSR_CS_REMOVE_FAILED          = 0x99  /**< A user decided to remove but removal failed. */
 } csr_cs_user_response_e;
 
 /**

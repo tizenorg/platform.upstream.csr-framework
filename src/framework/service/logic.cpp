@@ -255,7 +255,7 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 
 			if (!file && !file->remove()) {
 				ERROR("Failed to remove filepath: " << filepath);
-				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, CsDetected()).pop();
+				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, history).pop();
 			}
 		} catch (const FileDoNotExist &) {
 			WARN("File already removed... : " << filepath);

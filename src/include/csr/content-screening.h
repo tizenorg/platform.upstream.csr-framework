@@ -193,6 +193,9 @@ int csr_cs_scan_data(csr_cs_context_h handle,
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or presult is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
+ * @retval #CSR_ERROR_REMOVE_FAILED         File remove failed when malware exist and
+ *                                          user select to remove by popup. @a pdetected
+ *                                          will be allocated on this error unlike others.
  * @retval #CSR_ERROR_FILE_NOT_FOUND        File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason

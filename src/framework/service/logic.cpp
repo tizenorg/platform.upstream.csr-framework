@@ -627,15 +627,6 @@ CsDetected Logic::convert(csre_cs_detected_h &result)
 
 	d.severity = Csr::convert(eseverity);
 
-	// getting threat type
-	csre_cs_threat_type_e ethreat = CSRE_CS_THREAT_GENERIC;
-	eret = m_cs->getThreatType(result, &ethreat);
-
-	if (eret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "getting threat of cs detected. ret: " << eret);
-
-	d.threat = Csr::convert(ethreat);
-
 	// getting malware name
 	eret = m_cs->getMalwareName(result, d.malwareName);
 

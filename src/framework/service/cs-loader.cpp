@@ -108,15 +108,6 @@ int CsLoader::getSeverity(csre_cs_detected_h d,
 	return m_pc.fpGetSeverity(d, pseverity);
 }
 
-int CsLoader::getThreatType(csre_cs_detected_h d,
-							csre_cs_threat_type_e *pthreat)
-{
-	if (d == nullptr || pthreat == nullptr)
-		ThrowExc(InvalidParam, "cs loader get threat type");
-
-	return m_pc.fpGetThreatType(d, pthreat);
-}
-
 int CsLoader::getMalwareName(csre_cs_detected_h d, std::string &value)
 {
 	if (d == nullptr)
@@ -273,8 +264,6 @@ CsLoader::CsLoader(const std::string &enginePath)
 							"csre_cs_scan_app_on_cloud"));
 	m_pc.fpGetSeverity = reinterpret_cast<FpGetSeverity>(dlsym(handle,
 						 "csre_cs_detected_get_severity"));
-	m_pc.fpGetThreatType = reinterpret_cast<FpGetThreatType>(dlsym(handle,
-						   "csre_cs_detected_get_threat_type"));
 	m_pc.fpGetMalwareName = reinterpret_cast<FpGetMalwareName>(dlsym(handle,
 							"csre_cs_detected_get_malware_name"));
 	m_pc.fpGetDetailedUrl = reinterpret_cast<FpGetDetailedUrl>(dlsym(handle,
@@ -309,7 +298,7 @@ CsLoader::CsLoader(const std::string &enginePath)
 			m_pc.fpContextCreate == nullptr || m_pc.fpContextDestroy == nullptr ||
 			m_pc.fpScanData == nullptr || m_pc.fpScanFile == nullptr  ||
 			m_pc.fpScanAppOnCloud == nullptr || m_pc.fpGetSeverity == nullptr ||
-			m_pc.fpGetThreatType == nullptr || m_pc.fpGetMalwareName == nullptr ||
+			m_pc.fpGetMalwareName == nullptr ||
 			m_pc.fpGetDetailedUrl == nullptr || m_pc.fpGetTimestamp == nullptr ||
 			m_pc.fpGetErrorString == nullptr || m_pc.fpGetEngineInfo == nullptr ||
 			m_pc.fpGetEngineApiVersion == nullptr || m_pc.fpGetEngineVendor == nullptr ||

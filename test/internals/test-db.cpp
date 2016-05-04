@@ -40,7 +40,6 @@ void checkSameMalware(const CsDetected &d, const Db::Row &r)
 {
 	ASSERT_IF(d.targetName,  r.targetName);
 	ASSERT_IF(d.severity,    r.severity);
-	ASSERT_IF(d.threat,      r.threat);
 	ASSERT_IF(d.malwareName, r.malwareName);
 	ASSERT_IF(d.detailedUrl, r.detailedUrl);
 	ASSERT_IF(d.ts,          r.ts);
@@ -115,7 +114,6 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	CsDetected malware1;
 	malware1.targetName = "/opt/testmalware1";
 	malware1.severity = CSR_CS_SEVERITY_MEDIUM;
-	malware1.threat = CSR_CS_THREAT_MALWARE;
 	malware1.malwareName = "testmalware1";
 	malware1.detailedUrl = "http://detailed.malware.com";
 	malware1.ts = 100;
@@ -123,7 +121,6 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	CsDetected malware2;
 	malware2.targetName = "/opt/testmalware2";
 	malware2.severity = CSR_CS_SEVERITY_HIGH;
-	malware2.threat = CSR_CS_THREAT_RISKY;
 	malware2.malwareName = "testmalware2";
 	malware2.detailedUrl = "http://detailed2.malware.com";
 	malware2.ts = 210;
@@ -131,7 +128,6 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	CsDetected malware3;
 	malware3.targetName = "/opt/testmalware3";
 	malware3.severity = CSR_CS_SEVERITY_LOW;
-	malware3.threat = CSR_CS_THREAT_GENERIC;
 	malware3.malwareName = "testmalware3";
 	malware3.detailedUrl = "http://detailed3.malware.com";
 	malware3.ts = 310;

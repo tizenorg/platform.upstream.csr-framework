@@ -43,23 +43,6 @@ csr_cs_severity_level_e convert(const csre_cs_severity_level_e &e)
 	}
 }
 
-csr_cs_threat_type_e convert(const csre_cs_threat_type_e &e)
-{
-	switch (e) {
-	case CSRE_CS_THREAT_MALWARE:
-		return CSR_CS_THREAT_MALWARE;
-
-	case CSRE_CS_THREAT_RISKY:
-		return CSR_CS_THREAT_RISKY;
-
-	case CSRE_CS_THREAT_GENERIC:
-		return CSR_CS_THREAT_GENERIC;
-
-	default:
-		ThrowExc(InternalError, "Invalid ethreat: " << static_cast<int>(e));
-	}
-}
-
 csr_wp_risk_level_e convert(const csre_wp_risk_level_e &e)
 {
 	switch (e) {

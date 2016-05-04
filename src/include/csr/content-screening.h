@@ -445,22 +445,6 @@ int csr_cs_detected_get_severity(csr_cs_detected_h detected,
 								 csr_cs_severity_level_e *pseverity);
 
 /**
- * @brief extracts the threat type of a detected malware from the detected malware handle.
- *
- * @param[in]  detected      A detected malware handle.
- * @param[out] pthreat_type  A pointer of the threat type of a detected malware.
- *
- * @return #CSR_ERROR_NONE on success, otherwise a negative error value
- *
- * @retval #CSR_ERROR_NONE                 Successful
- * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    pharmful_type is invalid.
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
- */
-int csr_cs_detected_get_threat_type(csr_cs_detected_h detected,
-									csr_cs_threat_type_e *pthreat_type);
-
-/**
  * @brief extracts the name of a detected malware from the detected malware handle.
  *
  * @param[in]  detected      A detected malware handle.

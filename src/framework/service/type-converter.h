@@ -29,7 +29,6 @@
 namespace Csr {
 
 csr_cs_severity_level_e convert(const csre_cs_severity_level_e &);
-csr_cs_threat_type_e convert(const csre_cs_threat_type_e &);
 
 csr_wp_risk_level_e convert(const csre_wp_risk_level_e &);
 

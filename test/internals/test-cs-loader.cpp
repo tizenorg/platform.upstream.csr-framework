@@ -43,7 +43,6 @@ namespace {
 inline void checkDetected(Csr::CsLoader &loader,
 						  csre_cs_detected_h detected,
 						  csre_cs_severity_level_e expected_severity,
-						  csre_cs_threat_type_e expected_threat_type,
 						  const char *expected_malware_name,
 						  const char *expected_detailed_url,
 						  time_t expected_timestamp)
@@ -55,10 +54,6 @@ inline void checkDetected(Csr::CsLoader &loader,
 	csre_cs_severity_level_e severity;
 	ASSERT_IF(loader.getSeverity(detected, &severity), CSRE_ERROR_NONE);
 	ASSERT_IF(severity, expected_severity);
-
-	csre_cs_threat_type_e threat_type;
-	ASSERT_IF(loader.getThreatType(detected, &threat_type), CSRE_ERROR_NONE);
-	ASSERT_IF(threat_type, expected_threat_type);
 
 	std::string malware_name;
 	ASSERT_IF(loader.getMalwareName(detected, malware_name), CSRE_ERROR_NONE);
@@ -185,7 +180,6 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 	checkDetected(h.loader,
 				  detected,
 				  CSRE_CS_SEVERITY_HIGH,
-				  CSRE_CS_THREAT_MALWARE,
 				  "test_malware",
 				  "http://high.malware.com",
 				  0);
@@ -210,7 +204,6 @@ BOOST_AUTO_TEST_CASE(scan_data_medium)
 	checkDetected(h.loader,
 				  detected,
 				  CSRE_CS_SEVERITY_MEDIUM,
-				  CSRE_CS_THREAT_RISKY,
 				  "test_risk",
 				  nullptr,
 				  0);
@@ -248,7 +241,6 @@ BOOST_AUTO_TEST_CASE(scan_file_malware)
 	checkDetected(h.loader,
 				  detected,
 				  CSRE_CS_SEVERITY_HIGH,
-				  CSRE_CS_THREAT_MALWARE,
 				  "test_malware",
 				  "http://high.malware.com",
 				  0);
@@ -271,7 +263,6 @@ BOOST_AUTO_TEST_CASE(scan_file_risky)
 	checkDetected(h.loader,
 				  detected,
 				  CSRE_CS_SEVERITY_MEDIUM,
-				  CSRE_CS_THREAT_RISKY,
 				  "test_risk",
 				  "http://medium.malware.com",
 				  0);
@@ -294,7 +285,6 @@ BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 	checkDetected(h.loader,
 				  detected,
 				  CSRE_CS_SEVERITY_HIGH,
-				  CSRE_CS_THREAT_MALWARE,
 				  "test_malware",
 				  "http://high.malware.com",
 				  0);

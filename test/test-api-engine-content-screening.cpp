@@ -42,7 +42,6 @@ namespace {
 
 inline void checkDetected(csre_cs_detected_h detected,
 						  csre_cs_severity_level_e expected_severity,
-						  csre_cs_threat_type_e expected_threat_type,
 						  const char *expected_malware_name,
 						  const char *expected_detailed_url,
 						  long expected_timestamp)
@@ -56,13 +55,6 @@ inline void checkDetected(csre_cs_detected_h detected,
 	BOOST_REQUIRE_MESSAGE(severity == expected_severity,
 						  "severity isn't expected value. "
 						  "val: " << severity << " expected: " << expected_severity);
-
-	csre_cs_threat_type_e threat_type;
-	ASSERT_IF(csre_cs_detected_get_threat_type(detected, &threat_type),
-			  CSRE_ERROR_NONE);
-	BOOST_REQUIRE_MESSAGE(threat_type == expected_threat_type,
-						  "threat type isn't expected value. "
-						  "val: " << threat_type << " expected: " << expected_threat_type);
 
 	const char *malware_name = nullptr;
 	ASSERT_IF(csre_cs_detected_get_malware_name(detected, &malware_name),
@@ -160,7 +152,6 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 
 	checkDetected(detected,
 				  CSRE_CS_SEVERITY_HIGH,
-				  CSRE_CS_THREAT_MALWARE,
 				  "test_malware",
 				  "http://high.malware.com",
 				  0);
@@ -188,7 +179,6 @@ BOOST_AUTO_TEST_CASE(scan_data_medium)
 
 	checkDetected(detected,
 				  CSRE_CS_SEVERITY_MEDIUM,
-				  CSRE_CS_THREAT_RISKY,
 				  "test_risk",
 				  nullptr,
 				  0);
@@ -227,7 +217,6 @@ BOOST_AUTO_TEST_CASE(scan_file_malware)
 
 	checkDetected(detected,
 				  CSRE_CS_SEVERITY_HIGH,
-				  CSRE_CS_THREAT_MALWARE,
 				  "test_malware",
 				  "http://high.malware.com",
 				  0);
@@ -250,7 +239,6 @@ BOOST_AUTO_TEST_CASE(scan_file_risky)
 
 	checkDetected(detected,
 				  CSRE_CS_SEVERITY_MEDIUM,
-				  CSRE_CS_THREAT_RISKY,
 				  "test_risk",
 				  "http://medium.malware.com",
 				  0);
@@ -273,7 +261,6 @@ BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 
 	checkDetected(detected,
 				  CSRE_CS_SEVERITY_HIGH,
-				  CSRE_CS_THREAT_MALWARE,
 				  "test_malware",
 				  "http://high.malware.com",
 				  0);

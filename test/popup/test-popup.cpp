@@ -120,7 +120,6 @@ BOOST_AUTO_TEST_CASE(prompt_data)
 	d.malwareName = "dummy malware in data";
 	d.detailedUrl = "http://detailedurl/cs_prompt_data";
 	d.severity = CSR_CS_SEVERITY_MEDIUM;
-	d.threat = CSR_CS_THREAT_RISKY;
 
 	Ui::AskUser askuser;
 	printPressed(askuser.cs(Ui::CommandId::CS_PROMPT_DATA,
@@ -138,7 +137,6 @@ BOOST_AUTO_TEST_CASE(prompt_app)
 	d.malwareName = "dummy malware in app";
 	d.detailedUrl = "http://detailedurl/cs_prompt_app";
 	d.severity = CSR_CS_SEVERITY_MEDIUM;
-	d.threat = CSR_CS_THREAT_RISKY;
 
 	Ui::AskUser askuser;
 	printPressed(askuser.cs(Ui::CommandId::CS_PROMPT_APP,
@@ -156,7 +154,6 @@ BOOST_AUTO_TEST_CASE(prompt_file)
 	d.malwareName = "dummy malware";
 	d.detailedUrl = "http://detailedurl/cs_prompt_file";
 	d.severity = CSR_CS_SEVERITY_MEDIUM;
-	d.threat = CSR_CS_THREAT_RISKY;
 
 	Ui::AskUser askuser;
 	printPressed(askuser.cs(Ui::CommandId::CS_PROMPT_FILE,
@@ -174,7 +171,6 @@ BOOST_AUTO_TEST_CASE(notify_data)
 	d.malwareName = "dummy malware in data";
 	d.detailedUrl = "http://detailedurl/cs_notify_data";
 	d.severity = CSR_CS_SEVERITY_HIGH;
-	d.threat = CSR_CS_THREAT_RISKY;
 
 	Ui::AskUser askuser;
 	printPressed(askuser.cs(Ui::CommandId::CS_NOTIFY_DATA,
@@ -192,7 +188,6 @@ BOOST_AUTO_TEST_CASE(notify_app)
 	d.malwareName = "dummy malware in app";
 	d.detailedUrl = "http://detailedurl/cs_notify_app";
 	d.severity = CSR_CS_SEVERITY_HIGH;
-	d.threat = CSR_CS_THREAT_RISKY;
 
 	Ui::AskUser askuser;
 	printPressed(askuser.cs(Ui::CommandId::CS_NOTIFY_APP,
@@ -210,7 +205,6 @@ BOOST_AUTO_TEST_CASE(notify_file)
 	d.malwareName = "dummy malware";
 	d.detailedUrl = "http://detailedurl/cs_notify_file";
 	d.severity = CSR_CS_SEVERITY_HIGH;
-	d.threat = CSR_CS_THREAT_RISKY;
 
 	Ui::AskUser askuser;
 	auto response = askuser.cs(Ui::CommandId::CS_NOTIFY_FILE,

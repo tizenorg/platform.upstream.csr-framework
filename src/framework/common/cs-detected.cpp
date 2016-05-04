@@ -32,7 +32,6 @@ CsDetected::CsDetected() :
 	malwareName(),
 	detailedUrl(),
 	severity(CSR_CS_SEVERITY_LOW),
-	threat(CSR_CS_THREAT_GENERIC),
 	response(CSR_CS_NO_ASK_USER),
 	isApp(false),
 	ts(0)
@@ -46,22 +45,18 @@ CsDetected::~CsDetected()
 CsDetected::CsDetected(IStream &stream)
 {
 	int intSeverity;
-	int intThreat;
 	int intResponse;
-	Deserializer<std::string, std::string, std::string, int, int, int, time_t>::Deserialize(
-		stream, targetName, malwareName, detailedUrl, intSeverity, intThreat,
-		intResponse, ts);
+	Deserializer<std::string, std::string, std::string, int, int, time_t>::Deserialize(
+		stream, targetName, malwareName, detailedUrl, intSeverity, intResponse, ts);
 
 	severity = static_cast<csr_cs_severity_level_e>(intSeverity);
-	threat = static_cast<csr_cs_threat_type_e>(intThreat);
 	response = static_cast<csr_cs_user_response_e>(intResponse);
 }
 
 void CsDetected::Serialize(IStream &stream) const
 {
-	Serializer<std::string, std::string, std::string, int, int, int, time_t>::Serialize(
-		stream, targetName, malwareName, detailedUrl,
-		static_cast<int>(severity), static_cast<int>(threat),
+	Serializer<std::string, std::string, std::string, int, int, time_t>::Serialize(
+		stream, targetName, malwareName, detailedUrl, static_cast<int>(severity),
 		static_cast<int>(response), ts);
 }
 
@@ -70,7 +65,6 @@ CsDetected::CsDetected(CsDetected &&other) :
 	malwareName(std::move(other.malwareName)),
 	detailedUrl(std::move(other.detailedUrl)),
 	severity(other.severity),
-	threat(other.threat),
 	response(other.response),
 	ts(other.ts)
 {
@@ -85,7 +79,6 @@ CsDetected &CsDetected::operator=(CsDetected &&other)
 	malwareName = std::move(other.malwareName);
 	detailedUrl = std::move(other.detailedUrl);
 	severity = other.severity;
-	threat = other.threat;
 	response = other.response;
 	ts = other.ts;
 

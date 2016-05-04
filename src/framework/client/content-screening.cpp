@@ -484,22 +484,6 @@ int csr_cs_detected_get_severity(csr_cs_detected_h detected,
 }
 
 API
-int csr_cs_detected_get_threat_type(csr_cs_detected_h detected,
-									csr_cs_threat_type_e *pthreat_type)
-{
-	EXCEPTION_SAFE_START
-
-	if (detected == nullptr || pthreat_type == nullptr)
-		return CSR_ERROR_INVALID_PARAMETER;
-
-	*pthreat_type = reinterpret_cast<CsDetected *>(detected)->threat;
-
-	return CSR_ERROR_NONE;
-
-	EXCEPTION_SAFE_END
-}
-
-API
 int csr_cs_detected_get_malware_name(csr_cs_detected_h detected,
 									 const char **pmalware_name)
 {

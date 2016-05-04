@@ -50,7 +50,6 @@ struct CsDetected : public IResult {
 	std::string detailedUrl;
 	std::string pkgId;
 	csr_cs_severity_level_e severity;
-	csr_cs_threat_type_e threat;
 	csr_cs_user_response_e response;
 	bool isApp;
 	time_t ts;

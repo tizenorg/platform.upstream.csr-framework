@@ -46,7 +46,6 @@ public:
 					   csre_cs_detected_h *);
 
 	int getSeverity(csre_cs_detected_h, csre_cs_severity_level_e *);
-	int getThreatType(csre_cs_detected_h, csre_cs_threat_type_e *);
 	int getMalwareName(csre_cs_detected_h, std::string &);
 	int getDetailedUrl(csre_cs_detected_h, std::string &);
 	int getTimestamp(csre_cs_detected_h, time_t *);
@@ -76,7 +75,6 @@ private:
 	using FpScanAppOnCloud = int(*)(csre_cs_context_h, const char *,
 									csre_cs_detected_h *);
 	using FpGetSeverity = int(*)(csre_cs_detected_h, csre_cs_severity_level_e *);
-	using FpGetThreatType = int(*)(csre_cs_detected_h, csre_cs_threat_type_e *);
 	using FpGetMalwareName = int(*)(csre_cs_detected_h, const char **);
 	using FpGetDetailedUrl = int(*)(csre_cs_detected_h, const char **);
 	using FpGetTimestamp = int(*)(csre_cs_detected_h, time_t *);
@@ -104,7 +102,6 @@ private:
 		FpScanFile fpScanFile;
 		FpScanAppOnCloud fpScanAppOnCloud;
 		FpGetSeverity fpGetSeverity;
-		FpGetThreatType fpGetThreatType;
 		FpGetMalwareName fpGetMalwareName;
 		FpGetDetailedUrl fpGetDetailedUrl;
 		FpGetTimestamp fpGetTimestamp;

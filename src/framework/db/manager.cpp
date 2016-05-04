@@ -232,7 +232,6 @@ RowShPtrs Manager::getDetectedMalwares(const std::string &dir)
 		row->targetName = stmt.getText();
 		row->dataVersion = stmt.getText();
 		row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt());
-		row->threat = static_cast<csr_cs_threat_type_e>(stmt.getInt());
 		row->malwareName = stmt.getText();
 		row->detailedUrl = stmt.getText();
 		row->ts = static_cast<time_t>(stmt.getInt64());
@@ -257,7 +256,6 @@ RowShPtr Manager::getDetectedMalware(const std::string &path)
 	row->targetName = stmt.getText();
 	row->dataVersion = stmt.getText();
 	row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt());
-	row->threat = static_cast<csr_cs_threat_type_e>(stmt.getInt());
 	row->malwareName = stmt.getText();
 	row->detailedUrl = stmt.getText();
 	row->ts = static_cast<time_t>(stmt.getInt64());
@@ -275,7 +273,6 @@ void Manager::insertDetectedMalware(const CsDetected &d,
 	stmt.bind(d.targetName);
 	stmt.bind(dataVersion);
 	stmt.bind(static_cast<int>(d.severity));
-	stmt.bind(static_cast<int>(d.threat));
 	stmt.bind(d.malwareName);
 	stmt.bind(d.detailedUrl);
 	stmt.bind(static_cast<sqlite3_int64>(d.ts));

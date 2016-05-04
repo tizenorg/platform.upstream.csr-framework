@@ -36,15 +36,6 @@ typedef enum {
 } csr_cs_severity_level_e;
 
 /**
- * @brief the type of a threat detected
- */
-typedef enum {
-	CSR_CS_THREAT_MALWARE = 0x00,  /**< Malware. */
-	CSR_CS_THREAT_RISKY   = 0x01,  /**< It's not a malware but still risky. */
-	CSR_CS_THREAT_GENERIC = 0x02   /**< Generic threat */
-} csr_cs_threat_type_e;
-
-/**
  * @brief the options about prompting a popup to a user.
  */
 typedef enum {

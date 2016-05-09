@@ -21,6 +21,7 @@
  */
 #include "service/file-system.h"
 
+#include <regex>
 #include <system_error>
 #include <cstdio>
 #include <cstring>
@@ -33,30 +34,34 @@
 
 namespace Csr {
 
-const char *APP_DIRS[4] = {
+namespace {
+
+inline std::regex makeRegexpr(const char *str)
+{
+	return std::regex(str, std::regex_constants::extended);
+}
+
+std::vector<std::regex> g_regexprs{
 	// Tizen 2.4 app directories
-	"^(/usr/apps/([^/]+))",                      // /usr/apps/{pkgid}/
-	"^(/opt/usr/apps/([^/]+))",                  // /opt/usr/apps/{pkgid}/
-	"^(/sdcard/apps/([^/]+))",                   // /sdcard/apps/{pkgid}/
-	"^(/sdcard/app2sd/([^/]+))",                 // /sdcard/app2sd/{pkgid}/
+	makeRegexpr("^(/usr/apps/([^/]+))"),                   // /usr/apps/{pkgid}/
+	makeRegexpr("^(/opt/usr/apps/([^/]+))"),               // /opt/usr/apps/{pkgid}/
+	makeRegexpr("^(/sdcard/apps/([^/]+))"),                // /sdcard/apps/{pkgid}/
+	makeRegexpr("^(/sdcard/app2sd/([^/]+))"),              // /sdcard/app2sd/{pkgid}/
 	// Tizen 3.0 app directories
-	//"^(/opt/usr/apps/([^/]+))",                  // /opt/usr/apps/{pkgid}/
-	//"^(/home/([^/]+)/apps_rw/([^/]+))",          // /home/{user}/apps_rw/{pkgid}/
-	//"^(/sdcard/app2sd/([^/]+)/([^/]+))",         // /sdcard/app2sd/{user}/{pkgid}/
-	//"^(/sdcard/app2sd/([^/]+))",                 // /sdcard/app2sd/{pkgid}/
-	//"^(/sdcard/apps/([^/]+)/apps_rw/([^/]+))"    // /sdcard/apps/{user}/apps_rw/{pkgid}/
+	//makeRegexpr("^(/opt/usr/apps/([^/]+))"),               // /opt/usr/apps/{pkgid}/
+	//makeRegexpr("^(/home/([^/]+)/apps_rw/([^/]+))"),       // /home/{user}/apps_rw/{pkgid}/
+	//makeRegexpr("^(/sdcard/app2sd/([^/]+)/([^/]+))"),      // /sdcard/app2sd/{user}/{pkgid}/
+	//makeRegexpr("^(/sdcard/app2sd/([^/]+))"),              // /sdcard/app2sd/{pkgid}/
+	//makeRegexpr("^(/sdcard/apps/([^/]+)/apps_rw/([^/]+))") // /sdcard/apps/{user}/apps_rw/{pkgid}/
 };
 
-std::vector<std::regex> File::m_regexprs;
+} // namespace anonymous
 
 File::File(const std::string &fpath) : m_path(fpath), m_inApp(false)
 {
-	if (m_regexprs.size() == 0)
-		initRegex();
-
 	std::smatch matched;
 
-	for (const auto &rege : m_regexprs) {
+	for (const auto &rege : g_regexprs) {
 		if (!std::regex_search(m_path, matched, rege))
 			continue;
 
@@ -98,14 +103,6 @@ const std::string &File::getAppUser() const
 const std::string &File::getAppPkgPath() const
 {
 	return m_appPkgPath;
-}
-
-void File::initRegex()
-{
-	for (unsigned int i = 0; i < sizeof(APP_DIRS) / sizeof(char *); i++) {
-		std::regex regexpr(APP_DIRS[i], std::regex_constants::extended);
-		m_regexprs.emplace_back(std::move(regexpr));
-	}
 }
 
 bool File::remove() const

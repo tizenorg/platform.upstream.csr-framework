@@ -23,7 +23,6 @@
 
 #include <string>
 #include <memory>
-#include <regex>
 #include <queue>
 
 #include <cstddef>
@@ -49,10 +48,6 @@ public:
 	static FilePtr create(const std::string &fpath, time_t modifiedSince = -1);
 
 private:
-	static void initRegex();
-
-	static std::vector<std::regex> m_regexprs;
-
 	File(const std::string &fpath);
 
 	std::string m_path;

@@ -17,3 +17,4 @@
 # @brief       install headers to be built with clients
 #
 INSTALL(DIRECTORY csr DESTINATION ${INCLUDE_INSTALL_DIR})
+INSTALL(DIRECTORY csre DESTINATION ${INCLUDE_INSTALL_DIR})

@@ -36,8 +36,11 @@ using FilePtr = std::unique_ptr<File>;
 
 class File {
 public:
+	File() = delete;
+
 	const std::string &getPath() const;
 	bool isInApp() const;
+	bool isDir() const;
 	const std::string &getAppPkgId() const;
 	const std::string &getAppUser() const;
 	const std::string &getAppPkgPath() const;
@@ -47,11 +50,14 @@ public:
 	// throws FileNotExist and FileSystemError
 	static FilePtr create(const std::string &fpath, time_t modifiedSince = -1);
 
+	static bool isInApp(const std::string &path);
+
 private:
-	File(const std::string &fpath);
+	explicit File(const std::string &fpath, bool isDir);
 
 	std::string m_path;
 	bool m_inApp;              // in app or not
+	bool m_isDir;
 	std::string m_appPkgId;    // meaningful only if inApp == true
 	std::string m_appUser;     // meaningful only if inApp == true
 	std::string m_appPkgPath;  // meaningful only if inApp == true

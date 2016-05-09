@@ -57,7 +57,19 @@ std::vector<std::regex> g_regexprs{
 
 } // namespace anonymous
 
-File::File(const std::string &fpath) : m_path(fpath), m_inApp(false)
+bool File::isInApp(const std::string &path)
+{
+	std::smatch matched;
+
+	for (const auto &rege : g_regexprs) {
+		if (std::regex_search(path, matched, rege))
+			return true;
+	}
+
+	return false;
+}
+
+File::File(const std::string &fpath, bool isDir) : m_path(fpath), m_inApp(false), m_isDir(isDir)
 {
 	std::smatch matched;
 
@@ -90,6 +102,11 @@ bool File::isInApp() const
 	return m_inApp;
 }
 
+bool File::isDir() const
+{
+	return m_isDir;
+}
+
 const std::string &File::getAppPkgId() const
 {
 	return m_appPkgId;
@@ -118,13 +135,13 @@ FilePtr File::create(const std::string &fpath, time_t modifiedSince)
 	auto statptr = getStat(fpath);
 	if (statptr == nullptr) {
 		ThrowExc(FileDoNotExist, "file not exist: " << fpath);
-	} else if (!S_ISREG(statptr->st_mode)) {
-		ThrowExc(FileSystemError, "file type is not reguler: " << fpath);
+	} else if (!S_ISREG(statptr->st_mode) && !S_ISDIR(statptr->st_mode)) {
+		ThrowExc(FileSystemError, "file type is not reguler or dir: " << fpath);
 	} else if (modifiedSince != -1 && statptr->st_mtim.tv_sec < modifiedSince) {
 		DEBUG("file[" << fpath << "] isn't modified since[" << modifiedSince << "]");
 		return nullptr;
 	} else {
-		return FilePtr(new File(fpath));
+		return FilePtr(new File(fpath, S_ISDIR(statptr->st_mode)));
 	}
 }
 

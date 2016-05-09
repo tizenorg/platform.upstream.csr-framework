@@ -128,9 +128,7 @@ RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 	if (result == nullptr)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
 
-	auto d = convert(result);
-
-	d.targetName.clear();
+	auto d = convert(result, std::string());
 
 	d.response = getUserResponse(context, d);
 
@@ -143,25 +141,130 @@ RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 	EXCEPTION_GUARD_END
 }
 
+RawBuffer Logic::scanAppWithoutDelta(const CsContext &context, const FilePtr &appDirPtr)
+{
+	const auto &pkgPath = appDirPtr->getAppPkgPath();
+
+	auto starttime = time(nullptr);
+
+	CsEngineContext engineContext(m_cs);
+	auto &c = engineContext.get();
+
+	CsDetected detected;
+
+	if (context.isScanOnCloud) {
+		csre_cs_detected_h result;
+		int eret = m_cs->scanAppOnCloud(c, pkgPath, &result);
+
+		if (eret != CSRE_ERROR_NONE) {
+			ERROR("engine error. engine api ret: " << eret);
+			return BinaryQueue::Serialize(CSR_ERROR_ENGINE_INTERNAL, CsDetected()).pop();
+		}
+
+		if (result)
+			detected = convert(result, pkgPath);
+	} else {
+		// traverse files in app. take which is more danger than detected.
+		FsVisitorPtr visitor;
+
+		try {
+			visitor = FsVisitor::create(pkgPath,
+										m_db->getLastScanTime(pkgPath, m_csDataVersion));
+		} catch (const FileDoNotExist &) {
+			ERROR("app directory doesn't exist: " << pkgPath);
+			return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST, CsDetected()).pop();
+		} catch (const FileSystemError &) {
+			ERROR("app directory type isn't dir: " << pkgPath);
+			return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, CsDetected()).pop();
+		}
+
+		while (auto file = visitor->next()) {
+			csre_cs_detected_h result;
+			int eret = m_cs->scanFile(c, file->getPath(), &result);
+
+			if (eret != CSRE_ERROR_NONE) {
+				ERROR("engine error. engine api ret: " << eret);
+				return BinaryQueue::Serialize(CSR_ERROR_ENGINE_INTERNAL, CsDetected()).pop();
+			}
+
+			if (result) {
+				auto d = convert(result, pkgPath);
+
+				if (!detected.hasValue() || detected.severity < d.severity)
+					detected = std::move(d);
+			}
+		}
+	}
+
+	m_db->insertLastScanTime(pkgPath, starttime, m_csDataVersion);
+
+	if (detected.hasValue()) {
+		detected.isApp = true;
+		detected.pkgId = appDirPtr->getAppPkgId();
+
+		// cloud scan detected history inserted by targetname = app base directory path
+		m_db->insertDetectedMalware(detected, m_csDataVersion, false);
+		detected.response = getUserResponse(context, detected);
+		return handleUserResponse(detected);
+	} else {
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, detected).pop();
+	}
+}
+
+RawBuffer Logic::scanApp(const CsContext &context, const std::string &path)
+{
+	FilePtr fileptr;
+
+	try {
+		fileptr = File::create(path);
+	} catch (const FileDoNotExist &) {
+		return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST, CsDetected()).pop();
+	} catch (const FileSystemError &) {
+		return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, CsDetected()).pop();
+	}
+
+	if (!fileptr)
+		ThrowExc(InternalError, "fileptr shouldn't be null because no modified since.");
+
+	if (!fileptr->isInApp())
+		ThrowExc(InternalError, "fileptr should be in app.");
+
+	const auto &pkgPath = fileptr->getAppPkgPath();
+
+	auto lastScanTime = m_db->getLastScanTime(pkgPath, m_csDataVersion);
+
+	try {
+		auto visitor = FsVisitor::create(pkgPath, lastScanTime);
+
+		// visitor with the last scan time has at least a file to traverse
+		// which means there's file which is modified since the last scan time.
+		// if there's no scan history so lastScanTime is -1, all existing files in path
+		// are traversable. visitor class isn't reusable because it already wasted a
+		// file to check.
+		if (visitor->next())
+			return scanAppWithoutDelta(context, fileptr);
+	} catch (const FileDoNotExist &) {
+		ERROR("app directory doesn't exist: " << pkgPath);
+		return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST, CsDetected()).pop();
+	} catch (const FileSystemError &) {
+		ERROR("app directory type isn't dir: " << pkgPath);
+		return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, CsDetected()).pop();
+	}
+
+	auto history = m_db->getDetectedMalware(pkgPath);
+	if (!history)
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
+
+	history->response = history->isIgnored
+			? CSR_CS_IGNORE : getUserResponse(context, *history);
+	return handleUserResponse(*history);
+}
+
 RawBuffer Logic::scanFileWithoutDelta(const CsContext &context,
 									  const std::string &filepath, FilePtr &&fileptr)
 {
 	CsEngineContext engineContext(m_cs);
 	auto &c = engineContext.get();
-
-	FilePtr _fileptr;
-	try {
-		if (fileptr)
-			_fileptr = std::forward<FilePtr>(fileptr);
-		else
-			_fileptr = File::create(filepath);
-	} catch (const FileDoNotExist &) {
-		WARN("file doesn't exist... it has been removed on this minute: " << filepath);
-		return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST, CsDetected()).pop();
-	} catch (const FileSystemError &) {
-		WARN("file isn't regular... it has been changed on this minute: " << filepath);
-		return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, CsDetected()).pop();
-	}
 
 	csre_cs_detected_h result;
 	int eret = m_cs->scanFile(c, filepath, &result);
@@ -175,53 +278,63 @@ RawBuffer Logic::scanFileWithoutDelta(const CsContext &context,
 	if (result == nullptr)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
 
-	auto d = convert(result);
-
-	d.targetName = filepath;
-	d.isApp = _fileptr->isInApp();
+	auto d = convert(result, filepath);
 
 	m_db->insertDetectedMalware(d, m_csDataVersion, false);
 
 	d.response = getUserResponse(context, d);
-	return handleUserResponse(d, filepath, std::move(_fileptr));
+	return handleUserResponse(d, std::forward<FilePtr>(fileptr));
 }
 
 RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 {
 	EXCEPTION_GUARD_START
 
+	if (File::isInApp(filepath))
+		return scanApp(context, filepath);
+
 	DEBUG("Scan request on file: " << filepath);
+
 	auto history = m_db->getDetectedMalware(filepath);
-
-	if (!history)
-		return scanFileWithoutDelta(context, filepath);
-
-	DEBUG("Scan history exist on file: " << filepath);
 
 	FilePtr fileptr;
 
 	try {
-		fileptr = File::create(filepath, static_cast<time_t>(history->ts));
+		// if history exist, fileptr can be null because of modified since value
+		// from history.
+		if (history)
+			fileptr = File::create(filepath, static_cast<time_t>(history->ts));
+		else
+			fileptr = File::create(filepath);
 	} catch (const FileDoNotExist &) {
 		ERROR("file doesn't exist: " << filepath);
 		return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST, CsDetected()).pop();
 	} catch (const FileSystemError &) {
-		ERROR("file type isn't regular: " << filepath);
+		ERROR("file type isn't regular or dir: " << filepath);
 		return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, CsDetected()).pop();
 	}
 
+	// non-null fileptr means the file is modified since the last history
+	// OR there's no history at all.
 	if (fileptr) {
-		DEBUG("file[" << filepath << "] is modified since the detected time. "
-			  "let's remove history and re-scan");
-		m_db->deleteDetectedMalware(filepath);
-		return scanFileWithoutDelta(context, filepath, std::move(fileptr));
-	} else {
-		DEBUG("file[" << filepath << "] isn't modified since the detected time. "
-			  "history can be used.");
-		history->response = history->isIgnored
-				? CSR_CS_IGNORE : getUserResponse(context, *history);
-		return handleUserResponse(*history, filepath);
+		if (history)
+			m_db->deleteDetectedMalware(filepath);
+
+		if (fileptr->isDir()) {
+			ERROR("file type invalid here. it shouldn't be directory: " << filepath);
+			return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, CsDetected()).pop();
+		} else {
+			DEBUG("file[" << filepath << "] is modified since the detected time. "
+				  "let's remove history and re-scan");
+			return scanFileWithoutDelta(context, filepath, std::move(fileptr));
+		}
 	}
+
+	DEBUG("Usable scan history exist on file: " << filepath);
+
+	history->response = history->isIgnored
+			? CSR_CS_IGNORE : getUserResponse(context, *history);
+	return handleUserResponse(*history);
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
@@ -230,6 +343,32 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 	EXCEPTION_GUARD_END
 }
 
+// Application in input param directory will be treated as one item.
+// Application base directory path is inserted to file set.
+// e.g., input param dir : "/opt/usr" (applications in "/opt/usr/apps")
+//       ls /opt/usr/ :
+//           /opt/usr/file-not-in-app1
+//           /opt/usr/file-not-in-app2
+//           /opt/usr/apps/org.tizen.tutorial
+//           /opt/usr/apps/org.tizen.tutorial/file-in-app1
+//           /opt/usr/apps/org.tizen.tutorial/file-in-app2
+//           /opt/usr/apps/org.tizen.message/file-in-app1
+//           /opt/usr/apps/org.tizen.message/file-in-app2
+//           /opt/usr/apps/org.tizen.flash/file-in-app1
+//           /opt/usr/apps/org.tizen.flash/file-in-app2
+//
+//           and detected history exist on...
+//           /opt/usr/apps/org.tizen.message/file-in-app2
+//           /opt/usr/apps/org.tizen.flash (If target name is app base directory path,
+//                                          it's detected by scan on cloud)
+//
+//       output scannable file set will be:
+//           1) /opt/usr/file-not-in-app1
+//           2) /opt/usr/file-not-in-app2
+//           3) /opt/usr/apps/org.tizen.tutorial (app base directory path)
+//           4) /opt/usr/apps/org.tizen.message  (app base directory path)
+//           5) /opt/usr/apps/org.tizen.flash    (app base directory path)
+//           % items which has detected history is included in list as well.
 RawBuffer Logic::getScannableFiles(const std::string &dir)
 {
 	EXCEPTION_GUARD_START
@@ -251,16 +390,31 @@ RawBuffer Logic::getScannableFiles(const std::string &dir)
 	StrSet fileset;
 
 	while (auto file = visitor->next()) {
-		if (hasPermToRemove(file->getPath())) {
-			DEBUG("Scannable file[" << file->getPath() << "]");
+		// app is removed by pkgmgr API so we need not permission to remove it directly
+		if (file->isInApp()) {
+			DEBUG("Scannable app: " << file->getAppPkgPath());
+			fileset.insert(file->getAppPkgPath());
+		} else if (hasPermToRemove(file->getPath())) {
+			DEBUG("Scannable file: " << file->getPath());
 			fileset.insert(file->getPath());
 		}
 	}
 
 	if (lastScanTime != -1) {
 		// for case: scan history exist and not modified.
-		for (auto &row : m_db->getDetectedMalwares(dir))
-			fileset.insert(row->targetName);
+		for (auto &row : m_db->getDetectedMalwares(dir)) {
+			try {
+				auto fileptr = File::create(row->targetName);
+				if (fileptr->isInApp())
+					fileset.insert(fileptr->getAppPkgPath());
+				else
+					fileset.insert(fileptr->getPath());
+			} catch (const FileDoNotExist &) {
+				m_db->deleteDetectedMalware(row->targetName);
+			} catch (const FileSystemError &) {
+				m_db->deleteDetectedMalware(row->targetName);
+			}
+		}
 	}
 
 	// update last scan time before start.
@@ -480,11 +634,11 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 	EXCEPTION_GUARD_END
 }
 
-RawBuffer Logic::handleUserResponse(const CsDetected &d, const std::string &filepath, FilePtr &&fileptr)
+RawBuffer Logic::handleUserResponse(const CsDetected &d, FilePtr &&fileptr)
 {
 	switch (d.response) {
 	case CSR_CS_IGNORE:
-		m_db->setDetectedMalwareIgnored(filepath, true);
+		m_db->setDetectedMalwareIgnored(d.targetName, true);
 		break;
 
 	case CSR_CS_REMOVE:
@@ -494,19 +648,19 @@ RawBuffer Logic::handleUserResponse(const CsDetected &d, const std::string &file
 			if (fileptr)
 				_fileptr = std::forward<FilePtr>(fileptr);
 			else
-				_fileptr = File::create(filepath);
+				_fileptr = File::create(d.targetName);
 
 			if (!_fileptr->remove()) {
-				ERROR("Failed to remove file: " << filepath);
+				ERROR("Failed to remove file: " << d.targetName);
 				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, d).pop();
 			}
 		} catch (const FileDoNotExist &) {
-			WARN("File already removed.: " << filepath);
+			WARN("File already removed.: " << d.targetName);
 		} catch (const FileSystemError &) {
-			WARN("File type is changed. it's considered as different file: " << filepath);
+			WARN("File type is changed. it's considered as different file: " << d.targetName);
 		}
 
-		m_db->deleteDetectedMalware(filepath);
+		m_db->deleteDetectedMalware(d.targetName);
 		break;
 
 	case CSR_CS_SKIP:
@@ -579,11 +733,13 @@ csr_wp_user_response_e Logic::getUserResponse(const WpContext &c, const std::str
 	return askUser.wp(cid, c.popupMessage, item);
 }
 
-CsDetected Logic::convert(csre_cs_detected_h &result)
+CsDetected Logic::convert(csre_cs_detected_h &result, const std::string &targetName)
 {
 	DEBUG("convert engine result handle to CsDetected start");
 
 	CsDetected d;
+
+	d.targetName = targetName;
 
 	// getting severity level
 	csre_cs_severity_level_e eseverity = CSRE_CS_SEVERITY_LOW;

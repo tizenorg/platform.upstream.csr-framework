@@ -52,7 +52,7 @@ const std::string SEL_DETECTED_BY_DIR =
 	"SELECT path, data_version, "
 	"severity, malware_name, "
 	"detailed_url, detected_time, ignored "
-	"FROM detected_malware_file where path like ? || '%'";
+	"FROM detected_malware_file where path like ? || '_%'";
 
 const std::string SEL_DETECTED_BY_PATH =
 	"SELECT path, data_version, "

@@ -59,12 +59,13 @@ public:
 	RawBuffer checkUrl(const WpContext &context, const std::string &url);
 
 private:
+	RawBuffer scanApp(const CsContext &context, const std::string &path);
+	RawBuffer scanAppWithoutDelta(const CsContext &context, const FilePtr &appDirPtr);
 	RawBuffer scanFileWithoutDelta(const CsContext &context, const std::string &filepath,
-								   FilePtr &&fileptr = nullptr);
-	RawBuffer handleUserResponse(const CsDetected &d, const std::string &filepath,
-								 FilePtr &&fileptr = nullptr);
-	CsDetected convert(csre_cs_detected_h &);
-	WpResult convert(csre_wp_check_result_h &);
+								   FilePtr &&fileptr);
+	RawBuffer handleUserResponse(const CsDetected &d, FilePtr &&fileptr = nullptr);
+	CsDetected convert(csre_cs_detected_h &result, const std::string &targetName);
+	WpResult convert(csre_wp_check_result_h &result);
 
 	static csr_cs_user_response_e getUserResponse(const CsContext &,
 			const CsDetected &);

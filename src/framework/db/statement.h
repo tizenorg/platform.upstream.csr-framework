@@ -63,6 +63,7 @@ private:
 
 	std::string getErrorMessage() const noexcept;
 
+	const std::string &m_query; // current query for debugging
 	sqlite3_stmt *m_stmt;
 	int m_bindParamCount;
 	int m_columnCount;

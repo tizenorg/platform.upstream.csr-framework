@@ -30,7 +30,6 @@
 #include "common/audit/logger.h"
 #include "common/exception.h"
 #include "service/type-converter.h"
-#include "service/file-system.h"
 #include "service/access-control.h"
 #include "ui/askuser.h"
 #include "csr/error.h"
@@ -133,24 +132,7 @@ RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 
 	d.targetName.clear();
 
-	switch (d.severity) {
-	case CSR_CS_SEVERITY_LOW:
-		INFO("severity low for data scanned!");
-		break;
-
-	case CSR_CS_SEVERITY_MEDIUM:
-		INFO("severity medium for data scanned!");
-		d.response = getUserResponse(context, d);
-		break;
-
-	case CSR_CS_SEVERITY_HIGH:
-		INFO("severity high for data scanned!");
-		d.response = getUserResponse(context, d);
-		break;
-
-	default:
-		ThrowExc(InternalError, "Invalid severity: " << static_cast<int>(d.severity));
-	}
+	d.response = getUserResponse(context, d);
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
 
@@ -161,10 +143,25 @@ RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 	EXCEPTION_GUARD_END
 }
 
-RawBuffer Logic::scanFileHelper(const CsContext &context, const std::string &filepath)
+RawBuffer Logic::scanFileWithoutDelta(const CsContext &context,
+									  const std::string &filepath, FilePtr &&fileptr)
 {
 	CsEngineContext engineContext(m_cs);
 	auto &c = engineContext.get();
+
+	FilePtr _fileptr;
+	try {
+		if (fileptr)
+			_fileptr = std::forward<FilePtr>(fileptr);
+		else
+			_fileptr = File::create(filepath);
+	} catch (const FileDoNotExist &) {
+		WARN("file doesn't exist... it has been removed on this minute: " << filepath);
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
+	} catch (const FileSystemError &) {
+		WARN("file isn't regular... it has been changed on this minute: " << filepath);
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
+	}
 
 	csre_cs_detected_h result;
 	int eret = m_cs->scanFile(c, filepath, &result);
@@ -181,29 +178,12 @@ RawBuffer Logic::scanFileHelper(const CsContext &context, const std::string &fil
 	auto d = convert(result);
 
 	d.targetName = filepath;
+	d.isApp = _fileptr->isInApp();
 
-	switch (d.severity) {
-	case CSR_CS_SEVERITY_LOW:
-		INFO("severity low for file scanned!");
-		break;
+	m_db->insertDetectedMalware(d, m_csDataVersion, false);
 
-	case CSR_CS_SEVERITY_MEDIUM:
-		INFO("severity medium for file scanned!");
-		d.response = getUserResponse(context, d);
-		break;
-
-	case CSR_CS_SEVERITY_HIGH:
-		INFO("severity high for file scanned!");
-		d.response = getUserResponse(context, d);
-		break;
-
-	default:
-		ThrowExc(InternalError, "Invalid severity: " << static_cast<int>(d.severity));
-	}
-
-	m_db->insertDetectedMalware(d, m_csDataVersion, d.response == CSR_CS_IGNORE);
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
+	d.response = getUserResponse(context, d);
+	return handleUserResponse(d, filepath, std::move(_fileptr));
 }
 
 RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
@@ -214,69 +194,34 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 	auto history = m_db->getDetectedMalware(filepath);
 
 	if (!history)
-		return scanFileHelper(context, filepath);
+		return scanFileWithoutDelta(context, filepath);
 
 	DEBUG("Scan history exist on file: " << filepath);
 
+	FilePtr fileptr;
+
 	try {
-		if (File::create(filepath, static_cast<time_t>(history->ts))) {
-			DEBUG("file[" << filepath << "] is modified since the detected time. "
-				  "let's remove history and re-scan");
-			m_db->deleteDetectedMalware(filepath);
-			return scanFileHelper(context, filepath);
-		}
-	} catch (const FileSystemError &e) {
-		ERROR("file doesn't exist or type isn't regular: " << filepath <<
-			  " " << e.what());
-		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER, CsDetected()).pop();
+		fileptr = File::create(filepath, static_cast<time_t>(history->ts));
+	} catch (const FileDoNotExist &) {
+		ERROR("file doesn't exist: " << filepath);
+		return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST, CsDetected()).pop();
+	} catch (const FileSystemError &) {
+		ERROR("file type isn't regular: " << filepath);
+		return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, CsDetected()).pop();
 	}
 
-	DEBUG("file[" << filepath << "] isn't modified since the detected time. "
-		  "history can be used.");
-
-	if (!context.askUser) {
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, history).pop();
-	} else if (history->isIgnored) {
-		history->response = CSR_CS_IGNORE;
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, history).pop();
-	}
-
-	DEBUG("user response is needed.");
-
-	switch (history->response = getUserResponse(context, *history)) {
-	case CSR_CS_IGNORE:
-		m_db->setDetectedMalwareIgnored(filepath, true);
-		break;
-
-	case CSR_CS_REMOVE:
-		try {
-			auto file = File::create(filepath);
-
-			if (!file && !file->remove()) {
-				ERROR("Failed to remove filepath: " << filepath);
-				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, history).pop();
-			}
-		} catch (const FileDoNotExist &) {
-			WARN("File already removed... : " << filepath);
-		} catch (const FileSystemError &) {
-			WARN("File type is changed... it's considered as different file "
-				 "in same path: " << filepath);
-		}
-
+	if (fileptr) {
+		DEBUG("file[" << filepath << "] is modified since the detected time. "
+			  "let's remove history and re-scan");
 		m_db->deleteDetectedMalware(filepath);
-		break;
-
-	case CSR_CS_SKIP:
-		break;
-
-	default:
-		ThrowExc(InternalError, "Invalid response from popup: " <<
-				 static_cast<int>(history->response));
+		return scanFileWithoutDelta(context, filepath, std::move(fileptr));
+	} else {
+		DEBUG("file[" << filepath << "] isn't modified since the detected time. "
+			  "history can be used.");
+		history->response = history->isIgnored
+				? CSR_CS_IGNORE : getUserResponse(context, *history);
+		return handleUserResponse(*history, filepath);
 	}
-
-	DEBUG("file[" << filepath << "] user response: " << static_cast<int>(history->response));
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, history).pop();
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
@@ -296,13 +241,11 @@ RawBuffer Logic::getScannableFiles(const std::string &dir)
 	try {
 		visitor = FsVisitor::create(dir, lastScanTime);
 	} catch (const FileDoNotExist &) {
-		WARN("Directory isn't exist: " << dir << " return success with empty file set "
-			 "to skip it softly.");
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
+		ERROR("Directory isn't exist: " << dir);
+		return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST, StrSet()).pop();
 	} catch (const FileSystemError &) {
-		WARN("Directory isn't directory... file type changed: " << dir << " return "
-			 "empty file set to skip it softly.");
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, StrSet()).pop();
+		ERROR("Directory isn't directory... file type changed: " << dir);
+		return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, StrSet()).pop();
 	}
 
 	StrSet fileset;
@@ -346,17 +289,23 @@ RawBuffer Logic::judgeStatus(const std::string &filepath, csr_cs_action_e action
 		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
 	}
 
+	FilePtr fileptr;
+
 	try {
-		if (File::create(filepath, static_cast<time_t>(history->ts))) {
-			ERROR("Target modified since db delta inserted. name: " << filepath);
-			m_db->deleteDetectedMalware(filepath);
-			// TODO: is it okay to just refresh db and return success?
-			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-		}
+		fileptr = File::create(filepath, static_cast<time_t>(history->ts));
+	} catch (const FileDoNotExist &) {
+		ERROR("file doesn't exist: " << filepath);
+		return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST).pop();
 	} catch (const FileSystemError &e) {
-		ERROR("file doesn't exist or type isn't regular: " << filepath <<
-			  " " << e.what());
-		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
+		ERROR("file type isn't regular: " << filepath);
+		return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM).pop();
+	}
+
+	if (fileptr) {
+		ERROR("Target modified since db delta inserted. name: " << filepath);
+		m_db->deleteDetectedMalware(filepath);
+		// TODO: is it okay to just refresh db and return success?
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 	}
 
 	switch (action) {
@@ -531,6 +480,47 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 	EXCEPTION_GUARD_END
 }
 
+RawBuffer Logic::handleUserResponse(const CsDetected &d, const std::string &filepath, FilePtr &&fileptr)
+{
+	switch (d.response) {
+	case CSR_CS_IGNORE:
+		m_db->setDetectedMalwareIgnored(filepath, true);
+		break;
+
+	case CSR_CS_REMOVE:
+		try {
+			FilePtr _fileptr;
+
+			if (fileptr)
+				_fileptr = std::forward<FilePtr>(fileptr);
+			else
+				_fileptr = File::create(filepath);
+
+			if (!_fileptr->remove()) {
+				ERROR("Failed to remove file: " << filepath);
+				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, d).pop();
+			}
+		} catch (const FileDoNotExist &) {
+			WARN("File already removed.: " << filepath);
+		} catch (const FileSystemError &) {
+			WARN("File type is changed. it's considered as different file: " << filepath);
+		}
+
+		m_db->deleteDetectedMalware(filepath);
+		break;
+
+	case CSR_CS_SKIP:
+	case CSR_CS_NO_ASK_USER:
+		break;
+
+	default:
+		ThrowExc(InternalError, "Invalid response from popup: " <<
+				 static_cast<int>(d.response));
+	}
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
+}
+
 csr_cs_user_response_e Logic::getUserResponse(const CsContext &c, const CsDetected &d)
 {
 	if (c.askUser == CSR_CS_NOT_ASK_USER)
@@ -538,20 +528,30 @@ csr_cs_user_response_e Logic::getUserResponse(const CsContext &c, const CsDetect
 
 	Ui::CommandId cid;
 
-	if (d.severity == CSR_CS_SEVERITY_MEDIUM) {
+	switch (d.severity) {
+	case CSR_CS_SEVERITY_LOW:
+	case CSR_CS_SEVERITY_MEDIUM:
 		if (d.targetName.empty())
 			cid = Ui::CommandId::CS_PROMPT_DATA;
 		else if (d.isApp)
 			cid = Ui::CommandId::CS_PROMPT_APP;
 		else
 			cid = Ui::CommandId::CS_PROMPT_FILE;
-	} else {
+
+		break;
+
+	case CSR_CS_SEVERITY_HIGH:
 		if (d.targetName.empty())
 			cid = Ui::CommandId::CS_NOTIFY_DATA;
 		else if (d.isApp)
 			cid = Ui::CommandId::CS_NOTIFY_APP;
 		else
 			cid = Ui::CommandId::CS_NOTIFY_FILE;
+
+		break;
+
+	default:
+		ThrowExc(InternalError, "Invalid severity: " << static_cast<int>(d.severity));
 	}
 
 	Ui::AskUser askUser;

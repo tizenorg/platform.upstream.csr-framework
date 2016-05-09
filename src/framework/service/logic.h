@@ -36,6 +36,7 @@
 #include "service/thread-pool.h"
 #include "service/cs-loader.h"
 #include "service/wp-loader.h"
+#include "service/file-system.h"
 
 #include "csr/content-screening-types.h"
 
@@ -45,8 +46,6 @@ class Logic {
 public:
 	Logic();
 	virtual ~Logic();
-
-	void submit(std::function<void()> &&task);
 
 	RawBuffer scanData(const CsContext &context, const RawBuffer &data);
 	RawBuffer scanFile(const CsContext &context, const std::string &filepath);
@@ -60,7 +59,10 @@ public:
 	RawBuffer checkUrl(const WpContext &context, const std::string &url);
 
 private:
-	RawBuffer scanFileHelper(const CsContext &context, const std::string &filepath);
+	RawBuffer scanFileWithoutDelta(const CsContext &context, const std::string &filepath,
+								   FilePtr &&fileptr = nullptr);
+	RawBuffer handleUserResponse(const CsDetected &d, const std::string &filepath,
+								 FilePtr &&fileptr = nullptr);
 	CsDetected convert(csre_cs_detected_h &);
 	WpResult convert(csre_wp_check_result_h &);
 

@@ -99,7 +99,7 @@ void WpContext::get(int key, int &value) const
 
 	default:
 		ThrowExc(InternalError, "Invalid key[" << key <<
-				 "] comes in to set as int. value=" << value);
+				 "] comes in to get int. value=" << value);
 	}
 }
 
@@ -112,7 +112,7 @@ void WpContext::get(int key, std::string &value) const
 
 	default:
 		ThrowExc(InternalError, "Invalid key[" << key <<
-				 "] comes in to set as std::string. value=" << value);
+				 "] comes in to get std::string. value=" << value);
 	}
 }
 
@@ -128,7 +128,7 @@ void WpContext::get(int key, const char **value) const
 
 	default:
 		ThrowExc(InternalError, "Invalid key[" << key <<
-				 "] comes in to set as char*. value=" << value);
+				 "] comes in to get char*. value=" << value);
 	}
 }
 

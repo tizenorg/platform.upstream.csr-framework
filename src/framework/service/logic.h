@@ -30,8 +30,10 @@
 #include "common/credential.h"
 #include "common/cs-context.h"
 #include "common/wp-context.h"
+#include "common/em-context.h"
 #include "common/cs-detected.h"
 #include "common/wp-result.h"
+#include "common/em-result.h"
 #include "db/manager.h"
 #include "service/thread-pool.h"
 #include "service/cs-loader.h"
@@ -57,6 +59,15 @@ public:
 	RawBuffer getIgnoredList(const StrSet &dirSet);
 
 	RawBuffer checkUrl(const WpContext &context, const std::string &url);
+
+	RawBuffer getEngineName(const EmContext &context);
+	RawBuffer getEngineVendor(const EmContext &context);
+	RawBuffer getEngineVersion(const EmContext &context);
+	RawBuffer getEngineDataVersion(const EmContext &context);
+	RawBuffer getEngineUpdatedTime(const EmContext &context);
+	RawBuffer getEngineActivated(const EmContext &context);
+	RawBuffer getEngineState(const EmContext &context);
+	RawBuffer setEngineState(const EmContext &context, csr_state_e state);
 
 private:
 	RawBuffer scanApp(const CsContext &context, const std::string &path);

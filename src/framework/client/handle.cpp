@@ -35,10 +35,6 @@ Handle::Handle(SockId id, ContextShPtr &&context) :
 		ThrowExc(InvalidParam, "context shouldn't be null");
 }
 
-Handle::Handle(SockId id) : m_sockId(id)
-{
-}
-
 Handle::~Handle()
 {
 }

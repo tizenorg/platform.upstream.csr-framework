@@ -14,41 +14,30 @@
  *  limitations under the License
  */
 /*
- * @file        command-id.h
+ * @file        em-result.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       Engine manager result set
  */
 #pragma once
 
+#include <string>
+
+#include "common/iresult.h"
+
 namespace Csr {
 
-enum class CommandId : int {
-	// content scanning
-	// scanning
-	SCAN_DATA           = 0x1001,
-	SCAN_FILE           = 0x1002,
-	// delta, history
-	GET_DETECTED        = 0x1101,
-	GET_DETECTED_LIST   = 0x1102,
-	GET_IGNORED         = 0x1103,
-	GET_IGNORED_LIST    = 0x1104,
-	GET_SCANNABLE_FILES = 0x1105,
-	// handle result
-	JUDGE_STATUS        = 0x1201,
+struct EmString : public IResult {
+	EmString();
+	virtual ~EmString();
 
-	// web protection
-	CHECK_URL           = 0x2001,
+	EmString(IStream &);
+	virtual void Serialize(IStream &) const override;
 
-	// engine management
-	EM_GET_VENDOR       = 0x3001,
-	EM_GET_NAME         = 0x3002,
-	EM_GET_VERSION      = 0x3003,
-	EM_GET_DATA_VERSION = 0x3004,
-	EM_GET_UPDATED_TIME = 0x3005,
-	EM_GET_ACTIVATED    = 0x3006,
-	EM_GET_STATE        = 0x3007,
-	EM_SET_STATE        = 0x3008
+	EmString(EmString &&) = default;
+	EmString &operator=(EmString &&) = default;
+
+	std::string value;
 };
 
 }

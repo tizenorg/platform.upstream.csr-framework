@@ -634,6 +634,271 @@ RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
 	EXCEPTION_GUARD_END
 }
 
+// TODO: make parent class of cs-loader and wp-loader for
+// using engine-manager related engine APIs samely
+RawBuffer Logic::getEngineName(const EmContext &context)
+{
+	EXCEPTION_GUARD_START
+
+	if (context.engineId == CSR_ENGINE_CS) {
+		CsEngineInfo engineInfo(m_cs);
+		auto &c = engineInfo.get();
+
+		std::string value;
+		auto eret = m_cs->getEngineName(c, value);
+		if (eret != CSR_ERROR_NONE)
+			ThrowExc(EngineError, "Engine error on getting name. eret: " << eret);
+
+		EmString emString;
+		emString.value = std::move(value);
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+	} else {
+		WpEngineInfo engineInfo(m_wp);
+		auto &c = engineInfo.get();
+
+		std::string value;
+		auto eret = m_wp->getEngineName(c, value);
+		if (eret != CSR_ERROR_NONE)
+			ThrowExc(EngineError, "Engine error on getting name. eret: " << eret);
+
+		EmString emString;
+		emString.value = std::move(value);
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+	}
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, EmString()).pop();
+
+	EXCEPTION_GUARD_END
+}
+
+RawBuffer Logic::getEngineVendor(const EmContext &context)
+{
+	EXCEPTION_GUARD_START
+
+	if (context.engineId == CSR_ENGINE_CS) {
+		CsEngineInfo engineInfo(m_cs);
+		auto &c = engineInfo.get();
+
+		std::string value;
+		auto eret = m_cs->getEngineVendor(c, value);
+		if (eret != CSR_ERROR_NONE)
+			ThrowExc(EngineError, "Engine error on getting vendor. eret: " << eret);
+
+		EmString emString;
+		emString.value = std::move(value);
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+	} else {
+		WpEngineInfo engineInfo(m_wp);
+		auto &c = engineInfo.get();
+
+		std::string value;
+		auto eret = m_wp->getEngineVendor(c, value);
+		if (eret != CSR_ERROR_NONE)
+			ThrowExc(EngineError, "Engine error on getting vendor. eret: " << eret);
+
+		EmString emString;
+		emString.value = std::move(value);
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+	}
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, EmString()).pop();
+
+	EXCEPTION_GUARD_END
+}
+
+RawBuffer Logic::getEngineVersion(const EmContext &context)
+{
+	EXCEPTION_GUARD_START
+
+	if (context.engineId == CSR_ENGINE_CS) {
+		CsEngineInfo engineInfo(m_cs);
+		auto &c = engineInfo.get();
+
+		std::string value;
+		auto eret = m_cs->getEngineVersion(c, value);
+		if (eret != CSR_ERROR_NONE)
+			ThrowExc(EngineError, "Engine error on getting version. eret: " << eret);
+
+		EmString emString;
+		emString.value = std::move(value);
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+	} else {
+		WpEngineInfo engineInfo(m_wp);
+		auto &c = engineInfo.get();
+
+		std::string value;
+		auto eret = m_wp->getEngineVersion(c, value);
+		if (eret != CSR_ERROR_NONE)
+			ThrowExc(EngineError, "Engine error on getting version. eret: " << eret);
+
+		EmString emString;
+		emString.value = std::move(value);
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+	}
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, EmString()).pop();
+
+	EXCEPTION_GUARD_END
+}
+
+RawBuffer Logic::getEngineDataVersion(const EmContext &context)
+{
+	EXCEPTION_GUARD_START
+
+	if (context.engineId == CSR_ENGINE_CS) {
+		CsEngineInfo engineInfo(m_cs);
+		auto &c = engineInfo.get();
+
+		std::string value;
+		auto eret = m_cs->getEngineDataVersion(c, value);
+		if (eret != CSR_ERROR_NONE)
+			ThrowExc(EngineError, "Engine error on getting data ver. eret: " << eret);
+
+		EmString emString;
+		emString.value = std::move(value);
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+	} else {
+		WpEngineInfo engineInfo(m_wp);
+		auto &c = engineInfo.get();
+
+		std::string value;
+		auto eret = m_wp->getEngineDataVersion(c, value);
+		if (eret != CSR_ERROR_NONE)
+			ThrowExc(EngineError, "Engine error on getting data ver. eret: " << eret);
+
+		EmString emString;
+		emString.value = std::move(value);
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+	}
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, EmString()).pop();
+
+	EXCEPTION_GUARD_END
+}
+
+RawBuffer Logic::getEngineUpdatedTime(const EmContext &context)
+{
+	EXCEPTION_GUARD_START
+
+	if (context.engineId == CSR_ENGINE_CS) {
+		CsEngineInfo engineInfo(m_cs);
+		auto &c = engineInfo.get();
+
+		time_t value;
+		auto eret = m_cs->getEngineLatestUpdateTime(c, &value);
+		if (eret != CSR_ERROR_NONE)
+			ThrowExc(EngineError, "Engine error on getting updated time. eret: " << eret);
+
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
+	} else {
+		WpEngineInfo engineInfo(m_wp);
+		auto &c = engineInfo.get();
+
+		time_t value;
+		auto eret = m_wp->getEngineLatestUpdateTime(c, &value);
+		if (eret != CSR_ERROR_NONE)
+			ThrowExc(EngineError, "Engine error on getting updated time. eret: " << eret);
+
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
+	}
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, -1).pop();
+
+	EXCEPTION_GUARD_END
+}
+
+RawBuffer Logic::getEngineActivated(const EmContext &context)
+{
+	EXCEPTION_GUARD_START
+
+	csr_activated_e activated = CSR_NOT_ACTIVATED;
+
+	if (context.engineId == CSR_ENGINE_CS) {
+		CsEngineInfo engineInfo(m_cs);
+		auto &c = engineInfo.get();
+
+		csre_cs_activated_e value;
+		auto eret = m_cs->getEngineActivated(c, &value);
+		if (eret != CSR_ERROR_NONE)
+			ThrowExc(EngineError, "Engine error on getting activated. eret: " << eret);
+
+		if (value == CSRE_CS_ACTIVATED)
+			activated = CSR_ACTIVATED;
+		else if (value == CSRE_CS_NOT_ACTIVATED)
+			activated = CSR_NOT_ACTIVATED;
+		else
+			ThrowExc(EngineError, "Invalid returned activated val: " <<
+					 static_cast<int>(value));
+	} else {
+		WpEngineInfo engineInfo(m_wp);
+		auto &c = engineInfo.get();
+
+		csre_wp_activated_e value;
+		auto eret = m_wp->getEngineActivated(c, &value);
+		if (eret != CSR_ERROR_NONE)
+			ThrowExc(EngineError, "Engine error on getting activated. eret: " << eret);
+
+		if (value == CSRE_WP_ACTIVATED)
+			activated = CSR_ACTIVATED;
+		else if (value == CSRE_WP_NOT_ACTIVATED)
+			activated = CSR_NOT_ACTIVATED;
+		else
+			ThrowExc(EngineError, "Invalid returned activated val: " <<
+					 static_cast<int>(value));
+	}
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, static_cast<int>(activated)).pop();
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, -1).pop();
+
+	EXCEPTION_GUARD_END
+}
+
+RawBuffer Logic::getEngineState(const EmContext &context)
+{
+	EXCEPTION_GUARD_START
+
+	auto state = m_db->getEngineState(static_cast<int>(context.engineId));
+
+	if (state == -1)
+		ThrowExc(DbFailed, "No engine state exist...");
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, state).pop();
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret, -1).pop();
+
+	EXCEPTION_GUARD_END
+}
+
+RawBuffer Logic::setEngineState(const EmContext &context, csr_state_e state)
+{
+	EXCEPTION_GUARD_START
+
+	m_db->setEngineState(static_cast<int>(context.engineId), static_cast<int>(state));
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret).pop();
+
+	EXCEPTION_GUARD_END
+}
+
 RawBuffer Logic::handleUserResponse(const CsDetected &d, FilePtr &&fileptr)
 {
 	switch (d.response) {

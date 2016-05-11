@@ -35,7 +35,6 @@ namespace Client {
 class Handle {
 public:
 	explicit Handle(SockId, ContextShPtr &&);
-	explicit Handle(SockId);
 	virtual ~Handle();
 
 	template<typename Type, typename ...Args>

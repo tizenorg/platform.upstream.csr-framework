@@ -23,8 +23,6 @@
 #define __CSR_ENGINE_MANAGER_H_
 
 #include <time.h>
-#include "csr/content-screening-types.h"
-#include "csr/web-protection-types.h"
 #include "csr/error.h"
 
 #ifdef __cplusplus
@@ -32,7 +30,6 @@ extern "C" {
 #endif
 
 typedef struct __csr_engine_h *csr_engine_h;
-
 
 /**
  * @brief Engine identifier
@@ -87,8 +84,8 @@ int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *pengine);
  *
  * @since_tizen 3.0
  *
- * @param[in]  engine  The engine information handle.
- * @param[out] vendor  A pointer of the engine's vendor name. A caller should not free it.
+ * @param[in]  engine   The engine information handle.
+ * @param[out] pvendor  A pointer of the engine's vendor name. A caller should not free it.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -100,7 +97,7 @@ int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *pengine);
  *
  * @see csr_get_current_engine()
  */
-int csr_engine_get_vendor(csr_engine_h engine, char **vendor);
+int csr_engine_get_vendor(csr_engine_h engine, const char **pvendor);
 
 /**
  * @brief Extracts an engine name from the engine information handle.
@@ -108,7 +105,7 @@ int csr_engine_get_vendor(csr_engine_h engine, char **vendor);
  * @since_tizen 3.0
  *
  * @param[in]  engine  The engine information handle.
- * @param[out] name    A pointer of the engine's name. A caller should not free it.
+ * @param[out] pname   A pointer of the engine's name. A caller should not free it.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -120,15 +117,15 @@ int csr_engine_get_vendor(csr_engine_h engine, char **vendor);
  *
  * @see csr_get_current_engine()
  */
-int csr_engine_get_name(csr_engine_h engine, char **name);
+int csr_engine_get_name(csr_engine_h engine, const char **pname);
 
 /**
  * @brief Extracts an engine version from the engine information handle.
  *
  * @since_tizen 3.0
  *
- * @param[in]  engine   An engine information handle.
- * @param[out] version  A pointer of the engine's version. A caller should not free it.
+ * @param[in]  engine    An engine information handle.
+ * @param[out] pversion  A pointer of the engine's version. A caller should not free it.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -140,15 +137,16 @@ int csr_engine_get_name(csr_engine_h engine, char **name);
  *
  * @see csr_get_current_engine()
  */
-int csr_engine_get_version(csr_engine_h engine, char **version);
+int csr_engine_get_version(csr_engine_h engine, const char **pversion);
 
 /**
  * @brief Extracts an engine's data version from the engine information handle.
  *
  * @since_tizen 3.0
  *
- * @param[in]  engine   The engine information handle.
- * @param[out] version  A pointer of the data version. It can be null. A caller should not free it.
+ * @param[in]  engine    The engine information handle.
+ * @param[out] pversion  A pointer of the data version. It can be null.
+ *                       A caller should not free it.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -160,7 +158,7 @@ int csr_engine_get_version(csr_engine_h engine, char **version);
  *
  * @see csr_get_current_engine()
  */
-int csr_engine_get_data_version(csr_engine_h engine, char **version);
+int csr_engine_get_data_version(csr_engine_h engine, const char **pversion);
 
 /**
  * @brief Extracts the latest update time of an engine from the engine information handle.
@@ -168,7 +166,7 @@ int csr_engine_get_data_version(csr_engine_h engine, char **version);
  * @since_tizen 3.0
  *
  * @param[in]  engine   The engine information handle.
- * @param[out] time     A pointer of lasted update time.
+ * @param[out] ptime    A pointer of lasted update time.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -180,7 +178,7 @@ int csr_engine_get_data_version(csr_engine_h engine, char **version);
  *
  * @see csr_get_current_engine()
  */
-int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *time);
+int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *ptime);
 
 /**
  * @brief Extracts the state of engine activation from the engine information handle.
@@ -231,7 +229,7 @@ int csr_engine_set_state(csr_engine_h engine, csr_state_e state);
  * @since_tizen 3.0
  *
  * @param[in]  engine      The engine information handle.
- * @param[out] pstate      The pointer of the engine state.
+ * @param[out] pstate      A pointer of the engine state.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -255,11 +253,7 @@ int csr_engine_get_state(csr_engine_h engine, csr_state_e *pstate);
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                  Successful
- * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_SOCKET                Socket error between client and server
- * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_INVALID_HANDLE        Invalid engine information handle
  */
 int csr_engine_destroy(csr_engine_h engine);
 

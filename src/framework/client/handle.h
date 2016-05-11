@@ -35,7 +35,7 @@ namespace Client {
 class Handle {
 public:
 	explicit Handle(SockId, ContextShPtr &&);
-	explicit Handle(SockId);
+	explicit Handle(SockId); // engine-manager has no context
 	virtual ~Handle();
 
 	template<typename Type, typename ...Args>

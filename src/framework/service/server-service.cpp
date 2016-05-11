@@ -123,6 +123,63 @@ RawBuffer ServerService::process(const ConnShPtr &, RawBuffer &data)
 		return m_logic.checkUrl(*cptr, url);
 	}
 
+	case CommandId::EM_GET_NAME: {
+		EmContextShPtr cptr;
+		q.Deserialize(cptr);
+
+		return m_logic.getEngineName(*cptr);
+	}
+
+	case CommandId::EM_GET_VENDOR: {
+		EmContextShPtr cptr;
+		q.Deserialize(cptr);
+
+		return m_logic.getEngineVendor(*cptr);
+	}
+
+	case CommandId::EM_GET_VERSION: {
+		EmContextShPtr cptr;
+		q.Deserialize(cptr);
+
+		return m_logic.getEngineVersion(*cptr);
+	}
+
+	case CommandId::EM_GET_DATA_VERSION: {
+		EmContextShPtr cptr;
+		q.Deserialize(cptr);
+
+		return m_logic.getEngineDataVersion(*cptr);
+	}
+
+	case CommandId::EM_GET_UPDATED_TIME: {
+		EmContextShPtr cptr;
+		q.Deserialize(cptr);
+
+		return m_logic.getEngineUpdatedTime(*cptr);
+	}
+
+	case CommandId::EM_GET_ACTIVATED: {
+		EmContextShPtr cptr;
+		q.Deserialize(cptr);
+
+		return m_logic.getEngineActivated(*cptr);
+	}
+
+	case CommandId::EM_GET_STATE: {
+		EmContextShPtr cptr;
+		q.Deserialize(cptr);
+
+		return m_logic.getEngineState(*cptr);
+	}
+
+	case CommandId::EM_SET_STATE: {
+		EmContextShPtr cptr;
+		int intState;
+		q.Deserialize(cptr, intState);
+
+		return m_logic.setEngineState(*cptr, static_cast<csr_state_e>(intState));
+	}
+
 	default:
 		ThrowExc(InternalError, "Command isn't in range: " << static_cast<int>(id));
 	}

@@ -154,7 +154,7 @@ int WpLoader::getEngineVersion(csre_wp_engine_h e, std::string &value)
 		ThrowExc(InvalidParam, "wp loader get engine version");
 
 	return getValueCstr(value, [&](const char **cvalue) {
-		return m_pc.fpGetEngineName(e, cvalue);
+		return m_pc.fpGetEngineVersion(e, cvalue);
 	});
 }
 

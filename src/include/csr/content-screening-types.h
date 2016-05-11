@@ -28,6 +28,7 @@ extern "C" {
 
 /**
  * @brief Severity level of a detected malware
+ * @since_tizen 3.0
  */
 typedef enum {
 	CSR_CS_SEVERITY_LOW    = 0x01,  /**< Low Severity. User can choose how to handle between skip, ignore and remove. */
@@ -37,6 +38,7 @@ typedef enum {
 
 /**
  * @brief the option of asking user about handling a detected malware
+ * @since_tizen 3.0
  */
 typedef enum {
 	CSR_CS_NOT_ASK_USER = 0x00, /**< Do not ask the user even if malicious contents were found.*/
@@ -45,6 +47,7 @@ typedef enum {
 
 /**
  * @brief the user response from popup
+ * @since_tizen 3.0
  */
 typedef enum {
 	CSR_CS_NO_ASK_USER            = 0x00, /**< No response from user. */
@@ -57,6 +60,7 @@ typedef enum {
 
 /**
  * @brief the action types for the detected malware files
+ * @since_tizen 3.0
  */
 typedef enum {
 	CSR_CS_ACTION_REMOVE   = 0x00,  /* Remove the detected malware file. */
@@ -66,6 +70,7 @@ typedef enum {
 
 /**
  * @brief Maximum core usage during scanning
+ * @since_tizen 3.0
  */
 typedef enum {
 	CSR_CS_USE_CORE_DEFAULT = 0x00,  /* Use default setting value. */
@@ -76,51 +81,60 @@ typedef enum {
 
 /**
  * @brief context handle of content screening APIs.
+ * @since_tizen 3.0
  */
 typedef struct __csr_cs_context_s *csr_cs_context_h;
 
 /**
  * @brief detected malware handle.
+ * @since_tizen 3.0
  */
 typedef struct __csr_cs_detected_s *csr_cs_detected_h;
 
 /**
  * @brief detected malware list handle.
+ * @since_tizen 3.0
  */
 typedef struct __csr_cs_detected_list_s *csr_cs_detected_list_h;
 
 /**
  * @brief engine info handle.
+ * @since_tizen 3.0
  */
 typedef struct __csr_cs_engine_s *csr_cs_engine_h;
 
 /**
  * @brief The callback function is called when a malware detected. \
  *        It's only for an asynchronous scan function.
+ * @since_tizen 3.0
  */
 typedef void (*csr_cs_on_detected_cb)(void *user_data, csr_cs_detected_h detected);
 
 /**
  * @brief The callback function is called when scanning is fininshed without an error. \
  *        It's only for an asynchronous scan function.
+ * @since_tizen 3.0
  */
 typedef void (*csr_cs_on_completed_cb)(void *user_data);
 
 /**
  * @brief The callback function is called when scanning is cancelled without an error. \
  *        It's only for an asynchronous scan function.
+ * @since_tizen 3.0
  */
 typedef void (*csr_cs_on_cancelled_cb)(void *user_data);
 
 /**
  * @brief The callback function is called when scanning is fininshed with an error. \
  *        It's only for an asynchronous scan function.
+ * @since_tizen 3.0
  */
 typedef void (*csr_cs_on_error_cb)(void *user_data, int error_code);
 
 /**
  * @brief The callback function is called when a file scanning is completed. \
  *        It's only for an asynchronous scan function.
+ * @since_tizen 3.0
  */
 typedef void (*csr_cs_on_file_scanned_cb)(void *user_data, const char *file_path);
 

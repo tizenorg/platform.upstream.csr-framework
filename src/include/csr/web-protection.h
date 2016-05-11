@@ -35,7 +35,9 @@ extern "C" {
 /**
  * @brief Initializes and returns a CSR Web Protection API handle.
  *
- * @details A Web Protection API handle (or CSR WP handle) is obtained using the
+ * @since_tizen 3.0
+ *
+ * @remarks A Web Protection API handle (or CSR WP handle) is obtained using the
  *          csr_wp_context_create(). The handle is required for subsequent CSR WP API
  *          calls. The csr_wp_context_destroy() releases/closes the handle. Multiple
  *          handles can be obtained using csr_wp_context_create().
@@ -60,6 +62,8 @@ int csr_wp_context_create(csr_wp_context_h *phandle);
 /**
  * @brief Releases all system resources associated with a CSR Web Protection API handle.
  *
+ * @since_tizen 3.0
+ *
  * @param[in] handle CSR WP context handle returned by csr_wp_context_create().
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
@@ -78,7 +82,9 @@ int csr_wp_context_destroy(csr_wp_context_h handle);
 /**
  * @brief Sets a popup option in case for a risky URL.
  *
- * @details If #CSR_WP_ASK_USER is set, a popup will be prompted to a user when a URL
+ * @since_tizen 3.0
+ *
+ * @remarks If #CSR_WP_ASK_USER is set, a popup will be prompted to a user when a URL
  *          turns out risky(#CSR_WP_RISK_MEDIUM or #CSR_WP_RISK_HIGH). If
  *          #CSR_WP_NOT_ASK_USER is set, no popup will be prompted even when a URL turns
  *          out risky. The default value of this option is #CSR_WP_ASK_USER.
@@ -100,7 +106,9 @@ int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user);
 /**
  * @brief Sets a popup message of a client in case for a risky URL.
  *
- * @details When a popup is prompted to a user, the message set by this method will be
+ * @since_tizen 3.0
+ *
+ * @remarks When a popup is prompted to a user, the message set by this method will be
  *          shown. When a client doesn't set his own popup message, the default message
  *          will be shown in the popup.
  *
@@ -123,7 +131,11 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
  * @brief Main function for caller to check URL reputation against the engine vendor's
  *        database.
  *
- * @details Checks whether accessing the URL is risky or not and returns a result handle
+ * @since_tizen 3.0
+ * @privlevel partner
+ * @privilege %http://tizen.org/privilege/antivirus.webprotect
+ *
+ * @remarks Checks whether accessing the URL is risky or not and returns a result handle
  *          with the Risk level for the URL. The system resources associated with the
  *          result handle will be released when csr_wp_context_destroy() is called.
  *
@@ -159,6 +171,8 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url,
 /**
  * @brief Extracts a risk level of the url from the result handle.
  *
+ * @since_tizen 3.0
+ *
  * @param[in]  result  A result handle returned by csr_wp_check_url().
  * @param[out] plevel  A pointer of the risk level for the given URL.
  *
@@ -177,6 +191,8 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result,
 /**
  * @brief Extracts an url of vendor's web site that contains detailed information about the risk
  *        from the result handle.
+ *
+ * @since_tizen 3.0
  *
  * @param[in]  result  A result handle returned by csr_wp_check_url().
  * @param[out] detailed_url  A pointer of an url that contains detailed information about the risk.
@@ -198,6 +214,8 @@ int csr_wp_result_get_detailed_url(csr_wp_check_result_h result,
 
 /**
  * @brief Extracts a user reponse of a popup from the result handle.
+ *
+ * @since_tizen 3.0
  *
  * @param[in]  result     A result handle returned by csr_wp_check_url().
  * @param[out] presponse  A pointer of the user response.

@@ -27,17 +27,20 @@ extern "C" {
 #endif
 
 /**
- * CSR WP context handle.
+ * @brief CSR WP context handle.
+ * @since_tizen 3.0
  */
 typedef struct __csr_wp_context_s *csr_wp_context_h;
 
 /**
- * CSR WP scan result handle.
+ * @brief CSR WP scan result handle.
+ * @since_tizen 3.0
  */
 typedef struct __csr_wp_check_result_h *csr_wp_check_result_h;
 
 /**
  * @brief the options about prompting a popup to a user.
+ * @since_tizen 3.0
  */
 typedef enum {
 	CSR_WP_NOT_ASK_USER = 0x00, /**< Do not ask the user even if a URL turns out risky.*/
@@ -46,6 +49,7 @@ typedef enum {
 
 /**
  * @brief the user response for a popup.
+ * @since_tizen 3.0
  */
 typedef enum {
 	CSR_WP_NO_ASK_USER           = 0x00, /**< There was no popup for asking the user. */
@@ -55,6 +59,7 @@ typedef enum {
 
 /**
  * @brief Risk level of a url
+ * @since_tizen 3.0
  */
 typedef enum {
 	CSR_WP_RISK_LOW        = 0x01,  /**< Risk Low. */

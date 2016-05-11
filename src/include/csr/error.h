@@ -36,6 +36,7 @@ extern "C" {
 
 /**
  * @brief Enumeration for CSR Errors.
+ * @since_tizen 3.0
  */
 typedef enum {
 	CSR_ERROR_NONE                  = TIZEN_ERROR_NONE,              /**< Successful */
@@ -60,6 +61,8 @@ typedef enum {
 
 /**
  * @brief get the error string for a given error code.
+ *
+ * @since_tizen 3.0
  *
  * @param[in]  error_code  An error code.
  * @param[out] string      A pointer of the error string. A caller should not free it.

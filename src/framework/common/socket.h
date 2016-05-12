@@ -24,13 +24,17 @@
 #include <string>
 
 #include "common/types.h"
+#include "common/socket-descriptor.h"
 
 namespace Csr {
 
 class Socket {
 public:
-	Socket(int fd = 0);
-	Socket(const std::string &path); /* Construct with systemd socket from path */
+	// Socket with accepted / connected
+	Socket(const SocketDescriptor &desc, int fd);
+
+	// Create systemd socket
+	Socket(const SocketDescriptor &desc);
 
 	Socket(const Socket &) = delete;
 	Socket &operator=(const Socket &) = delete;
@@ -41,15 +45,20 @@ public:
 	virtual ~Socket();
 
 	Socket accept(void) const;
-	int getFd(void) const;
+
+	const SocketDescriptor &getDesc(void) const noexcept;
+	int getFd(void) const noexcept;
 
 	RawBuffer read(void) const;
 	void write(const RawBuffer &data) const;
 
 	/* TODO: can it be constructor? */
-	static Socket connect(const std::string &path);
+	static Socket connect(const SocketDescriptor &desc);
 
 private:
+	// wanna be 'const SocketDescriptor &' but move assignment
+	// isn't implementable if do so
+	const SocketDescriptor *m_desc;
 	int m_fd;
 };
 

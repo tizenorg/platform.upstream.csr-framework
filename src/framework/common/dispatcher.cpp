@@ -27,7 +27,7 @@
 
 namespace Csr {
 
-Dispatcher::Dispatcher(const std::string &path) : m_address(path)
+Dispatcher::Dispatcher(const SocketDescriptor &desc) : m_desc(desc)
 {
 }
 
@@ -38,7 +38,7 @@ Dispatcher::~Dispatcher()
 
 void Dispatcher::connect()
 {
-	m_connection = std::make_shared<Connection>(Socket::connect(m_address));
+	m_connection = std::make_shared<Connection>(Socket::connect(m_desc));
 }
 
 void Dispatcher::disconnect()

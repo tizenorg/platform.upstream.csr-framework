@@ -1,0 +1,16 @@
+[Unit]
+Description=Csr admin socket
+Wants=@SERVICE_NAME@.service
+Before=@SERVICE_NAME@.service
+
+[Socket]
+ListenStream=/tmp/.@SERVICE_NAME@-admin.socket
+Service=@SERVICE_NAME@.service
+SocketMode=0777
+# smack access control on socket disabled shortly to fast development
+#SmackLabelIPIn=@SERVICE_NAME@-admin::api
+SmackLabelIPIn=*
+SmackLabelIPOut=@
+
+[Install]
+WantedBy=sockets.target

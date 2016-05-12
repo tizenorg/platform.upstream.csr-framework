@@ -34,9 +34,11 @@
 
 namespace Csr {
 
-ServerService::ServerService(const std::string &address) :
-	Service(address), m_workqueue(2, 10)
+ServerService::ServerService() : Service(), m_workqueue(2, 10)
 {
+	this->add(SockId::CS);
+	this->add(SockId::WP);
+	this->add(SockId::ADMIN);
 }
 
 ServerService::~ServerService()

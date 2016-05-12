@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 
 		setlocale(LC_ALL, vconf_get_str(VCONFKEY_LANGSET));
 
-		Csr::Ui::PopupService service("/tmp/." SERVICE_NAME "-popup.socket");
+		Csr::Ui::PopupService service;
 
 		// timeout when idle for 10 sec. If timeout time is too small and
 		// popup service wakes up repeatedly too quickly, it can be refused

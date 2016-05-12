@@ -36,7 +36,7 @@ AsyncLogic::AsyncLogic(HandleExt *handle, void *userdata,
 	m_cb(handle->m_cb),
 	m_userdata(userdata),
 	m_isStopped(isStopped),
-	m_dispatcher(new Dispatcher("/tmp/." SERVICE_NAME ".socket"))
+	m_dispatcher(new Dispatcher(getSockDesc(SockId::CS)))
 {
 	// disable ask user option for async request for now
 	copyKvp<int>(CsContext::Key::CoreUsage);

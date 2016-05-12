@@ -113,7 +113,7 @@ int csr_cs_context_create(csr_cs_context_h *phandle)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	*phandle = reinterpret_cast<csr_cs_context_h>(
-				   new Client::HandleExt(ContextShPtr(new CsContext())));
+				   new Client::HandleExt(SockId::CS, ContextShPtr(new CsContext())));
 
 	return CSR_ERROR_NONE;
 

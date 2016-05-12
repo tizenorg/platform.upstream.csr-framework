@@ -42,7 +42,7 @@ int csr_wp_context_create(csr_wp_context_h *phandle)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	*phandle = reinterpret_cast<csr_wp_context_h>(
-				   new Client::Handle(std::make_shared<WpContext>()));
+				   new Client::Handle(SockId::WP, std::make_shared<WpContext>()));
 
 	return CSR_ERROR_NONE;
 

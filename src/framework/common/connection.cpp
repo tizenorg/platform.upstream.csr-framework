@@ -58,7 +58,12 @@ RawBuffer Connection::receive() const
 	return m_socket.read();
 }
 
-int Connection::getFd() const
+const SocketDescriptor &Connection::getDesc() const noexcept
+{
+	return m_socket.getDesc();
+}
+
+int Connection::getFd() const noexcept
 {
 	return m_socket.getFd();
 }

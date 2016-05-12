@@ -32,7 +32,7 @@ namespace Ui {
 
 class PopupService : public Service {
 public:
-	PopupService(const std::string &address);
+	PopupService();
 	virtual ~PopupService();
 
 private:

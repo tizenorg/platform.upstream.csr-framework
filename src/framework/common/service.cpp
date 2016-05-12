@@ -21,6 +21,8 @@
  */
 #include "common/service.h"
 
+#include <vector>
+#include <utility>
 #include <sys/types.h>
 #include <sys/epoll.h>
 
@@ -29,10 +31,8 @@
 
 namespace Csr {
 
-Service::Service(const std::string &address) : m_address(address)
+Service::Service()
 {
-	DEBUG("Service constructed with address[" << address << "]");
-
 	setNewConnectionCallback(nullptr);
 	setCloseConnectionCallback(nullptr);
 }
@@ -41,29 +41,35 @@ Service::~Service()
 {
 }
 
+void Service::add(const SockId &id)
+{
+	m_sockIds.insert(id);
+}
+
 void Service::start(int timeout)
 {
 	INFO("Service start!");
 
-	Socket socket(m_address);
+	std::vector<std::shared_ptr<Socket>> sockets;
 
-	DEBUG("Get systemd socket[" << socket.getFd()
-		  << "] with address[" << m_address << "]");
+	for (const auto &id : m_sockIds) {
+		auto socket = std::make_shared<Socket>(getSockDesc(id));
 
-	m_loop.addEventSource(socket.getFd(), EPOLLIN | EPOLLHUP | EPOLLRDHUP,
-	[&](uint32_t event) {
-		if (event != EPOLLIN)
-			return;
+		DEBUG("Get systemd socket[" << socket->getFd()
+			  << "] with address[" << getSockDesc(id).path << "]");
 
-		m_onNewConnection(std::make_shared<Connection>(socket.accept()));
-	});
+		m_loop.addEventSource(socket->getFd(), EPOLLIN | EPOLLHUP | EPOLLRDHUP,
+		[this, socket](uint32_t event) {
+			if (event != EPOLLIN)
+				return;
+
+			this->m_onNewConnection(std::make_shared<Connection>(socket->accept()));
+		});
+
+		sockets.emplace_back(std::move(socket));
+	}
 
 	m_loop.run(timeout);
-}
-
-void Service::stop()
-{
-	INFO("Service stop!");
 }
 
 void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)

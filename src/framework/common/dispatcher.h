@@ -30,7 +30,7 @@ namespace Csr {
 
 class Dispatcher {
 public:
-	Dispatcher(const std::string &path);
+	Dispatcher(const SocketDescriptor &desc);
 	virtual ~Dispatcher();
 
 	Dispatcher(const Dispatcher &) = delete;
@@ -46,7 +46,7 @@ private:
 	void connect(void);
 	void disconnect(void);
 
-	std::string m_address;
+	const SocketDescriptor &m_desc;
 	ConnShPtr m_connection;
 };
 

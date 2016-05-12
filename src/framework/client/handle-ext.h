@@ -39,7 +39,7 @@ namespace Client {
 
 class HandleExt : public Handle {
 public:
-	explicit HandleExt(ContextShPtr &&);
+	explicit HandleExt(SockId id, ContextShPtr &&);
 	virtual ~HandleExt();
 
 	void dispatchAsync(const Task &task);

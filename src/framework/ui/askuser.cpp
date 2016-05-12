@@ -26,9 +26,9 @@
 namespace Csr {
 namespace Ui {
 
-AskUser::AskUser() : m_address("/tmp/." SERVICE_NAME "-popup.socket")
+AskUser::AskUser()
 {
-	m_dispatcher.reset(new Dispatcher(m_address));
+	m_dispatcher.reset(new Dispatcher(SockId::POPUP));
 }
 
 AskUser::~AskUser()

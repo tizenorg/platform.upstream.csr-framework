@@ -23,9 +23,11 @@
 
 #include <string>
 #include <functional>
+#include <set>
 
 #include "common/connection.h"
 #include "common/mainloop.h"
+#include "common/socket-descriptor.h"
 
 namespace Csr {
 
@@ -33,7 +35,7 @@ using ConnCallback = std::function<void(const ConnShPtr &)>;
 
 class Service {
 public:
-	Service(const std::string &address);
+	Service();
 	virtual ~Service();
 
 	Service(const Service &) = delete;
@@ -41,8 +43,8 @@ public:
 	Service(Service &&) = delete;
 	Service &operator=(Service &&) = delete;
 
+	virtual void add(const SockId &) final;
 	virtual void start(int timeout) final;
-	virtual void stop(void) final;
 
 	/* ConnCallback param should throw exception to handle error */
 	virtual void setNewConnectionCallback(const ConnCallback &) final;
@@ -56,7 +58,8 @@ private:
 
 	std::unordered_map<int, ConnShPtr> m_connectionRegistry;
 	Mainloop m_loop;
-	std::string m_address;
+
+	std::set<SockId> m_sockIds;
 };
 
 }

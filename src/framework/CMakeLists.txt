@@ -39,6 +39,7 @@ SET(${TARGET_CSR_COMMON}_SRCS
 	common/mainloop.cpp
 	common/service.cpp
 	common/socket.cpp
+	common/socket-descriptor.cpp
 	common/credential.cpp
 )
 

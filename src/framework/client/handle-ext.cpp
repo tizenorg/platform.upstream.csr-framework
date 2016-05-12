@@ -31,8 +31,8 @@
 namespace Csr {
 namespace Client {
 
-HandleExt::HandleExt(ContextShPtr &&context) :
-	Handle(std::move(context)),
+HandleExt::HandleExt(SockId id, ContextShPtr &&context) :
+	Handle(id, std::move(context)),
 	m_stop(false)
 {
 }

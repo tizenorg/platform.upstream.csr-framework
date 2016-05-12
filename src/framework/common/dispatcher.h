@@ -30,7 +30,7 @@ namespace Csr {
 
 class Dispatcher {
 public:
-	Dispatcher(const std::string &path);
+	Dispatcher(SockId);
 	virtual ~Dispatcher();
 
 	Dispatcher(const Dispatcher &) = delete;
@@ -46,7 +46,7 @@ private:
 	void connect(void);
 	void disconnect(void);
 
-	std::string m_address;
+	SockId m_sockId;
 	ConnShPtr m_connection;
 };
 

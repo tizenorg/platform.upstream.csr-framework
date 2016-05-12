@@ -58,7 +58,12 @@ RawBuffer Connection::receive() const
 	return m_socket.read();
 }
 
-int Connection::getFd() const
+SockId Connection::getSockId() const noexcept
+{
+	return m_socket.getSockId();
+}
+
+int Connection::getFd() const noexcept
 {
 	return m_socket.getFd();
 }

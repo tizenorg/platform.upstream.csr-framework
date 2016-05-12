@@ -623,8 +623,8 @@ int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected,
  * @brief Judges how a detected malware file is handled.
  *
  * @since_tizen 3.0
- * @privlevel partner
- * @privilege %http://tizen.org/privilege/antivirus.scan
+ * @privlevel platform
+ * @privilege %http://tizen.org/privilege/antivirus.admin
  *
  * @remarks  A detected malware may be removed or ignored. When action is
  *           #CSR_CS_ACTION_REMOVE, the detected malware file will be removed. If a

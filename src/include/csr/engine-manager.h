@@ -62,8 +62,6 @@ typedef enum {
  * @brief Gets the handle of a current engine information.
  *
  * @since_tizen 3.0
- * @privlevel platform
- * @privilege %http://tizen.org/privilege/antivirus.admin
  *
  * @param[in]  id       Engine identifier to get handle.
  * @param[out] pengine  A pointer of the engine information handle.
@@ -83,6 +81,8 @@ int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *pengine);
  * @brief Extracts an vendor name from the engine information handle.
  *
  * @since_tizen 3.0
+ * @privlevel platform
+ * @privilege %http://tizen.org/privilege/antivirus.admin
  *
  * @param[in]  engine   The engine information handle.
  * @param[out] pvendor  A pointer of the engine's vendor name. A caller should not free it.
@@ -103,6 +103,8 @@ int csr_engine_get_vendor(csr_engine_h engine, const char **pvendor);
  * @brief Extracts an engine name from the engine information handle.
  *
  * @since_tizen 3.0
+ * @privlevel platform
+ * @privilege %http://tizen.org/privilege/antivirus.admin
  *
  * @param[in]  engine  The engine information handle.
  * @param[out] pname   A pointer of the engine's name. A caller should not free it.
@@ -123,6 +125,8 @@ int csr_engine_get_name(csr_engine_h engine, const char **pname);
  * @brief Extracts an engine version from the engine information handle.
  *
  * @since_tizen 3.0
+ * @privlevel platform
+ * @privilege %http://tizen.org/privilege/antivirus.admin
  *
  * @param[in]  engine    An engine information handle.
  * @param[out] pversion  A pointer of the engine's version. A caller should not free it.
@@ -143,6 +147,8 @@ int csr_engine_get_version(csr_engine_h engine, const char **pversion);
  * @brief Extracts an engine's data version from the engine information handle.
  *
  * @since_tizen 3.0
+ * @privlevel platform
+ * @privilege %http://tizen.org/privilege/antivirus.admin
  *
  * @param[in]  engine    The engine information handle.
  * @param[out] pversion  A pointer of the data version. It can be null.
@@ -164,6 +170,8 @@ int csr_engine_get_data_version(csr_engine_h engine, const char **pversion);
  * @brief Extracts the latest update time of an engine from the engine information handle.
  *
  * @since_tizen 3.0
+ * @privlevel platform
+ * @privilege %http://tizen.org/privilege/antivirus.admin
  *
  * @param[in]  engine   The engine information handle.
  * @param[out] ptime    A pointer of lasted update time.
@@ -184,6 +192,8 @@ int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *ptime);
  * @brief Extracts the state of engine activation from the engine information handle.
  *
  * @since_tizen 3.0
+ * @privlevel platform
+ * @privilege %http://tizen.org/privilege/antivirus.admin
  *
  * @param[in]  engine      The engine information handle.
  * @param[out] pactivated  A pointer of the engine activation state.
@@ -227,6 +237,8 @@ int csr_engine_set_state(csr_engine_h engine, csr_state_e state);
  * @brief Get the engine state.
  *
  * @since_tizen 3.0
+ * @privlevel platform
+ * @privilege %http://tizen.org/privilege/antivirus.admin
  *
  * @param[in]  engine      The engine information handle.
  * @param[out] pstate      A pointer of the engine state.

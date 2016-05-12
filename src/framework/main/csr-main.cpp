@@ -28,7 +28,7 @@ int main(void)
 	try {
 		INFO("Start csr-server main!");
 
-		Csr::ServerService service("/tmp/." SERVICE_NAME ".socket");
+		Csr::ServerService service;
 
 		INFO("Let's start csr-server service!");
 

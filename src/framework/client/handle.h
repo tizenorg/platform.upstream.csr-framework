@@ -27,13 +27,15 @@
 
 #include "common/icontext.h"
 #include "common/dispatcher.h"
+#include "common/socket-descriptor.h"
 
 namespace Csr {
 namespace Client {
 
 class Handle {
 public:
-	explicit Handle(ContextShPtr &&);
+	explicit Handle(SockId, ContextShPtr &&);
+	explicit Handle(SockId);
 	virtual ~Handle();
 
 	template<typename Type, typename ...Args>
@@ -50,6 +52,7 @@ protected:
 	std::vector<ResultListPtr> m_resultLists;
 
 private:
+	SockId m_sockId;
 	std::unique_ptr<Dispatcher> m_dispatcher;
 	ContextShPtr m_ctx;
 };
@@ -58,7 +61,7 @@ template<typename Type, typename ...Args>
 Type Handle::dispatch(Args &&...args)
 {
 	if (m_dispatcher == nullptr)
-		m_dispatcher.reset(new Dispatcher("/tmp/." SERVICE_NAME ".socket"));
+		m_dispatcher.reset(new Dispatcher(m_sockId));
 
 	return m_dispatcher->methodCall<Type>(std::forward<Args>(args)...);
 }

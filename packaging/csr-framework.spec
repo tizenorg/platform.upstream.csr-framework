@@ -115,7 +115,9 @@ make %{?jobs:-j%jobs}
 mkdir -p %{buildroot}%{_unitdir}/multi-user.target.wants
 mkdir -p %{buildroot}%{_unitdir}/sockets.target.wants
 ln -s ../%{service_name}.service %{buildroot}%{_unitdir}/multi-user.target.wants/%{service_name}.service
-ln -s ../%{service_name}.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}.socket
+ln -s ../%{service_name}-cs.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}-cs.socket
+ln -s ../%{service_name}-wp.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}-wp.socket
+ln -s ../%{service_name}-admin.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}-admin.socket
 ln -s ../%{service_name}-popup.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}-popup.socket
 
 mkdir -p %{buildroot}%{ro_data_dir}/license
@@ -134,21 +136,27 @@ cp data/scripts/*.sql %{buildroot}%{ro_db_dir}
 %post
 systemctl daemon-reload
 if [ $1 = 1 ]; then
-    systemctl start %{service_name}.socket
-    systemctl start %{service_name}.service
+    systemctl start %{service_name}-cs.socket
+    systemctl start %{service_name}-wp.socket
+    systemctl start %{service_name}-admin.socket
     systemctl start %{service_name}-popup.socket
+    systemctl start %{service_name}.service
 fi
 
 if [ $1 = 2 ]; then
-    systemctl restart %{service_name}.socket
-    systemctl restart %{service_name}.service
+    systemctl restart %{service_name}-cs.socket
+    systemctl restart %{service_name}-wp.socket
+    systemctl restart %{service_name}-admin.socket
     systemctl restart %{service_name}-popup.socket
+    systemctl restart %{service_name}.service
 fi
 
 %preun
 if [ $1 = 0 ]; then
     systemctl stop %{service_name}.service
-    systemctl stop %{service_name}.socket
+    systemctl stop %{service_name}-cs.socket
+    systemctl stop %{service_name}-wp.socket
+    systemctl stop %{service_name}-admin.socket
     systemctl stop %{service_name}-popup.socket
 fi
 
@@ -171,10 +179,14 @@ fi
 %{bin_dir}/%{service_name}-popup
 %{_unitdir}/multi-user.target.wants/%{service_name}.service
 %{_unitdir}/%{service_name}.service
-%{_unitdir}/sockets.target.wants/%{service_name}.socket
-%{_unitdir}/%{service_name}.socket
 %{_unitdir}/%{service_name}-popup.service
+%{_unitdir}/sockets.target.wants/%{service_name}-cs.socket
+%{_unitdir}/sockets.target.wants/%{service_name}-wp.socket
+%{_unitdir}/sockets.target.wants/%{service_name}-admin.socket
 %{_unitdir}/sockets.target.wants/%{service_name}-popup.socket
+%{_unitdir}/%{service_name}-cs.socket
+%{_unitdir}/%{service_name}-wp.socket
+%{_unitdir}/%{service_name}-admin.socket
 %{_unitdir}/%{service_name}-popup.socket
 
 %dir %{ro_data_dir}/%{service_name}

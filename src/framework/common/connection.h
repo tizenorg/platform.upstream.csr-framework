@@ -43,7 +43,9 @@ public:
 
 	void send(const RawBuffer &) const;
 	RawBuffer receive(void) const;
-	int getFd(void) const;
+
+	SockId getSockId(void) const noexcept;
+	int getFd(void) const noexcept;
 	const Credential &getCredential();
 
 private:

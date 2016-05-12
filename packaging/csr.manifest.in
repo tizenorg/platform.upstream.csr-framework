@@ -19,7 +19,7 @@
 			<smack request="pkgmgr::db" type="rwx" />
 		</request>
 		<permit>
-			<smack permit="_" type="rx" />
+			<smack permit="_" type="rwx" />
 			<smack permit="xorg" type="rx" />
 			<smack permit="pkgmgr" type="rx" />
 			<smack permit="pkgmgr-server" type="rx" />

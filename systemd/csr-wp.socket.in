@@ -1,14 +1,14 @@
 [Unit]
-Description=Csr framework socket
+Description=Csr web protection socket
 Wants=@SERVICE_NAME@.service
 Before=@SERVICE_NAME@.service
 
 [Socket]
-ListenStream=/tmp/.@SERVICE_NAME@.socket
+ListenStream=/tmp/.@SERVICE_NAME@-wp.socket
 Service=@SERVICE_NAME@.service
 SocketMode=0777
 # smack access control on socket disabled shortly to fast development
-#SmackLabelIPIn=@SERVICE_NAME@::api
+#SmackLabelIPIn=@SERVICE_NAME@-wp::api
 SmackLabelIPIn=*
 SmackLabelIPOut=@
 

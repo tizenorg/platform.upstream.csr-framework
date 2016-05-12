@@ -14,49 +14,33 @@
  *  limitations under the License
  */
 /*
- * @file        handle.cpp
+ * @file        socket-descriptor.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       Client request handle with dispatcher in it
+ * @brief       Socket path and privileges
  */
-#include "client/handle.h"
+#pragma once
 
-#include <utility>
-
-#include "common/exception.h"
+#include <map>
+#include <string>
 
 namespace Csr {
-namespace Client {
 
-Handle::Handle(SockId id, ContextShPtr &&context) :
-	m_sockId(id), m_ctx(std::forward<ContextShPtr>(context))
-{
-	if (!m_ctx)
-		ThrowExc(InvalidParam, "context shouldn't be null");
+enum class SockId : int {
+	CS    = 0x01, // Content scanning
+	WP    = 0x02, // Web protection
+	ADMIN = 0x03, // Admin which controls engine
+	POPUP = 0x04, // Popup service
+};
+
+struct SocketDescriptor {
+	const std::string path;
+	const std::string privilege;
+
+	SocketDescriptor() {}
+	SocketDescriptor(const std::string &path, const std::string &priv);
+};
+
+const SocketDescriptor &getSockDesc(const SockId &);
+
 }
-
-Handle::Handle(SockId id) : m_sockId(id)
-{
-}
-
-Handle::~Handle()
-{
-}
-
-ContextShPtr &Handle::getContext() noexcept
-{
-	return m_ctx;
-}
-
-void Handle::add(ResultPtr &&ptr)
-{
-	m_results.emplace_back(std::forward<ResultPtr>(ptr));
-}
-
-void Handle::add(ResultListPtr &&ptr)
-{
-	m_resultLists.emplace_back(std::forward<ResultListPtr>(ptr));
-}
-
-} // namespace Client
-} // namespace Csr

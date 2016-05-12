@@ -30,7 +30,7 @@ namespace Csr {
 
 class ServerService : public Service {
 public:
-	ServerService(const std::string &address);
+	ServerService();
 	virtual ~ServerService();
 
 private:

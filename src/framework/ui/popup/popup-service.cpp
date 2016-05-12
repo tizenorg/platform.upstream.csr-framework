@@ -53,8 +53,9 @@ bool isCsCommand(const CommandId &cid)
 
 } // namespace nonymous
 
-PopupService::PopupService(const std::string &address) : Service(address)
+PopupService::PopupService() : Service()
 {
+	this->add(SockId::POPUP);
 }
 
 PopupService::~PopupService()

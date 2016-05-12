@@ -35,38 +35,41 @@ namespace Csr {
 
 namespace {
 
+int g_sd_listen_fds = -1;
+
 int createSystemdSocket(const std::string &path)
 {
-	int n = ::sd_listen_fds(-1);
+	if (g_sd_listen_fds == -1)
+		g_sd_listen_fds = ::sd_listen_fds(0);
 
-	if (n < 0)
+	if (g_sd_listen_fds < 0)
 		ThrowExc(SocketError, "failed to sd_listen_fds");
 
-	for (int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START + n; ++fd) {
+	for (int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START + g_sd_listen_fds; ++fd) {
 		if (::sd_is_socket_unix(fd, SOCK_STREAM, 1, path.c_str(), 0) > 0) {
 			INFO("service's systemd socket found with fd: " << fd);
 			return fd;
 		}
 	}
 
-	ThrowExc(SocketError, "get systemd socket failed!");
+	ThrowExc(SocketError, "No useable socket were passed by systemd. path: " << path);
 }
 
 } // namespace anonymous
 
-Socket::Socket(int fd) : m_fd(fd)
+Socket::Socket(SockId sockId, int fd) : m_sockId(sockId), m_fd(fd)
 {
-	if (m_fd < 0)
+	if (this->m_fd < 0)
 		ThrowExc(SocketError, "Socket fd from constructor is invalid!!");
 }
 
-Socket::Socket(const std::string &path) : m_fd(createSystemdSocket(path))
+Socket::Socket(SockId sockId) : m_sockId(sockId)
 {
+	this->m_fd = createSystemdSocket(getSockDesc(this->m_sockId).path);
 }
 
-Socket::Socket(Socket &&other)
+Socket::Socket(Socket &&other) : m_sockId(other.m_sockId), m_fd(other.m_fd)
 {
-	m_fd = other.m_fd;
 	other.m_fd = 0;
 }
 
@@ -75,6 +78,7 @@ Socket &Socket::operator=(Socket &&other)
 	if (this == &other)
 		return *this;
 
+	m_sockId = other.m_sockId;
 	m_fd = other.m_fd;
 	other.m_fd = 0;
 
@@ -90,20 +94,23 @@ Socket::~Socket()
 	::close(m_fd);
 }
 
-Socket Socket::accept() const
+Socket Socket::accept(void) const
 {
 	int fd = ::accept(m_fd, nullptr, nullptr);
 
 	if (fd < 0)
-		ThrowExc(SocketError, "socket accept failed with errno: " << errno);
+		ThrowExc(SocketError, "socket on fd[" << m_fd << "] accept failed "
+				 "with errno: " << errno);
 
 	INFO("Accept client success with fd: " << fd);
 
-	return Socket(fd);
+	return Socket(m_sockId, fd);
 }
 
-Socket Socket::connect(const std::string &path)
+Socket Socket::connect(SockId sockId)
 {
+	const auto &path = getSockDesc(sockId).path;
+
 	if (path.size() >= sizeof(sockaddr_un::sun_path))
 		ThrowExc(InternalError, "socket path size too long!");
 
@@ -119,14 +126,20 @@ Socket Socket::connect(const std::string &path)
 
 	if (::connect(fd, reinterpret_cast<sockaddr *>(&addr),
 				  sizeof(sockaddr_un)) == -1)
-		ThrowExc(SocketError, "Socket connect failed with errno: " << errno);
+		ThrowExc(SocketError, "Socket[" << path << "] connect failed "
+				 "with errno: " << errno);
 
 	INFO("Connect to CSR server success with fd:" << fd);
 
-	return Socket(fd);
+	return Socket(sockId, fd);
 }
 
-int Socket::getFd() const
+SockId Socket::getSockId(void) const noexcept
+{
+	return m_sockId;
+}
+
+int Socket::getFd(void) const noexcept
 {
 	return m_fd;
 }

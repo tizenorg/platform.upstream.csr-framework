@@ -18,9 +18,14 @@
 #
 FIND_PACKAGE(Threads REQUIRED)
 ADD_DEFINITIONS("-DBOOST_TEST_DYN_LINK")
+ADD_DEFINITIONS("-DTEST_TARGET=\"${TEST_TARGET}\"")
+
 
 PKG_CHECK_MODULES(${TARGET_CSR_TEST}_DEP
 	REQUIRED
+	glib-2.0
+	pkgmgr
+	pkgmgr-info
 )
 
 SET(${TARGET_CSR_TEST}_SRCS
@@ -33,6 +38,7 @@ SET(${TARGET_CSR_TEST}_SRCS
 	test-api-engine-web-protection.cpp
 	test-main.cpp
 	test-common.cpp
+	test-helper.cpp
 )
 
 INCLUDE_DIRECTORIES(

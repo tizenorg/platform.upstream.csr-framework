@@ -25,7 +25,7 @@
 #include <utility>
 
 #include "common/audit/logger.h"
-#include "common/exception.h"
+#include "service/engine-error-converter.h"
 #include "csr/error.h"
 
 namespace Csr {
@@ -38,30 +38,22 @@ EmLogic::EmLogic() :
 	m_db(new Db::Manager(RW_DBSPACE "/.csr.db", RO_DBSPACE))
 {
 	// TODO: Provide engine-specific res/working dirs
-	int ret = m_cs->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
-							   SAMPLE_ENGINE_RW_WORKING_DIR);
+	toException(m_cs->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
+								 SAMPLE_ENGINE_RW_WORKING_DIR));
 
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "global init cs engine. ret: " << ret);
-
-	ret = m_wp->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
-						   SAMPLE_ENGINE_RW_WORKING_DIR);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "global init wp engine. ret: " << ret);
+	toException(m_wp->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
+								 SAMPLE_ENGINE_RW_WORKING_DIR));
 }
 
 EmLogic::~EmLogic()
 {
-	int ret = m_cs->globalDeinit();
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "global deinit cs engine. ret: " << ret);
-
-	ret = m_wp->globalDeinit();
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "global deinit wp engine. ret: " << ret);
+	try {
+		toException(m_cs->globalDeinit());
+		toException(m_wp->globalDeinit());
+	} catch (const Exception &e) {
+		ERROR("ignore all custom exceptions in logic dtor: " << e.error() <<
+			  " " << e.what());
+	}
 }
 
 // TODO: make parent class of cs-loader and wp-loader for
@@ -75,9 +67,7 @@ RawBuffer EmLogic::getEngineName(const EmContext &context)
 		auto &c = engineInfo.get();
 
 		std::string value;
-		auto eret = m_cs->getEngineName(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting name. eret: " << eret);
+		toException(m_cs->getEngineName(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
@@ -87,9 +77,7 @@ RawBuffer EmLogic::getEngineName(const EmContext &context)
 		auto &c = engineInfo.get();
 
 		std::string value;
-		auto eret = m_wp->getEngineName(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting name. eret: " << eret);
+		toException(m_wp->getEngineName(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
@@ -112,9 +100,7 @@ RawBuffer EmLogic::getEngineVendor(const EmContext &context)
 		auto &c = engineInfo.get();
 
 		std::string value;
-		auto eret = m_cs->getEngineVendor(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting vendor. eret: " << eret);
+		toException(m_cs->getEngineVendor(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
@@ -124,9 +110,7 @@ RawBuffer EmLogic::getEngineVendor(const EmContext &context)
 		auto &c = engineInfo.get();
 
 		std::string value;
-		auto eret = m_wp->getEngineVendor(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting vendor. eret: " << eret);
+		toException(m_wp->getEngineVendor(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
@@ -149,9 +133,7 @@ RawBuffer EmLogic::getEngineVersion(const EmContext &context)
 		auto &c = engineInfo.get();
 
 		std::string value;
-		auto eret = m_cs->getEngineVersion(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting version. eret: " << eret);
+		toException(m_cs->getEngineVersion(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
@@ -161,9 +143,7 @@ RawBuffer EmLogic::getEngineVersion(const EmContext &context)
 		auto &c = engineInfo.get();
 
 		std::string value;
-		auto eret = m_wp->getEngineVersion(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting version. eret: " << eret);
+		toException(m_wp->getEngineVersion(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
@@ -186,9 +166,7 @@ RawBuffer EmLogic::getEngineDataVersion(const EmContext &context)
 		auto &c = engineInfo.get();
 
 		std::string value;
-		auto eret = m_cs->getEngineDataVersion(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting data ver. eret: " << eret);
+		toException(m_cs->getEngineDataVersion(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
@@ -198,9 +176,7 @@ RawBuffer EmLogic::getEngineDataVersion(const EmContext &context)
 		auto &c = engineInfo.get();
 
 		std::string value;
-		auto eret = m_wp->getEngineDataVersion(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting data ver. eret: " << eret);
+		toException(m_wp->getEngineDataVersion(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
@@ -223,9 +199,7 @@ RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 		auto &c = engineInfo.get();
 
 		time_t value;
-		auto eret = m_cs->getEngineLatestUpdateTime(c, &value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting updated time. eret: " << eret);
+		toException(m_cs->getEngineLatestUpdateTime(c, &value));
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	} else {
@@ -233,9 +207,7 @@ RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 		auto &c = engineInfo.get();
 
 		time_t value;
-		auto eret = m_wp->getEngineLatestUpdateTime(c, &value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting updated time. eret: " << eret);
+		toException(m_wp->getEngineLatestUpdateTime(c, &value));
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
@@ -258,9 +230,7 @@ RawBuffer EmLogic::getEngineActivated(const EmContext &context)
 		auto &c = engineInfo.get();
 
 		csre_cs_activated_e value;
-		auto eret = m_cs->getEngineActivated(c, &value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting activated. eret: " << eret);
+		toException(m_cs->getEngineActivated(c, &value));
 
 		if (value == CSRE_CS_ACTIVATED)
 			activated = CSR_ACTIVATED;
@@ -274,9 +244,7 @@ RawBuffer EmLogic::getEngineActivated(const EmContext &context)
 		auto &c = engineInfo.get();
 
 		csre_wp_activated_e value;
-		auto eret = m_wp->getEngineActivated(c, &value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting activated. eret: " << eret);
+		toException(m_wp->getEngineActivated(c, &value));
 
 		if (value == CSRE_WP_ACTIVATED)
 			activated = CSR_ACTIVATED;

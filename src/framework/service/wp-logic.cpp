@@ -24,8 +24,8 @@
 #include <utility>
 
 #include "common/audit/logger.h"
-#include "common/exception.h"
 #include "service/type-converter.h"
+#include "service/engine-error-converter.h"
 #include "ui/askuser.h"
 #include "csr/error.h"
 
@@ -34,25 +34,21 @@ namespace Csr {
 WpLogic::WpLogic() : m_loader(new WpLoader(WP_ENGINE_PATH))
 {
 	// TODO: Provide engine-specific res/working dirs
-	int ret = m_loader->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
-								   SAMPLE_ENGINE_RW_WORKING_DIR);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "global init wp engine. ret: " << ret);
+	toException(m_loader->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
+									 SAMPLE_ENGINE_RW_WORKING_DIR));
 
 	WpEngineInfo wpEngineInfo(*m_loader);
-	ret = m_loader->getEngineDataVersion(wpEngineInfo.get(), m_dataVersion);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "get wp engine data version. ret: " << ret);
+	toException(m_loader->getEngineDataVersion(wpEngineInfo.get(), m_dataVersion));
 }
 
 WpLogic::~WpLogic()
 {
-	int ret = m_loader->globalDeinit();
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "global deinit wp engine. ret: " << ret);
+	try {
+		toException(m_loader->globalDeinit());
+	} catch (const Exception &e) {
+		ERROR("ignore all custom exceptions in logic dtor: " << e.error() <<
+			  " " << e.what());
+	}
 }
 
 RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
@@ -63,12 +59,7 @@ RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
 	auto &c = engineContext.get();
 
 	csre_wp_check_result_h result;
-	int eret = m_loader->checkUrl(c, url.c_str(), &result);
-
-	if (eret != CSRE_ERROR_NONE) {
-		ERROR("Engine error. engine api ret: " << eret);
-		return BinaryQueue::Serialize(CSR_ERROR_ENGINE_INTERNAL, WpResult()).pop();
-	}
+	toException(m_loader->checkUrl(c, url.c_str(), &result));
 
 	auto wr = convert(result);
 
@@ -133,21 +124,11 @@ WpResult WpLogic::convert(csre_wp_check_result_h &r)
 	DEBUG("convert engine result handle to WpResult start");
 
 	WpResult wr;
-
-	// getting risk level
 	csre_wp_risk_level_e elevel;
-	int eret = m_loader->getRiskLevel(r, &elevel);
 
-	if (eret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "getting risk level of wp result. ret: " << eret);
-
+	toException(m_loader->getDetailedUrl(r, wr.detailedUrl));
+	toException(m_loader->getRiskLevel(r, &elevel));
 	wr.riskLevel = Csr::convert(elevel);
-
-	// getting detailed url
-	eret = m_loader->getDetailedUrl(r, wr.detailedUrl);
-
-	if (eret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "getting detailed url of wp result. ret: " << eret);
 
 	return wr;
 }

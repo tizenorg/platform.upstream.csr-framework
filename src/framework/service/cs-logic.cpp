@@ -27,8 +27,8 @@
 #include <climits>
 
 #include "common/audit/logger.h"
-#include "common/exception.h"
 #include "service/type-converter.h"
+#include "service/engine-error-converter.h"
 #include "ui/askuser.h"
 #include "csr/error.h"
 
@@ -39,26 +39,21 @@ CsLogic::CsLogic() :
 	m_db(new Db::Manager(RW_DBSPACE "/.csr.db", RO_DBSPACE))
 {
 	// TODO: Provide engine-specific res/working dirs
-	int ret = m_loader->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
-							   SAMPLE_ENGINE_RW_WORKING_DIR);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "global init cs engine. ret: " << ret);
+	toException(m_loader->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
+									 SAMPLE_ENGINE_RW_WORKING_DIR));
 
 	CsEngineInfo csEngineInfo(*m_loader);
-	ret = m_loader->getEngineDataVersion(csEngineInfo.get(), m_dataVersion);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "get cs engine data version. ret: " << ret);
-
+	toException(m_loader->getEngineDataVersion(csEngineInfo.get(), m_dataVersion));
 }
 
 CsLogic::~CsLogic()
 {
-	int ret = m_loader->globalDeinit();
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "global deinit cs engine. ret: " << ret);
+	try {
+		toException(m_loader->globalDeinit());
+	} catch (const Exception &e) {
+		ERROR("ignore all custom exceptions in logic dtor: " << e.error() <<
+			  " " << e.what());
+	}
 }
 
 RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
@@ -69,12 +64,8 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 	auto &c = engineContext.get();
 
 	csre_cs_detected_h result;
-	int eret = m_loader->scanData(c, data, &result);
 
-	if (eret != CSRE_ERROR_NONE) {
-		ERROR("Engine error. engine api ret: " << eret);
-		return BinaryQueue::Serialize(CSR_ERROR_ENGINE_INTERNAL, CsDetected()).pop();
-	}
+	toException(m_loader->scanData(c, data, &result));
 
 	// detected handle is null if it's safe
 	if (result == nullptr)
@@ -106,12 +97,7 @@ RawBuffer CsLogic::scanAppWithoutDelta(const CsContext &context, const FilePtr &
 
 	if (context.isScanOnCloud) {
 		csre_cs_detected_h result;
-		int eret = m_loader->scanAppOnCloud(c, pkgPath, &result);
-
-		if (eret != CSRE_ERROR_NONE) {
-			ERROR("engine error. engine api ret: " << eret);
-			return BinaryQueue::Serialize(CSR_ERROR_ENGINE_INTERNAL, CsDetected()).pop();
-		}
+		toException(m_loader->scanAppOnCloud(c, pkgPath, &result));
 
 		if (result)
 			detected = convert(result, pkgPath);
@@ -132,12 +118,7 @@ RawBuffer CsLogic::scanAppWithoutDelta(const CsContext &context, const FilePtr &
 
 		while (auto file = visitor->next()) {
 			csre_cs_detected_h result;
-			int eret = m_loader->scanFile(c, file->getPath(), &result);
-
-			if (eret != CSRE_ERROR_NONE) {
-				ERROR("engine error. engine api ret: " << eret);
-				return BinaryQueue::Serialize(CSR_ERROR_ENGINE_INTERNAL, CsDetected()).pop();
-			}
+			toException(m_loader->scanFile(c, file->getPath(), &result));
 
 			if (result) {
 				auto d = convert(result, pkgPath);
@@ -219,12 +200,7 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 	auto &c = engineContext.get();
 
 	csre_cs_detected_h result;
-	int eret = m_loader->scanFile(c, filepath, &result);
-
-	if (eret != CSRE_ERROR_NONE) {
-		ERROR("Engine error. engine api ret: " << eret);
-		return BinaryQueue::Serialize(CSR_ERROR_ENGINE_INTERNAL, CsDetected()).pop();
-	}
+	toException(m_loader->scanFile(c, filepath, &result));
 
 	// detected handle is null if it's safe
 	if (result == nullptr)
@@ -619,32 +595,14 @@ CsDetected CsLogic::convert(csre_cs_detected_h &result, const std::string &targe
 
 	d.targetName = targetName;
 
-	// getting severity level
 	csre_cs_severity_level_e eseverity = CSRE_CS_SEVERITY_LOW;
-	int eret = m_loader->getSeverity(result, &eseverity);
 
-	if (eret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "getting severity of cs detected. ret: " << eret);
+	toException(m_loader->getSeverity(result, &eseverity));
+	toException(m_loader->getMalwareName(result, d.malwareName));
+	toException(m_loader->getDetailedUrl(result, d.detailedUrl));
+	toException(m_loader->getTimestamp(result, &d.ts));
 
 	d.severity = Csr::convert(eseverity);
-
-	// getting malware name
-	eret = m_loader->getMalwareName(result, d.malwareName);
-
-	if (eret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "getting malware name of cs detected. ret: " << eret);
-
-	// getting detailed url
-	eret = m_loader->getDetailedUrl(result, d.detailedUrl);
-
-	if (eret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "getting detailed url of cs detected. ret: " << eret);
-
-	// getting time stamp
-	eret = m_loader->getTimestamp(result, &d.ts);
-
-	if (eret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "getting time stamp of cs detected. ret: " << eret);
 
 	return d;
 }

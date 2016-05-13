@@ -14,34 +14,35 @@
  *  limitations under the License
  */
 /*
- * @file        access-control-smack.cpp
+ * @file        engine-error-converter.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       access control with smack backend
+ * @brief       convert engine error to custom exception
  */
-#include "service/access-control.h"
+#include "service/engine-error-converter.h"
 
-#include <sys/smack.h>
-
-#include "service/exception.h"
+#include "csre/error.h"
 
 namespace Csr {
 
-bool hasPermission(const ConnShPtr &conn)
+void toException(int ee)
 {
-	return hasPermission(conn, conn->getSockId());
-}
+	switch (ee) {
+	case CSRE_ERROR_NONE:
+		return;
 
-bool hasPermission(const ConnShPtr &conn, SockId sockId)
-{
-	const auto &cred = conn->getCredential();
-	const auto &sockDesc = getSockDesc(sockId);
+	case CSRE_ERROR_OUT_OF_MEMORY:
+		throw std::bad_alloc();
 
-	auto ret = smack_have_access(cred.label.c_str(), sockDesc.label.c_str(), "w");
-	if (ret < 0)
-		ThrowExc(InternalError, "smack_have_access failed.");
+	case CSRE_ERROR_ENGINE_NOT_ACTIVATED:
+		ThrowExc(EngineNotActivated, "engine is not activated yet");
 
-	return ret == 1;
+	case CSRE_ERROR_PERMISSION_DENIED:
+		ThrowExc(EnginePermDenied, "access denied related to engine");
+
+	default:
+		ThrowExc(EngineError, "engine internal error. ec: " << ee);
+	}
 }
 
 }

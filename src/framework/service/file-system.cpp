@@ -29,7 +29,7 @@
 #include <unistd.h>
 
 #include "common/audit/logger.h"
-#include "common/exception.h"
+#include "service/exception.h"
 #include "service/app-deleter.h"
 #include "service/fs-utils.h"
 

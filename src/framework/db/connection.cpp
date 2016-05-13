@@ -16,7 +16,7 @@
 #include <iostream>
 
 #include "db/connection.h"
-#include "common/exception.h"
+#include "service/exception.h"
 
 namespace Csr {
 namespace Db {

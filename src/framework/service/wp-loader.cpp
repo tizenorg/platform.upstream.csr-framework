@@ -24,7 +24,7 @@
 #include <dlfcn.h>
 
 #include "common/audit/logger.h"
-#include "common/exception.h"
+#include "service/engine-error-converter.h"
 
 namespace Csr {
 
@@ -48,7 +48,7 @@ int WpLoader::globalInit(const std::string &ro_res_dir,
 						 const std::string &rw_working_dir)
 {
 	if (ro_res_dir.empty() || rw_working_dir.empty())
-		throw std::invalid_argument("wp loader global init");
+		ThrowExc(InvalidParam, "wp loader global init");
 
 	return m_pc.fpGlobalInit(ro_res_dir.c_str(), rw_working_dir.c_str());
 }
@@ -275,18 +275,12 @@ WpLoader::~WpLoader()
 WpEngineContext::WpEngineContext(WpLoader &loader) :
 	m_loader(loader), m_context(nullptr)
 {
-	auto ret = m_loader.contextCreate(m_context);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "get engine context by loader. ret: " << ret);
+	toException(m_loader.contextCreate(m_context));
 }
 
 WpEngineContext::~WpEngineContext()
 {
-	auto ret = m_loader.contextDestroy(m_context);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "destroy engine context by loader. ret: " << ret);
+	toException(m_loader.contextDestroy(m_context));
 }
 
 csre_wp_context_h &WpEngineContext::get(void)
@@ -297,18 +291,12 @@ csre_wp_context_h &WpEngineContext::get(void)
 WpEngineInfo::WpEngineInfo(WpLoader &loader) :
 	m_loader(loader), m_info(nullptr)
 {
-	auto ret = m_loader.getEngineInfo(m_info);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "get engine info by loader. ret: " << ret);
+	toException(m_loader.getEngineInfo(m_info));
 }
 
 WpEngineInfo::~WpEngineInfo()
 {
-	auto ret = m_loader.destroyEngine(m_info);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "destroy engine info by loader. ret: " << ret);
+	toException(m_loader.destroyEngine(m_info));
 }
 
 csre_wp_engine_h &WpEngineInfo::get(void)

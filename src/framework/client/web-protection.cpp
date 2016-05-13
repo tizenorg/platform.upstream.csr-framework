@@ -39,7 +39,7 @@ int csr_wp_context_create(csr_wp_context_h *phandle)
 	EXCEPTION_SAFE_START
 
 	if (phandle == nullptr)
-		return CSR_ERROR_INVALID_PARAMETER;
+		return CSR_ERROR_INVALID_HANDLE;
 
 	*phandle = reinterpret_cast<csr_wp_context_h>(
 				   new Client::Handle(SockId::WP, std::make_shared<WpContext>()));
@@ -55,7 +55,7 @@ int csr_wp_context_destroy(csr_wp_context_h handle)
 	EXCEPTION_SAFE_START
 
 	if (handle == nullptr)
-		return CSR_ERROR_INVALID_PARAMETER;
+		return CSR_ERROR_INVALID_HANDLE;
 
 	delete reinterpret_cast<Client::Handle *>(handle);
 
@@ -69,8 +69,9 @@ int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user)
 {
 	EXCEPTION_SAFE_START
 
-	if (handle == nullptr
-			|| (ask_user != CSR_WP_NOT_ASK_USER && ask_user != CSR_WP_ASK_USER))
+	if (handle == nullptr)
+		return CSR_ERROR_INVALID_HANDLE;
+	else if (ask_user != CSR_WP_NOT_ASK_USER && ask_user != CSR_WP_ASK_USER)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	reinterpret_cast<Client::Handle *>(handle)->getContext()->set(
@@ -86,7 +87,9 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message)
 {
 	EXCEPTION_SAFE_START
 
-	if (handle == nullptr || message == nullptr || message[0] == '\0')
+	if (handle == nullptr)
+		return CSR_ERROR_INVALID_HANDLE;
+	else if (message == nullptr || message[0] == '\0')
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	reinterpret_cast<Client::Handle *>(handle)->getContext()->set(
@@ -103,8 +106,9 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url,
 {
 	EXCEPTION_SAFE_START
 
-	if (handle == nullptr || presult == nullptr
-			|| url == nullptr || url[0] == '\0')
+	if (handle == nullptr)
+		return CSR_ERROR_INVALID_HANDLE;
+	else if (presult == nullptr || url == nullptr || url[0] == '\0')
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto h = reinterpret_cast<Client::Handle *>(handle);
@@ -132,7 +136,9 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result,
 {
 	EXCEPTION_SAFE_START
 
-	if (result == nullptr || plevel == nullptr)
+	if (result == nullptr)
+		return CSR_ERROR_INVALID_HANDLE;
+	else if (plevel == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	*plevel = reinterpret_cast<WpResult *>(result)->riskLevel;
@@ -148,7 +154,9 @@ int csr_wp_result_get_detailed_url(csr_wp_check_result_h result,
 {
 	EXCEPTION_SAFE_START
 
-	if (result == nullptr || pdetailed_url == nullptr)
+	if (result == nullptr)
+		return CSR_ERROR_INVALID_HANDLE;
+	else if (pdetailed_url == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	*pdetailed_url = reinterpret_cast<WpResult *>(result)->detailedUrl.c_str();
@@ -165,7 +173,9 @@ int csr_wp_result_get_user_response(csr_wp_check_result_h result,
 {
 	EXCEPTION_SAFE_START
 
-	if (result == nullptr || presponse == nullptr)
+	if (result == nullptr)
+		return CSR_ERROR_INVALID_HANDLE;
+	else if (presponse == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	*presponse = reinterpret_cast<WpResult *>(result)->response;

@@ -80,6 +80,7 @@ License: Apache-2.0 and BSL-1.0
 Group:   Security/Testing
 BuildRequires: boost-devel
 BuildRequires: pkgconfig(pkgmgr-info)
+BuildRequires: pkgconfig(glib-2.0)
 Requires:      %{name} = %{version}
 
 %description test

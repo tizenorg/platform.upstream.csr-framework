@@ -17,3 +17,9 @@ severity=MEDIUM
 threat_type=RISKY
 detailed_url=http://medium.malware.com
 signature=RISKY_MALWARE
+
+name=test_generic
+severity=LOW
+threat_type=GENERIC
+detailed_url=http://low.malware.com
+signature=GENERIC_MALWARE

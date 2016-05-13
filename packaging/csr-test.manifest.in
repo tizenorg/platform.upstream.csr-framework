@@ -22,6 +22,7 @@
 			<smack permit="_" type="rx" />
 			<smack permit="pkgmgr" type="rx" />
 			<smack permit="pkgmgr-server" type="rx" />
+			<smack permit="wrt-installer" type="rx" />
 			<smack permit="@SERVICE_NAME@" type="rwxat" />
 		</permit>
 	</define>

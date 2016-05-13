@@ -80,6 +80,7 @@ License: Apache-2.0 and BSL-1.0
 Group:   Security/Testing
 BuildRequires: boost-devel
 BuildRequires: pkgconfig(pkgmgr-info)
+BuildRequires: pkgconfig(glib-2.0)
 Requires:      %{name} = %{version}
 
 %description test
@@ -89,6 +90,14 @@ test program of csr-framework
 %setup -q
 
 %build
+
+# define build architecture
+%ifarch %{ix86}
+%define test_target emulator
+%else
+%define test_target target
+%endif
+
 %cmake . \
     -DCMAKE_BUILD_TYPE=%{?build_type:%build_type}%{!?build_type:RELEASE} \
     -DCMAKE_VERBOSE_MAKEFILE=ON \
@@ -106,6 +115,7 @@ test program of csr-framework
     -DSAMPLE_ENGINE_RO_RES_DIR:PATH=%{sample_engine_ro_res_dir} \
     -DSAMPLE_ENGINE_RW_WORKING_DIR:PATH=%{sample_engine_rw_working_dir} \
     -DSAMPLE_ENGINE_DIR:PATH=%{sample_engine_dir} \
+    -DTEST_TARGET=%{test_target} \
     -DTEST_DIR:PATH=%{test_dir}
 
 make %{?jobs:-j%jobs}

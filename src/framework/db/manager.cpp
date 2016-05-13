@@ -182,12 +182,30 @@ void Manager::setEngineState(int engineId, int state)
 time_t Manager::getLastScanTime(const std::string &dir,
 								const std::string &dataVersion)
 {
+	time_t latest = -1;
+	std::string current = dir;
 	Statement stmt(m_conn, Query::SEL_SCAN_REQUEST);
 
-	stmt.bind(dir);
-	stmt.bind(dataVersion);
+	while (true) {
+		stmt.bind(current);
+		stmt.bind(dataVersion);
 
-	return stmt.step() ? static_cast<time_t>(stmt.getInt64()) : -1;
+		if (stmt.step()) {
+			auto candidate = static_cast<time_t>(stmt.getInt64());
+			if (latest < candidate)
+				latest = candidate;
+		}
+
+		if (current == "/")
+			break;
+
+		auto pos = current.find_last_of('/');
+		current = (pos == 0) ? "/" : current.substr(0, pos);
+
+		stmt.reset();
+	}
+
+	return latest;
 }
 
 void Manager::insertLastScanTime(const std::string &dir, time_t scanTime,

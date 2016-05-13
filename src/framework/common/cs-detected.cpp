@@ -28,9 +28,6 @@
 namespace Csr {
 
 CsDetected::CsDetected() :
-	targetName(),
-	malwareName(),
-	detailedUrl(),
 	severity(CSR_CS_SEVERITY_LOW),
 	response(CSR_CS_NO_ASK_USER),
 	isApp(false),
@@ -44,28 +41,34 @@ CsDetected::~CsDetected()
 
 CsDetected::CsDetected(IStream &stream)
 {
+	Deserializer<std::string, std::string, std::string, std::string>::Deserialize(
+		stream, targetName, malwareName, detailedUrl, pkgId);
+
 	int intSeverity;
 	int intResponse;
-	Deserializer<std::string, std::string, std::string, int, int, time_t>::Deserialize(
-		stream, targetName, malwareName, detailedUrl, intSeverity, intResponse, ts);
-
+	Deserializer<int, int, bool, time_t>::Deserialize(
+		stream, intSeverity, intResponse, isApp, ts);
 	severity = static_cast<csr_cs_severity_level_e>(intSeverity);
 	response = static_cast<csr_cs_user_response_e>(intResponse);
 }
 
 void CsDetected::Serialize(IStream &stream) const
 {
-	Serializer<std::string, std::string, std::string, int, int, time_t>::Serialize(
-		stream, targetName, malwareName, detailedUrl, static_cast<int>(severity),
-		static_cast<int>(response), ts);
+	Serializer<std::string, std::string, std::string, std::string>::Serialize(
+		stream, targetName, malwareName, detailedUrl, pkgId);
+
+	Serializer<int, int, bool, time_t>::Serialize(
+		stream, static_cast<int>(severity), static_cast<int>(response), isApp, ts);
 }
 
 CsDetected::CsDetected(CsDetected &&other) :
 	targetName(std::move(other.targetName)),
 	malwareName(std::move(other.malwareName)),
 	detailedUrl(std::move(other.detailedUrl)),
+	pkgId(std::move(other.pkgId)),
 	severity(other.severity),
 	response(other.response),
+	isApp(other.isApp),
 	ts(other.ts)
 {
 }
@@ -78,8 +81,10 @@ CsDetected &CsDetected::operator=(CsDetected &&other)
 	targetName = std::move(other.targetName);
 	malwareName = std::move(other.malwareName);
 	detailedUrl = std::move(other.detailedUrl);
+	pkgId = std::move(other.pkgId);
 	severity = other.severity;
 	response = other.response;
+	isApp = other.isApp;
 	ts = other.ts;
 
 	return *this;

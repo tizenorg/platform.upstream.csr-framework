@@ -24,6 +24,7 @@
 			<smack permit="xorg" type="rx" />
 			<smack permit="pkgmgr" type="rx" />
 			<smack permit="pkgmgr-server" type="rx" />
+			<smack permit="wrt-installer" type="rx" />
 		</permit>
 	</define>
 	<request>

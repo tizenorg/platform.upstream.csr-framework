@@ -9,11 +9,13 @@
 			<smack request="@SERVICE_NAME@" type="rwxat" />
 			<smack request="sdbd" type="rx" />
 			<smack request="pkgmgr::db" type="rwx" />
+			<smack request="system::media" type="rwxat" />
 		</request>
 		<permit>
 			<smack permit="_" type="rx" />
 			<smack permit="pkgmgr" type="rx" />
 			<smack permit="pkgmgr-server" type="rx" />
+			<smack permit="wrt-installer" type="rx" />
 			<smack permit="@SERVICE_NAME@" type="rwxat" />
 		</permit>
 	</define>

@@ -14,39 +14,41 @@
  *  limitations under the License
  */
 /*
- * @file        server-service.h
+ * @file        wp-logic.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       Web protection logic
  */
 #pragma once
 
-#include "common/service.h"
+#include <string>
+#include <memory>
+
 #include "common/types.h"
-#include "service/thread-pool.h"
-#include "service/cs-logic.h"
-#include "service/wp-logic.h"
-#include "service/em-logic.h"
+#include "common/wp-context.h"
+#include "common/wp-result.h"
+#include "service/wp-loader.h"
+#include "service/logic.h"
 
 namespace Csr {
 
-class ServerService : public Service {
+class WpLogic : public Logic {
 public:
-	ServerService();
-	virtual ~ServerService();
+	WpLogic();
+	virtual ~WpLogic();
+
+	RawBuffer checkUrl(const WpContext &context, const std::string &url);
 
 private:
-	virtual void onMessageProcess(const ConnShPtr &) override;
+	WpResult convert(csre_wp_check_result_h &result);
 
-	RawBuffer processCs(const ConnShPtr &, RawBuffer &);
-	RawBuffer processWp(const ConnShPtr &, RawBuffer &);
-	RawBuffer processAdmin(const ConnShPtr &, RawBuffer &);
+	static csr_wp_user_response_e getUserResponse(const WpContext &context,
+												  const std::string &url,
+												  const WpResult &result);
 
-	ThreadPool m_workqueue;
+	std::shared_ptr<WpLoader> m_loader;
 
-	CsLogic m_cslogic;
-	WpLogic m_wplogic;
-	EmLogic m_emlogic;
+	std::string m_dataVersion;
 };
 
 }

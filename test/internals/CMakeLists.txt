@@ -41,7 +41,6 @@ SET(${TARGET_CSR_INTERNAL_TEST}_SRCS
 	${CSR_FW_SRC_PATH}/db/manager.cpp
 	${CSR_FW_SRC_PATH}/service/core-usage.cpp
 	${CSR_FW_SRC_PATH}/service/fs-utils.cpp
-	${CSR_FW_SRC_PATH}/service/access-control.cpp
 	${CSR_FW_SRC_PATH}/service/file-system.cpp
 	${CSR_FW_SRC_PATH}/service/app-deleter.cpp
 	${CSR_FW_SRC_PATH}/service/cs-loader.cpp

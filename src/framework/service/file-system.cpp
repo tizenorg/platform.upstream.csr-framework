@@ -26,6 +26,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cerrno>
+#include <unistd.h>
 
 #include "common/audit/logger.h"
 #include "common/exception.h"
@@ -56,6 +57,12 @@ std::vector<std::regex> g_regexprs{
 };
 
 } // namespace anonymous
+
+bool hasPermToRemove(const std::string &filepath)
+{
+	auto parent = filepath.substr(0, filepath.find_last_of('/'));
+	return access(parent.c_str(), W_OK) == 0;
+}
 
 bool File::isInApp(const std::string &path)
 {

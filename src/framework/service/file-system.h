@@ -31,6 +31,8 @@
 
 namespace Csr {
 
+bool hasPermToRemove(const std::string &filepath);
+
 class File;
 using FilePtr = std::unique_ptr<File>;
 

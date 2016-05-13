@@ -14,14 +14,13 @@
  *  limitations under the License
  */
 /*
- * @file        logic.cpp
+ * @file        cs-logic.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
  * @brief
  */
-#include "service/logic.h"
+#include "service/cs-logic.h"
 
-#include <string>
 #include <utility>
 #include <algorithm>
 #include <ctime>
@@ -64,60 +63,42 @@ RawBuffer exceptionGuard(const std::function<RawBuffer()> &func,
 
 } // namespace anonymous
 
-Logic::Logic() :
-	m_cs(new CsLoader(CS_ENGINE_PATH)),
-	m_wp(new WpLoader(WP_ENGINE_PATH)),
+CsLogic::CsLogic() :
+	m_loader(new CsLoader(CS_ENGINE_PATH)),
 	m_db(new Db::Manager(RW_DBSPACE "/.csr.db", RO_DBSPACE))
 {
 	// TODO: Provide engine-specific res/working dirs
-	int ret = m_cs->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
+	int ret = m_loader->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
 							   SAMPLE_ENGINE_RW_WORKING_DIR);
 
 	if (ret != CSRE_ERROR_NONE)
 		ThrowExc(EngineError, "global init cs engine. ret: " << ret);
 
-	CsEngineInfo csEngineInfo(m_cs);
-	ret = m_cs->getEngineDataVersion(csEngineInfo.get(), m_csDataVersion);
+	CsEngineInfo csEngineInfo(m_loader);
+	ret = m_loader->getEngineDataVersion(csEngineInfo.get(), m_dataVersion);
 
 	if (ret != CSRE_ERROR_NONE)
 		ThrowExc(EngineError, "get cs engine data version. ret: " << ret);
 
-	ret = m_wp->globalInit(SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "global init wp engine. ret: " << ret);
-
-	WpEngineInfo wpEngineInfo(m_wp);
-	ret = m_wp->getEngineDataVersion(wpEngineInfo.get(), m_wpDataVersion);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "get wp engine data version. ret: " << ret);
-
-	DEBUG("Service logic ctor done");
 }
 
-Logic::~Logic()
+CsLogic::~CsLogic()
 {
-	int ret = m_cs->globalDeinit();
+	int ret = m_loader->globalDeinit();
 
 	if (ret != CSRE_ERROR_NONE)
 		ThrowExc(EngineError, "global deinit cs engine. ret: " << ret);
-
-	ret = m_wp->globalDeinit();
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "global deinit wp engine. ret: " << ret);
 }
 
-RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
+RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 {
 	EXCEPTION_GUARD_START
 
-	CsEngineContext engineContext(m_cs);
+	CsEngineContext engineContext(m_loader);
 	auto &c = engineContext.get();
 
 	csre_cs_detected_h result;
-	int eret = m_cs->scanData(c, data, &result);
+	int eret = m_loader->scanData(c, data, &result);
 
 	if (eret != CSRE_ERROR_NONE) {
 		ERROR("Engine error. engine api ret: " << eret);
@@ -141,20 +122,20 @@ RawBuffer Logic::scanData(const CsContext &context, const RawBuffer &data)
 	EXCEPTION_GUARD_END
 }
 
-RawBuffer Logic::scanAppWithoutDelta(const CsContext &context, const FilePtr &appDirPtr)
+RawBuffer CsLogic::scanAppWithoutDelta(const CsContext &context, const FilePtr &appDirPtr)
 {
 	const auto &pkgPath = appDirPtr->getAppPkgPath();
 
 	auto starttime = time(nullptr);
 
-	CsEngineContext engineContext(m_cs);
+	CsEngineContext engineContext(m_loader);
 	auto &c = engineContext.get();
 
 	CsDetected detected;
 
 	if (context.isScanOnCloud) {
 		csre_cs_detected_h result;
-		int eret = m_cs->scanAppOnCloud(c, pkgPath, &result);
+		int eret = m_loader->scanAppOnCloud(c, pkgPath, &result);
 
 		if (eret != CSRE_ERROR_NONE) {
 			ERROR("engine error. engine api ret: " << eret);
@@ -169,7 +150,7 @@ RawBuffer Logic::scanAppWithoutDelta(const CsContext &context, const FilePtr &ap
 
 		try {
 			visitor = FsVisitor::create(pkgPath,
-										m_db->getLastScanTime(pkgPath, m_csDataVersion));
+										m_db->getLastScanTime(pkgPath, m_dataVersion));
 		} catch (const FileDoNotExist &) {
 			ERROR("app directory doesn't exist: " << pkgPath);
 			return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST, CsDetected()).pop();
@@ -180,7 +161,7 @@ RawBuffer Logic::scanAppWithoutDelta(const CsContext &context, const FilePtr &ap
 
 		while (auto file = visitor->next()) {
 			csre_cs_detected_h result;
-			int eret = m_cs->scanFile(c, file->getPath(), &result);
+			int eret = m_loader->scanFile(c, file->getPath(), &result);
 
 			if (eret != CSRE_ERROR_NONE) {
 				ERROR("engine error. engine api ret: " << eret);
@@ -196,14 +177,14 @@ RawBuffer Logic::scanAppWithoutDelta(const CsContext &context, const FilePtr &ap
 		}
 	}
 
-	m_db->insertLastScanTime(pkgPath, starttime, m_csDataVersion);
+	m_db->insertLastScanTime(pkgPath, starttime, m_dataVersion);
 
 	if (detected.hasValue()) {
 		detected.isApp = true;
 		detected.pkgId = appDirPtr->getAppPkgId();
 
 		// cloud scan detected history inserted by targetname = app base directory path
-		m_db->insertDetectedMalware(detected, m_csDataVersion, false);
+		m_db->insertDetectedMalware(detected, m_dataVersion, false);
 		detected.response = getUserResponse(context, detected);
 		return handleUserResponse(detected);
 	} else {
@@ -211,7 +192,7 @@ RawBuffer Logic::scanAppWithoutDelta(const CsContext &context, const FilePtr &ap
 	}
 }
 
-RawBuffer Logic::scanApp(const CsContext &context, const std::string &path)
+RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 {
 	FilePtr fileptr;
 
@@ -231,7 +212,7 @@ RawBuffer Logic::scanApp(const CsContext &context, const std::string &path)
 
 	const auto &pkgPath = fileptr->getAppPkgPath();
 
-	auto lastScanTime = m_db->getLastScanTime(pkgPath, m_csDataVersion);
+	auto lastScanTime = m_db->getLastScanTime(pkgPath, m_dataVersion);
 
 	try {
 		auto visitor = FsVisitor::create(pkgPath, lastScanTime);
@@ -260,14 +241,14 @@ RawBuffer Logic::scanApp(const CsContext &context, const std::string &path)
 	return handleUserResponse(*history);
 }
 
-RawBuffer Logic::scanFileWithoutDelta(const CsContext &context,
+RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 									  const std::string &filepath, FilePtr &&fileptr)
 {
-	CsEngineContext engineContext(m_cs);
+	CsEngineContext engineContext(m_loader);
 	auto &c = engineContext.get();
 
 	csre_cs_detected_h result;
-	int eret = m_cs->scanFile(c, filepath, &result);
+	int eret = m_loader->scanFile(c, filepath, &result);
 
 	if (eret != CSRE_ERROR_NONE) {
 		ERROR("Engine error. engine api ret: " << eret);
@@ -280,13 +261,13 @@ RawBuffer Logic::scanFileWithoutDelta(const CsContext &context,
 
 	auto d = convert(result, filepath);
 
-	m_db->insertDetectedMalware(d, m_csDataVersion, false);
+	m_db->insertDetectedMalware(d, m_dataVersion, false);
 
 	d.response = getUserResponse(context, d);
 	return handleUserResponse(d, std::forward<FilePtr>(fileptr));
 }
 
-RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
+RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepath)
 {
 	EXCEPTION_GUARD_START
 
@@ -369,11 +350,11 @@ RawBuffer Logic::scanFile(const CsContext &context, const std::string &filepath)
 //           4) /opt/usr/apps/org.tizen.message  (app base directory path)
 //           5) /opt/usr/apps/org.tizen.flash    (app base directory path)
 //           % items which has detected history is included in list as well.
-RawBuffer Logic::getScannableFiles(const std::string &dir)
+RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 {
 	EXCEPTION_GUARD_START
 
-	auto lastScanTime = m_db->getLastScanTime(dir, m_csDataVersion);
+	auto lastScanTime = m_db->getLastScanTime(dir, m_dataVersion);
 
 	FsVisitorPtr visitor;
 
@@ -421,7 +402,7 @@ RawBuffer Logic::getScannableFiles(const std::string &dir)
 	// to set scan time early is safe because file which is modified between
 	// scan start time and end time will be traversed by FsVisitor and re-scanned
 	// being compared to start time as modified since.
-	m_db->insertLastScanTime(dir, time(nullptr), m_csDataVersion);
+	m_db->insertLastScanTime(dir, time(nullptr), m_dataVersion);
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
 
@@ -432,7 +413,7 @@ RawBuffer Logic::getScannableFiles(const std::string &dir)
 	EXCEPTION_GUARD_END
 }
 
-RawBuffer Logic::judgeStatus(const std::string &filepath, csr_cs_action_e action)
+RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e action)
 {
 	EXCEPTION_GUARD_START
 
@@ -503,7 +484,7 @@ RawBuffer Logic::judgeStatus(const std::string &filepath, csr_cs_action_e action
 	EXCEPTION_GUARD_END
 }
 
-RawBuffer Logic::getDetected(const std::string &filepath)
+RawBuffer CsLogic::getDetected(const std::string &filepath)
 {
 	EXCEPTION_GUARD_START
 
@@ -521,7 +502,7 @@ RawBuffer Logic::getDetected(const std::string &filepath)
 	EXCEPTION_GUARD_END
 }
 
-RawBuffer Logic::getDetectedList(const StrSet &dirSet)
+RawBuffer CsLogic::getDetectedList(const StrSet &dirSet)
 {
 	EXCEPTION_GUARD_START
 
@@ -542,7 +523,7 @@ RawBuffer Logic::getDetectedList(const StrSet &dirSet)
 }
 
 // TODO: is this command needed?
-RawBuffer Logic::getIgnored(const std::string &filepath)
+RawBuffer CsLogic::getIgnored(const std::string &filepath)
 {
 	EXCEPTION_GUARD_START
 
@@ -560,7 +541,7 @@ RawBuffer Logic::getIgnored(const std::string &filepath)
 	EXCEPTION_GUARD_END
 }
 
-RawBuffer Logic::getIgnoredList(const StrSet &dirSet)
+RawBuffer CsLogic::getIgnoredList(const StrSet &dirSet)
 {
 	EXCEPTION_GUARD_START
 
@@ -581,325 +562,7 @@ RawBuffer Logic::getIgnoredList(const StrSet &dirSet)
 	EXCEPTION_GUARD_END
 }
 
-RawBuffer Logic::checkUrl(const WpContext &context, const std::string &url)
-{
-	EXCEPTION_GUARD_START
-
-	DEBUG("Logic::checkUrl start");
-
-	WpEngineContext engineContext(m_wp);
-	auto &c = engineContext.get();
-
-	csre_wp_check_result_h result;
-	int eret = m_wp->checkUrl(c, url.c_str(), &result);
-
-	if (eret != CSRE_ERROR_NONE) {
-		ERROR("Engine error. engine api ret: " << eret);
-		return BinaryQueue::Serialize(CSR_ERROR_ENGINE_INTERNAL, WpResult()).pop();
-	}
-
-	auto wr = convert(result);
-
-	DEBUG("checking level.. prepare for asking user");
-
-	switch (wr.riskLevel) {
-	case CSR_WP_RISK_UNVERIFIED:
-		DEBUG("url[" << url << "] risk level is unverified");
-		break;
-
-	case CSR_WP_RISK_LOW:
-		DEBUG("url[" << url << "] risk level is low");
-		break;
-
-	case CSR_WP_RISK_MEDIUM:
-		DEBUG("url[" << url << "] risk level is medium. let's ask user to process.");
-		wr.response = getUserResponse(context, url, wr);
-		break;
-
-	case CSR_WP_RISK_HIGH:
-		DEBUG("url[" << url << "] risk level is high. let's notify user to deny url.");
-		wr.response = getUserResponse(context, url, wr);
-		break;
-
-	default:
-		ThrowExc(InternalError, "Invalid level: " << static_cast<int>(wr.riskLevel));
-	}
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, wr).pop();
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret, WpResult()).pop();
-
-	EXCEPTION_GUARD_END
-}
-
-// TODO: make parent class of cs-loader and wp-loader for
-// using engine-manager related engine APIs samely
-RawBuffer Logic::getEngineName(const EmContext &context)
-{
-	EXCEPTION_GUARD_START
-
-	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(m_cs);
-		auto &c = engineInfo.get();
-
-		std::string value;
-		auto eret = m_cs->getEngineName(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting name. eret: " << eret);
-
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
-	} else {
-		WpEngineInfo engineInfo(m_wp);
-		auto &c = engineInfo.get();
-
-		std::string value;
-		auto eret = m_wp->getEngineName(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting name. eret: " << eret);
-
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
-	}
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret, EmString()).pop();
-
-	EXCEPTION_GUARD_END
-}
-
-RawBuffer Logic::getEngineVendor(const EmContext &context)
-{
-	EXCEPTION_GUARD_START
-
-	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(m_cs);
-		auto &c = engineInfo.get();
-
-		std::string value;
-		auto eret = m_cs->getEngineVendor(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting vendor. eret: " << eret);
-
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
-	} else {
-		WpEngineInfo engineInfo(m_wp);
-		auto &c = engineInfo.get();
-
-		std::string value;
-		auto eret = m_wp->getEngineVendor(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting vendor. eret: " << eret);
-
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
-	}
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret, EmString()).pop();
-
-	EXCEPTION_GUARD_END
-}
-
-RawBuffer Logic::getEngineVersion(const EmContext &context)
-{
-	EXCEPTION_GUARD_START
-
-	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(m_cs);
-		auto &c = engineInfo.get();
-
-		std::string value;
-		auto eret = m_cs->getEngineVersion(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting version. eret: " << eret);
-
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
-	} else {
-		WpEngineInfo engineInfo(m_wp);
-		auto &c = engineInfo.get();
-
-		std::string value;
-		auto eret = m_wp->getEngineVersion(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting version. eret: " << eret);
-
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
-	}
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret, EmString()).pop();
-
-	EXCEPTION_GUARD_END
-}
-
-RawBuffer Logic::getEngineDataVersion(const EmContext &context)
-{
-	EXCEPTION_GUARD_START
-
-	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(m_cs);
-		auto &c = engineInfo.get();
-
-		std::string value;
-		auto eret = m_cs->getEngineDataVersion(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting data ver. eret: " << eret);
-
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
-	} else {
-		WpEngineInfo engineInfo(m_wp);
-		auto &c = engineInfo.get();
-
-		std::string value;
-		auto eret = m_wp->getEngineDataVersion(c, value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting data ver. eret: " << eret);
-
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
-	}
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret, EmString()).pop();
-
-	EXCEPTION_GUARD_END
-}
-
-RawBuffer Logic::getEngineUpdatedTime(const EmContext &context)
-{
-	EXCEPTION_GUARD_START
-
-	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(m_cs);
-		auto &c = engineInfo.get();
-
-		time_t value;
-		auto eret = m_cs->getEngineLatestUpdateTime(c, &value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting updated time. eret: " << eret);
-
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
-	} else {
-		WpEngineInfo engineInfo(m_wp);
-		auto &c = engineInfo.get();
-
-		time_t value;
-		auto eret = m_wp->getEngineLatestUpdateTime(c, &value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting updated time. eret: " << eret);
-
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
-	}
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret, -1).pop();
-
-	EXCEPTION_GUARD_END
-}
-
-RawBuffer Logic::getEngineActivated(const EmContext &context)
-{
-	EXCEPTION_GUARD_START
-
-	csr_activated_e activated = CSR_NOT_ACTIVATED;
-
-	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(m_cs);
-		auto &c = engineInfo.get();
-
-		csre_cs_activated_e value;
-		auto eret = m_cs->getEngineActivated(c, &value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting activated. eret: " << eret);
-
-		if (value == CSRE_CS_ACTIVATED)
-			activated = CSR_ACTIVATED;
-		else if (value == CSRE_CS_NOT_ACTIVATED)
-			activated = CSR_NOT_ACTIVATED;
-		else
-			ThrowExc(EngineError, "Invalid returned activated val: " <<
-					 static_cast<int>(value));
-	} else {
-		WpEngineInfo engineInfo(m_wp);
-		auto &c = engineInfo.get();
-
-		csre_wp_activated_e value;
-		auto eret = m_wp->getEngineActivated(c, &value);
-		if (eret != CSR_ERROR_NONE)
-			ThrowExc(EngineError, "Engine error on getting activated. eret: " << eret);
-
-		if (value == CSRE_WP_ACTIVATED)
-			activated = CSR_ACTIVATED;
-		else if (value == CSRE_WP_NOT_ACTIVATED)
-			activated = CSR_NOT_ACTIVATED;
-		else
-			ThrowExc(EngineError, "Invalid returned activated val: " <<
-					 static_cast<int>(value));
-	}
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, static_cast<int>(activated)).pop();
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret, -1).pop();
-
-	EXCEPTION_GUARD_END
-}
-
-RawBuffer Logic::getEngineState(const EmContext &context)
-{
-	EXCEPTION_GUARD_START
-
-	auto state = m_db->getEngineState(static_cast<int>(context.engineId));
-
-	if (state == -1)
-		ThrowExc(DbFailed, "No engine state exist...");
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, state).pop();
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret, -1).pop();
-
-	EXCEPTION_GUARD_END
-}
-
-RawBuffer Logic::setEngineState(const EmContext &context, csr_state_e state)
-{
-	EXCEPTION_GUARD_START
-
-	m_db->setEngineState(static_cast<int>(context.engineId), static_cast<int>(state));
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
-
-	EXCEPTION_GUARD_END
-}
-
-RawBuffer Logic::handleUserResponse(const CsDetected &d, FilePtr &&fileptr)
+RawBuffer CsLogic::handleUserResponse(const CsDetected &d, FilePtr &&fileptr)
 {
 	switch (d.response) {
 	case CSR_CS_IGNORE:
@@ -940,7 +603,7 @@ RawBuffer Logic::handleUserResponse(const CsDetected &d, FilePtr &&fileptr)
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
 }
 
-csr_cs_user_response_e Logic::getUserResponse(const CsContext &c, const CsDetected &d)
+csr_cs_user_response_e CsLogic::getUserResponse(const CsContext &c, const CsDetected &d)
 {
 	if (c.askUser == CSR_CS_NOT_ASK_USER)
 		return CSR_CS_NO_ASK_USER;
@@ -977,28 +640,7 @@ csr_cs_user_response_e Logic::getUserResponse(const CsContext &c, const CsDetect
 	return askUser.cs(cid, c.popupMessage, d);
 }
 
-csr_wp_user_response_e Logic::getUserResponse(const WpContext &c, const std::string &url,
-		const WpResult &wr)
-{
-	if (c.askUser == CSR_WP_NOT_ASK_USER)
-		return CSR_WP_NO_ASK_USER;
-
-	Ui::CommandId cid;
-
-	if (wr.riskLevel == CSR_WP_RISK_MEDIUM)
-		cid = Ui::CommandId::WP_PROMPT;
-	else
-		cid = Ui::CommandId::WP_NOTIFY;
-
-	Ui::UrlItem item;
-	item.url = url;
-	item.risk = wr.riskLevel;
-
-	Ui::AskUser askUser;
-	return askUser.wp(cid, c.popupMessage, item);
-}
-
-CsDetected Logic::convert(csre_cs_detected_h &result, const std::string &targetName)
+CsDetected CsLogic::convert(csre_cs_detected_h &result, const std::string &targetName)
 {
 	DEBUG("convert engine result handle to CsDetected start");
 
@@ -1008,7 +650,7 @@ CsDetected Logic::convert(csre_cs_detected_h &result, const std::string &targetN
 
 	// getting severity level
 	csre_cs_severity_level_e eseverity = CSRE_CS_SEVERITY_LOW;
-	int eret = m_cs->getSeverity(result, &eseverity);
+	int eret = m_loader->getSeverity(result, &eseverity);
 
 	if (eret != CSRE_ERROR_NONE)
 		ThrowExc(EngineError, "getting severity of cs detected. ret: " << eret);
@@ -1016,48 +658,24 @@ CsDetected Logic::convert(csre_cs_detected_h &result, const std::string &targetN
 	d.severity = Csr::convert(eseverity);
 
 	// getting malware name
-	eret = m_cs->getMalwareName(result, d.malwareName);
+	eret = m_loader->getMalwareName(result, d.malwareName);
 
 	if (eret != CSRE_ERROR_NONE)
 		ThrowExc(EngineError, "getting malware name of cs detected. ret: " << eret);
 
 	// getting detailed url
-	eret = m_cs->getDetailedUrl(result, d.detailedUrl);
+	eret = m_loader->getDetailedUrl(result, d.detailedUrl);
 
 	if (eret != CSRE_ERROR_NONE)
 		ThrowExc(EngineError, "getting detailed url of cs detected. ret: " << eret);
 
 	// getting time stamp
-	eret = m_cs->getTimestamp(result, &d.ts);
+	eret = m_loader->getTimestamp(result, &d.ts);
 
 	if (eret != CSRE_ERROR_NONE)
 		ThrowExc(EngineError, "getting time stamp of cs detected. ret: " << eret);
 
 	return d;
-}
-
-WpResult Logic::convert(csre_wp_check_result_h &r)
-{
-	DEBUG("convert engine result handle to WpResult start");
-
-	WpResult wr;
-
-	// getting risk level
-	csre_wp_risk_level_e elevel;
-	int eret = m_wp->getRiskLevel(r, &elevel);
-
-	if (eret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "getting risk level of wp result. ret: " << eret);
-
-	wr.riskLevel = Csr::convert(elevel);
-
-	// getting detailed url
-	eret = m_wp->getDetailedUrl(r, wr.detailedUrl);
-
-	if (eret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "getting detailed url of wp result. ret: " << eret);
-
-	return wr;
 }
 
 }

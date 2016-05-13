@@ -28,7 +28,9 @@ PKG_CHECK_MODULES(${TARGET_CSR_SERVER}_DEP
 
 SET(${TARGET_CSR_SERVER}_SRCS
 	framework/main/csr-main.cpp
-	framework/service/logic.cpp
+	framework/service/cs-logic.cpp
+	framework/service/wp-logic.cpp
+	framework/service/em-logic.cpp
 	framework/service/type-converter.cpp
 	framework/service/server-service.cpp
 	framework/service/thread-pool.cpp

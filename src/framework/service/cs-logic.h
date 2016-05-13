@@ -14,7 +14,7 @@
  *  limitations under the License
  */
 /*
- * @file        logic.h
+ * @file        cs-logic.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
  * @brief
@@ -22,32 +22,23 @@
 #pragma once
 
 #include <string>
-#include <utility>
 #include <memory>
-#include <mutex>
 
 #include "common/types.h"
-#include "common/credential.h"
 #include "common/cs-context.h"
-#include "common/wp-context.h"
-#include "common/em-context.h"
 #include "common/cs-detected.h"
-#include "common/wp-result.h"
-#include "common/em-result.h"
 #include "db/manager.h"
-#include "service/thread-pool.h"
 #include "service/cs-loader.h"
-#include "service/wp-loader.h"
 #include "service/file-system.h"
 
 #include "csr/content-screening-types.h"
 
 namespace Csr {
 
-class Logic {
+class CsLogic {
 public:
-	Logic();
-	virtual ~Logic();
+	CsLogic();
+	virtual ~CsLogic();
 
 	RawBuffer scanData(const CsContext &context, const RawBuffer &data);
 	RawBuffer scanFile(const CsContext &context, const std::string &filepath);
@@ -58,17 +49,6 @@ public:
 	RawBuffer getIgnored(const std::string &filepath);
 	RawBuffer getIgnoredList(const StrSet &dirSet);
 
-	RawBuffer checkUrl(const WpContext &context, const std::string &url);
-
-	RawBuffer getEngineName(const EmContext &context);
-	RawBuffer getEngineVendor(const EmContext &context);
-	RawBuffer getEngineVersion(const EmContext &context);
-	RawBuffer getEngineDataVersion(const EmContext &context);
-	RawBuffer getEngineUpdatedTime(const EmContext &context);
-	RawBuffer getEngineActivated(const EmContext &context);
-	RawBuffer getEngineState(const EmContext &context);
-	RawBuffer setEngineState(const EmContext &context, csr_state_e state);
-
 private:
 	RawBuffer scanApp(const CsContext &context, const std::string &path);
 	RawBuffer scanAppWithoutDelta(const CsContext &context, const FilePtr &appDirPtr);
@@ -76,19 +56,14 @@ private:
 								   FilePtr &&fileptr);
 	RawBuffer handleUserResponse(const CsDetected &d, FilePtr &&fileptr = nullptr);
 	CsDetected convert(csre_cs_detected_h &result, const std::string &targetName);
-	WpResult convert(csre_wp_check_result_h &result);
 
 	static csr_cs_user_response_e getUserResponse(const CsContext &,
 			const CsDetected &);
-	static csr_wp_user_response_e getUserResponse(const WpContext &,
-			const std::string &url, const WpResult &);
 
-	std::shared_ptr<CsLoader> m_cs;
-	std::shared_ptr<WpLoader> m_wp;
+	std::shared_ptr<CsLoader> m_loader;
 	std::unique_ptr<Db::Manager> m_db;
 
-	std::string m_csDataVersion;
-	std::string m_wpDataVersion;
+	std::string m_dataVersion;
 };
 
 }

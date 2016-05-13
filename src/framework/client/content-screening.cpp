@@ -26,6 +26,7 @@
 #include "client/utils.h"
 #include "client/handle-ext.h"
 #include "client/async-logic.h"
+#include "client/canonicalize.h"
 #include "common/types.h"
 #include "common/cs-context.h"
 #include "common/cs-detected.h"
@@ -401,13 +402,13 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 		if (file_paths[i] == nullptr)
 			return CSR_ERROR_INVALID_PARAMETER;
 
-		fileSet->emplace(file_paths[i]);
+		fileSet->emplace(Client::getAbsolutePath(file_paths[i]));
 	}
 
 	hExt->dispatchAsync([hExt, user_data, fileSet] {
 		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
-		l.scanFiles(fileSet).second();
+		l.scanFiles(*fileSet).second();
 	});
 
 	return CSR_ERROR_NONE;
@@ -431,7 +432,7 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path,
 	hExt->dispatchAsync([hExt, user_data, dir_path] {
 		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
-		l.scanDir(dir_path).second();
+		l.scanDir(Client::getAbsolutePath(dir_path)).second();
 	});
 
 	return CSR_ERROR_NONE;
@@ -458,13 +459,15 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 		if (dir_paths[i] == nullptr)
 			return CSR_ERROR_INVALID_PARAMETER;
 
-		dirSet->emplace(dir_paths[i]);
+		dirSet->insert(Client::getAbsolutePath(dir_paths[i]));
 	}
+
+	Client::canonicalizeDirSet(*dirSet);
 
 	hExt->dispatchAsync([hExt, user_data, dirSet] {
 		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
-		l.scanDirs(dirSet).second();
+		l.scanDirs(*dirSet).second();
 	});
 
 	return CSR_ERROR_NONE;

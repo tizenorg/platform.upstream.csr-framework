@@ -7,7 +7,6 @@
 			<smack request="sys-assert::core" type="rwxat" />
 			<smack request="systemd" type="rx" />
 			<smack request="xorg" type="rwxat" />
-			<smack request="system::homedir" type="rx" />
 			<smack request="tizen::vconf::setting" type="rl" />
 			<smack request="tizen::vconf::setting::admin" type="rl" />
 			<smack request="tizen::vconf::public::r::platform::rw" type="rl" />
@@ -17,7 +16,9 @@
 			<smack request="pulseaudio" type="w" />
 			<smack request="sdbd" type="rx" />
 			<smack request="pkgmgr::db" type="rwx" />
+
 			<smack request="system::media" type="rwxat" />
+			<smack request="system::homedir" type="rwxat" />
 		</request>
 		<permit>
 			<smack permit="_" type="rwx" />

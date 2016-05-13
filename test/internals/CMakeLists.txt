@@ -46,12 +46,14 @@ SET(${TARGET_CSR_INTERNAL_TEST}_SRCS
 	${CSR_FW_SRC_PATH}/service/app-deleter.cpp
 	${CSR_FW_SRC_PATH}/service/cs-loader.cpp
 	${CSR_FW_SRC_PATH}/service/wp-loader.cpp
+	${CSR_FW_SRC_PATH}/client/canonicalize.cpp
 
 	test-db.cpp
 	test-cpucore.cpp
 	test-file-system.cpp
 	test-cs-loader.cpp
 	test-wp-loader.cpp
+	test-canonicalize.cpp
 
 	test-main.cpp
 )

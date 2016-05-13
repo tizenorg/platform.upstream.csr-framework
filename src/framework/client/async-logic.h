@@ -41,9 +41,9 @@ public:
 			   const std::function<bool()> &isStopped);
 	virtual ~AsyncLogic();
 
-	Ending scanFiles(const std::shared_ptr<StrSet> &files);
+	Ending scanFiles(const StrSet &files);
 	Ending scanDir(const std::string &dir);
-	Ending scanDirs(const std::shared_ptr<StrSet> &dirs);
+	Ending scanDirs(const StrSet &dirs);
 
 	void stop(void);
 

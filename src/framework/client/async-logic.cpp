@@ -50,16 +50,14 @@ AsyncLogic::~AsyncLogic()
 		m_handle->add(std::move(resultPtr));
 }
 
-AsyncLogic::Ending AsyncLogic::scanDirs(const std::shared_ptr<StrSet> &dirs)
+AsyncLogic::Ending AsyncLogic::scanDirs(const StrSet &dirs)
 {
-	// TODO: canonicalize dirs. (e.g. Can omit subdirectory it there is
-	//       parent directory in set)
 	Ending e(Callback::Id::OnCompleted, [this] {
 		if (m_cb.onCompleted)
 			m_cb.onCompleted(this->m_userdata);
 	});
 
-	for (const auto &dir : *dirs) {
+	for (const auto &dir : dirs) {
 		e = scanDir(dir);
 
 		if (e.first != Callback::Id::OnCompleted)
@@ -73,12 +71,11 @@ AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 {
 	// Already scanned files are included in history. it'll be skipped later
 	// on server side by every single scan_file request.
-	auto retFiles = m_dispatcher->methodCall<std::pair<int, StrSet *>>(
+	auto retFiles = m_dispatcher->methodCall<std::pair<int, StrSet>>(
 						CommandId::GET_SCANNABLE_FILES, dir);
 
 	if (retFiles.first != CSR_ERROR_NONE) {
 		ERROR("[Error] ret: " << retFiles.first);
-		delete retFiles.second;
 		auto ec = retFiles.first;
 		return std::make_pair(Callback::Id::OnError, [this, ec] {
 			if (this->m_cb.onError)
@@ -87,15 +84,14 @@ AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 	}
 
 	// Let's start scan files!
-	std::shared_ptr<StrSet> strSetPtr(retFiles.second);
-	auto task = scanFiles(strSetPtr);
+	auto task = scanFiles(retFiles.second);
 	// TODO: register results(in outs) to db and update dir scanning history...
 	return task;
 }
 
-AsyncLogic::Ending AsyncLogic::scanFiles(const std::shared_ptr<StrSet> &fileSet)
+AsyncLogic::Ending AsyncLogic::scanFiles(const StrSet &fileSet)
 {
-	for (const auto &file : *fileSet) {
+	for (const auto &file : fileSet) {
 		if (m_isStopped()) {
 			INFO("async operation cancelled!");
 			return std::make_pair(Callback::Id::OnCancelled, [this] {
@@ -107,9 +103,11 @@ AsyncLogic::Ending AsyncLogic::scanFiles(const std::shared_ptr<StrSet> &fileSet)
 		auto ret = m_dispatcher->methodCall<std::pair<int, CsDetected *>>(
 					   CommandId::SCAN_FILE, m_ctx, file);
 
+		// for auto memory deleting in case of exception
+		ResultPtr resultPtr(ret.second);
+
 		if (ret.first != CSR_ERROR_NONE) {
 			ERROR("[Error] ret: " << ret.first << " while scan file: " << file);
-			delete ret.second;
 			auto ec = ret.first;
 			return std::make_pair(Callback::Id::OnError, [this, ec] {
 				if (this->m_cb.onError)
@@ -121,7 +119,6 @@ AsyncLogic::Ending AsyncLogic::scanFiles(const std::shared_ptr<StrSet> &fileSet)
 
 		if (!ret.second->hasValue()) {
 			DEBUG("[Scanned] file[" << file << "]");
-			delete ret.second;
 
 			if (m_cb.onScanned)
 				m_cb.onScanned(m_userdata, file.c_str());
@@ -131,7 +128,7 @@ AsyncLogic::Ending AsyncLogic::scanFiles(const std::shared_ptr<StrSet> &fileSet)
 
 		// malware detected!
 		INFO("[Detected] file[" << file << "]");
-		m_results.emplace_back(ret.second);
+		m_results.emplace_back(std::move(resultPtr));
 
 		if (m_cb.onDetected)
 			m_cb.onDetected(m_userdata, reinterpret_cast<csr_cs_detected_h>(ret.second));

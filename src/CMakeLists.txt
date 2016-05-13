@@ -80,6 +80,7 @@ PKG_CHECK_MODULES(${TARGET_CSR_CLIENT}_DEP
 
 SET(${TARGET_CSR_CLIENT}_SRCS
 	framework/client/async-logic.cpp
+	framework/client/canonicalize.cpp
 	framework/client/content-screening.cpp
 	framework/client/engine-manager.cpp
 	framework/client/error.cpp

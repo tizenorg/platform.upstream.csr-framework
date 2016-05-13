@@ -22,7 +22,7 @@
 #include "service/logic.h"
 
 #include "common/audit/logger.h"
-#include "common/exception.h"
+#include "service/exception.h"
 #include "csr/error.h"
 
 namespace Csr {

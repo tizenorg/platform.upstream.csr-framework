@@ -24,7 +24,7 @@
 #include <dlfcn.h>
 
 #include "common/audit/logger.h"
-#include "common/exception.h"
+#include "service/engine-error-converter.h"
 
 namespace Csr {
 
@@ -319,18 +319,12 @@ CsLoader::~CsLoader()
 
 CsEngineContext::CsEngineContext(CsLoader &loader) : m_loader(loader), m_context(nullptr)
 {
-	auto ret = m_loader.contextCreate(m_context);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "get engine context by loader. ret: " << ret);
+	toException(m_loader.contextCreate(m_context));
 }
 
 CsEngineContext::~CsEngineContext()
 {
-	auto ret = m_loader.contextDestroy(m_context);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "destroy engine context by loader. ret: " << ret);
+	toException(m_loader.contextDestroy(m_context));
 }
 
 csre_cs_context_h &CsEngineContext::get(void)
@@ -340,18 +334,12 @@ csre_cs_context_h &CsEngineContext::get(void)
 
 CsEngineInfo::CsEngineInfo(CsLoader &loader) : m_loader(loader), m_info(nullptr)
 {
-	auto ret = m_loader.getEngineInfo(m_info);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "get engine info by loader. ret: " << ret);
+	toException(m_loader.getEngineInfo(m_info));
 }
 
 CsEngineInfo::~CsEngineInfo()
 {
-	auto ret = m_loader.destroyEngine(m_info);
-
-	if (ret != CSRE_ERROR_NONE)
-		ThrowExc(EngineError, "destroy engine info by loader. ret: " << ret);
+	toException(m_loader.destroyEngine(m_info));
 }
 
 csre_cs_engine_h &CsEngineInfo::get(void)

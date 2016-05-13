@@ -14,34 +14,21 @@
  *  limitations under the License
  */
 /*
- * @file        access-control-smack.cpp
+ * @file        exception.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       access control with smack backend
+ * @brief       custom exceptions which are thrown only on server side
  */
-#include "service/access-control.h"
+#pragma once
 
-#include <sys/smack.h>
-
-#include "service/exception.h"
+#include "common/exception.h"
 
 namespace Csr {
 
-bool hasPermission(const ConnShPtr &conn)
-{
-	return hasPermission(conn, conn->getSockId());
-}
-
-bool hasPermission(const ConnShPtr &conn, SockId sockId)
-{
-	const auto &cred = conn->getCredential();
-	const auto &sockDesc = getSockDesc(sockId);
-
-	auto ret = smack_have_access(cred.label.c_str(), sockDesc.label.c_str(), "w");
-	if (ret < 0)
-		ThrowExc(InternalError, "smack_have_access failed.");
-
-	return ret == 1;
-}
+// exceptions listed here are only thrown in server side.
+using DbFailed    = DerivedException<CSR_ERROR_DB>;
+using EngineError = DerivedException<CSR_ERROR_ENGINE_INTERNAL>;
+using EngineNotActivated = DerivedException<CSR_ERROR_ENGINE_NOT_ACTIVATED>;
+using EnginePermDenied = DerivedException<CSR_ERROR_ENGINE_PERMISSION>;
 
 }

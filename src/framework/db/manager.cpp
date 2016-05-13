@@ -27,7 +27,7 @@
 #include "db/query.h"
 #include "db/statement.h"
 #include "common/audit/logger.h"
-#include "common/exception.h"
+#include "service/exception.h"
 
 namespace Csr {
 namespace Db {

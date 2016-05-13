@@ -25,7 +25,7 @@
 #include <utility>
 
 #include "common/audit/logger.h"
-#include "common/exception.h"
+#include "service/exception.h"
 
 #define __BEGIN_CRITICAL__ { std::lock_guard<std::mutex> lock(this->m_mutex);
 #define __END_CRITICAL__   }

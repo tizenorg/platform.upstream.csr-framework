@@ -28,7 +28,7 @@
 #include <package-manager.h>
 
 #include "common/audit/logger.h"
-#include "common/exception.h"
+#include "service/exception.h"
 
 #define MAX_WAIT_SEC 10
 

@@ -27,12 +27,12 @@
 #include "common/binary-queue.h"
 #include "common/command-id.h"
 #include "common/audit/logger.h"
-#include "common/exception.h"
 #include "common/cs-context.h"
 #include "common/wp-context.h"
 #include "common/cs-detected.h"
 #include "common/wp-result.h"
 #include "common/em-result.h"
+#include "service/exception.h"
 #include "service/access-control.h"
 
 #include "csr/content-screening-types.h"

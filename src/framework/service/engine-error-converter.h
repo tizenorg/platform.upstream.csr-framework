@@ -14,34 +14,18 @@
  *  limitations under the License
  */
 /*
- * @file        access-control-smack.cpp
+ * @file        engine-error-converter.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       access control with smack backend
+ * @brief       convert engine error to custom exception
  */
-#include "service/access-control.h"
-
-#include <sys/smack.h>
+#pragma once
 
 #include "service/exception.h"
 
 namespace Csr {
 
-bool hasPermission(const ConnShPtr &conn)
-{
-	return hasPermission(conn, conn->getSockId());
-}
-
-bool hasPermission(const ConnShPtr &conn, SockId sockId)
-{
-	const auto &cred = conn->getCredential();
-	const auto &sockDesc = getSockDesc(sockId);
-
-	auto ret = smack_have_access(cred.label.c_str(), sockDesc.label.c_str(), "w");
-	if (ret < 0)
-		ThrowExc(InternalError, "smack_have_access failed.");
-
-	return ret == 1;
-}
+// throw converted common exception if it have to.
+void toException(int ee);
 
 }

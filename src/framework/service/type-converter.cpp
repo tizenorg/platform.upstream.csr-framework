@@ -22,7 +22,7 @@
 #include "service/type-converter.h"
 
 #include "common/audit/logger.h"
-#include "common/exception.h"
+#include "service/exception.h"
 
 namespace Csr {
 

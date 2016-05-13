@@ -36,9 +36,11 @@ enum class SockId : int {
 struct SocketDescriptor {
 	const std::string path;
 	const std::string privilege;
+	const std::string label;
 
 	SocketDescriptor() {}
-	SocketDescriptor(const std::string &path, const std::string &priv);
+	SocketDescriptor(const std::string &path, const std::string &priv,
+					 const std::string &label);
 };
 
 const SocketDescriptor &getSockDesc(const SockId &);

@@ -33,29 +33,34 @@ const std::map<SockId, SocketDescriptor> g_sockDescMap {
 	{
 		SockId::CS,
 		SocketDescriptor("/tmp/." SERVICE_NAME "-cs.socket",
-						 "http://tizen.org/privilege/antivirus.scan")
+						 "http://tizen.org/privilege/antivirus.scan",
+						 "csr::api-cs")
 	},
 	{
 		SockId::WP,
 		SocketDescriptor("/tmp/." SERVICE_NAME "-wp.socket",
-						 "http://tizen.org/privilege/antivirus.webprotect")
+						 "http://tizen.org/privilege/antivirus.webprotect",
+						 "csr::api-wp")
 	},
 	{
 		SockId::ADMIN,
 		SocketDescriptor("/tmp/." SERVICE_NAME "-admin.socket",
-						 "http://tizen.org/privilege/antivirus.admin")
+						 "http://tizen.org/privilege/antivirus.admin",
+						 "csr::api-admin")
 	},
 	{
 		SockId::POPUP,
 		SocketDescriptor("/tmp/." SERVICE_NAME "-popup.socket",
+						 std::string(),
 						 std::string())
 	}
 };
 
 } // namespace anonymous
 
-SocketDescriptor::SocketDescriptor(const std::string &_path, const std::string &_priv) :
-	path(_path), privilege(_priv) {}
+SocketDescriptor::SocketDescriptor(const std::string &_path, const std::string &_priv,
+								   const std::string &_label) :
+	path(_path), privilege(_priv), label(_label) {}
 
 const SocketDescriptor &getSockDesc(const SockId &id)
 {

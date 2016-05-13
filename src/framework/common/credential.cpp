@@ -34,8 +34,6 @@ Credential::Credential(uid_t _uid, gid_t _gid, const std::string &_label) :
 
 std::unique_ptr<Credential> Credential::get(int sockfd)
 {
-	std::unique_ptr<Credential> c;
-
 	struct ucred cred;
 	socklen_t lenCred = sizeof(ucred);
 

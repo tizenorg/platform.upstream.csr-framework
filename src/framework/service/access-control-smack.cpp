@@ -14,21 +14,34 @@
  *  limitations under the License
  */
 /*
- * @file        access-control.cpp
+ * @file        access-control-smack.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       access control with smack backend
  */
 #include "service/access-control.h"
 
-#include <unistd.h>
+#include <sys/smack.h>
+
+#include "common/exception.h"
 
 namespace Csr {
 
-bool hasPermToRemove(const std::string &filepath)
+bool hasPermission(const ConnShPtr &conn)
 {
-	auto parent = filepath.substr(0, filepath.find_last_of('/'));
-	return access(parent.c_str(), W_OK) == 0;
+	return hasPermission(conn, conn->getSockId());
+}
+
+bool hasPermission(const ConnShPtr &conn, SockId sockId)
+{
+	const auto &cred = conn->getCredential();
+	const auto &sockDesc = getSockDesc(sockId);
+
+	auto ret = smack_have_access(cred.label.c_str(), sockDesc.label.c_str(), "w");
+	if (ret < 0)
+		ThrowExc(InternalError, "smack_have_access failed.");
+
+	return ret == 1;
 }
 
 }

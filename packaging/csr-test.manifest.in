@@ -11,6 +11,10 @@
 			<smack request="sdbd" type="rx" />
 			<smack request="pkgmgr::db" type="rwx" />
 
+			<smack request="csr::api-cs" type="w" />
+			<smack request="csr::api-wp" type="w" />
+			<smack request="csr::api-admin" type="w" />
+
 			<smack request="system::media" type="rwxat" />
 			<smack request="system::homedir" type="rwxat" />
 		</request>

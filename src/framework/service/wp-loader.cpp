@@ -272,13 +272,10 @@ WpLoader::~WpLoader()
 	dlclose(m_pc.dlhandle);
 }
 
-WpEngineContext::WpEngineContext(std::shared_ptr<WpLoader> &loader) :
+WpEngineContext::WpEngineContext(WpLoader &loader) :
 	m_loader(loader), m_context(nullptr)
 {
-	if (m_loader == nullptr)
-		ThrowExc(InvalidParam, "loader shouldn't be null.");
-
-	auto ret = m_loader->contextCreate(m_context);
+	auto ret = m_loader.contextCreate(m_context);
 
 	if (ret != CSRE_ERROR_NONE)
 		ThrowExc(EngineError, "get engine context by loader. ret: " << ret);
@@ -286,7 +283,7 @@ WpEngineContext::WpEngineContext(std::shared_ptr<WpLoader> &loader) :
 
 WpEngineContext::~WpEngineContext()
 {
-	auto ret = m_loader->contextDestroy(m_context);
+	auto ret = m_loader.contextDestroy(m_context);
 
 	if (ret != CSRE_ERROR_NONE)
 		ThrowExc(EngineError, "destroy engine context by loader. ret: " << ret);
@@ -297,13 +294,10 @@ csre_wp_context_h &WpEngineContext::get(void)
 	return m_context;
 }
 
-WpEngineInfo::WpEngineInfo(std::shared_ptr<WpLoader> &loader) :
+WpEngineInfo::WpEngineInfo(WpLoader &loader) :
 	m_loader(loader), m_info(nullptr)
 {
-	if (m_loader == nullptr)
-		ThrowExc(InvalidParam, "loader shouldn't be null.");
-
-	auto ret = m_loader->getEngineInfo(m_info);
+	auto ret = m_loader.getEngineInfo(m_info);
 
 	if (ret != CSRE_ERROR_NONE)
 		ThrowExc(EngineError, "get engine info by loader. ret: " << ret);
@@ -311,7 +305,7 @@ WpEngineInfo::WpEngineInfo(std::shared_ptr<WpLoader> &loader) :
 
 WpEngineInfo::~WpEngineInfo()
 {
-	auto ret = m_loader->destroyEngine(m_info);
+	auto ret = m_loader.destroyEngine(m_info);
 
 	if (ret != CSRE_ERROR_NONE)
 		ThrowExc(EngineError, "destroy engine info by loader. ret: " << ret);

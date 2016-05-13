@@ -34,6 +34,19 @@
 
 namespace Csr {
 
+namespace {
+
+inline CommandId extractCommandId(BinaryQueue &q)
+{
+	CommandId id;
+
+	q.Deserialize(id);
+
+	return id;
+}
+
+}
+
 ServerService::ServerService() : Service(), m_workqueue(2, 10)
 {
 	this->add(SockId::CS);
@@ -45,21 +58,18 @@ ServerService::~ServerService()
 {
 }
 
-RawBuffer ServerService::process(const ConnShPtr &, RawBuffer &data)
+RawBuffer ServerService::processCs(const ConnShPtr &, RawBuffer &data)
 {
-	CommandId id;
-
 	BinaryQueue q;
 	q.push(data);
-	q.Deserialize(id);
 
-	switch (id) {
+	switch (extractCommandId(q)) {
 	case CommandId::SCAN_DATA: {
 		CsContextShPtr cptr;
 		RawBuffer data;
 		q.Deserialize(cptr, data);
 
-		return m_logic.scanData(*cptr, data);
+		return m_cslogic.scanData(*cptr, data);
 	}
 
 	case CommandId::SCAN_FILE: {
@@ -67,14 +77,14 @@ RawBuffer ServerService::process(const ConnShPtr &, RawBuffer &data)
 		std::string filepath;
 		q.Deserialize(cptr, filepath);
 
-		return m_logic.scanFile(*cptr, filepath);
+		return m_cslogic.scanFile(*cptr, filepath);
 	}
 
 	case CommandId::GET_SCANNABLE_FILES: {
 		std::string dir;
 		q.Deserialize(dir);
 
-		return m_logic.getScannableFiles(dir);
+		return m_cslogic.getScannableFiles(dir);
 	}
 
 	case CommandId::JUDGE_STATUS: {
@@ -82,94 +92,114 @@ RawBuffer ServerService::process(const ConnShPtr &, RawBuffer &data)
 		int intAction;
 		q.Deserialize(filepath, intAction);
 
-		return m_logic.judgeStatus(filepath, static_cast<csr_cs_action_e>(intAction));
+		return m_cslogic.judgeStatus(filepath, static_cast<csr_cs_action_e>(intAction));
 	}
 
 	case CommandId::GET_DETECTED: {
 		std::string filepath;
 		q.Deserialize(filepath);
 
-		return m_logic.getDetected(filepath);
+		return m_cslogic.getDetected(filepath);
 	}
 
 	case CommandId::GET_DETECTED_LIST: {
 		StrSet dirSet;
 		q.Deserialize(dirSet);
 
-		return m_logic.getDetectedList(dirSet);
+		return m_cslogic.getDetectedList(dirSet);
 	}
 
 	case CommandId::GET_IGNORED: {
 		std::string filepath;
 		q.Deserialize(filepath);
 
-		return m_logic.getIgnored(filepath);
+		return m_cslogic.getIgnored(filepath);
 	}
 
 	case CommandId::GET_IGNORED_LIST: {
 		StrSet dirSet;
 		q.Deserialize(dirSet);
 
-		return m_logic.getIgnoredList(dirSet);
+		return m_cslogic.getIgnoredList(dirSet);
 	}
 
-	// Web protection
-	/* TODO: should we separate command->logic mapping of CS and WP ? */
+	default:
+		ThrowExc(InternalError, "CS Command isn't in range");
+	}
+}
+
+RawBuffer ServerService::processWp(const ConnShPtr &, RawBuffer &data)
+{
+	BinaryQueue q;
+	q.push(data);
+
+	switch (extractCommandId(q)) {
 	case CommandId::CHECK_URL: {
 		WpContextShPtr cptr;
 		std::string url;
 		q.Deserialize(cptr, url);
 
-		return m_logic.checkUrl(*cptr, url);
+		return m_wplogic.checkUrl(*cptr, url);
 	}
 
+	default:
+		ThrowExc(InternalError, "WP Command isn't in range");
+	}
+}
+
+RawBuffer ServerService::processAdmin(const ConnShPtr &, RawBuffer &data)
+{
+	BinaryQueue q;
+	q.push(data);
+
+	switch (extractCommandId(q)) {
 	case CommandId::EM_GET_NAME: {
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
-		return m_logic.getEngineName(*cptr);
+		return m_emlogic.getEngineName(*cptr);
 	}
 
 	case CommandId::EM_GET_VENDOR: {
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
-		return m_logic.getEngineVendor(*cptr);
+		return m_emlogic.getEngineVendor(*cptr);
 	}
 
 	case CommandId::EM_GET_VERSION: {
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
-		return m_logic.getEngineVersion(*cptr);
+		return m_emlogic.getEngineVersion(*cptr);
 	}
 
 	case CommandId::EM_GET_DATA_VERSION: {
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
-		return m_logic.getEngineDataVersion(*cptr);
+		return m_emlogic.getEngineDataVersion(*cptr);
 	}
 
 	case CommandId::EM_GET_UPDATED_TIME: {
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
-		return m_logic.getEngineUpdatedTime(*cptr);
+		return m_emlogic.getEngineUpdatedTime(*cptr);
 	}
 
 	case CommandId::EM_GET_ACTIVATED: {
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
-		return m_logic.getEngineActivated(*cptr);
+		return m_emlogic.getEngineActivated(*cptr);
 	}
 
 	case CommandId::EM_GET_STATE: {
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
-		return m_logic.getEngineState(*cptr);
+		return m_emlogic.getEngineState(*cptr);
 	}
 
 	case CommandId::EM_SET_STATE: {
@@ -177,11 +207,11 @@ RawBuffer ServerService::process(const ConnShPtr &, RawBuffer &data)
 		int intState;
 		q.Deserialize(cptr, intState);
 
-		return m_logic.setEngineState(*cptr, static_cast<csr_state_e>(intState));
+		return m_emlogic.setEngineState(*cptr, static_cast<csr_state_e>(intState));
 	}
 
 	default:
-		ThrowExc(InternalError, "Command isn't in range: " << static_cast<int>(id));
+		ThrowExc(InternalError, "ADMIN Command isn't in range");
 	}
 }
 
@@ -189,11 +219,36 @@ void ServerService::onMessageProcess(const ConnShPtr &connection)
 {
 	DEBUG("let's dispatch it to worker threads.");
 
-	auto process = [&](RawBuffer & buffer) {
-		connection->send(this->process(connection, buffer));
-	};
+	using LogicMapper = std::function<RawBuffer(const ConnShPtr &, RawBuffer &)>;
 
-	m_workqueue.submit(std::bind(process, connection->receive()));
+	auto process(std::make_shared<LogicMapper>());
+
+	switch (connection->getSockId()) {
+	case SockId::CS:
+		*process = [this](const ConnShPtr &c, RawBuffer &b) {
+			return this->processCs(c, b);
+		};
+		break;
+
+	case SockId::WP:
+		*process = [this](const ConnShPtr &c, RawBuffer &b) {
+			return this->processWp(c, b);
+		};
+		break;
+
+	case SockId::ADMIN:
+		*process = [this](const ConnShPtr &c, RawBuffer &b) {
+			return this->processAdmin(c, b);
+		};
+		break;
+
+	default:
+		ThrowExc(InternalError, "Message from unknown sock id");
+	}
+
+	m_workqueue.submit(std::bind([this, &connection, process](RawBuffer &buffer) {
+		connection->send((*process)(connection, buffer));
+	}, connection->receive()));
 }
 
 }

@@ -24,7 +24,6 @@
 #include <ctime>
 #include <vector>
 #include <string>
-#include <memory>
 
 #include "csre/content-screening-types.h"
 #include "csre/content-screening-engine-info.h"
@@ -123,23 +122,23 @@ private:
 
 class CsEngineContext {
 public:
-	CsEngineContext(std::shared_ptr<CsLoader> &);
+	CsEngineContext(CsLoader &);
 	~CsEngineContext();
 	csre_cs_context_h &get(void);
 
 private:
-	std::shared_ptr<CsLoader> &m_loader;
+	CsLoader &m_loader;
 	csre_cs_context_h m_context;
 };
 
 class CsEngineInfo {
 public:
-	CsEngineInfo(std::shared_ptr<CsLoader> &);
+	CsEngineInfo(CsLoader &);
 	~CsEngineInfo();
 	csre_cs_engine_h &get(void);
 
 private:
-	std::shared_ptr<CsLoader> &m_loader;
+	CsLoader &m_loader;
 	csre_cs_engine_h m_info;
 };
 

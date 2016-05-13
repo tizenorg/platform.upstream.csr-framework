@@ -24,7 +24,6 @@
 #include <ctime>
 #include <vector>
 #include <string>
-#include <memory>
 
 #include "csre/web-protection-types.h"
 #include "csre/web-protection-engine-info.h"
@@ -105,23 +104,23 @@ private:
 
 class WpEngineContext {
 public:
-	WpEngineContext(std::shared_ptr<WpLoader> &);
+	WpEngineContext(WpLoader &);
 	~WpEngineContext();
 	csre_wp_context_h &get(void);
 
 private:
-	std::shared_ptr<WpLoader> &m_loader;
+	WpLoader &m_loader;
 	csre_wp_context_h m_context;
 };
 
 class WpEngineInfo {
 public:
-	WpEngineInfo(std::shared_ptr<WpLoader> &);
+	WpEngineInfo(WpLoader &);
 	~WpEngineInfo();
 	csre_wp_engine_h &get(void);
 
 private:
-	std::shared_ptr<WpLoader> &m_loader;
+	WpLoader &m_loader;
 	csre_wp_engine_h m_info;
 };
 

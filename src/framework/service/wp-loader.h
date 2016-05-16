@@ -32,10 +32,13 @@ namespace Csr {
 
 class WpLoader {
 public:
-	WpLoader(const std::string &);
+	WpLoader(const std::string &enginePath, const std::string &roResDir,
+			 const std::string &rwWorkingDir);
 	virtual ~WpLoader();
-	int globalInit(const std::string &, const std::string &);
-	int globalDeinit();
+
+	void reset(const std::string &enginePath, const std::string &roResDir,
+			   const std::string &rwWorkingDir);
+
 	int contextCreate(csre_wp_context_h &);
 	int contextDestroy(csre_wp_context_h);
 	int checkUrl(csre_wp_context_h handle, const std::string &,
@@ -98,6 +101,8 @@ private:
 		FpGetEngineActivated fpGetEngineActivated;
 		FpGetEngineVendorLogo fpGetEngineVendorLogo;
 	};
+
+	void init(const std::string &, const std::string &, const std::string &);
 
 	PluginContext m_pc;
 };

@@ -31,35 +31,26 @@
 
 namespace Csr {
 
-WpLogic::WpLogic() : m_loader(new WpLoader(WP_ENGINE_PATH))
+WpLogic::WpLogic(WpLoader &loader) : m_loader(loader)
 {
-	// TODO: Provide engine-specific res/working dirs
-	toException(m_loader->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
-									 SAMPLE_ENGINE_RW_WORKING_DIR));
-
-	WpEngineInfo wpEngineInfo(*m_loader);
-	toException(m_loader->getEngineDataVersion(wpEngineInfo.get(), m_dataVersion));
+	WpEngineInfo wpEngineInfo(this->m_loader);
+	toException(this->m_loader.getEngineDataVersion(wpEngineInfo.get(),
+				this->m_dataVersion));
 }
 
 WpLogic::~WpLogic()
 {
-	try {
-		toException(m_loader->globalDeinit());
-	} catch (const Exception &e) {
-		ERROR("ignore all custom exceptions in logic dtor: " << e.error() <<
-			  " " << e.what());
-	}
 }
 
 RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
 {
 	EXCEPTION_GUARD_START
 
-	WpEngineContext engineContext(*m_loader);
+	WpEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
 	csre_wp_check_result_h result;
-	toException(m_loader->checkUrl(c, url.c_str(), &result));
+	toException(this->m_loader.checkUrl(c, url.c_str(), &result));
 
 	auto wr = convert(result);
 
@@ -97,9 +88,8 @@ RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
 	EXCEPTION_GUARD_END
 }
 
-csr_wp_user_response_e WpLogic::getUserResponse(const WpContext &c,
-												const std::string &url,
-												const WpResult &wr)
+csr_wp_user_response_e WpLogic::getUserResponse(const WpContext &c, const std::string &url,
+		const WpResult &wr)
 {
 	if (c.askUser == CSR_WP_NOT_ASK_USER)
 		return CSR_WP_NO_ASK_USER;
@@ -126,8 +116,8 @@ WpResult WpLogic::convert(csre_wp_check_result_h &r)
 	WpResult wr;
 	csre_wp_risk_level_e elevel;
 
-	toException(m_loader->getDetailedUrl(r, wr.detailedUrl));
-	toException(m_loader->getRiskLevel(r, &elevel));
+	toException(this->m_loader.getDetailedUrl(r, wr.detailedUrl));
+	toException(this->m_loader.getRiskLevel(r, &elevel));
 	wr.riskLevel = Csr::convert(elevel);
 
 	return wr;

@@ -36,7 +36,7 @@ namespace Csr {
 
 class EmLogic : public Logic {
 public:
-	EmLogic();
+	EmLogic(CsLoader &cs, WpLoader &wp, Db::Manager &db);
 	virtual ~EmLogic();
 
 	RawBuffer getEngineName(const EmContext &context);
@@ -49,9 +49,9 @@ public:
 	RawBuffer setEngineState(const EmContext &context, csr_state_e state);
 
 private:
-	std::unique_ptr<CsLoader> m_cs;
-	std::unique_ptr<WpLoader> m_wp;
-	std::unique_ptr<Db::Manager> m_db;
+	CsLoader &m_cs;
+	WpLoader &m_wp;
+	Db::Manager &m_db;
 };
 
 }

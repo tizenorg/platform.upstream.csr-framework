@@ -144,7 +144,7 @@ FilePtr File::create(const std::string &fpath, time_t modifiedSince)
 		ThrowExc(FileDoNotExist, "file not exist: " << fpath);
 	} else if (!S_ISREG(statptr->st_mode) && !S_ISDIR(statptr->st_mode)) {
 		ThrowExc(FileSystemError, "file type is not reguler or dir: " << fpath);
-	} else if (modifiedSince != -1 && statptr->st_mtim.tv_sec < modifiedSince) {
+	} else if (modifiedSince != -1 && statptr->st_mtim.tv_sec <= modifiedSince) {
 		DEBUG("file[" << fpath << "] isn't modified since[" << modifiedSince << "]");
 		return nullptr;
 	} else {

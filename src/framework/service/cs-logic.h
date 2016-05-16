@@ -22,7 +22,6 @@
 #pragma once
 
 #include <string>
-#include <memory>
 
 #include "common/types.h"
 #include "common/cs-context.h"
@@ -38,7 +37,7 @@ namespace Csr {
 
 class CsLogic : public Logic {
 public:
-	CsLogic();
+	CsLogic(CsLoader &loader, Db::Manager &db);
 	virtual ~CsLogic();
 
 	RawBuffer scanData(const CsContext &context, const RawBuffer &data);
@@ -65,8 +64,8 @@ private:
 	static csr_cs_user_response_e getUserResponse(const CsContext &,
 			const CsDetected &);
 
-	std::unique_ptr<CsLoader> m_loader;
-	std::unique_ptr<Db::Manager> m_db;
+	CsLoader &m_loader;
+	Db::Manager &m_db;
 
 	std::string m_dataVersion;
 };

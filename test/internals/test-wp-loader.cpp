@@ -88,18 +88,17 @@ struct Handle {
 
 template <>
 struct Handle<csre_wp_context_h> {
-	Handle() : loader(SAMPLE_ENGINE_DIR "/libcsr-wp-engine.so")
+	Handle() :
+		loader(SAMPLE_ENGINE_DIR "/libcsr-wp-engine.so",
+			   SAMPLE_ENGINE_RO_RES_DIR,
+			   SAMPLE_ENGINE_RW_WORKING_DIR)
 	{
-		ASSERT_IF(
-			loader.globalInit(SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR),
-			CSRE_ERROR_NONE);
 		ASSERT_IF(loader.contextCreate(context), CSRE_ERROR_NONE);
 	}
 
 	~Handle()
 	{
 		ASSERT_IF(loader.contextDestroy(context), CSRE_ERROR_NONE);
-		ASSERT_IF(loader.globalDeinit(), CSRE_ERROR_NONE);
 	}
 
 	Csr::WpLoader loader;
@@ -108,18 +107,17 @@ struct Handle<csre_wp_context_h> {
 
 template <>
 struct Handle<csre_wp_engine_h> {
-	Handle() : loader(SAMPLE_ENGINE_DIR "/libcsr-wp-engine.so")
+	Handle() :
+		loader(SAMPLE_ENGINE_DIR "/libcsr-wp-engine.so",
+			   SAMPLE_ENGINE_RO_RES_DIR,
+			   SAMPLE_ENGINE_RW_WORKING_DIR)
 	{
-		ASSERT_IF(
-			loader.globalInit(SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR),
-			CSRE_ERROR_NONE);
 		ASSERT_IF(loader.getEngineInfo(context), CSRE_ERROR_NONE);
 	}
 
 	~Handle()
 	{
 		ASSERT_IF(loader.destroyEngine(context), CSRE_ERROR_NONE);
-		ASSERT_IF(loader.globalDeinit(), CSRE_ERROR_NONE);
 	}
 
 	Csr::WpLoader loader;

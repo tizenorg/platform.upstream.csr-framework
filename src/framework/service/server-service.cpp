@@ -53,7 +53,15 @@ inline CommandId extractCommandId(BinaryQueue &q)
 
 }
 
-ServerService::ServerService() : Service(), m_workqueue(2, 10)
+ServerService::ServerService() :
+	Service(),
+	m_workqueue(2, 10),
+	m_cs(new CsLoader(CS_ENGINE_PATH, SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR)),
+	m_wp(new WpLoader(WP_ENGINE_PATH, SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR)),
+	m_db(new Db::Manager(RW_DBSPACE "/.csr.db", RO_DBSPACE)),
+	m_cslogic(*m_cs, *m_db),
+	m_wplogic(*m_wp),
+	m_emlogic(*m_cs, *m_wp, *m_db)
 {
 	this->add(SockId::CS);
 	this->add(SockId::WP);

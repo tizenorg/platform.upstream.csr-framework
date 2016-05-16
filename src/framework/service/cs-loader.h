@@ -32,10 +32,13 @@ namespace Csr {
 
 class CsLoader {
 public:
-	CsLoader(const std::string &);
+	CsLoader(const std::string &enginePath, const std::string &roResDir,
+			 const std::string &rwWorkingDir);
 	virtual ~CsLoader();
-	int globalInit(const std::string &, const std::string &);
-	int globalDeinit();
+
+	void reset(const std::string &enginePath, const std::string &roResDir,
+			   const std::string &rwWorkingDir);
+
 	int contextCreate(csre_cs_context_h &);
 	int contextDestroy(csre_cs_context_h);
 	int scanData(csre_cs_context_h, const std::vector<unsigned char> &,
@@ -116,6 +119,8 @@ private:
 		FpGetEngineActivated fpGetEngineActivated;
 		FpGetEngineVendorLogo fpGetEngineVendorLogo;
 	};
+
+	void init(const std::string &, const std::string &, const std::string &);
 
 	PluginContext m_pc;
 };

@@ -67,6 +67,9 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 {
 	EXCEPTION_GUARD_START
 
+	if (this->m_db.getEngineState(CSR_ENGINE_CS) != CSR_ENABLE)
+		ThrowExc(EngineDisabled, "engine is disabled");
+
 	setCoreUsage(context.coreUsage);
 
 	CsEngineContext engineContext(this->m_loader);
@@ -230,6 +233,9 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 {
 	EXCEPTION_GUARD_START
 
+	if (this->m_db.getEngineState(CSR_ENGINE_CS) != CSR_ENABLE)
+		ThrowExc(EngineDisabled, "engine is disabled");
+
 	setCoreUsage(context.coreUsage);
 
 	if (File::isInApp(filepath))
@@ -304,6 +310,9 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 {
 	EXCEPTION_GUARD_START
+
+	if (this->m_db.getEngineState(CSR_ENGINE_CS) != CSR_ENABLE)
+		ThrowExc(EngineDisabled, "engine is disabled");
 
 	auto lastScanTime = this->m_db.getLastScanTime(dir, this->m_dataVersion);
 

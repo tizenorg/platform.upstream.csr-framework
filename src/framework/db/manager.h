@@ -24,10 +24,14 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <map>
+#include <mutex>
 
 #include "db/connection.h"
 #include "db/row.h"
 #include "common/cs-detected.h"
+
+#include "csr/engine-manager.h"
 
 namespace Csr {
 namespace Db {
@@ -41,8 +45,8 @@ public:
 	int getSchemaVersion();
 
 	// ENGINE_STATE
-	int getEngineState(int engineId);
-	void setEngineState(int engineId, int state);
+	csr_state_e getEngineState(csr_engine_id_e);
+	void setEngineState(csr_engine_id_e, csr_state_e);
 
 	// SCAN_REQUEST
 	time_t getLastScanTime(const std::string &dir, const std::string &dataVersion);
@@ -70,6 +74,9 @@ private:
 
 	Csr::Db::Connection m_conn;
 	std::string m_scriptsDir;
+
+	std::map<csr_engine_id_e, csr_state_e> m_stateMap;
+	std::mutex m_mutex;
 };
 
 } // namespace Db

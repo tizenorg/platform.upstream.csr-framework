@@ -34,6 +34,9 @@ const std::string SEL_ENGINE_STATE =
 const std::string INS_ENGINE_STATE =
 	"insert or replace into ENGINE_STATE (id, state) values (?, ?)";
 
+const std::string SEL_ENGINE_STATE_ALL =
+	"select id, state from ENGINE_STATE";
+
 const std::string SEL_SCAN_REQUEST =
 	"select last_scan from SCAN_REQUEST where dir = ? and data_version = ?";
 

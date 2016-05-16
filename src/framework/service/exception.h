@@ -30,5 +30,6 @@ using DbFailed           = DerivedException<CSR_ERROR_DB>;
 using EngineError        = DerivedException<CSR_ERROR_ENGINE_INTERNAL>;
 using EngineNotActivated = DerivedException<CSR_ERROR_ENGINE_NOT_ACTIVATED>;
 using EnginePermDenied   = DerivedException<CSR_ERROR_ENGINE_PERMISSION>;
+using EngineDisabled     = DerivedException<CSR_ERROR_ENGINE_DISABLED>;
 
 }

@@ -26,6 +26,7 @@
 #include "common/types.h"
 #include "common/wp-context.h"
 #include "common/wp-result.h"
+#include "db/manager.h"
 #include "service/wp-loader.h"
 #include "service/logic.h"
 
@@ -33,7 +34,7 @@ namespace Csr {
 
 class WpLogic : public Logic {
 public:
-	WpLogic(WpLoader &loader);
+	WpLogic(WpLoader &loader, Db::Manager &db);
 	virtual ~WpLogic();
 
 	RawBuffer checkUrl(const WpContext &context, const std::string &url);
@@ -46,6 +47,8 @@ private:
 			const WpResult &result);
 
 	WpLoader &m_loader;
+	Db::Manager &m_db;
+
 	std::string m_dataVersion;
 };
 

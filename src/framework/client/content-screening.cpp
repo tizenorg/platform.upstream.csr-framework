@@ -79,28 +79,30 @@ bool _isValid(const csr_cs_action_e &value)
 template <class T>
 class CptrList {
 public:
-	CptrList(std::vector<T *> &_l) : l(_l) {}
+	CptrList(std::vector<T *> *_l) : l(_l) {}
 
 	~CptrList()
 	{
-		for (auto &item : l)
+		for (auto &item : *l)
 			delete item;
+
+		delete l;
 	}
 
 	T *pop(void)
 	{
-		if (l.empty())
+		if (l->empty())
 			return nullptr;
 
-		auto iter = l.begin();
+		auto iter = l->begin();
 		auto item = *iter;
-		l.erase(iter);
+		l->erase(iter);
 
 		return item;
 	}
 
 private:
-	std::vector<T *> &l;
+	std::vector<T *> *l;
 };
 
 } // end of namespace
@@ -224,23 +226,12 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data,
 				   hExt->getContext(),
 				   RawBuffer(data, data + length));
 
-	if (ret.first != CSR_ERROR_NONE) {
-		ERROR("Error! ret: " << ret.first);
-		return ret.first;
-	}
-
-	if (ret.second == nullptr)
-		return CSR_ERROR_UNKNOWN; // deserialization logic error
-
-	if (ret.second->hasValue()) {
+	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
-		*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
-	} else {
-		*pdetected = nullptr;
-		delete ret.second;
-	}
 
-	return CSR_ERROR_NONE;
+	*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
+
+	return ret.first;
 
 	EXCEPTION_SAFE_END
 }
@@ -262,21 +253,10 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 				   hExt->getContext(),
 				   std::string(file_path));
 
-	if (ret.first != CSR_ERROR_NONE && ret.first != CSR_ERROR_REMOVE_FAILED) {
-		ERROR("Error! ret: " << ret.first);
-		return ret.first;
-	}
-
-	if (ret.second == nullptr)
-		return CSR_ERROR_UNKNOWN; // deserialization logic error
-
-	if (ret.second->hasValue()) {
+	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
-		*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
-	} else {
-		*pdetected = nullptr;
-		delete ret.second;
-	}
+
+	*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
 
 	return ret.first;
 
@@ -647,17 +627,9 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle,
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
-	auto ret = hExt->dispatch<int>(
-				   CommandId::JUDGE_STATUS,
-				   reinterpret_cast<CsDetected *>(detected)->targetName,
-				   static_cast<int>(action));
-
-	if (ret != CSR_ERROR_NONE) {
-		ERROR("Error! ret: " << ret);
-		return ret;
-	}
-
-	return CSR_ERROR_NONE;
+	return hExt->dispatch<int>(CommandId::JUDGE_STATUS,
+							   reinterpret_cast<CsDetected *>(detected)->targetName,
+							   static_cast<int>(action));
 
 	EXCEPTION_SAFE_END
 }
@@ -677,23 +649,12 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
 	auto ret = hExt->dispatch<std::pair<int, CsDetected *>>(
 				   CommandId::GET_DETECTED, std::string(file_path));
 
-	if (ret.first != CSR_ERROR_NONE) {
-		ERROR("Error! ret: " << ret.first);
-		return ret.first;
-	}
-
-	if (ret.second == nullptr)
-		return CSR_ERROR_UNKNOWN; // deserialization logic error
-
-	if (ret.second->hasValue()) {
+	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
-		*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
-	} else {
-		*pdetected = nullptr;
-		delete ret.second;
-	}
 
-	return CSR_ERROR_NONE;
+	*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
+
+	return ret.first;
 
 	EXCEPTION_SAFE_END
 }
@@ -724,33 +685,27 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
 	if (dirSet.size() == 0)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	auto ret = hExt->dispatch<std::pair<int, std::vector<CsDetected *>>>(
+	auto ret = hExt->dispatch<std::pair<int, std::vector<CsDetected *> *>>(
 				   CommandId::GET_DETECTED_LIST, dirSet);
 
-	if (ret.first != CSR_ERROR_NONE) {
-		ERROR("Error! ret: " << ret.first);
-		return ret.first;
-	}
+	if (ret.second) {
+		CptrList<CsDetected> cptrList(ret.second);
 
-	if (ret.second.empty()) {
+		ResultListPtr resultListPtr(new ResultList);
+
+		while (auto dptr = cptrList.pop())
+			resultListPtr->emplace_back(dptr);
+
+		*plist = reinterpret_cast<csr_cs_detected_list_h>(resultListPtr.get());
+		*pcount = resultListPtr->size();
+
+		hExt->add(std::move(resultListPtr));
+	} else {
 		*plist = nullptr;
 		*pcount = 0;
-		return CSR_ERROR_NONE;
 	}
 
-	CptrList<CsDetected> cptrList(ret.second);
-
-	ResultListPtr resultListPtr(new ResultList);
-
-	while (auto dptr = cptrList.pop())
-		resultListPtr->emplace_back(dptr);
-
-	*plist = reinterpret_cast<csr_cs_detected_list_h>(resultListPtr.get());
-	*pcount = resultListPtr->size();
-
-	hExt->add(std::move(resultListPtr));
-
-	return CSR_ERROR_NONE;
+	return ret.first;
 
 	EXCEPTION_SAFE_END
 }
@@ -770,23 +725,12 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
 	auto ret = hExt->dispatch<std::pair<int, CsDetected *>>(
 				   CommandId::GET_IGNORED, std::string(file_path));
 
-	if (ret.first != CSR_ERROR_NONE) {
-		ERROR("Error! ret: " << ret.first);
-		return ret.first;
-	}
-
-	if (ret.second == nullptr)
-		return CSR_ERROR_UNKNOWN; // deserialization logic error
-
-	if (ret.second->hasValue()) {
+	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
-		*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
-	} else {
-		*pdetected = nullptr;
-		delete ret.second;
-	}
 
-	return CSR_ERROR_NONE;
+	*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
+
+	return ret.first;
 
 	EXCEPTION_SAFE_END
 }
@@ -817,33 +761,27 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
 	if (dirSet.size() == 0)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	auto ret = hExt->dispatch<std::pair<int, std::vector<CsDetected *>>>(
+	auto ret = hExt->dispatch<std::pair<int, std::vector<CsDetected *> *>>(
 				   CommandId::GET_IGNORED_LIST, dirSet);
 
-	if (ret.first != CSR_ERROR_NONE) {
-		ERROR("Error! ret: " << ret.first);
-		return ret.first;
-	}
+	if (ret.second) {
+		CptrList<CsDetected> cptrList(ret.second);
 
-	if (ret.second.empty()) {
+		ResultListPtr resultListPtr(new ResultList);
+
+		while (auto dptr = cptrList.pop())
+			resultListPtr->emplace_back(dptr);
+
+		*plist = reinterpret_cast<csr_cs_detected_list_h>(resultListPtr.get());
+		*pcount = resultListPtr->size();
+
+		hExt->add(std::move(resultListPtr));
+	} else {
 		*plist = nullptr;
 		*pcount = 0;
-		return CSR_ERROR_NONE;
 	}
 
-	CptrList<CsDetected> cptrList(ret.second);
-
-	ResultListPtr resultListPtr(new ResultList);
-
-	while (auto dptr = cptrList.pop())
-		resultListPtr->emplace_back(dptr);
-
-	*plist = reinterpret_cast<csr_cs_detected_list_h>(resultListPtr.get());
-	*pcount = resultListPtr->size();
-
-	hExt->add(std::move(resultListPtr));
-
-	return CSR_ERROR_NONE;
+	return ret.first;
 
 	EXCEPTION_SAFE_END
 }

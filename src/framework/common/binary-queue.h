@@ -52,6 +52,7 @@ public:
 
 	virtual void read(size_t num, void *bytes) override;
 	virtual void write(size_t num, const void *bytes) override;
+	virtual bool empty(void) const noexcept override;
 
 private:
 	const static size_t MaxBucketSize = 1024; /* Bytes */

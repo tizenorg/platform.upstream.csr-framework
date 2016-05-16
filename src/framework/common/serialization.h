@@ -42,6 +42,7 @@ class IStream {
 public:
 	virtual void read(size_t num, void *bytes) = 0;
 	virtual void write(size_t num, const void *bytes) = 0;
+	virtual bool empty(void) const = 0;
 	virtual ~IStream() {}
 };
 
@@ -320,13 +321,16 @@ struct Deserialization {
 	template <typename T>
 	static void Deserialize(IStream &stream, T *&object)
 	{
-		object = new T(stream);
+		object = stream.empty() ? nullptr : new T(stream);
 	}
 
 	template <typename T>
 	static void Deserialize(IStream &stream, std::shared_ptr<T> &object)
 	{
-		object.reset(new T(stream));
+		if (stream.empty())
+			object.reset();
+		else
+			object.reset(new T(stream));
 	}
 
 	// char
@@ -336,8 +340,12 @@ struct Deserialization {
 	}
 	static void Deserialize(IStream &stream, char *&value)
 	{
-		value = new char;
-		stream.read(sizeof(*value), value);
+		if (stream.empty()) {
+			value = nullptr;
+		} else {
+			value = new char;
+			stream.read(sizeof(*value), value);
+		}
 	}
 
 	// unsigned char
@@ -347,8 +355,12 @@ struct Deserialization {
 	}
 	static void Deserialize(IStream &stream, unsigned char *&value)
 	{
-		value = new unsigned char;
-		stream.read(sizeof(*value), value);
+		if (stream.empty()) {
+			value = nullptr;
+		} else {
+			value = new unsigned char;
+			stream.read(sizeof(*value), value);
+		}
 	}
 
 	// unsigned int32
@@ -358,8 +370,12 @@ struct Deserialization {
 	}
 	static void Deserialize(IStream &stream, uint32_t *&value)
 	{
-		value = new uint32_t;
-		stream.read(sizeof(*value), value);
+		if (stream.empty()) {
+			value = nullptr;
+		} else {
+			value = new uint32_t;
+			stream.read(sizeof(*value), value);
+		}
 	}
 
 	// int32
@@ -369,8 +385,12 @@ struct Deserialization {
 	}
 	static void Deserialize(IStream &stream, int32_t *&value)
 	{
-		value = new int32_t;
-		stream.read(sizeof(*value), value);
+		if (stream.empty()) {
+			value = nullptr;
+		} else {
+			value = new int32_t;
+			stream.read(sizeof(*value), value);
+		}
 	}
 
 	// unsigned int64
@@ -380,8 +400,12 @@ struct Deserialization {
 	}
 	static void Deserialize(IStream &stream, uint64_t *&value)
 	{
-		value = new uint64_t;
-		stream.read(sizeof(*value), value);
+		if (stream.empty()) {
+			value = nullptr;
+		} else {
+			value = new uint64_t;
+			stream.read(sizeof(*value), value);
+		}
 	}
 
 	// int64
@@ -391,8 +415,12 @@ struct Deserialization {
 	}
 	static void Deserialize(IStream &stream, int64_t *&value)
 	{
-		value = new int64_t;
-		stream.read(sizeof(*value), value);
+		if (stream.empty()) {
+			value = nullptr;
+		} else {
+			value = new int64_t;
+			stream.read(sizeof(*value), value);
+		}
 	}
 
 	static void Deserialize(IStream &stream, time_t &value)
@@ -401,8 +429,12 @@ struct Deserialization {
 	}
 	static void Deserialize(IStream &stream, time_t *&value)
 	{
-		value = new time_t;
-		stream.read(sizeof(*value), value);
+		if (stream.empty()) {
+			value = nullptr;
+		} else {
+			value = new time_t;
+			stream.read(sizeof(*value), value);
+		}
 	}
 
 	// bool
@@ -412,8 +444,12 @@ struct Deserialization {
 	}
 	static void Deserialize(IStream &stream, bool *&value)
 	{
-		value = new bool;
-		stream.read(sizeof(*value), value);
+		if (stream.empty()) {
+			value = nullptr;
+		} else {
+			value = new bool;
+			stream.read(sizeof(*value), value);
+		}
 	}
 
 	static void Deserialize(IStream &stream, CommandId &value)
@@ -443,11 +479,15 @@ struct Deserialization {
 	template <typename T, typename R, typename A>
 	static void Deserialize(IStream &stream, std::basic_string<T, R, A> *&str)
 	{
-		int length;
-		stream.read(sizeof(length), &length);
-		std::vector<T> buf(length);
-		stream.read(length * sizeof(T), buf.data());
-		str = new std::basic_string<T, R, A>(buf.data(), buf.data() + length);
+		if (stream.empty()) {
+			str = nullptr;
+		} else {
+			int length;
+			stream.read(sizeof(length), &length);
+			std::vector<T> buf(length);
+			stream.read(length * sizeof(T), buf.data());
+			str = new std::basic_string<T, R, A>(buf.data(), buf.data() + length);
+		}
 	}
 
 	// STL templates
@@ -468,8 +508,22 @@ struct Deserialization {
 	template <typename T>
 	static void Deserialize(IStream &stream, std::list<T> *&list)
 	{
-		list = new std::list<T>;
-		Deserialize(stream, *list);
+		if (stream.empty()) {
+			list = nullptr;
+		} else {
+			list = new std::list<T>;
+			Deserialize(stream, *list);
+		}
+	}
+	template <typename T>
+	static void Deserialize(IStream &stream, std::shared_ptr<std::list<T>> &list)
+	{
+		if (stream.empty()) {
+			list.reset();
+		} else {
+			list.reset(new std::list<T>);
+			Deserialize(stream, *list);
+		}
 	}
 
 	template <typename T>
@@ -487,8 +541,22 @@ struct Deserialization {
 	template <typename T>
 	static void Deserialize(IStream &stream, std::set<T> *&set)
 	{
-		set = new std::set<T>;
-		Deserialize(stream, *set);
+		if (stream.empty()) {
+			set = nullptr;
+		} else {
+			set = new std::set<T>;
+			Deserialize(stream, *set);
+		}
+	}
+	template <typename T>
+	static void Deserialize(IStream &stream, std::shared_ptr<std::set<T>> &set)
+	{
+		if (stream.empty()) {
+			set.reset();
+		} else {
+			set.reset(new std::set<T>);
+			Deserialize(stream, *set);
+		}
 	}
 
 	// RawBuffer
@@ -500,12 +568,25 @@ struct Deserialization {
 		vec.resize(length);
 		stream.read(length, vec.data());
 	}
-
 	template <typename A>
 	static void Deserialize(IStream &stream, std::vector<unsigned char, A> *&vec)
 	{
-		vec = new std::vector<unsigned char, A>;
-		Deserialize(stream, *vec);
+		if (stream.empty()) {
+			vec = nullptr;
+		} else {
+			vec = new std::vector<unsigned char, A>;
+			Deserialize(stream, *vec);
+		}
+	}
+	template <typename A>
+	static void Deserialize(IStream &stream, std::shared_ptr<std::vector<unsigned char, A>> &vec)
+	{
+		if (stream.empty()) {
+			vec.reset();
+		} else {
+			vec.reset(new std::vector<unsigned char, A>);
+			Deserialize(stream, *vec);
+		}
 	}
 
 	// std::vector
@@ -524,8 +605,12 @@ struct Deserialization {
 	template <typename T, typename A>
 	static void Deserialize(IStream &stream, std::vector<T, A> *&vec)
 	{
-		vec = new std::vector<T, A>;
-		Deserialize(stream, *vec);
+		if (stream.empty()) {
+			vec = nullptr;
+		} else {
+			vec = new std::vector<T, A>;
+			Deserialize(stream, *vec);
+		}
 	}
 
 	// std::pair
@@ -538,8 +623,12 @@ struct Deserialization {
 	template <typename A, typename B>
 	static void Deserialize(IStream &stream, std::pair<A, B> *&p)
 	{
-		p = new std::pair<A, B>;
-		Deserialize(stream, *p);
+		if (stream.empty()) {
+			p = nullptr;
+		} else {
+			p = new std::pair<A, B>;
+			Deserialize(stream, *p);
+		}
 	}
 
 	// std::map
@@ -560,8 +649,12 @@ struct Deserialization {
 	template <typename K, typename T>
 	static void Deserialize(IStream &stream, std::map<K, T> *&map)
 	{
-		map = new std::map<K, T>;
-		Deserialize(stream, *map);
+		if (stream.empty()) {
+			map = nullptr;
+		} else {
+			map = new std::map<K, T>;
+			Deserialize(stream, *map);
+		}
 	}
 
 	// std::unordered_map
@@ -582,8 +675,12 @@ struct Deserialization {
 	template <typename K, typename T>
 	static void Deserialize(IStream &stream, std::unordered_map<K, T> *&map)
 	{
-		map = new std::map<K, T>;
-		Deserialize(stream, *map);
+		if (stream.empty()) {
+			map = nullptr;
+		} else {
+			map = new std::map<K, T>;
+			Deserialize(stream, *map);
+		}
 	}
 }; // struct Deserialization
 

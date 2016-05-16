@@ -89,6 +89,11 @@ void BinaryQueue::read(size_t size, void *bytes)
 	}
 }
 
+bool BinaryQueue::empty(void) const noexcept
+{
+	return m_size == 0;
+}
+
 BinaryQueue::Bucket::Bucket(unsigned char *_data, size_t _size) :
 	data(_data),
 	cur(_data),

@@ -90,11 +90,4 @@ CsDetected &CsDetected::operator=(CsDetected &&other)
 	return *this;
 }
 
-bool CsDetected::hasValue(void) const noexcept
-{
-	// malware name field is mandatory for detected item.
-	// so we could use it for validating detected instance
-	return !malwareName.empty();
-}
-
 }

@@ -71,7 +71,7 @@ AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 {
 	// Already scanned files are included in history. it'll be skipped later
 	// on server side by every single scan_file request.
-	auto retFiles = m_dispatcher->methodCall<std::pair<int, StrSet>>(
+	auto retFiles = m_dispatcher->methodCall<std::pair<int, std::shared_ptr<StrSet>>>(
 						CommandId::GET_SCANNABLE_FILES, dir);
 
 	if (retFiles.first != CSR_ERROR_NONE) {
@@ -84,7 +84,7 @@ AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 	}
 
 	// Let's start scan files!
-	auto task = scanFiles(retFiles.second);
+	auto task = scanFiles(*(retFiles.second));
 	// TODO: register results(in outs) to db and update dir scanning history...
 	return task;
 }
@@ -117,21 +117,18 @@ AsyncLogic::Ending AsyncLogic::scanFiles(const StrSet &fileSet)
 			});
 		}
 
-		if (!ret.second->hasValue()) {
+		if (ret.second) {
+			INFO("[Detected] file[" << file << "]");
+			m_results.emplace_back(std::move(resultPtr));
+
+			if (m_cb.onDetected)
+				m_cb.onDetected(m_userdata, reinterpret_cast<csr_cs_detected_h>(ret.second));
+		} else {
 			DEBUG("[Scanned] file[" << file << "]");
 
 			if (m_cb.onScanned)
 				m_cb.onScanned(m_userdata, file.c_str());
-
-			continue;
 		}
-
-		// malware detected!
-		INFO("[Detected] file[" << file << "]");
-		m_results.emplace_back(std::move(resultPtr));
-
-		if (m_cb.onDetected)
-			m_cb.onDetected(m_userdata, reinterpret_cast<csr_cs_detected_h>(ret.second));
 	}
 
 	return std::make_pair(Callback::Id::OnCompleted, [this] {

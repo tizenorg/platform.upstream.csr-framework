@@ -89,7 +89,7 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 
 	// detected handle is null if it's safe
 	if (result == nullptr)
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
 	auto d = convert(result, std::string());
 
@@ -99,7 +99,7 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, CsDetected()).pop();
+	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -113,14 +113,17 @@ RawBuffer CsLogic::scanAppWithoutDelta(const CsContext &context, const FilePtr &
 	CsEngineContext engineContext(*m_loader);
 	auto &c = engineContext.get();
 
+	bool isDetected = false;
 	CsDetected detected;
 
 	if (context.isScanOnCloud) {
 		csre_cs_detected_h result;
 		toException(m_loader->scanAppOnCloud(c, pkgPath, &result));
 
-		if (result)
+		if (result) {
+			isDetected = true;
 			detected = convert(result, pkgPath);
+		}
 	} else {
 		// traverse files in app. take which is more danger than detected.
 		auto visitor = FsVisitor::create(pkgPath,
@@ -133,15 +136,17 @@ RawBuffer CsLogic::scanAppWithoutDelta(const CsContext &context, const FilePtr &
 			if (result) {
 				auto d = convert(result, pkgPath);
 
-				if (!detected.hasValue() || detected.severity < d.severity)
+				if (!isDetected || detected.severity < d.severity)
 					detected = std::move(d);
+
+				isDetected = true;
 			}
 		}
 	}
 
 	m_db->insertLastScanTime(pkgPath, starttime, m_dataVersion);
 
-	if (detected.hasValue()) {
+	if (isDetected) {
 		detected.isApp = true;
 		detected.pkgId = appDirPtr->getAppPkgId();
 
@@ -180,7 +185,7 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 
 	auto history = m_db->getDetectedMalware(pkgPath);
 	if (!history)
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
 	history->response = history->isIgnored
 			? CSR_CS_IGNORE : getUserResponse(context, *history);
@@ -198,7 +203,7 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 
 	// detected handle is null if it's safe
 	if (result == nullptr)
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
 	auto d = convert(result, filepath);
 
@@ -236,14 +241,12 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 		if (history)
 			m_db->deleteDetectedMalware(filepath);
 
-		if (fileptr->isDir()) {
-			ERROR("file type invalid here. it shouldn't be directory: " << filepath);
-			return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, CsDetected()).pop();
-		} else {
-			DEBUG("file[" << filepath << "] is modified since the detected time. "
-				  "let's remove history and re-scan");
-			return scanFileWithoutDelta(context, filepath, std::move(fileptr));
-		}
+		if (fileptr->isDir())
+			ThrowExc(FileSystemError, "file type shouldn't be directory: " << filepath);
+
+		DEBUG("file[" << filepath << "] is modified since the detected time. "
+			  "let's remove history and re-scan");
+		return scanFileWithoutDelta(context, filepath, std::move(fileptr));
 	}
 
 	DEBUG("Usable scan history exist on file: " << filepath);
@@ -254,7 +257,7 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, CsDetected()).pop();
+	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -333,7 +336,7 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, StrSet()).pop();
+	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -409,11 +412,11 @@ RawBuffer CsLogic::getDetected(const std::string &filepath)
 	if (row)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
 	else
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, CsDetected()).pop();
+	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -429,11 +432,14 @@ RawBuffer CsLogic::getDetectedList(const StrSet &dirSet)
 			rows.emplace_back(std::move(row));
 	});
 
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
+	if (rows.empty())
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+	else
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, Db::RowShPtrs()).pop();
+	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -448,7 +454,7 @@ RawBuffer CsLogic::getIgnored(const std::string &filepath)
 	if (row && row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
 	else
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, CsDetected()).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
@@ -469,11 +475,14 @@ RawBuffer CsLogic::getIgnoredList(const StrSet &dirSet)
 				rows.emplace_back(std::move(row));
 	});
 
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
+	if (rows.empty())
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+	else
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, Db::RowShPtrs()).pop();
+	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }

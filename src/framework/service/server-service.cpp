@@ -34,6 +34,7 @@
 #include "common/em-result.h"
 #include "service/exception.h"
 #include "service/access-control.h"
+#include "service/core-usage.h"
 
 #include "csr/content-screening-types.h"
 
@@ -307,6 +308,7 @@ void ServerService::onMessageProcess(const ConnShPtr &connection)
 
 	m_workqueue.submit(std::bind([this, &connection, process](RawBuffer &buffer) {
 		connection->send((*process)(connection, buffer));
+		CpuUsageManager::reset();
 	}, connection->receive()));
 }
 

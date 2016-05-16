@@ -146,7 +146,9 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 		if (!result)
 			continue;
 
-		auto candidate = convert(result, pkgPath);
+		INFO("New malware detected on file: " << file->getPath());
+
+		auto candidate = convert(result, file->getPath());
 		candidate.isApp = true;
 		candidate.pkgId = pkgId;
 		this->m_db->insertDetectedMalware(candidate, this->m_dataVersion);
@@ -159,8 +161,10 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 
 	this->m_db->insertLastScanTime(pkgPath, starttime, this->m_dataVersion);
 
-	if (riskiest)
+	if (riskiest) {
+		INFO("Riskiest malware selected in pkg: " << pkgPath);
 		riskiest->targetName = pkgPath;
+	}
 
 	return riskiest;
 }
@@ -186,24 +190,24 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 
 	if (riskiest && history) {
 		if (*riskiest > *history) {
-			// new malware found and more risky! history should be updated.
+			INFO("new malware found and more risky! history should be updated.");
 			this->m_db->insertDetectedMalware(*riskiest, this->m_dataVersion);
 		} else {
-			// history is reusable...
+			INFO("new malware is found but not riskier than history. history reusable.");
 			history->response = history->isIgnored
 					? CSR_CS_IGNORE : this->getUserResponse(context, *history);
 			return this->handleUserResponse(*history);
 		}
 	} else if (riskiest && !history) {
-		// new malware found! history should be updated.
+		INFO("new malware found and no history exist! history should be inserted.");
 		this->m_db->insertDetectedMalware(*riskiest, this->m_dataVersion);
 	} else if (!riskiest && history) {
-		// history is reusable...
+		INFO("no malware found and history exist! history reusable.");
 		history->response = history->isIgnored
 				? CSR_CS_IGNORE : this->getUserResponse(context, *history);
 		return this->handleUserResponse(*history);
 	} else {
-		// no history and no malware detected newly...
+		INFO("no malware found and no history exist! it's clean!");
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 	}
 
@@ -213,7 +217,7 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 }
 
 RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
-									  const std::string &filepath, FilePtr &&fileptr)
+										const std::string &filepath, FilePtr &&fileptr)
 {
 	CsEngineContext engineContext(*m_loader);
 	auto &c = engineContext.get();

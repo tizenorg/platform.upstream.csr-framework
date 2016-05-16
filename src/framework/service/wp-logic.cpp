@@ -31,7 +31,7 @@
 
 namespace Csr {
 
-WpLogic::WpLogic(WpLoader &loader) : m_loader(loader)
+WpLogic::WpLogic(WpLoader &loader, Db::Manager &db) : m_loader(loader), m_db(db)
 {
 	WpEngineInfo wpEngineInfo(this->m_loader);
 	toException(this->m_loader.getEngineDataVersion(wpEngineInfo.get(),
@@ -45,6 +45,9 @@ WpLogic::~WpLogic()
 RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
 {
 	EXCEPTION_GUARD_START
+
+	if (this->m_db.getEngineState(CSR_ENGINE_WP) != CSR_ENABLE)
+		ThrowExc(EngineDisabled, "engine is disabled");
 
 	WpEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();

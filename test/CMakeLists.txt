@@ -68,8 +68,6 @@ SET(${TARGET_CSR_TEST}_SRCS
 	test-api-content-screening-async.cpp
 	test-api-engine-manager.cpp
 	test-api-web-protection.cpp
-	test-api-engine-content-screening.cpp
-	test-api-engine-web-protection.cpp
 	test-main.cpp
 	test-helper.cpp
 )
@@ -89,8 +87,6 @@ ADD_EXECUTABLE(${TARGET_CSR_TEST} ${${TARGET_CSR_TEST}_SRCS})
 TARGET_LINK_LIBRARIES(${TARGET_CSR_TEST}
 	${TARGET_CSR_TEST_COMMON}
 	${TARGET_CSR_CLIENT}
-	${TARGET_CSR_CS_ENGINE_SAMPLE}
-	${TARGET_CSR_WP_ENGINE_SAMPLE}
 	${${TARGET_CSR_TEST}_DEP_LIBRARIES}
 	-lboost_unit_test_framework
 	-ldl

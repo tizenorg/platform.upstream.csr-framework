@@ -66,14 +66,14 @@ BOOST_AUTO_TEST_CASE(engine_state)
 
 	Db::Manager db(TEST_DB_FILE, TEST_DB_SCRIPTS);
 
-	db.setEngineState(1, 1);
-	db.setEngineState(2, 2);
+	db.setEngineState(CSR_ENGINE_CS, CSR_ENABLE);
+	db.setEngineState(CSR_ENGINE_WP, CSR_DISABLE);
 
-	ASSERT_IF(db.getEngineState(1), 1);
-	ASSERT_IF(db.getEngineState(2), 2);
+	ASSERT_IF(db.getEngineState(CSR_ENGINE_CS), CSR_ENABLE);
+	ASSERT_IF(db.getEngineState(CSR_ENGINE_WP), CSR_DISABLE);
 
-	db.setEngineState(1, 2);
-	ASSERT_IF(db.getEngineState(1), 2);
+	db.setEngineState(CSR_ENGINE_CS, CSR_DISABLE);
+	ASSERT_IF(db.getEngineState(CSR_ENGINE_CS), CSR_DISABLE);
 
 	EXCEPTION_GUARD_END
 }

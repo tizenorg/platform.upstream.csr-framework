@@ -176,23 +176,37 @@ void Manager::setSchemaVersion(int sv)
 //===========================================================================
 // ENGINE_STATE table
 //===========================================================================
-int Manager::getEngineState(int engineId)
+csr_state_e Manager::getEngineState(csr_engine_id_e id)
 {
-	Statement stmt(this->m_conn, Query::SEL_ENGINE_STATE);
+	std::lock_guard<std::mutex> l(this->m_mutex);
 
-	stmt.bind(engineId);
+	if (this->m_stateMap.size() == 0) {
+		Statement stmt(this->m_conn, Query::SEL_ENGINE_STATE_ALL);
 
-	return stmt.step() ? stmt.getInt() : -1;
+		while (stmt.step()) {
+			auto _id = static_cast<csr_engine_id_e>(stmt.getInt());
+			auto _state = static_cast<csr_state_e>(stmt.getInt());
+
+			this->m_stateMap[_id] = _state;
+		}
+	}
+
+	return (this->m_stateMap.count(id) == 0) ? static_cast<csr_state_e>(-1) :
+											   this->m_stateMap[id];
 }
 
-void Manager::setEngineState(int engineId, int state)
+void Manager::setEngineState(csr_engine_id_e id, csr_state_e state)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	Statement stmt(this->m_conn, Query::INS_ENGINE_STATE);
 
-	stmt.bind(engineId);
-	stmt.bind(state);
+	stmt.bind(static_cast<int>(id));
+	stmt.bind(static_cast<int>(state));
 
 	stmt.exec();
+
+	this->m_stateMap[id] = state;
 }
 
 //===========================================================================

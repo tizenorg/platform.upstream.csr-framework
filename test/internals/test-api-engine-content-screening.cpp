@@ -102,8 +102,7 @@ BOOST_AUTO_TEST_CASE(context_create_destroy)
 {
 	EXCEPTION_GUARD_START
 
-	auto c = Test::Context<csre_cs_context_h>();
-	(void) c;
+	Test::Context<csre_cs_context_h>();
 
 	EXCEPTION_GUARD_END
 }

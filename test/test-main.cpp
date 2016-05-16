@@ -24,8 +24,33 @@
 #include <boost/test/results_reporter.hpp>
 #include <colour_log_formatter.h>
 
-#include "csre/content-screening.h"
-#include "csre/web-protection.h"
+#include "csr/engine-manager.h"
+
+namespace {
+
+csr_state_e setEngineState(csr_engine_id_e id, csr_state_e state)
+{
+	csr_engine_h handle;
+	auto ret = csr_get_current_engine(id, &handle);
+	if (ret != CSR_ERROR_NONE)
+		throw std::logic_error("Failed to csr_get_current_engine.");
+
+	csr_state_e current;
+	ret = csr_engine_get_state(handle, &current);
+	if (ret != CSR_ERROR_NONE)
+		throw std::logic_error("Failed to csr_get_state.");
+
+	if (current == state)
+		return current;
+
+	ret = csr_engine_set_state(handle, state);
+	if (ret != CSR_ERROR_NONE)
+		throw std::logic_error("Failed to csr_engine_set_state.");
+
+	return current;
+}
+
+}
 
 struct TestConfig {
 	TestConfig()
@@ -33,8 +58,7 @@ struct TestConfig {
 		boost::unit_test::unit_test_log.set_threshold_level(
 			boost::unit_test::log_test_units);
 		boost::unit_test::results_reporter::set_level(boost::unit_test::SHORT_REPORT);
-		boost::unit_test::unit_test_log.set_formatter(new
-				Csr::Test::colour_log_formatter);
+		boost::unit_test::unit_test_log.set_formatter(new Csr::Test::colour_log_formatter);
 	}
 };
 
@@ -42,42 +66,18 @@ bool isEngineInitialized = false;
 struct Initializer {
 	Initializer()
 	{
-		if (!isEngineInitialized) {
-			int ret = csre_cs_global_initialize(
-						  SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
-
-			if (ret != CSRE_ERROR_NONE)
-				throw std::logic_error("Failed to init content screening engine.");
-
-			ret = csre_wp_global_initialize(
-					  SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
-
-			if (ret != CSRE_ERROR_NONE)
-				throw std::logic_error("Failed to init web protection engine.");
-
-			isEngineInitialized = true;
-
-			BOOST_MESSAGE("Initialize engines");
-		}
+		m_oldCsState = setEngineState(CSR_ENGINE_CS, CSR_ENABLE);
+		m_oldWpState = setEngineState(CSR_ENGINE_WP, CSR_ENABLE);
 	}
 
 	~Initializer()
 	{
-		if (!isEngineInitialized)
-			return;
-
-		int ret = csre_cs_global_deinitialize();
-
-		if (ret != CSRE_ERROR_NONE)
-			throw std::logic_error("Failed to deinit content screening engine.");
-
-		ret = csre_wp_global_deinitialize();
-
-		if (ret != CSRE_ERROR_NONE)
-			throw std::logic_error("Failed to deinit web protection engine.");
-
-		BOOST_MESSAGE("Deinitialize engines");
+		setEngineState(CSR_ENGINE_CS, m_oldCsState);
+		setEngineState(CSR_ENGINE_WP, m_oldWpState);
 	}
+
+	csr_state_e m_oldCsState;
+	csr_state_e m_oldWpState;
 };
 
 BOOST_GLOBAL_FIXTURE(TestConfig)

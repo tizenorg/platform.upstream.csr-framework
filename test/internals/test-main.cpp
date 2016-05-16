@@ -25,6 +25,9 @@
 #include <boost/test/results_reporter.hpp>
 #include <colour_log_formatter.h>
 
+#include "csre/content-screening.h"
+#include "csre/web-protection.h"
+
 struct TestConfig {
 	TestConfig()
 	{
@@ -36,4 +39,47 @@ struct TestConfig {
 	}
 };
 
+bool isEngineInitialized = false;
+struct Initializer {
+	Initializer()
+	{
+		if (!isEngineInitialized) {
+			int ret = csre_cs_global_initialize(
+						  SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
+
+			if (ret != CSRE_ERROR_NONE)
+				throw std::logic_error("Failed to init content screening engine.");
+
+			ret = csre_wp_global_initialize(
+					  SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
+
+			if (ret != CSRE_ERROR_NONE)
+				throw std::logic_error("Failed to init web protection engine.");
+
+			isEngineInitialized = true;
+
+			BOOST_MESSAGE("Initialize engines");
+		}
+	}
+
+	~Initializer()
+	{
+		if (!isEngineInitialized)
+			return;
+
+		int ret = csre_cs_global_deinitialize();
+
+		if (ret != CSRE_ERROR_NONE)
+			throw std::logic_error("Failed to deinit content screening engine.");
+
+		ret = csre_wp_global_deinitialize();
+
+		if (ret != CSRE_ERROR_NONE)
+			throw std::logic_error("Failed to deinit web protection engine.");
+
+		BOOST_MESSAGE("Deinitialize engines");
+	}
+};
+
 BOOST_GLOBAL_FIXTURE(TestConfig)
+BOOST_GLOBAL_FIXTURE(Initializer)

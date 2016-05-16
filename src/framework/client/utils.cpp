@@ -43,7 +43,10 @@ int exceptionGuard(const std::function<int()> &func)
 	} catch (const Exception &e) {
 		ERROR("Exception caught. code: " << e.error() << " message: " << e.what());
 		return e.error();
-	} catch (const std::bad_alloc &e) {
+	} catch (const std::invalid_argument &) {
+		ERROR("invalid argument.");
+		return CSR_ERROR_INVALID_PARAMETER;
+	} catch (const std::bad_alloc &) {
 		ERROR("memory allocation failed.");
 		return CSR_ERROR_OUT_OF_MEMORY;
 	} catch (const std::exception &e) {

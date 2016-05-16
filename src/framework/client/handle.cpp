@@ -22,6 +22,7 @@
 #include "client/handle.h"
 
 #include <utility>
+#include <stdexcept>
 
 #include "common/exception.h"
 
@@ -32,7 +33,7 @@ Handle::Handle(SockId id, ContextShPtr &&context) :
 	m_sockId(id), m_ctx(std::forward<ContextShPtr>(context))
 {
 	if (!m_ctx)
-		ThrowExc(InvalidParam, "context shouldn't be null");
+		throw std::invalid_argument("context shouldn't be null");
 }
 
 Handle::~Handle()

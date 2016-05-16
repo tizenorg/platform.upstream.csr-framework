@@ -119,7 +119,7 @@ void WpContext::get(int key, std::string &value) const
 void WpContext::get(int key, const char **value) const
 {
 	if (value == nullptr)
-		ThrowExc(InvalidParam, "output storage pointer is null.");
+		throw std::invalid_argument("output storage pointer is null.");
 
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:

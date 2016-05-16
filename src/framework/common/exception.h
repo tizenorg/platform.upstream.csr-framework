@@ -77,7 +77,6 @@ public:
 	}
 };
 
-using InvalidParam       = DerivedException<CSR_ERROR_INVALID_PARAMETER>;
 using InternalError      = DerivedException<CSR_ERROR_SERVER>;
 using SocketError        = DerivedException<CSR_ERROR_SOCKET>;
 using FileDoNotExist     = DerivedException<CSR_ERROR_FILE_DO_NOT_EXIST>;

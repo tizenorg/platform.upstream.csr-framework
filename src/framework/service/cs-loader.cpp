@@ -21,6 +21,7 @@
  */
 #include "service/cs-loader.h"
 
+#include <stdexcept>
 #include <dlfcn.h>
 
 #include "common/audit/logger.h"
@@ -48,7 +49,7 @@ int CsLoader::globalInit(const std::string &ro_res_dir,
 						 const std::string &rw_working_dir)
 {
 	if (ro_res_dir.empty() || rw_working_dir.empty())
-		ThrowExc(InvalidParam, "cs loader global init");
+		throw std::invalid_argument("cs loader global init");
 
 	return m_pc.fpGlobalInit(ro_res_dir.c_str(), rw_working_dir.c_str());
 }
@@ -66,7 +67,7 @@ int CsLoader::contextCreate(csre_cs_context_h &c)
 int CsLoader::contextDestroy(csre_cs_context_h c)
 {
 	if (c == nullptr)
-		ThrowExc(InvalidParam, "cs loader context destroy");
+		throw std::invalid_argument("cs loader context destroy");
 
 	return m_pc.fpContextDestroy(c);
 }
@@ -76,7 +77,7 @@ int CsLoader::scanData(csre_cs_context_h c,
 					   csre_cs_detected_h *pdetected)
 {
 	if (c == nullptr || data.empty() || pdetected == nullptr)
-		ThrowExc(InvalidParam, "cs loader scan data");
+		throw std::invalid_argument("cs loader scan data");
 
 	return m_pc.fpScanData(c, data.data(), data.size(), pdetected);
 }
@@ -85,7 +86,7 @@ int CsLoader::scanFile(csre_cs_context_h c, const std::string &filepath,
 					   csre_cs_detected_h *pdetected)
 {
 	if (c == nullptr || filepath.empty() || pdetected == nullptr)
-		ThrowExc(InvalidParam, "cs loader scan file");
+		throw std::invalid_argument("cs loader scan file");
 
 	return m_pc.fpScanFile(c, filepath.c_str(), pdetected);
 }
@@ -94,7 +95,7 @@ int CsLoader::scanAppOnCloud(csre_cs_context_h c, const std::string &appdir,
 							 csre_cs_detected_h *pdetected)
 {
 	if (c == nullptr || appdir.empty() || pdetected == nullptr)
-		ThrowExc(InvalidParam, "cs loader scan app on cloud");
+		throw std::invalid_argument("cs loader scan app on cloud");
 
 	return m_pc.fpScanAppOnCloud(c, appdir.c_str(), pdetected);
 }
@@ -103,7 +104,7 @@ int CsLoader::getSeverity(csre_cs_detected_h d,
 						  csre_cs_severity_level_e *pseverity)
 {
 	if (d == nullptr || pseverity == nullptr)
-		ThrowExc(InvalidParam, "cs loader get severity");
+		throw std::invalid_argument("cs loader get severity");
 
 	return m_pc.fpGetSeverity(d, pseverity);
 }
@@ -111,7 +112,7 @@ int CsLoader::getSeverity(csre_cs_detected_h d,
 int CsLoader::getMalwareName(csre_cs_detected_h d, std::string &value)
 {
 	if (d == nullptr)
-		ThrowExc(InvalidParam, "cs loader get malware name");
+		throw std::invalid_argument("cs loader get malware name");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return m_pc.fpGetMalwareName(d, cvalue);
@@ -121,7 +122,7 @@ int CsLoader::getMalwareName(csre_cs_detected_h d, std::string &value)
 int CsLoader::getDetailedUrl(csre_cs_detected_h d, std::string &value)
 {
 	if (d == nullptr)
-		ThrowExc(InvalidParam, "cs loader get detailed url");
+		throw std::invalid_argument("cs loader get detailed url");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return m_pc.fpGetDetailedUrl(d, cvalue);
@@ -131,7 +132,7 @@ int CsLoader::getDetailedUrl(csre_cs_detected_h d, std::string &value)
 int CsLoader::getTimestamp(csre_cs_detected_h d, time_t *timestamp)
 {
 	if (d == nullptr || timestamp == nullptr)
-		ThrowExc(InvalidParam, "cs loader get time stamp");
+		throw std::invalid_argument("cs loader get time stamp");
 
 	return m_pc.fpGetTimestamp(d, timestamp);
 }
@@ -156,7 +157,7 @@ int CsLoader::destroyEngine(csre_cs_engine_h e)
 int CsLoader::getEngineApiVersion(csre_cs_engine_h e, std::string &value)
 {
 	if (e == nullptr)
-		ThrowExc(InvalidParam, "cs loader get error string");
+		throw std::invalid_argument("cs loader get error string");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return m_pc.fpGetEngineApiVersion(e, cvalue);
@@ -166,7 +167,7 @@ int CsLoader::getEngineApiVersion(csre_cs_engine_h e, std::string &value)
 int CsLoader::getEngineVendor(csre_cs_engine_h e, std::string &value)
 {
 	if (e == nullptr)
-		ThrowExc(InvalidParam, "cs loader get engine vendor");
+		throw std::invalid_argument("cs loader get engine vendor");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return m_pc.fpGetEngineVendor(e, cvalue);
@@ -176,7 +177,7 @@ int CsLoader::getEngineVendor(csre_cs_engine_h e, std::string &value)
 int CsLoader::getEngineName(csre_cs_engine_h e, std::string &value)
 {
 	if (e == nullptr)
-		ThrowExc(InvalidParam, "cs loader get engine name");
+		throw std::invalid_argument("cs loader get engine name");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return m_pc.fpGetEngineName(e, cvalue);
@@ -186,7 +187,7 @@ int CsLoader::getEngineName(csre_cs_engine_h e, std::string &value)
 int CsLoader::getEngineVersion(csre_cs_engine_h e, std::string &value)
 {
 	if (e == nullptr)
-		ThrowExc(InvalidParam, "cs loader get engine version");
+		throw std::invalid_argument("cs loader get engine version");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return m_pc.fpGetEngineVersion(e, cvalue);
@@ -196,7 +197,7 @@ int CsLoader::getEngineVersion(csre_cs_engine_h e, std::string &value)
 int CsLoader::getEngineDataVersion(csre_cs_engine_h e, std::string &value)
 {
 	if (e == nullptr)
-		ThrowExc(InvalidParam, "cs loader get engine version");
+		throw std::invalid_argument("cs loader get engine version");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return m_pc.fpGetEngineDataVersion(e, cvalue);
@@ -206,7 +207,7 @@ int CsLoader::getEngineDataVersion(csre_cs_engine_h e, std::string &value)
 int CsLoader::getEngineLatestUpdateTime(csre_cs_engine_h e, time_t *ptime)
 {
 	if (e == nullptr || ptime == nullptr)
-		ThrowExc(InvalidParam, "cs loader get latest update time");
+		throw std::invalid_argument("cs loader get latest update time");
 
 	return m_pc.fpGetEngineLatestUpdateTime(e, ptime);
 }
@@ -215,7 +216,7 @@ int CsLoader::getEngineActivated(csre_cs_engine_h e,
 								 csre_cs_activated_e *pactivated)
 {
 	if (e == nullptr || pactivated == nullptr)
-		ThrowExc(InvalidParam, "cs loader get engine activated");
+		throw std::invalid_argument("cs loader get engine activated");
 
 	return m_pc.fpGetEngineActivated(e, pactivated);
 }
@@ -224,7 +225,7 @@ int CsLoader::getEngineVendorLogo(csre_cs_engine_h e,
 								  std::vector<unsigned char> &value)
 {
 	if (e == nullptr)
-		ThrowExc(InvalidParam, "cs loader get engine vendor logo");
+		throw std::invalid_argument("cs loader get engine vendor logo");
 
 	unsigned char *cvalue = nullptr;
 	unsigned int size = 0;

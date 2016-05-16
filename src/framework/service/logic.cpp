@@ -21,6 +21,8 @@
  */
 #include "service/logic.h"
 
+#include <exception>
+
 #include "common/audit/logger.h"
 #include "service/exception.h"
 #include "csr/error.h"
@@ -35,6 +37,9 @@ RawBuffer Logic::exceptionGuard(const std::function<RawBuffer()> &func,
 	} catch (const Exception &e) {
 		ERROR("Exception caught. code: " << e.error() << " message: " << e.what());
 		return closer(e.error());
+	} catch (const std::invalid_argument &) {
+		ERROR("Invalid argument.");
+		return closer(CSR_ERROR_INVALID_PARAMETER);
 	} catch (const std::bad_alloc &) {
 		ERROR("memory alloc failed.");
 		return closer(CSR_ERROR_OUT_OF_MEMORY);

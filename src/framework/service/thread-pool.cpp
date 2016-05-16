@@ -23,6 +23,7 @@
 #include "service/thread-pool.h"
 
 #include <utility>
+#include <stdexcept>
 
 #include "common/audit/logger.h"
 #include "service/exception.h"
@@ -38,7 +39,7 @@ ThreadPool::ThreadPool(size_t min, size_t max) :
 	m_stop(false)
 {
 	if (m_min > m_max)
-		ThrowExc(InvalidParam, "thread pool MIN shouldn't be bigger than MAX");
+		throw std::invalid_argument("thread pool MIN shouldn't be bigger than MAX");
 
 	for (size_t i = 0; i < m_min; i++)
 		add();

@@ -42,6 +42,9 @@ struct CsDetected : public IResult {
 	CsDetected(CsDetected &&);
 	CsDetected &operator=(CsDetected &&);
 
+	bool operator>(const CsDetected &other) const noexcept;
+	bool operator<(const CsDetected &other) const noexcept;
+
 	std::string targetName; // file(app) path which contains malware
 
 	std::string malwareName;

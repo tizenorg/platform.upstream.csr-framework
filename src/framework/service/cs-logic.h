@@ -52,11 +52,15 @@ public:
 
 private:
 	RawBuffer scanApp(const CsContext &context, const std::string &path);
-	RawBuffer scanAppWithoutDelta(const CsContext &context, const FilePtr &appDirPtr);
+	RawBuffer scanAppOnCloud(const CsContext &context, const std::string &pkgPath,
+							 const std::string &pkgId);
+	CsDetectedPtr scanAppDelta(const std::string &pkgPath, const std::string &pkgId);
+
 	RawBuffer scanFileWithoutDelta(const CsContext &context, const std::string &filepath,
 								   FilePtr &&fileptr);
-	RawBuffer handleUserResponse(const CsDetected &d, FilePtr &&fileptr = nullptr);
+
 	CsDetected convert(csre_cs_detected_h &result, const std::string &targetName);
+	RawBuffer handleUserResponse(const CsDetected &d, FilePtr &&fileptr = nullptr);
 
 	static csr_cs_user_response_e getUserResponse(const CsContext &,
 			const CsDetected &);

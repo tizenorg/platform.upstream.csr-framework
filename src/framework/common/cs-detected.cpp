@@ -90,4 +90,14 @@ CsDetected &CsDetected::operator=(CsDetected &&other)
 	return *this;
 }
 
+bool CsDetected::operator>(const CsDetected &other) const noexcept
+{
+	return this->severity > other.severity;
+}
+
+bool CsDetected::operator<(const CsDetected &other) const noexcept
+{
+	return this->severity < other.severity;
+}
+
 }

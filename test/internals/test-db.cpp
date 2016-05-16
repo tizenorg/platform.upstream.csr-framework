@@ -139,13 +139,14 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	auto detectedList = db.getDetectedMalwares("/opt");
 	ASSERT_IF(detectedList.empty(), true);
 
-	db.insertDetectedMalware(malware1, initDataVersion, false);
+	db.insertDetectedMalware(malware1, initDataVersion);
 	detected = db.getDetectedMalware(malware1.targetName);
 	checkSameMalware(malware1, *detected);
 	ASSERT_IF(detected->dataVersion, initDataVersion);
 	ASSERT_IF(detected->isIgnored, false);
 
-	db.insertDetectedMalware(malware2, initDataVersion, true);
+	db.insertDetectedMalware(malware2, initDataVersion);
+	db.setDetectedMalwareIgnored(malware2.targetName, true);
 	detected = db.getDetectedMalware(malware2.targetName);
 	checkSameMalware(malware2, *detected);
 	ASSERT_IF(detected->dataVersion, initDataVersion);
@@ -171,7 +172,7 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	ASSERT_IF(detected->isIgnored, true);
 
 	// deleteDeprecatedDetectedMalwares test
-	db.insertDetectedMalware(malware3, changedDataVersion, false);
+	db.insertDetectedMalware(malware3, changedDataVersion);
 	db.deleteDeprecatedDetectedMalwares("/opt", changedDataVersion);
 	detected = db.getDetectedMalware(malware3.targetName);
 	checkSameMalware(malware3, *detected);

@@ -54,8 +54,7 @@ public:
 	// DETECTED_MALWARE_FILE & USER_RESPONSE
 	RowShPtrs getDetectedMalwares(const std::string &dirpath);
 	RowShPtr getDetectedMalware(const std::string &filepath);
-	void insertDetectedMalware(const CsDetected &, const std::string &dataVersion,
-							   bool isIgnored);
+	void insertDetectedMalware(const CsDetected &, const std::string &dataVersion);
 	void setDetectedMalwareIgnored(const std::string &path, bool flag);
 	void deleteDetectedMalware(const std::string &path);
 	void deleteDeprecatedDetectedMalwares(const std::string &dir,

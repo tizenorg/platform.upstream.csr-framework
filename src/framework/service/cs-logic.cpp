@@ -104,64 +104,70 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 	EXCEPTION_GUARD_END
 }
 
-RawBuffer CsLogic::scanAppWithoutDelta(const CsContext &context, const FilePtr &appDirPtr)
+RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
+								  const std::string &pkgPath,
+								  const std::string &pkgId)
 {
-	const auto &pkgPath = appDirPtr->getAppPkgPath();
-
-	auto starttime = time(nullptr);
-
 	CsEngineContext engineContext(*m_loader);
 	auto &c = engineContext.get();
 
-	bool isDetected = false;
-	CsDetected detected;
+	csre_cs_detected_h result;
+	toException(m_loader->scanAppOnCloud(c, pkgPath, &result));
 
-	if (context.isScanOnCloud) {
+	if (!result)
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
+	auto detected = convert(result, pkgPath);
+	detected.isApp = true;
+	detected.pkgId = pkgId;
+	detected.response = getUserResponse(context, detected);
+
+	return handleUserResponse(detected);
+}
+
+CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::string &pkgId)
+{
+	auto starttime = time(nullptr);
+
+	CsEngineContext engineContext(*this->m_loader);
+	auto &c = engineContext.get();
+
+	// traverse files in app and take which is more danger than riskiest.
+	auto visitor = FsVisitor::create(
+			pkgPath,
+			this->m_db->getLastScanTime(pkgPath, this->m_dataVersion));
+
+	CsDetectedPtr riskiest;
+
+	while (auto file = visitor->next()) {
 		csre_cs_detected_h result;
-		toException(m_loader->scanAppOnCloud(c, pkgPath, &result));
+		toException(this->m_loader->scanFile(c, file->getPath(), &result));
 
-		if (result) {
-			isDetected = true;
-			detected = convert(result, pkgPath);
-		}
-	} else {
-		// traverse files in app. take which is more danger than detected.
-		auto visitor = FsVisitor::create(pkgPath,
-										 m_db->getLastScanTime(pkgPath, m_dataVersion));
+		if (!result)
+			continue;
 
-		while (auto file = visitor->next()) {
-			csre_cs_detected_h result;
-			toException(m_loader->scanFile(c, file->getPath(), &result));
+		auto candidate = convert(result, pkgPath);
+		candidate.isApp = true;
+		candidate.pkgId = pkgId;
+		this->m_db->insertDetectedMalware(candidate, this->m_dataVersion);
 
-			if (result) {
-				auto d = convert(result, pkgPath);
-
-				if (!isDetected || detected.severity < d.severity)
-					detected = std::move(d);
-
-				isDetected = true;
-			}
-		}
+		if (!riskiest)
+			riskiest.reset(new CsDetected(std::move(candidate)));
+		else if (*riskiest < candidate)
+			*riskiest = std::move(candidate);
 	}
 
-	m_db->insertLastScanTime(pkgPath, starttime, m_dataVersion);
+	this->m_db->insertLastScanTime(pkgPath, starttime, this->m_dataVersion);
 
-	if (isDetected) {
-		detected.isApp = true;
-		detected.pkgId = appDirPtr->getAppPkgId();
+	if (riskiest)
+		riskiest->targetName = pkgPath;
 
-		// cloud scan detected history inserted by targetname = app base directory path
-		m_db->insertDetectedMalware(detected, m_dataVersion, false);
-		detected.response = getUserResponse(context, detected);
-		return handleUserResponse(detected);
-	} else {
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, detected).pop();
-	}
+	return riskiest;
 }
 
 RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 {
-	FilePtr fileptr = File::create(path);
+	auto fileptr = File::create(path);
 
 	if (!fileptr)
 		ThrowExc(InternalError, "fileptr shouldn't be null because no modified since.");
@@ -170,26 +176,40 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 		ThrowExc(InternalError, "fileptr should be in app.");
 
 	const auto &pkgPath = fileptr->getAppPkgPath();
+	const auto &pkgId = fileptr->getAppPkgId();
 
-	auto lastScanTime = m_db->getLastScanTime(pkgPath, m_dataVersion);
+	if (context.isScanOnCloud)
+		return this->scanAppOnCloud(context, pkgPath, pkgId);
 
-	auto visitor = FsVisitor::create(pkgPath, lastScanTime);
+	auto riskiest = this->scanAppDelta(pkgPath, pkgId);
+	auto history = this->m_db->getDetectedMalware(pkgPath);
 
-	// visitor with the last scan time has at least a file to traverse
-	// which means there's file which is modified since the last scan time.
-	// if there's no scan history so lastScanTime is -1, all existing files in path
-	// are traversable. visitor class isn't reusable because it already wasted a
-	// file to check.
-	if (visitor->next())
-		return scanAppWithoutDelta(context, fileptr);
-
-	auto history = m_db->getDetectedMalware(pkgPath);
-	if (!history)
+	if (riskiest && history) {
+		if (*riskiest > *history) {
+			// new malware found and more risky! history should be updated.
+			this->m_db->insertDetectedMalware(*riskiest, this->m_dataVersion);
+		} else {
+			// history is reusable...
+			history->response = history->isIgnored
+					? CSR_CS_IGNORE : this->getUserResponse(context, *history);
+			return this->handleUserResponse(*history);
+		}
+	} else if (riskiest && !history) {
+		// new malware found! history should be updated.
+		this->m_db->insertDetectedMalware(*riskiest, this->m_dataVersion);
+	} else if (!riskiest && history) {
+		// history is reusable...
+		history->response = history->isIgnored
+				? CSR_CS_IGNORE : this->getUserResponse(context, *history);
+		return this->handleUserResponse(*history);
+	} else {
+		// no history and no malware detected newly...
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+	}
 
-	history->response = history->isIgnored
-			? CSR_CS_IGNORE : getUserResponse(context, *history);
-	return handleUserResponse(*history);
+	// new and more risky malware found and db updated case only left.
+	riskiest->response = this->getUserResponse(context, *riskiest);
+	return this->handleUserResponse(*riskiest);
 }
 
 RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
@@ -207,7 +227,7 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 
 	auto d = convert(result, filepath);
 
-	m_db->insertDetectedMalware(d, m_dataVersion, false);
+	m_db->insertDetectedMalware(d, m_dataVersion);
 
 	d.response = getUserResponse(context, d);
 	return handleUserResponse(d, std::forward<FilePtr>(fileptr));

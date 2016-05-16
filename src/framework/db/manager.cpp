@@ -282,9 +282,7 @@ RowShPtr Manager::getDetectedMalware(const std::string &path)
 	return row;
 }
 
-void Manager::insertDetectedMalware(const CsDetected &d,
-									const std::string &dataVersion,
-									bool isIgnored)
+void Manager::insertDetectedMalware(const CsDetected &d, const std::string &dataVersion)
 {
 	Statement stmt(m_conn, Query::INS_DETECTED);
 
@@ -294,7 +292,7 @@ void Manager::insertDetectedMalware(const CsDetected &d,
 	stmt.bind(d.malwareName);
 	stmt.bind(d.detailedUrl);
 	stmt.bind(static_cast<sqlite3_int64>(d.ts));
-	stmt.bind(static_cast<int>(isIgnored));
+	stmt.bind(static_cast<int>(false));
 	stmt.exec();
 }
 

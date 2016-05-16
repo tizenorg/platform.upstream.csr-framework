@@ -30,54 +30,35 @@
 
 namespace Csr {
 
-// TODO: make loaders to singleton for not being loaded multiple time
-//       make db manager to singleton
-EmLogic::EmLogic() :
-	m_cs(new CsLoader(CS_ENGINE_PATH)),
-	m_wp(new WpLoader(WP_ENGINE_PATH)),
-	m_db(new Db::Manager(RW_DBSPACE "/.csr.db", RO_DBSPACE))
+EmLogic::EmLogic(CsLoader &cs, WpLoader &wp, Db::Manager &db) :
+	m_cs(cs), m_wp(wp), m_db(db)
 {
-	// TODO: Provide engine-specific res/working dirs
-	toException(m_cs->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
-								 SAMPLE_ENGINE_RW_WORKING_DIR));
-
-	toException(m_wp->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
-								 SAMPLE_ENGINE_RW_WORKING_DIR));
 }
 
 EmLogic::~EmLogic()
 {
-	try {
-		toException(m_cs->globalDeinit());
-		toException(m_wp->globalDeinit());
-	} catch (const Exception &e) {
-		ERROR("ignore all custom exceptions in logic dtor: " << e.error() <<
-			  " " << e.what());
-	}
 }
 
-// TODO: make parent class of cs-loader and wp-loader for
-// using engine-manager related engine APIs samely
 RawBuffer EmLogic::getEngineName(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
 
 	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(*m_cs);
+		CsEngineInfo engineInfo(this->m_cs);
 		auto &c = engineInfo.get();
 
 		std::string value;
-		toException(m_cs->getEngineName(c, value));
+		toException(this->m_cs.getEngineName(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
 	} else {
-		WpEngineInfo engineInfo(*m_wp);
+		WpEngineInfo engineInfo(this->m_wp);
 		auto &c = engineInfo.get();
 
 		std::string value;
-		toException(m_wp->getEngineName(c, value));
+		toException(this->m_wp.getEngineName(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
@@ -96,21 +77,21 @@ RawBuffer EmLogic::getEngineVendor(const EmContext &context)
 	EXCEPTION_GUARD_START
 
 	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(*m_cs);
+		CsEngineInfo engineInfo(this->m_cs);
 		auto &c = engineInfo.get();
 
 		std::string value;
-		toException(m_cs->getEngineVendor(c, value));
+		toException(this->m_cs.getEngineVendor(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
 	} else {
-		WpEngineInfo engineInfo(*m_wp);
+		WpEngineInfo engineInfo(this->m_wp);
 		auto &c = engineInfo.get();
 
 		std::string value;
-		toException(m_wp->getEngineVendor(c, value));
+		toException(this->m_wp.getEngineVendor(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
@@ -129,21 +110,21 @@ RawBuffer EmLogic::getEngineVersion(const EmContext &context)
 	EXCEPTION_GUARD_START
 
 	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(*m_cs);
+		CsEngineInfo engineInfo(this->m_cs);
 		auto &c = engineInfo.get();
 
 		std::string value;
-		toException(m_cs->getEngineVersion(c, value));
+		toException(this->m_cs.getEngineVersion(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
 	} else {
-		WpEngineInfo engineInfo(*m_wp);
+		WpEngineInfo engineInfo(this->m_wp);
 		auto &c = engineInfo.get();
 
 		std::string value;
-		toException(m_wp->getEngineVersion(c, value));
+		toException(this->m_wp.getEngineVersion(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
@@ -162,21 +143,21 @@ RawBuffer EmLogic::getEngineDataVersion(const EmContext &context)
 	EXCEPTION_GUARD_START
 
 	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(*m_cs);
+		CsEngineInfo engineInfo(this->m_cs);
 		auto &c = engineInfo.get();
 
 		std::string value;
-		toException(m_cs->getEngineDataVersion(c, value));
+		toException(this->m_cs.getEngineDataVersion(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
 	} else {
-		WpEngineInfo engineInfo(*m_wp);
+		WpEngineInfo engineInfo(this->m_wp);
 		auto &c = engineInfo.get();
 
 		std::string value;
-		toException(m_wp->getEngineDataVersion(c, value));
+		toException(this->m_wp.getEngineDataVersion(c, value));
 
 		EmString emString;
 		emString.value = std::move(value);
@@ -195,19 +176,19 @@ RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 	EXCEPTION_GUARD_START
 
 	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(*m_cs);
+		CsEngineInfo engineInfo(this->m_cs);
 		auto &c = engineInfo.get();
 
 		time_t value;
-		toException(m_cs->getEngineLatestUpdateTime(c, &value));
+		toException(this->m_cs.getEngineLatestUpdateTime(c, &value));
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	} else {
-		WpEngineInfo engineInfo(*m_wp);
+		WpEngineInfo engineInfo(this->m_wp);
 		auto &c = engineInfo.get();
 
 		time_t value;
-		toException(m_wp->getEngineLatestUpdateTime(c, &value));
+		toException(this->m_wp.getEngineLatestUpdateTime(c, &value));
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
@@ -226,11 +207,11 @@ RawBuffer EmLogic::getEngineActivated(const EmContext &context)
 	csr_activated_e activated = CSR_NOT_ACTIVATED;
 
 	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(*m_cs);
+		CsEngineInfo engineInfo(this->m_cs);
 		auto &c = engineInfo.get();
 
 		csre_cs_activated_e value;
-		toException(m_cs->getEngineActivated(c, &value));
+		toException(this->m_cs.getEngineActivated(c, &value));
 
 		if (value == CSRE_CS_ACTIVATED)
 			activated = CSR_ACTIVATED;
@@ -240,11 +221,11 @@ RawBuffer EmLogic::getEngineActivated(const EmContext &context)
 			ThrowExc(EngineError, "Invalid returned activated val: " <<
 					 static_cast<int>(value));
 	} else {
-		WpEngineInfo engineInfo(*m_wp);
+		WpEngineInfo engineInfo(this->m_wp);
 		auto &c = engineInfo.get();
 
 		csre_wp_activated_e value;
-		toException(m_wp->getEngineActivated(c, &value));
+		toException(this->m_wp.getEngineActivated(c, &value));
 
 		if (value == CSRE_WP_ACTIVATED)
 			activated = CSR_ACTIVATED;
@@ -268,7 +249,7 @@ RawBuffer EmLogic::getEngineState(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
 
-	auto state = m_db->getEngineState(static_cast<int>(context.engineId));
+	auto state = this->m_db.getEngineState(static_cast<int>(context.engineId));
 
 	if (state == -1)
 		ThrowExc(DbFailed, "No engine state exist...");
@@ -286,7 +267,7 @@ RawBuffer EmLogic::setEngineState(const EmContext &context, csr_state_e state)
 {
 	EXCEPTION_GUARD_START
 
-	m_db->setEngineState(static_cast<int>(context.engineId), static_cast<int>(state));
+	this->m_db.setEngineState(static_cast<int>(context.engineId), static_cast<int>(state));
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 

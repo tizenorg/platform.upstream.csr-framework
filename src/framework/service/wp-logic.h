@@ -22,7 +22,6 @@
 #pragma once
 
 #include <string>
-#include <memory>
 
 #include "common/types.h"
 #include "common/wp-context.h"
@@ -34,7 +33,7 @@ namespace Csr {
 
 class WpLogic : public Logic {
 public:
-	WpLogic();
+	WpLogic(WpLoader &loader);
 	virtual ~WpLogic();
 
 	RawBuffer checkUrl(const WpContext &context, const std::string &url);
@@ -43,11 +42,10 @@ private:
 	WpResult convert(csre_wp_check_result_h &result);
 
 	static csr_wp_user_response_e getUserResponse(const WpContext &context,
-												  const std::string &url,
-												  const WpResult &result);
+			const std::string &url,
+			const WpResult &result);
 
-	std::unique_ptr<WpLoader> m_loader;
-
+	WpLoader &m_loader;
 	std::string m_dataVersion;
 };
 

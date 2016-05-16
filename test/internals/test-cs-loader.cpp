@@ -57,16 +57,19 @@ inline void checkDetected(Csr::CsLoader &loader,
 
 	std::string malware_name;
 	ASSERT_IF(loader.getMalwareName(detected, malware_name), CSRE_ERROR_NONE);
+
 	if (expected_malware_name != nullptr)
 		ASSERT_IF(malware_name, expected_malware_name);
 
 	std::string detailed_url;
 	ASSERT_IF(loader.getDetailedUrl(detected, detailed_url), CSRE_ERROR_NONE);
+
 	if (expected_detailed_url != nullptr)
 		ASSERT_IF(detailed_url, expected_detailed_url);
 
 	time_t timestamp;
 	ASSERT_IF(loader.getTimestamp(detected, &timestamp), CSRE_ERROR_NONE);
+
 	if (expected_timestamp != 0)
 		ASSERT_IF(timestamp, expected_timestamp);
 
@@ -91,18 +94,17 @@ struct Handle {
 
 template <>
 struct Handle<csre_cs_context_h> {
-	Handle() : loader(SAMPLE_ENGINE_DIR "/libcsr-cs-engine.so")
+	Handle() :
+		loader(SAMPLE_ENGINE_DIR "/libcsr-cs-engine.so",
+			   SAMPLE_ENGINE_RO_RES_DIR,
+			   SAMPLE_ENGINE_RW_WORKING_DIR)
 	{
-		ASSERT_IF(
-			loader.globalInit(SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR),
-			CSRE_ERROR_NONE);
 		ASSERT_IF(loader.contextCreate(context), CSRE_ERROR_NONE);
 	}
 
 	~Handle()
 	{
 		ASSERT_IF(loader.contextDestroy(context), CSRE_ERROR_NONE);
-		ASSERT_IF(loader.globalDeinit(), CSRE_ERROR_NONE);
 	}
 
 	Csr::CsLoader loader;
@@ -111,18 +113,17 @@ struct Handle<csre_cs_context_h> {
 
 template <>
 struct Handle<csre_cs_engine_h> {
-	Handle() : loader(SAMPLE_ENGINE_DIR "/libcsr-cs-engine.so")
+	Handle() :
+		loader(SAMPLE_ENGINE_DIR "/libcsr-cs-engine.so",
+			   SAMPLE_ENGINE_RO_RES_DIR,
+			   SAMPLE_ENGINE_RW_WORKING_DIR)
 	{
-		ASSERT_IF(
-			loader.globalInit(SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR),
-			CSRE_ERROR_NONE);
 		ASSERT_IF(loader.getEngineInfo(context), CSRE_ERROR_NONE);
 	}
 
 	~Handle()
 	{
 		ASSERT_IF(loader.destroyEngine(context), CSRE_ERROR_NONE);
-		ASSERT_IF(loader.globalDeinit(), CSRE_ERROR_NONE);
 	}
 
 	Csr::CsLoader loader;

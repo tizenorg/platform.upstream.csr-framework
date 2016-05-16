@@ -52,26 +52,15 @@ void setCoreUsage(const csr_cs_core_usage_e &cu)
 
 } // namespace anonymous
 
-CsLogic::CsLogic() :
-	m_loader(new CsLoader(CS_ENGINE_PATH)),
-	m_db(new Db::Manager(RW_DBSPACE "/.csr.db", RO_DBSPACE))
+CsLogic::CsLogic(CsLoader &loader, Db::Manager &db) : m_loader(loader), m_db(db)
 {
-	// TODO: Provide engine-specific res/working dirs
-	toException(m_loader->globalInit(SAMPLE_ENGINE_RO_RES_DIR,
-									 SAMPLE_ENGINE_RW_WORKING_DIR));
-
-	CsEngineInfo csEngineInfo(*m_loader);
-	toException(m_loader->getEngineDataVersion(csEngineInfo.get(), m_dataVersion));
+	CsEngineInfo csEngineInfo(this->m_loader);
+	toException(this->m_loader.getEngineDataVersion(csEngineInfo.get(),
+				this->m_dataVersion));
 }
 
 CsLogic::~CsLogic()
 {
-	try {
-		toException(m_loader->globalDeinit());
-	} catch (const Exception &e) {
-		ERROR("ignore all custom exceptions in logic dtor: " << e.error() <<
-			  " " << e.what());
-	}
 }
 
 RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
@@ -80,12 +69,12 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 
 	setCoreUsage(context.coreUsage);
 
-	CsEngineContext engineContext(*m_loader);
+	CsEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
 	csre_cs_detected_h result;
 
-	toException(m_loader->scanData(c, data, &result));
+	toException(this->m_loader.scanData(c, data, &result));
 
 	// detected handle is null if it's safe
 	if (result == nullptr)
@@ -108,11 +97,11 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 								  const std::string &pkgPath,
 								  const std::string &pkgId)
 {
-	CsEngineContext engineContext(*m_loader);
+	CsEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
 	csre_cs_detected_h result;
-	toException(m_loader->scanAppOnCloud(c, pkgPath, &result));
+	toException(this->m_loader.scanAppOnCloud(c, pkgPath, &result));
 
 	if (!result)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
@@ -129,19 +118,19 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 {
 	auto starttime = time(nullptr);
 
-	CsEngineContext engineContext(*this->m_loader);
+	CsEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
 	// traverse files in app and take which is more danger than riskiest.
 	auto visitor = FsVisitor::create(
-			pkgPath,
-			this->m_db->getLastScanTime(pkgPath, this->m_dataVersion));
+					   pkgPath,
+					   this->m_db.getLastScanTime(pkgPath, this->m_dataVersion));
 
 	CsDetectedPtr riskiest;
 
 	while (auto file = visitor->next()) {
 		csre_cs_detected_h result;
-		toException(this->m_loader->scanFile(c, file->getPath(), &result));
+		toException(this->m_loader.scanFile(c, file->getPath(), &result));
 
 		if (!result)
 			continue;
@@ -149,7 +138,7 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 		auto candidate = convert(result, pkgPath);
 		candidate.isApp = true;
 		candidate.pkgId = pkgId;
-		this->m_db->insertDetectedMalware(candidate, this->m_dataVersion);
+		this->m_db.insertDetectedMalware(candidate, this->m_dataVersion);
 
 		if (!riskiest)
 			riskiest.reset(new CsDetected(std::move(candidate)));
@@ -157,7 +146,7 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 			*riskiest = std::move(candidate);
 	}
 
-	this->m_db->insertLastScanTime(pkgPath, starttime, this->m_dataVersion);
+	this->m_db.insertLastScanTime(pkgPath, starttime, this->m_dataVersion);
 
 	if (riskiest)
 		riskiest->targetName = pkgPath;
@@ -182,25 +171,25 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 		return this->scanAppOnCloud(context, pkgPath, pkgId);
 
 	auto riskiest = this->scanAppDelta(pkgPath, pkgId);
-	auto history = this->m_db->getDetectedMalware(pkgPath);
+	auto history = this->m_db.getDetectedMalware(pkgPath);
 
 	if (riskiest && history) {
 		if (*riskiest > *history) {
 			// new malware found and more risky! history should be updated.
-			this->m_db->insertDetectedMalware(*riskiest, this->m_dataVersion);
+			this->m_db.insertDetectedMalware(*riskiest, this->m_dataVersion);
 		} else {
 			// history is reusable...
 			history->response = history->isIgnored
-					? CSR_CS_IGNORE : this->getUserResponse(context, *history);
+								? CSR_CS_IGNORE : this->getUserResponse(context, *history);
 			return this->handleUserResponse(*history);
 		}
 	} else if (riskiest && !history) {
 		// new malware found! history should be updated.
-		this->m_db->insertDetectedMalware(*riskiest, this->m_dataVersion);
+		this->m_db.insertDetectedMalware(*riskiest, this->m_dataVersion);
 	} else if (!riskiest && history) {
 		// history is reusable...
 		history->response = history->isIgnored
-				? CSR_CS_IGNORE : this->getUserResponse(context, *history);
+							? CSR_CS_IGNORE : this->getUserResponse(context, *history);
 		return this->handleUserResponse(*history);
 	} else {
 		// no history and no malware detected newly...
@@ -213,13 +202,13 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 }
 
 RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
-									  const std::string &filepath, FilePtr &&fileptr)
+										const std::string &filepath, FilePtr &&fileptr)
 {
-	CsEngineContext engineContext(*m_loader);
+	CsEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
 	csre_cs_detected_h result;
-	toException(m_loader->scanFile(c, filepath, &result));
+	toException(this->m_loader.scanFile(c, filepath, &result));
 
 	// detected handle is null if it's safe
 	if (result == nullptr)
@@ -227,7 +216,7 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 
 	auto d = convert(result, filepath);
 
-	m_db->insertDetectedMalware(d, m_dataVersion);
+	this->m_db.insertDetectedMalware(d, this->m_dataVersion);
 
 	d.response = getUserResponse(context, d);
 	return handleUserResponse(d, std::forward<FilePtr>(fileptr));
@@ -244,7 +233,7 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 
 	DEBUG("Scan request on file: " << filepath);
 
-	auto history = m_db->getDetectedMalware(filepath);
+	auto history = this->m_db.getDetectedMalware(filepath);
 
 	FilePtr fileptr;
 
@@ -259,7 +248,7 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 	// OR there's no history at all.
 	if (fileptr) {
 		if (history)
-			m_db->deleteDetectedMalware(filepath);
+			this->m_db.deleteDetectedMalware(filepath);
 
 		if (fileptr->isDir())
 			ThrowExc(FileSystemError, "file type shouldn't be directory: " << filepath);
@@ -272,7 +261,7 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 	DEBUG("Usable scan history exist on file: " << filepath);
 
 	history->response = history->isIgnored
-			? CSR_CS_IGNORE : getUserResponse(context, *history);
+						? CSR_CS_IGNORE : getUserResponse(context, *history);
 	return handleUserResponse(*history);
 
 	EXCEPTION_GUARD_CLOSER(ret)
@@ -312,7 +301,7 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 {
 	EXCEPTION_GUARD_START
 
-	auto lastScanTime = m_db->getLastScanTime(dir, m_dataVersion);
+	auto lastScanTime = this->m_db.getLastScanTime(dir, this->m_dataVersion);
 
 	auto visitor = FsVisitor::create(dir, lastScanTime);
 
@@ -331,17 +320,18 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 
 	if (lastScanTime != -1) {
 		// for case: scan history exist and not modified.
-		for (auto &row : m_db->getDetectedMalwares(dir)) {
+		for (auto &row : this->m_db.getDetectedMalwares(dir)) {
 			try {
 				auto fileptr = File::create(row->targetName);
+
 				if (fileptr->isInApp())
 					fileset.insert(fileptr->getAppPkgPath());
 				else
 					fileset.insert(fileptr->getPath());
 			} catch (const FileDoNotExist &) {
-				m_db->deleteDetectedMalware(row->targetName);
+				this->m_db.deleteDetectedMalware(row->targetName);
 			} catch (const FileSystemError &) {
-				m_db->deleteDetectedMalware(row->targetName);
+				this->m_db.deleteDetectedMalware(row->targetName);
 			}
 		}
 	}
@@ -350,7 +340,7 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 	// to set scan time early is safe because file which is modified between
 	// scan start time and end time will be traversed by FsVisitor and re-scanned
 	// being compared to start time as modified since.
-	m_db->insertLastScanTime(dir, time(nullptr), m_dataVersion);
+	this->m_db.insertLastScanTime(dir, time(nullptr), this->m_dataVersion);
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
 
@@ -365,7 +355,7 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 {
 	EXCEPTION_GUARD_START
 
-	auto history = m_db->getDetectedMalware(filepath);
+	auto history = this->m_db.getDetectedMalware(filepath);
 
 	if (!history) {
 		ERROR("Target to be judged doesn't exist in db. name: " << filepath);
@@ -376,7 +366,7 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 
 	if (fileptr) {
 		ERROR("Target modified since db delta inserted. name: " << filepath);
-		m_db->deleteDetectedMalware(filepath);
+		this->m_db.deleteDetectedMalware(filepath);
 
 		// TODO: is it okay to just refresh db and return success?
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
@@ -398,15 +388,15 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 				 "in same path: " << filepath);
 		}
 
-		m_db->deleteDetectedMalware(filepath);
+		this->m_db.deleteDetectedMalware(filepath);
 		break;
 
 	case CSR_CS_ACTION_IGNORE:
-		m_db->setDetectedMalwareIgnored(filepath, true);
+		this->m_db.setDetectedMalwareIgnored(filepath, true);
 		break;
 
 	case CSR_CS_ACTION_UNIGNORE:
-		m_db->setDetectedMalwareIgnored(filepath, false);
+		this->m_db.setDetectedMalwareIgnored(filepath, false);
 		break;
 
 	default:
@@ -427,7 +417,7 @@ RawBuffer CsLogic::getDetected(const std::string &filepath)
 {
 	EXCEPTION_GUARD_START
 
-	auto row = m_db->getDetectedMalware(filepath);
+	auto row = this->m_db.getDetectedMalware(filepath);
 
 	if (row)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -448,7 +438,7 @@ RawBuffer CsLogic::getDetectedList(const StrSet &dirSet)
 	Db::RowShPtrs rows;
 	std::for_each(dirSet.begin(), dirSet.end(),
 	[this, &rows](const std::string & dir) {
-		for (auto &row : m_db->getDetectedMalwares(dir))
+		for (auto &row : this->m_db.getDetectedMalwares(dir))
 			rows.emplace_back(std::move(row));
 	});
 
@@ -469,7 +459,7 @@ RawBuffer CsLogic::getIgnored(const std::string &filepath)
 {
 	EXCEPTION_GUARD_START
 
-	auto row = m_db->getDetectedMalware(filepath);
+	auto row = this->m_db.getDetectedMalware(filepath);
 
 	if (row && row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -490,7 +480,7 @@ RawBuffer CsLogic::getIgnoredList(const StrSet &dirSet)
 	Db::RowShPtrs rows;
 	std::for_each(dirSet.begin(), dirSet.end(),
 	[this, &rows](const std::string & dir) {
-		for (auto &row : m_db->getDetectedMalwares(dir))
+		for (auto &row : this->m_db.getDetectedMalwares(dir))
 			if (row->isIgnored)
 				rows.emplace_back(std::move(row));
 	});
@@ -511,7 +501,7 @@ RawBuffer CsLogic::handleUserResponse(const CsDetected &d, FilePtr &&fileptr)
 {
 	switch (d.response) {
 	case CSR_CS_IGNORE:
-		m_db->setDetectedMalwareIgnored(d.targetName, true);
+		this->m_db.setDetectedMalwareIgnored(d.targetName, true);
 		break;
 
 	case CSR_CS_REMOVE:
@@ -533,7 +523,7 @@ RawBuffer CsLogic::handleUserResponse(const CsDetected &d, FilePtr &&fileptr)
 			WARN("File type is changed. it's considered as different file: " << d.targetName);
 		}
 
-		m_db->deleteDetectedMalware(d.targetName);
+		this->m_db.deleteDetectedMalware(d.targetName);
 		break;
 
 	case CSR_CS_SKIP:
@@ -595,10 +585,10 @@ CsDetected CsLogic::convert(csre_cs_detected_h &result, const std::string &targe
 
 	csre_cs_severity_level_e eseverity = CSRE_CS_SEVERITY_LOW;
 
-	toException(m_loader->getSeverity(result, &eseverity));
-	toException(m_loader->getMalwareName(result, d.malwareName));
-	toException(m_loader->getDetailedUrl(result, d.detailedUrl));
-	toException(m_loader->getTimestamp(result, &d.ts));
+	toException(this->m_loader.getSeverity(result, &eseverity));
+	toException(this->m_loader.getMalwareName(result, d.malwareName));
+	toException(this->m_loader.getDetailedUrl(result, d.detailedUrl));
+	toException(this->m_loader.getTimestamp(result, &d.ts));
 
 	d.severity = Csr::convert(eseverity);
 

@@ -21,12 +21,17 @@
  */
 #pragma once
 
+#include <memory>
+
 #include "common/service.h"
 #include "common/types.h"
 #include "service/thread-pool.h"
 #include "service/cs-logic.h"
 #include "service/wp-logic.h"
 #include "service/em-logic.h"
+#include "service/cs-loader.h"
+#include "service/wp-loader.h"
+#include "db/manager.h"
 
 namespace Csr {
 
@@ -44,9 +49,14 @@ private:
 
 	ThreadPool m_workqueue;
 
+	std::unique_ptr<CsLoader> m_cs;
+	std::unique_ptr<WpLoader> m_wp;
+	std::unique_ptr<Db::Manager> m_db;
+
 	CsLogic m_cslogic;
 	WpLogic m_wplogic;
 	EmLogic m_emlogic;
+
 };
 
 }

@@ -103,18 +103,8 @@ RawBuffer CsLogic::scanAppWithoutDelta(const CsContext &context, const FilePtr &
 			detected = convert(result, pkgPath);
 	} else {
 		// traverse files in app. take which is more danger than detected.
-		FsVisitorPtr visitor;
-
-		try {
-			visitor = FsVisitor::create(pkgPath,
-										m_db->getLastScanTime(pkgPath, m_dataVersion));
-		} catch (const FileDoNotExist &) {
-			ERROR("app directory doesn't exist: " << pkgPath);
-			return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST, CsDetected()).pop();
-		} catch (const FileSystemError &) {
-			ERROR("app directory type isn't dir: " << pkgPath);
-			return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, CsDetected()).pop();
-		}
+		auto visitor = FsVisitor::create(pkgPath,
+										 m_db->getLastScanTime(pkgPath, m_dataVersion));
 
 		while (auto file = visitor->next()) {
 			csre_cs_detected_h result;
@@ -146,15 +136,7 @@ RawBuffer CsLogic::scanAppWithoutDelta(const CsContext &context, const FilePtr &
 
 RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 {
-	FilePtr fileptr;
-
-	try {
-		fileptr = File::create(path);
-	} catch (const FileDoNotExist &) {
-		return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST, CsDetected()).pop();
-	} catch (const FileSystemError &) {
-		return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, CsDetected()).pop();
-	}
+	FilePtr fileptr = File::create(path);
 
 	if (!fileptr)
 		ThrowExc(InternalError, "fileptr shouldn't be null because no modified since.");
@@ -166,23 +148,15 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 
 	auto lastScanTime = m_db->getLastScanTime(pkgPath, m_dataVersion);
 
-	try {
-		auto visitor = FsVisitor::create(pkgPath, lastScanTime);
+	auto visitor = FsVisitor::create(pkgPath, lastScanTime);
 
-		// visitor with the last scan time has at least a file to traverse
-		// which means there's file which is modified since the last scan time.
-		// if there's no scan history so lastScanTime is -1, all existing files in path
-		// are traversable. visitor class isn't reusable because it already wasted a
-		// file to check.
-		if (visitor->next())
-			return scanAppWithoutDelta(context, fileptr);
-	} catch (const FileDoNotExist &) {
-		ERROR("app directory doesn't exist: " << pkgPath);
-		return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST, CsDetected()).pop();
-	} catch (const FileSystemError &) {
-		ERROR("app directory type isn't dir: " << pkgPath);
-		return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, CsDetected()).pop();
-	}
+	// visitor with the last scan time has at least a file to traverse
+	// which means there's file which is modified since the last scan time.
+	// if there's no scan history so lastScanTime is -1, all existing files in path
+	// are traversable. visitor class isn't reusable because it already wasted a
+	// file to check.
+	if (visitor->next())
+		return scanAppWithoutDelta(context, fileptr);
 
 	auto history = m_db->getDetectedMalware(pkgPath);
 	if (!history)
@@ -227,20 +201,12 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 
 	FilePtr fileptr;
 
-	try {
-		// if history exist, fileptr can be null because of modified since value
-		// from history.
-		if (history)
-			fileptr = File::create(filepath, static_cast<time_t>(history->ts));
-		else
-			fileptr = File::create(filepath);
-	} catch (const FileDoNotExist &) {
-		ERROR("file doesn't exist: " << filepath);
-		return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST, CsDetected()).pop();
-	} catch (const FileSystemError &) {
-		ERROR("file type isn't regular or dir: " << filepath);
-		return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, CsDetected()).pop();
-	}
+	// if history exist, fileptr can be null because of modified since value
+	// from history.
+	if (history)
+		fileptr = File::create(filepath, static_cast<time_t>(history->ts));
+	else
+		fileptr = File::create(filepath);
 
 	// non-null fileptr means the file is modified since the last history
 	// OR there's no history at all.
@@ -303,17 +269,7 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 
 	auto lastScanTime = m_db->getLastScanTime(dir, m_dataVersion);
 
-	FsVisitorPtr visitor;
-
-	try {
-		visitor = FsVisitor::create(dir, lastScanTime);
-	} catch (const FileDoNotExist &) {
-		ERROR("Directory isn't exist: " << dir);
-		return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST, StrSet()).pop();
-	} catch (const FileSystemError &) {
-		ERROR("Directory isn't directory... file type changed: " << dir);
-		return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM, StrSet()).pop();
-	}
+	auto visitor = FsVisitor::create(dir, lastScanTime);
 
 	StrSet fileset;
 
@@ -371,21 +327,12 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
 	}
 
-	FilePtr fileptr;
-
-	try {
-		fileptr = File::create(filepath, static_cast<time_t>(history->ts));
-	} catch (const FileDoNotExist &) {
-		ERROR("file doesn't exist: " << filepath);
-		return BinaryQueue::Serialize(CSR_ERROR_FILE_DO_NOT_EXIST).pop();
-	} catch (const FileSystemError &e) {
-		ERROR("file type isn't regular: " << filepath);
-		return BinaryQueue::Serialize(CSR_ERROR_FILE_SYSTEM).pop();
-	}
+	auto fileptr = File::create(filepath, static_cast<time_t>(history->ts));
 
 	if (fileptr) {
 		ERROR("Target modified since db delta inserted. name: " << filepath);
 		m_db->deleteDetectedMalware(filepath);
+
 		// TODO: is it okay to just refresh db and return success?
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 	}

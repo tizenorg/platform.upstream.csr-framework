@@ -21,38 +21,78 @@
  */
 #include "service/core-usage.h"
 
-#include <iostream>
-#include <fstream>
-#include <string>
+#include <system_error>
 #include <boost/test/unit_test.hpp>
 
 #include "test-common.h"
 
+namespace {
+
+int getRunningCores(void)
+{
+	cpu_set_t cores;
+
+	CPU_ZERO(&cores);
+
+	if (sched_getaffinity(0, sizeof(cores), &cores) == -1)
+		throw std::system_error(errno, std::generic_category(),
+								"failed to sched_getaffinity");
+
+	return CPU_COUNT(&cores);
+}
+
+void coreNumTest(const csr_cs_core_usage_e &cu, int expected)
+{
+	int total = ::getRunningCores();
+
+	Csr::CpuUsageManager::set(cu);
+	ASSERT_IF(::getRunningCores(), expected);
+	Csr::CpuUsageManager::reset();
+	ASSERT_IF(::getRunningCores(), total);
+}
+
+} // namespace anonymous
+
 BOOST_AUTO_TEST_SUITE(CPU_CORE)
 
-BOOST_AUTO_TEST_CASE(set_core_usage)
+BOOST_AUTO_TEST_CASE(single)
 {
 	EXCEPTION_GUARD_START
 
-	auto inst = Csr::CpuUsageManager::getInstance();
+	coreNumTest(CSR_CS_USE_CORE_SINGLE, Csr::CpuUsageManager::MinCoreNum);
 
-	int total = inst->getCoreCnt();
+	EXCEPTION_GUARD_END
+}
 
-	ASSERT_IF(inst->setThreadCoreUsage(Csr::USAGE_SINGLE), true);
-	ASSERT_IF(total, inst->getCoreCnt());
-	ASSERT_IF((1 * 100) / total, inst->getCoreUsage());
+BOOST_AUTO_TEST_CASE(half)
+{
+	EXCEPTION_GUARD_START
 
-	ASSERT_IF(inst->setThreadCoreUsage(Csr::USAGE_HALF), true);
-	ASSERT_IF(total, inst->getCoreCnt());
-	ASSERT_IF(((total > 1) ? (total / 2) : 1) * 100 / total, inst->getCoreUsage());
+	int total = ::getRunningCores();
 
-	ASSERT_IF(inst->setThreadCoreUsage(Csr::USAGE_FULL), true);
-	ASSERT_IF(total, inst->getCoreCnt());
-	ASSERT_IF(100, inst->getCoreUsage());
+	coreNumTest(CSR_CS_USE_CORE_HALF, total / 2);
 
-	ASSERT_IF(inst->setThreadCoreUsage(Csr::USAGE_DEFAULT), true);
-	ASSERT_IF(total, inst->getCoreCnt());
-	ASSERT_IF(100, inst->getCoreUsage());
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(default_)
+{
+	EXCEPTION_GUARD_START
+
+	int total = ::getRunningCores();
+
+	coreNumTest(CSR_CS_USE_CORE_DEFAULT, total);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(all)
+{
+	EXCEPTION_GUARD_START
+
+	int total = ::getRunningCores();
+
+	coreNumTest(CSR_CS_USE_CORE_ALL, total);
 
 	EXCEPTION_GUARD_END
 }

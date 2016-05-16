@@ -216,11 +216,15 @@ BOOST_AUTO_TEST_CASE(file_visitor_positive_modified)
 {
 	std::string file = TEST_WRITE_FILE;
 
-	auto beforeWrite = time(nullptr);
+	auto beforeWrite = time(nullptr) - 1;
 
 	__writeFile(file);
 
 	auto afterWrite = time(nullptr) + 1;
+
+	// before write time < modified time < after write time
+	// if modifiedSince is same to modified time in file stat,
+	// the file will be regarded as ''not modified'' no File::create returns null.
 
 	CHECK_IS_NOT_NULL(File::create(file, beforeWrite));
 	CHECK_IS_NULL(File::create(file, afterWrite));

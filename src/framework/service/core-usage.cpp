@@ -23,61 +23,70 @@
 #include "service/core-usage.h"
 
 #include <sched.h>
-#include <stdlib.h>
 #include <unistd.h>
-#include <sys/wait.h>
 
 #include "service/exception.h"
 
 namespace Csr {
 
-void CpuUsageManager::initialize()
+namespace {
+
+const int TotalCoreNum = ::sysconf(_SC_NPROCESSORS_ONLN);
+
+} // namespace anonymous
+
+void CpuUsageManager::set(const csr_cs_core_usage_e &cu)
 {
-	m_cores = getUsedCnt();
+	switch (cu) {
+	case CSR_CS_USE_CORE_HALF:
+		CpuUsageManager::setRunningCores(TotalCoreNum / 2);
+		break;
+
+	case CSR_CS_USE_CORE_SINGLE:
+		CpuUsageManager::setRunningCores(CpuUsageManager::MinCoreNum);
+		break;
+
+	case CSR_CS_USE_CORE_DEFAULT:
+	case CSR_CS_USE_CORE_ALL:
+		CpuUsageManager::reset();
+		break;
+
+	default:
+		ThrowExc(InternalError, "invalid core usage param: " << static_cast<int>(cu));
+	}
 }
 
-bool CpuUsageManager::setThreadCoreUsage(int percent)
+void CpuUsageManager::reset(void)
 {
-	if (percent > 100 || percent <= 0)
-		ThrowExc(InternalError, "invalid core usage percent: " << percent);
+	if (CpuUsageManager::getRunningCores() != TotalCoreNum)
+		CpuUsageManager::setRunningCores(TotalCoreNum);
+}
+
+void CpuUsageManager::setRunningCores(int num)
+{
+	num = (num < CpuUsageManager::MinCoreNum) ? CpuUsageManager::MinCoreNum : num;
 
 	cpu_set_t set;
+
 	CPU_ZERO(&set);
-	int cnt = (m_cores * percent) / 100;
 
-	if (cnt < MIN_CORE_USED)
-		cnt = MIN_CORE_USED;
+	for (int coreId = 0; coreId < num; ++coreId)
+		CPU_SET(coreId, &set);
 
-	for (int cpuid = m_cores - 1; cpuid >= (m_cores - cnt); cpuid--)
-		CPU_SET(cpuid, &set);
-
-	if (sched_setaffinity(0, sizeof(set), &set) != 0) {
-		return false;
-	}
-
-	return true;
+	if (::sched_setaffinity(0, sizeof(set), &set) == -1)
+		ThrowExc(InternalError, "sched set affinity failed. errno: " << errno);
 }
 
-int CpuUsageManager::getCoreUsage() const
+int CpuUsageManager::getRunningCores(void)
 {
-	return (getUsedCnt() * 100) / m_cores;
+	cpu_set_t set;
+
+	CPU_ZERO(&set);
+
+	if (::sched_getaffinity(0, sizeof(set), &set) == -1)
+		ThrowExc(InternalError, "sched get affinity failed. errno: " << errno);
+
+	return CPU_COUNT(&set);
 }
 
-int CpuUsageManager::getCoreCnt() const
-{
-	return m_cores;
 }
-
-int CpuUsageManager::getUsedCnt()
-{
-	cpu_set_t usedCore;
-	CPU_ZERO(&usedCore);
-
-	if (sched_getaffinity(0, sizeof(cpu_set_t), &usedCore) != 0)
-		ThrowExc(InternalError, "sched_getaffinity failed.");
-
-	return CPU_COUNT(&usedCore);
-}
-
-}// end of namespace Csr
-

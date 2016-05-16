@@ -19,48 +19,22 @@
  * @version     1.0
  * @brief
  */
-
 #pragma once
 
-#define MIN_CORE_USED 1
+#include <csr/content-screening-types.h>
 
 namespace Csr {
 
-enum CORE_USAGE : int {
-	USAGE_SINGLE  = 1,
-	USAGE_HALF    = 50,
-	USAGE_FULL    = 100,
-	USAGE_DEFAULT = 100
-};
-
-
 class CpuUsageManager {
 public:
-	static CpuUsageManager *getInstance()
-	{
-		static CpuUsageManager instance;
-		return &instance;
-	}
+	static void set(const csr_cs_core_usage_e &cu);
+	static void reset(void);
 
-	bool setThreadCoreUsage(int percent);
-
-	int getCoreUsage() const;
-	int getCoreCnt() const;
+	static const int MinCoreNum = 1;
 
 private:
-	int m_cores;
-
-	CpuUsageManager() : m_cores(1)
-	{
-		initialize();
-	};
-
-	~CpuUsageManager() {}
-
-	void initialize();
-	static int getUsedCnt();
+	static void setRunningCores(int num);
+	static int getRunningCores(void);
 };
 
-} // end of namespace Csr
-
-
+}

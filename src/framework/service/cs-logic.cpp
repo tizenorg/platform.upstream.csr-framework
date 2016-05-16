@@ -29,10 +29,28 @@
 #include "common/audit/logger.h"
 #include "service/type-converter.h"
 #include "service/engine-error-converter.h"
+#include "service/core-usage.h"
 #include "ui/askuser.h"
 #include "csr/error.h"
 
 namespace Csr {
+
+namespace {
+
+void setCoreUsage(const csr_cs_core_usage_e &cu)
+{
+	switch (cu) {
+	case CSR_CS_USE_CORE_HALF:
+	case CSR_CS_USE_CORE_SINGLE:
+		CpuUsageManager::set(cu);
+		break;
+
+	default:
+		break;
+	}
+}
+
+} // namespace anonymous
 
 CsLogic::CsLogic() :
 	m_loader(new CsLoader(CS_ENGINE_PATH)),
@@ -59,6 +77,8 @@ CsLogic::~CsLogic()
 RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 {
 	EXCEPTION_GUARD_START
+
+	setCoreUsage(context.coreUsage);
 
 	CsEngineContext engineContext(*m_loader);
 	auto &c = engineContext.get();
@@ -191,6 +211,8 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepath)
 {
 	EXCEPTION_GUARD_START
+
+	setCoreUsage(context.coreUsage);
 
 	if (File::isInApp(filepath))
 		return scanApp(context, filepath);

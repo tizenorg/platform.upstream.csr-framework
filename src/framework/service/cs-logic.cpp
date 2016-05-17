@@ -82,9 +82,7 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 
 	auto d = this->convert(result, std::string());
 
-	d.response = getUserResponse(context, d);
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
+	return this->handleAskUser(context, d);
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
@@ -109,9 +107,8 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 	auto detected = this->convert(result, pkgPath);
 	detected.isApp = true;
 	detected.pkgId = pkgId;
-	detected.response = this->getUserResponse(context, detected);
 
-	return this->handleUserResponse(detected);
+	return this->handleAskUser(context, detected);
 }
 
 CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::string &pkgId,
@@ -195,15 +192,13 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 
 			this->m_db.insertWorst(pkgId, pkgPath, riskiestPath);
 
-			riskiest->response = this->getUserResponse(context, *riskiest);
-			return this->handleUserResponse(*riskiest);
+			return this->handleAskUser(context, *riskiest);
 		} else {
 			INFO("worst case is remained and can be re-used on pkg[" << pkgPath << "]");
 			if (history->isIgnored)
 				return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-			history->response = this->getUserResponse(context, *history);
-			return this->handleUserResponse(*history);
+			return this->handleAskUser(context, *history);
 		}
 	} else if (history && after && !riskiest) {
 		INFO("worst case is remained and NO new detected. history can be re-used. "
@@ -211,8 +206,7 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 		if (history->isIgnored)
 			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-		history->response = this->getUserResponse(context, *history);
-		return this->handleUserResponse(*history);
+		return this->handleAskUser(context, *history);
 	} else if (history && !after && riskiest) {
 		INFO("worst case is deleted but new detected. we have to find out "
 			 "worse case in db and compare it with riskiest first. on pkg[" << pkgPath <<
@@ -236,8 +230,7 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 
 			this->m_db.insertWorst(pkgId, pkgPath, riskiestPath);
 
-			riskiest->response = this->getUserResponse(context, *riskiest);
-			return this->handleUserResponse(*riskiest);
+			return this->handleAskUser(context, *riskiest);
 		} else {
 			INFO("worst case is deleted but same or less level newly detected. on pkg[" <<
 				 pkgPath << "]");
@@ -246,8 +239,7 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 			if (history->isIgnored)
 				return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-			riskiest->response = this->getUserResponse(context, *riskiest);
-			return this->handleUserResponse(*riskiest);
+			return this->handleAskUser(context, *riskiest);
 		}
 	} else if (history && !after && !riskiest) {
 		auto rows = this->m_db.getDetectedByFilepathOnDir(pkgPath);
@@ -269,15 +261,13 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 			if (worse->isIgnored)
 				return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-			worse->response = this->getUserResponse(context, *worse);
-			return this->handleUserResponse(*worse);
+			return this->handleAskUser(context, *worse);
 		}
 	} else if (!history && riskiest) {
 		INFO("no history and new detected");
 		this->m_db.insertWorst(pkgId, pkgPath, riskiestPath);
 
-		riskiest->response = this->getUserResponse(context, *riskiest);
-		return this->handleUserResponse(*riskiest);
+		return this->handleAskUser(context, *riskiest);
 	} else {
 		DEBUG("no history and no new detected");
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
@@ -302,8 +292,7 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 	this->m_db.insertName(d.targetName);
 	this->m_db.insertDetected(d, d.targetName, this->m_dataVersion);
 
-	d.response = this->getUserResponse(context, d);
-	return this->handleUserResponse(d, std::forward<FilePtr>(fileptr));
+	return this->handleAskUser(context, d, std::forward<FilePtr>(fileptr));
 }
 
 RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepath)
@@ -347,8 +336,7 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 	if (history->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-	history->response = this->getUserResponse(context, *history);
-	return this->handleUserResponse(*history);
+	return this->handleAskUser(context, *history);
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
@@ -465,7 +453,7 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 	//       not to regenerate like this.
 	// file create based on fileInAppPath(for app target, it is worst detected)
 	if (File::create(history->fileInAppPath, static_cast<time_t>(history->ts)))
-		ThrowExc(FileSystemError, "File[" << history->fileInAppPath << "] modified since "
+		ThrowExc(FileChanged, "File[" << history->fileInAppPath << "] modified since "
 				 "db delta inserted. Don't refresh detected history to know that it's "
 				 "changed since the time.");
 
@@ -583,48 +571,12 @@ RawBuffer CsLogic::getIgnoredList(const StrSet &dirSet)
 	EXCEPTION_GUARD_END
 }
 
-RawBuffer CsLogic::handleUserResponse(const CsDetected &d, FilePtr &&fileptr)
+RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fileptr)
 {
-	switch (d.response) {
-	case CSR_CS_IGNORE:
-		this->m_db.updateIgnoreFlag(File::getPkgPath(d.targetName), true);
-		break;
-
-	case CSR_CS_REMOVE:
-		try {
-			FilePtr _fileptr;
-
-			if (fileptr)
-				_fileptr = std::forward<FilePtr>(fileptr);
-			else
-				_fileptr = File::create(d.targetName);
-
-			_fileptr->remove();
-		} catch (const FileDoNotExist &) {
-			WARN("File already removed.: " << d.targetName);
-		} catch (const FileSystemError &) {
-			WARN("File type is changed, considered as different file: " << d.targetName);
-		}
-
-		this->m_db.deleteDetectedByNameOnPath(File::getPkgPath(d.targetName));
-		break;
-
-	case CSR_CS_SKIP:
-	case CSR_CS_NO_ASK_USER:
-		break;
-
-	default:
-		ThrowExc(InternalError, "Invalid response from popup: " <<
-				 static_cast<int>(d.response));
+	if (c.askUser == CSR_CS_NOT_ASK_USER) {
+		d.response = CSR_CS_NO_ASK_USER;
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
 	}
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
-}
-
-csr_cs_user_response_e CsLogic::getUserResponse(const CsContext &c, const CsDetected &d)
-{
-	if (c.askUser == CSR_CS_NOT_ASK_USER)
-		return CSR_CS_NO_ASK_USER;
 
 	Ui::CommandId cid;
 
@@ -655,7 +607,28 @@ csr_cs_user_response_e CsLogic::getUserResponse(const CsContext &c, const CsDete
 	}
 
 	Ui::AskUser askUser;
-	return askUser.cs(cid, c.popupMessage, d);
+	d.response = askUser.cs(cid, c.popupMessage, d);
+
+	if (d.response == CSR_CS_REMOVE && !d.targetName.empty()) {
+		try {
+			FilePtr _fileptr;
+
+			if (fileptr)
+				_fileptr = std::forward<FilePtr>(fileptr);
+			else
+				_fileptr = File::create(d.targetName);
+
+			_fileptr->remove();
+		} catch (const FileDoNotExist &) {
+			WARN("File already removed.: " << d.targetName);
+		} catch (const FileSystemError &) {
+			WARN("File type is changed, considered as different file: " << d.targetName);
+		}
+
+		this->m_db.deleteDetectedByNameOnPath(File::getPkgPath(d.targetName));
+	}
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
 }
 
 CsDetected CsLogic::convert(csre_cs_detected_h &result, const std::string &targetName)

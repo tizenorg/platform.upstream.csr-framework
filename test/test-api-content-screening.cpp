@@ -26,6 +26,9 @@
 #include <new>
 #include <iostream>
 #include <fstream>
+#include <chrono>
+#include <thread>
+
 #include <boost/test/unit_test.hpp>
 
 #include "test-common.h"
@@ -769,6 +772,36 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware)
 
 	ASSERT_SUCCESS(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NULL(stored);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(judge_detected_malware_after_changed_file)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_detected_h detected;
+
+	// scan and judge after touch
+	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected));
+	CHECK_IS_NOT_NULL(detected);
+
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+
+	Test::touch_file(TEST_FILE_MEDIA);
+
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+
+	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE),
+			  CSR_ERROR_FILE_CHANGED);
+
+	// rescan and judge again without touch
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected));
+	CHECK_IS_NOT_NULL(detected);
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE));
 
 	EXCEPTION_GUARD_END
 }

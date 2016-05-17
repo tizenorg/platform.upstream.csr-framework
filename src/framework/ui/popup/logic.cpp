@@ -54,10 +54,11 @@ void registerCb(Evas_Object *button, int *rp, std::function<void()> &&func)
 	g_callbackRegistry[*rp] = std::move(func);
 }
 
-void addButton(int *rp, const std::string &buttonPart,
-			   const std::string &buttonText,
-			   Popup &popup, RawBuffer &result)
+void addButton(int response, int *rp, const std::string &buttonPart,
+			   const std::string &buttonText, Popup &popup, RawBuffer &result)
 {
+	*rp = response;
+
 	auto button = popup.addButton(buttonPart);
 	elm_object_text_set(button, buttonText.c_str());
 
@@ -92,19 +93,18 @@ RawBuffer Logic::csPromptData(const std::string &message,
 	RawBuffer result;
 
 	std::unique_ptr<int[]> resps(new int[2]);
-	resps[0] = static_cast<int>(CSR_CS_PROCESSING_ALLOWED);
-	resps[1] = static_cast<int>(CSR_CS_PROCESSING_DISALLOWED);
 
-	addButton(&resps[0], "button1", "yes", popup, result);
-	addButton(&resps[1], "button2", "no", popup, result);
+	addButton(static_cast<int>(CSR_CS_PROCESSING_ALLOWED), &resps[0], "button1", "yes",
+			  popup, result);
+	addButton(static_cast<int>(CSR_CS_PROCESSING_DISALLOWED), &resps[1], "button2", "no",
+			  popup, result);
 
 	popup.start();
 
 	return result;
 }
 
-RawBuffer Logic::csPromptFile(const std::string &message,
-							  const CsDetected &d) const
+RawBuffer Logic::csPromptFile(const std::string &message, const CsDetected &d) const
 {
 	Popup popup;
 
@@ -116,21 +116,20 @@ RawBuffer Logic::csPromptFile(const std::string &message,
 	RawBuffer result;
 
 	std::unique_ptr<int[]> resps(new int[3]);
-	resps[0] = static_cast<int>(CSR_CS_REMOVE);
-	resps[1] = static_cast<int>(CSR_CS_IGNORE);
-	resps[2] = static_cast<int>(CSR_CS_SKIP);
 
-	addButton(&resps[0], "button1", "remove", popup, result);
-	addButton(&resps[1], "button2", "ignore", popup, result);
-	addButton(&resps[2], "button3", "skip", popup, result);
+	addButton(static_cast<int>(CSR_CS_REMOVE), &resps[0], "button1", "remove", popup,
+			  result);
+	addButton(static_cast<int>(CSR_CS_PROCESSING_ALLOWED), &resps[1], "button2", "allow",
+			  popup, result);
+	addButton(static_cast<int>(CSR_CS_PROCESSING_DISALLOWED), &resps[2], "button3", "deny",
+			  popup, result);
 
 	popup.start();
 
 	return result;
 }
 
-RawBuffer Logic::csPromptApp(const std::string &message,
-							 const CsDetected &d) const
+RawBuffer Logic::csPromptApp(const std::string &message, const CsDetected &d) const
 {
 	Popup popup;
 
@@ -142,21 +141,20 @@ RawBuffer Logic::csPromptApp(const std::string &message,
 	RawBuffer result;
 
 	std::unique_ptr<int[]> resps(new int[3]);
-	resps[0] = static_cast<int>(CSR_CS_REMOVE);
-	resps[1] = static_cast<int>(CSR_CS_IGNORE);
-	resps[2] = static_cast<int>(CSR_CS_SKIP);
 
-	addButton(&resps[0], "button1", "remove", popup, result);
-	addButton(&resps[1], "button2", "ignore", popup, result);
-	addButton(&resps[2], "button3", "skip", popup, result);
+	addButton(static_cast<int>(CSR_CS_REMOVE), &resps[0], "button1", "remove", popup,
+			  result);
+	addButton(static_cast<int>(CSR_CS_PROCESSING_ALLOWED), &resps[1], "button2", "allow",
+			  popup, result);
+	addButton(static_cast<int>(CSR_CS_PROCESSING_DISALLOWED), &resps[2], "button3", "deny",
+			  popup, result);
 
 	popup.start();
 
 	return result;
 }
 
-RawBuffer Logic::csNotifyData(const std::string &message,
-							  const CsDetected &d) const
+RawBuffer Logic::csNotifyData(const std::string &message, const CsDetected &d) const
 {
 	Popup popup;
 
@@ -169,19 +167,18 @@ RawBuffer Logic::csNotifyData(const std::string &message,
 	RawBuffer result;
 
 	std::unique_ptr<int[]> resps(new int[2]);
-	resps[0] = static_cast<int>(CSR_CS_PROCESSING_ALLOWED);
-	resps[1] = static_cast<int>(CSR_CS_PROCESSING_DISALLOWED);
 
-	addButton(&resps[0], "button1", "yes", popup, result);
-	addButton(&resps[1], "button2", "no", popup, result);
+	addButton(static_cast<int>(CSR_CS_PROCESSING_ALLOWED), &resps[0], "button1", "yes",
+			  popup, result);
+	addButton(static_cast<int>(CSR_CS_PROCESSING_DISALLOWED), &resps[1], "button2", "no",
+			  popup, result);
 
 	popup.start();
 
 	return result;
 }
 
-RawBuffer Logic::csNotifyFile(const std::string &message,
-							  const CsDetected &d) const
+RawBuffer Logic::csNotifyFile(const std::string &message, const CsDetected &d) const
 {
 	Popup popup;
 
@@ -190,21 +187,21 @@ RawBuffer Logic::csNotifyFile(const std::string &message,
 					   "Malware: " << d.malwareName << "\n" <<
 					   message.c_str()));
 
-	std::unique_ptr<int[]> resps(new int[2]);
-	resps[0] = static_cast<int>(CSR_CS_REMOVE);
-	resps[1] = static_cast<int>(CSR_CS_SKIP);
-
 	RawBuffer result;
-	addButton(&resps[0], "button1", "remove", popup, result);
-	addButton(&resps[1], "button2", "skip", popup, result);
+
+	std::unique_ptr<int[]> resps(new int[2]);
+
+	addButton(static_cast<int>(CSR_CS_REMOVE), &resps[0], "button1", "remove", popup,
+			  result);
+	addButton(static_cast<int>(CSR_CS_PROCESSING_DISALLOWED), &resps[1], "button2", "deny",
+			  popup, result);
 
 	popup.start();
 
 	return result;
 }
 
-RawBuffer Logic::csNotifyApp(const std::string &message,
-							 const CsDetected &d) const
+RawBuffer Logic::csNotifyApp(const std::string &message, const CsDetected &d) const
 {
 	Popup popup;
 
@@ -216,11 +213,11 @@ RawBuffer Logic::csNotifyApp(const std::string &message,
 	RawBuffer result;
 
 	std::unique_ptr<int[]> resps(new int[2]);
-	resps[0] = static_cast<int>(CSR_CS_REMOVE);
-	resps[1] = static_cast<int>(CSR_CS_SKIP);
 
-	addButton(&resps[0], "button1", "remove", popup, result);
-	addButton(&resps[1], "button2", "skip", popup, result);
+	addButton(static_cast<int>(CSR_CS_REMOVE), &resps[0], "button1", "remove", popup,
+			  result);
+	addButton(static_cast<int>(CSR_CS_PROCESSING_DISALLOWED), &resps[1], "button2", "deny",
+			  popup, result);
 
 	popup.start();
 
@@ -240,11 +237,11 @@ RawBuffer Logic::wpPrompt(const std::string &message, const UrlItem &item) const
 	RawBuffer result;
 
 	std::unique_ptr<int[]> resps(new int[2]);
-	resps[0] = static_cast<int>(CSR_WP_PROCESSING_ALLOWED);
-	resps[1] = static_cast<int>(CSR_WP_PROCESSING_DISALLOWED);
 
-	addButton(&resps[0], "button1", "allow", popup, result);
-	addButton(&resps[1], "button2", "deny", popup, result);
+	addButton(static_cast<int>(CSR_WP_PROCESSING_ALLOWED), &resps[0], "button1", "allow",
+			  popup, result);
+	addButton(static_cast<int>(CSR_WP_PROCESSING_DISALLOWED), &resps[1], "button2", "deny",
+			  popup, result);
 
 	popup.start();
 
@@ -264,9 +261,9 @@ RawBuffer Logic::wpNotify(const std::string &message, const UrlItem &item) const
 	RawBuffer result;
 
 	std::unique_ptr<int> resp(new int);
-	*resp = static_cast<int>(CSR_WP_PROCESSING_DISALLOWED);
 
-	addButton(resp.get(), "button1", "confirm", popup, result);
+	addButton(static_cast<int>(CSR_WP_PROCESSING_DISALLOWED), resp.get(), "button1",
+			  "confirm", popup, result);
 
 	popup.start();
 

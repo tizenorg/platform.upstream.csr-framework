@@ -50,10 +50,11 @@ typedef enum {
 	CSR_ERROR_DB                    = TIZEN_ERROR_CSR | 0x05,        /**< DB transaction error */
 	CSR_ERROR_REMOVE_FAILED         = TIZEN_ERROR_CSR | 0x06,        /**< Removing file or application is failed */
 	CSR_ERROR_FILE_DO_NOT_EXIST     = TIZEN_ERROR_CSR | 0x07,        /**< File not exist */
-	CSR_ERROR_FILE_SYSTEM           = TIZEN_ERROR_CSR | 0x08,        /**< File type is invalid */
+	CSR_ERROR_FILE_CHANGED          = TIZEN_ERROR_CSR | 0x08,        /**< File changed after detection */
+	CSR_ERROR_FILE_SYSTEM           = TIZEN_ERROR_CSR | 0x09,        /**< File type is invalid */
 	CSR_ERROR_ENGINE_PERMISSION     = TIZEN_ERROR_CSR | 0x11,        /**< Insufficient permission of engine */
 	CSR_ERROR_ENGINE_NOT_EXIST      = TIZEN_ERROR_CSR | 0x12,        /**< No engine exists*/
-	CSR_ERROR_ENGINE_DIASABLED      = TIZEN_ERROR_CSR | 0x13,        /**< Engine is in disabled state*/
+	CSR_ERROR_ENGINE_DISABLED       = TIZEN_ERROR_CSR | 0x13,        /**< Engine is in disabled state*/
 	CSR_ERROR_ENGINE_NOT_ACTIVATED  = TIZEN_ERROR_CSR | 0x14,        /**< Engine is not activated*/
 	CSR_ERROR_ENGINE_INTERNAL       = TIZEN_ERROR_CSR | 0x19,        /**< Engine Internal error*/
 	CSR_ERROR_UNKNOWN               = TIZEN_ERROR_CSR | 0xFF,        /**< The error with unknown reason */

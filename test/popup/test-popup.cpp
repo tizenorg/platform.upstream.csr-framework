@@ -46,14 +46,6 @@ void printPressed(csr_cs_user_response_e response)
 		std::cout << "############## REMOVE BUTTON PRESSED  #############" << std::endl;
 		break;
 
-	case CSR_CS_IGNORE:
-		std::cout << "############## IGNORE BUTTON PRESSED  #############" << std::endl;
-		break;
-
-	case CSR_CS_SKIP:
-		std::cout << "##############  SKIP  BUTTON PRESSED  #############" << std::endl;
-		break;
-
 	case CSR_CS_PROCESSING_ALLOWED:
 		std::cout << "############## ALLOW  BUTTON PRESSED  #############" << std::endl;
 		break;

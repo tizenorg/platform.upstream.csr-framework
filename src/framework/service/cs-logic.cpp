@@ -194,8 +194,10 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 			this->m_db->insertDetectedMalware(*riskiest, this->m_dataVersion);
 		} else {
 			INFO("new malware is found but not riskier than history. history reusable.");
-			history->response = history->isIgnored
-					? CSR_CS_IGNORE : this->getUserResponse(context, *history);
+			if (history->isIgnored)
+				return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
+			history->response = this->getUserResponse(context, *history);
 			return this->handleUserResponse(*history);
 		}
 	} else if (riskiest && !history) {
@@ -203,8 +205,10 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 		this->m_db->insertDetectedMalware(*riskiest, this->m_dataVersion);
 	} else if (!riskiest && history) {
 		INFO("no malware found and history exist! history reusable.");
-		history->response = history->isIgnored
-				? CSR_CS_IGNORE : this->getUserResponse(context, *history);
+		if (history->isIgnored)
+			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
+		history->response = this->getUserResponse(context, *history);
 		return this->handleUserResponse(*history);
 	} else {
 		INFO("no malware found and no history exist! it's clean!");
@@ -275,8 +279,10 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 
 	DEBUG("Usable scan history exist on file: " << filepath);
 
-	history->response = history->isIgnored
-			? CSR_CS_IGNORE : getUserResponse(context, *history);
+	if (history->isIgnored)
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
+	history->response = getUserResponse(context, *history);
 	return handleUserResponse(*history);
 
 	EXCEPTION_GUARD_CLOSER(ret)
@@ -433,7 +439,7 @@ RawBuffer CsLogic::getDetected(const std::string &filepath)
 
 	auto row = m_db->getDetectedMalware(filepath);
 
-	if (row)
+	if (row && !row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
 	else
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
@@ -453,7 +459,8 @@ RawBuffer CsLogic::getDetectedList(const StrSet &dirSet)
 	std::for_each(dirSet.begin(), dirSet.end(),
 	[this, &rows](const std::string & dir) {
 		for (auto &row : m_db->getDetectedMalwares(dir))
-			rows.emplace_back(std::move(row));
+			if (!row->isIgnored)
+				rows.emplace_back(std::move(row));
 	});
 
 	if (rows.empty())

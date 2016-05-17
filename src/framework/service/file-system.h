@@ -47,7 +47,7 @@ public:
 	const std::string &getAppUser() const;
 	const std::string &getAppPkgPath() const;
 
-	bool remove() const;
+	void remove() const;
 
 	// throws FileNotExist and FileSystemError
 	static FilePtr create(const std::string &fpath, time_t modifiedSince = -1);

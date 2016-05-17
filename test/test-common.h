@@ -41,11 +41,19 @@
 #define __FILENAME__ (::strrchr(__FILE__, '/') ? ::strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
 
-#define ASSERT_IF_(value, expected, file, f, l) \
-	Test::_assert(value, expected, file, f, l)
-
 #define ASSERT_IF(value, expected) \
-	ASSERT_IF_(value, expected, __FILENAME__, __func__, __LINE__)
+	Test::_assert(value, expected, __FILENAME__, __func__, __LINE__)
+
+#define ASSERT_SUCCESS(value) \
+	Test::_assert(value, CSR_ERROR_NONE, __FILENAME__, __func__, __LINE__)
+
+#define ASSERT_INSTALL_APP(path, type)                       \
+	BOOST_REQUIRE_MESSAGE(Test::install_app(path, type),     \
+						  "Failed to install app: " << path)
+
+#define ASSERT_UNINSTALL_APP(path)                             \
+	BOOST_REQUIRE_MESSAGE(Test::uninstall_app(path),           \
+						  "Failed to uninstall app: " << path)
 
 #define EXCEPTION_GUARD_START Test::exceptionGuard([&] {
 #define EXCEPTION_GUARD_END   });
@@ -60,12 +68,53 @@ void _assert(const T &value, const U &expected, const std::string &filename,
 			 const std::string &funcname, unsigned int line)
 {
 	BOOST_REQUIRE_MESSAGE(value == expected,
-						  "[" << filename << " > " << funcname << " : " << line << "]"
-						  << " returned code: " << value
-						  << " expected: " << expected);
+						  "[" << filename << " > " << funcname << " : " << line << "]" <<
+						  " returned[" << value << "] expected[" << expected << "]");
 }
 
+template <>
+void _assert<csr_error_e, csr_error_e>(const csr_error_e &value,
+									   const csr_error_e &expected,
+									   const std::string &filename,
+									   const std::string &funcname,
+									   unsigned int line);
+
+template <>
+void _assert<csr_error_e, int>(const csr_error_e &value,
+							   const int &expected,
+							   const std::string &filename,
+							   const std::string &funcname,
+							   unsigned int line);
+
+template <>
+void _assert<int, csr_error_e>(const int &value,
+							   const csr_error_e &expected,
+							   const std::string &filename,
+							   const std::string &funcname,
+							   unsigned int line);
+
+template <>
+void _assert<std::string, std::string>(const std::string &value,
+									   const std::string &expected,
+									   const std::string &filename,
+									   const std::string &funcname,
+									   unsigned int line);
+
+template <>
+void _assert<const char *, const char *>(const char * const &value,
+										 const char * const &expected,
+										 const std::string &filename,
+										 const std::string &funcname,
+										 unsigned int line);
+
 void exceptionGuard(const std::function<void()> &);
+
+void copy_file(const char *src_file, const char *dest_file);
+void touch_file(const char *file);
+bool is_file_exist(const char *file);
+bool install_app(const char *app_path, const char *app_type);
+bool uninstall_app(const char *pkg_id);
+bool is_app_exist(const char *pkg_id);
 
 template <typename T>
 class Context {

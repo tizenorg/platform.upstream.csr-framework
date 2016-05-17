@@ -75,8 +75,7 @@ BOOST_AUTO_TEST_CASE(context_create_destroy)
 {
 	EXCEPTION_GUARD_START
 
-	auto c = Test::Context<csr_cs_context_h>();
-	(void) c;
+	Test::Context<csr_cs_context_h>();
 
 	EXCEPTION_GUARD_END
 }
@@ -88,17 +87,17 @@ BOOST_AUTO_TEST_CASE(set_values_to_context_positive)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 
-	ASSERT_IF(csr_cs_set_ask_user(context, CSR_CS_NOT_ASK_USER), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_ask_user(context, CSR_CS_ASK_USER), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_set_ask_user(context, CSR_CS_NOT_ASK_USER));
+	ASSERT_SUCCESS(csr_cs_set_ask_user(context, CSR_CS_ASK_USER));
 
-	ASSERT_IF(csr_cs_set_popup_message(context, "Test popup message"), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_set_popup_message(context, "Test popup message"));
 
-	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_DEFAULT), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_ALL), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_HALF), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_SINGLE), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_DEFAULT));
+	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_ALL));
+	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_HALF));
+	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_SINGLE));
 
-	ASSERT_IF(csr_cs_set_scan_on_cloud(context), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_set_scan_on_cloud(context));
 
 	EXCEPTION_GUARD_END
 }
@@ -133,7 +132,7 @@ BOOST_AUTO_TEST_CASE(scan_data_normal)
 	unsigned char data[100] = {0, };
 
 	// no malware detected
-	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_data(context, data, sizeof(data), &detected));
 
 	CHECK_IS_NULL(detected);
 
@@ -152,10 +151,11 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 
 	// severity high detected
 	memcpy(data, MALWARE_HIGH_SIGNATURE, strlen(MALWARE_HIGH_SIGNATURE));
-	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_data(context, data, sizeof(data), &detected));
 
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+					MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_EXT(detected, start_time, nullptr, false, nullptr);
 
 	EXCEPTION_GUARD_END
@@ -173,10 +173,11 @@ BOOST_AUTO_TEST_CASE(scan_data_medium)
 
 	// severity medium detected
 	memcpy(data, MALWARE_MEDIUM_SIGNATURE, strlen(MALWARE_MEDIUM_SIGNATURE));
-	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_data(context, data, sizeof(data), &detected));
 
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_DETECTED(detected, MALWARE_MEDIUM_NAME, MALWARE_MEDIUM_SEVERITY, MALWARE_MEDIUM_DETAILED_URL);
+	ASSERT_DETECTED(detected, MALWARE_MEDIUM_NAME, MALWARE_MEDIUM_SEVERITY,
+					MALWARE_MEDIUM_DETAILED_URL);
 	ASSERT_DETECTED_EXT(detected, start_time, nullptr, false, nullptr);
 
 	EXCEPTION_GUARD_END
@@ -194,10 +195,11 @@ BOOST_AUTO_TEST_CASE(scan_data_low)
 
 	// severity low detected
 	memcpy(data, MALWARE_LOW_SIGNATURE, strlen(MALWARE_LOW_SIGNATURE));
-	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_data(context, data, sizeof(data), &detected));
 
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_DETECTED(detected, MALWARE_LOW_NAME, MALWARE_LOW_SEVERITY, MALWARE_LOW_DETAILED_URL);
+	ASSERT_DETECTED(detected, MALWARE_LOW_NAME, MALWARE_LOW_SEVERITY,
+					MALWARE_LOW_DETAILED_URL);
 	ASSERT_DETECTED_EXT(detected, start_time, nullptr, false, nullptr);
 
 	EXCEPTION_GUARD_END
@@ -212,11 +214,14 @@ BOOST_AUTO_TEST_CASE(scan_data_negative)
 	csr_cs_detected_h detected;
 	unsigned char data[100] = {0, };
 
-	ASSERT_IF(csr_cs_scan_data(nullptr, data, sizeof(data), &detected), CSR_ERROR_INVALID_HANDLE);
+	ASSERT_IF(csr_cs_scan_data(nullptr, data, sizeof(data), &detected),
+			  CSR_ERROR_INVALID_HANDLE);
 
-	ASSERT_IF(csr_cs_scan_data(context, nullptr, sizeof(data), &detected), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_scan_data(context, nullptr, sizeof(data), &detected),
+			  CSR_ERROR_INVALID_PARAMETER);
 
-	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), nullptr),  CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), nullptr),
+			  CSR_ERROR_INVALID_PARAMETER);
 
 	EXCEPTION_GUARD_END
 }
@@ -229,7 +234,7 @@ BOOST_AUTO_TEST_CASE(scan_file_normal)
 	auto context = c.get();
 	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NORMAL, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_NORMAL, &detected));
 
 	// no malware detected
 	CHECK_IS_NULL(detected);
@@ -246,12 +251,13 @@ BOOST_AUTO_TEST_CASE(scan_file_high)
 	csr_cs_detected_h detected;
 	time_t start_time = time(nullptr);
 
-	touch_file(TEST_FILE_HIGH);
+	Test::touch_file(TEST_FILE_HIGH);
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_HIGH, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_HIGH, &detected));
 
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+					MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_HIGH, false, nullptr);
 
 	EXCEPTION_GUARD_END
@@ -266,12 +272,13 @@ BOOST_AUTO_TEST_CASE(scan_file_medium)
 	csr_cs_detected_h detected;
 	time_t start_time = time(nullptr);
 
-	touch_file(TEST_FILE_MEDIUM);
+	Test::touch_file(TEST_FILE_MEDIUM);
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIUM, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIUM, &detected));
 
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_DETECTED(detected, MALWARE_MEDIUM_NAME, MALWARE_MEDIUM_SEVERITY, MALWARE_MEDIUM_DETAILED_URL);
+	ASSERT_DETECTED(detected, MALWARE_MEDIUM_NAME, MALWARE_MEDIUM_SEVERITY,
+					MALWARE_MEDIUM_DETAILED_URL);
 	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_MEDIUM, false, nullptr);
 
 	EXCEPTION_GUARD_END
@@ -286,12 +293,13 @@ BOOST_AUTO_TEST_CASE(scan_file_low)
 	csr_cs_detected_h detected;
 	time_t start_time = time(nullptr);
 
-	touch_file(TEST_FILE_LOW);
+	Test::touch_file(TEST_FILE_LOW);
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_LOW, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_LOW, &detected));
 
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_DETECTED(detected, MALWARE_LOW_NAME, MALWARE_LOW_SEVERITY, MALWARE_LOW_DETAILED_URL);
+	ASSERT_DETECTED(detected, MALWARE_LOW_NAME, MALWARE_LOW_SEVERITY,
+					MALWARE_LOW_DETAILED_URL);
 	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_LOW, false, nullptr);
 
 	EXCEPTION_GUARD_END
@@ -306,12 +314,13 @@ BOOST_AUTO_TEST_CASE(scan_file_media_dir)
 	csr_cs_detected_h detected;
 	time_t start_time = time(nullptr);
 
-	copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
+	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected));
 
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+					MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_MEDIA, false, nullptr);
 
 	EXCEPTION_GUARD_END
@@ -326,12 +335,13 @@ BOOST_AUTO_TEST_CASE(scan_file_tmp_dir)
 	csr_cs_detected_h detected;
 	time_t start_time = time(nullptr);
 
-	copy_file(TEST_FILE_HIGH, TEST_FILE_TMP);
+	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_TMP);
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_TMP, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_TMP, &detected));
 
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+					MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_TMP, false, nullptr);
 
 	EXCEPTION_GUARD_END
@@ -347,16 +357,17 @@ BOOST_AUTO_TEST_CASE(scan_file_wgt_dir)
 	csr_cs_detected_h detected;
 	time_t start_time = time(nullptr);
 
-	uninstall_app(TEST_WGT_PKG_ID);
-	BOOST_REQUIRE_MESSAGE(install_app(TEST_WGT_PATH, TEST_WGT_TYPE) == true, "FAIL TO INSTALL.");
+	Test::uninstall_app(TEST_WGT_PKG_ID);
+	ASSERT_INSTALL_APP(TEST_WGT_PATH, TEST_WGT_TYPE);
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_WGT_MAL_FILE, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_WGT_MAL_FILE, &detected));
 
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+					MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_EXT(detected, start_time, TEST_WGT_APP_ROOT, true, TEST_WGT_PKG_ID);
 
-	BOOST_REQUIRE_MESSAGE(uninstall_app(TEST_WGT_PKG_ID) == true, "FAIL TO UNINSTALL.");
+	ASSERT_UNINSTALL_APP(TEST_WGT_PKG_ID);
 
 	EXCEPTION_GUARD_END
 }
@@ -371,16 +382,17 @@ BOOST_AUTO_TEST_CASE(scan_file_tpk_dir)
 	csr_cs_detected_h detected;
 	time_t start_time = time(nullptr);
 
-	uninstall_app(TEST_TPK_PKG_ID);
-	BOOST_REQUIRE_MESSAGE(install_app(TEST_TPK_PATH, TEST_TPK_TYPE) == true, "FAIL TO INSTALL.");
+	Test::uninstall_app(TEST_TPK_PKG_ID);
+	ASSERT_INSTALL_APP(TEST_TPK_PATH, TEST_TPK_TYPE);
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_TPK_MAL_FILE, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_TPK_MAL_FILE, &detected));
 
 	CHECK_IS_NOT_NULL(detected);
-	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+					MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_EXT(detected, start_time, TEST_TPK_APP_ROOT, true, TEST_TPK_PKG_ID);
 
-	BOOST_REQUIRE_MESSAGE(uninstall_app(TEST_TPK_PKG_ID) == true, "FAIL TO UNINSTALL.");
+	ASSERT_UNINSTALL_APP(TEST_TPK_PKG_ID);
 
 	EXCEPTION_GUARD_END
 }
@@ -394,11 +406,11 @@ BOOST_AUTO_TEST_CASE(scan_file_invalid_params)
 	auto context = c.get();
 	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_scan_file(nullptr, TEST_FILE_NORMAL, &detected), CSR_ERROR_INVALID_HANDLE);
-
+	ASSERT_IF(csr_cs_scan_file(nullptr, TEST_FILE_NORMAL, &detected),
+			  CSR_ERROR_INVALID_HANDLE);
 	ASSERT_IF(csr_cs_scan_file(context, nullptr, &detected), CSR_ERROR_INVALID_PARAMETER);
-
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NORMAL, nullptr), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NORMAL, nullptr),
+			  CSR_ERROR_INVALID_PARAMETER);
 
 	EXCEPTION_GUARD_END
 }
@@ -411,7 +423,8 @@ BOOST_AUTO_TEST_CASE(scan_file_not_existing_file)
 	auto context = c.get();
 	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NO_EXIST, &detected), CSR_ERROR_FILE_DO_NOT_EXIST);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NO_EXIST, &detected),
+			  CSR_ERROR_FILE_DO_NOT_EXIST);
 
 	EXCEPTION_GUARD_END
 }
@@ -425,11 +438,10 @@ BOOST_AUTO_TEST_CASE(get_detected_malware)
 	csr_cs_detected_h detected;
 	csr_cs_detected_h stored;
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIUM, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIUM, &detected));
 	CHECK_IS_NOT_NULL(detected);
 
-	ASSERT_IF(csr_cs_get_detected_malware(context, TEST_FILE_MEDIUM, &stored),
-			  CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_MEDIUM, &stored));
 	CHECK_IS_NOT_NULL(stored);
 
 	ASSERT_DETECTED_HANDLE(detected, stored);
@@ -445,9 +457,12 @@ BOOST_AUTO_TEST_CASE(get_detected_malware_invalid_param)
 	auto context = c.get();
 	csr_cs_detected_h stored;
 
-	ASSERT_IF(csr_cs_get_detected_malware(nullptr, TEST_FILE_MEDIUM, &stored), CSR_ERROR_INVALID_HANDLE);
-	ASSERT_IF(csr_cs_get_detected_malware(context, nullptr, &stored), CSR_ERROR_INVALID_PARAMETER);
-	ASSERT_IF(csr_cs_get_detected_malware(context, TEST_FILE_MEDIUM, nullptr), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_get_detected_malware(nullptr, TEST_FILE_MEDIUM, &stored),
+			  CSR_ERROR_INVALID_HANDLE);
+	ASSERT_IF(csr_cs_get_detected_malware(context, nullptr, &stored),
+			  CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_get_detected_malware(context, TEST_FILE_MEDIUM, nullptr),
+			  CSR_ERROR_INVALID_PARAMETER);
 
 	EXCEPTION_GUARD_END;
 }
@@ -460,7 +475,7 @@ BOOST_AUTO_TEST_CASE(get_detected_malware_not_existing_file)
 	auto context = c.get();
 	csr_cs_detected_h stored;
 
-	ASSERT_IF(csr_cs_get_detected_malware(context, TEST_FILE_NO_EXIST, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_NO_EXIST, &stored));
 	CHECK_IS_NULL(stored);
 
 	EXCEPTION_GUARD_END
@@ -484,20 +499,20 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares)
 		TEST_DIR
 	};
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_HIGH, &detected_high), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_HIGH, &detected_high));
 	CHECK_IS_NOT_NULL(detected_high);
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIUM, &detected_medium), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIUM, &detected_medium));
 	CHECK_IS_NOT_NULL(detected_medium);
 
-	ASSERT_IF(csr_cs_get_detected_malwares(context, dirs,
-										   sizeof(dirs) / sizeof(const char *),
-										   &detected_list, &cnt), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_detected_malwares(context, dirs,
+												sizeof(dirs) / sizeof(const char *),
+												&detected_list, &cnt));
 	CHECK_IS_NOT_NULL(detected_list);
 
 	for (idx = 0; idx < cnt; idx++) {
-		ASSERT_IF(csr_cs_dlist_get_detected(detected_list, idx, &stored), CSR_ERROR_NONE);
+		ASSERT_SUCCESS(csr_cs_dlist_get_detected(detected_list, idx, &stored));
 		CHECK_IS_NOT_NULL(stored);
-		ASSERT_IF(csr_cs_detected_get_file_name(stored, &file_path_actual), CSR_ERROR_NONE);
+		ASSERT_SUCCESS(csr_cs_detected_get_file_name(stored, &file_path_actual));
 		if (strcmp(TEST_FILE_HIGH, file_path_actual) == 0) {
 			ASSERT_DETECTED_HANDLE(detected_high, stored);
 			compared_cnt++;
@@ -528,14 +543,23 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares_invalid_params)
 		TEST_DIR
 	};
 
-	ASSERT_IF(csr_cs_get_detected_malwares(nullptr, dirs, sizeof(dirs) / sizeof(const char *),
-										   &detected_list, &cnt), CSR_ERROR_INVALID_HANDLE);
-	ASSERT_IF(csr_cs_get_detected_malwares(context, nullptr, sizeof(dirs) / sizeof(const char *),
-										   &detected_list, &cnt), CSR_ERROR_INVALID_PARAMETER);
-	ASSERT_IF(csr_cs_get_detected_malwares(context, dirs, sizeof(dirs) / sizeof(const char *),
-										   nullptr, &cnt), CSR_ERROR_INVALID_PARAMETER);
-	ASSERT_IF(csr_cs_get_detected_malwares(context, dirs, sizeof(dirs) / sizeof(const char *),
-										   &detected_list, nullptr), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_get_detected_malwares(nullptr, dirs,
+										   sizeof(dirs) / sizeof(const char *),
+										   &detected_list, &cnt),
+			  CSR_ERROR_INVALID_HANDLE);
+
+	ASSERT_IF(csr_cs_get_detected_malwares(context, nullptr,
+										   sizeof(dirs) / sizeof(const char *),
+										   &detected_list, &cnt),
+			  CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_get_detected_malwares(context, dirs,
+										   sizeof(dirs) / sizeof(const char *),
+										   nullptr, &cnt),
+			  CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_get_detected_malwares(context, dirs,
+										   sizeof(dirs) / sizeof(const char *),
+										   &detected_list, nullptr),
+			  CSR_ERROR_INVALID_PARAMETER);
 
 	EXCEPTION_GUARD_END
 }
@@ -553,8 +577,9 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares_not_existing_dir)
 		TEST_FILE_NO_EXIST
 	};
 
-	ASSERT_IF(csr_cs_get_detected_malwares(context, dirs, sizeof(dirs) / sizeof(const char *),
-										   &detected_list, &cnt), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_detected_malwares(context, dirs,
+												sizeof(dirs) / sizeof(const char *),
+												&detected_list, &cnt));
 
 	ASSERT_IF(cnt, static_cast<size_t>(0));
 
@@ -569,18 +594,19 @@ BOOST_AUTO_TEST_CASE(get_ignored_malware)
 	auto context = c.get();
 	csr_cs_detected_h detected, stored;
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_HIGH, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_HIGH, &detected));
 	CHECK_IS_NOT_NULL(detected);
 
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_IGNORE),
-			  CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_IGNORE));
 
-	ASSERT_IF(csr_cs_get_ignored_malware(context, TEST_FILE_HIGH, &stored),
-			  CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_ignored_malware(context, TEST_FILE_HIGH, &stored));
 
 	CHECK_IS_NOT_NULL(stored);
 
 	ASSERT_DETECTED_HANDLE(detected, stored);
+
+	// rollback to unignore
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_UNIGNORE));
 
 	EXCEPTION_GUARD_END
 }
@@ -593,9 +619,12 @@ BOOST_AUTO_TEST_CASE(get_ignored_malware_invalid_param)
 	auto context = c.get();
 	csr_cs_detected_h stored;
 
-	ASSERT_IF(csr_cs_get_ignored_malware(nullptr, TEST_FILE_MEDIUM, &stored), CSR_ERROR_INVALID_HANDLE);
-	ASSERT_IF(csr_cs_get_ignored_malware(context, nullptr, &stored), CSR_ERROR_INVALID_PARAMETER);
-	ASSERT_IF(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIUM, nullptr), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_get_ignored_malware(nullptr, TEST_FILE_MEDIUM, &stored),
+			  CSR_ERROR_INVALID_HANDLE);
+	ASSERT_IF(csr_cs_get_ignored_malware(context, nullptr, &stored),
+			  CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIUM, nullptr),
+			  CSR_ERROR_INVALID_PARAMETER);
 
 	EXCEPTION_GUARD_END
 }
@@ -608,7 +637,7 @@ BOOST_AUTO_TEST_CASE(get_ignored_malware_not_existing_file)
 	auto context = c.get();
 	csr_cs_detected_h stored;
 
-	ASSERT_IF(csr_cs_get_ignored_malware(context, TEST_FILE_NO_EXIST, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_ignored_malware(context, TEST_FILE_NO_EXIST, &stored));
 	CHECK_IS_NULL(stored);
 
 	EXCEPTION_GUARD_END
@@ -631,25 +660,25 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares)
 		TEST_DIR
 	};
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_HIGH, &detected_high),
-			  CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_HIGH, &detected_high));
 	CHECK_IS_NOT_NULL(detected_high);
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected_high, CSR_CS_ACTION_IGNORE),
-			  CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIUM, &detected_medium),
-			  CSR_ERROR_NONE);
-	CHECK_IS_NOT_NULL(detected_medium);
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected_medium, CSR_CS_ACTION_IGNORE),
-			  CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected_high,
+												 CSR_CS_ACTION_IGNORE));
 
-	ASSERT_IF(csr_cs_get_ignored_malwares(context, dirs, sizeof(dirs) / sizeof(const char *),
-										  &ignored_list, &cnt), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIUM, &detected_medium));
+	CHECK_IS_NOT_NULL(detected_medium);
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected_medium,
+												 CSR_CS_ACTION_IGNORE));
+
+	ASSERT_SUCCESS(csr_cs_get_ignored_malwares(context, dirs,
+												sizeof(dirs) / sizeof(const char *),
+												&ignored_list, &cnt));
 	CHECK_IS_NOT_NULL(ignored_list);
 
 	for (idx = 0; idx < cnt; idx++) {
-		ASSERT_IF(csr_cs_dlist_get_detected(ignored_list, idx, &stored), CSR_ERROR_NONE);
+		ASSERT_SUCCESS(csr_cs_dlist_get_detected(ignored_list, idx, &stored));
 		CHECK_IS_NOT_NULL(stored);
-		ASSERT_IF(csr_cs_detected_get_file_name(stored, &file_path_actual), CSR_ERROR_NONE);
+		ASSERT_SUCCESS(csr_cs_detected_get_file_name(stored, &file_path_actual));
 		if (strcmp(TEST_FILE_HIGH, file_path_actual) == 0) {
 			ASSERT_DETECTED_HANDLE(detected_high, stored);
 			compared_cnt++;
@@ -662,6 +691,12 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares)
 	}
 
 	ASSERT_IF(compared_cnt, static_cast<size_t>(2));
+
+	// rollback to unignore
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected_high,
+												 CSR_CS_ACTION_UNIGNORE));
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected_medium,
+												 CSR_CS_ACTION_UNIGNORE));
 
 	EXCEPTION_GUARD_END
 }
@@ -679,14 +714,22 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares_invalid_params)
 		TEST_DIR
 	};
 
-	ASSERT_IF(csr_cs_get_ignored_malwares(nullptr, dirs, sizeof(dirs) / sizeof(const char *),
-										  &ignored_list, &cnt), CSR_ERROR_INVALID_HANDLE);
-	ASSERT_IF(csr_cs_get_ignored_malwares(context, nullptr, sizeof(dirs) / sizeof(const char *),
-										  &ignored_list, &cnt), CSR_ERROR_INVALID_PARAMETER);
-	ASSERT_IF(csr_cs_get_ignored_malwares(context, dirs, sizeof(dirs) / sizeof(const char *),
-										  nullptr, &cnt), CSR_ERROR_INVALID_PARAMETER);
-	ASSERT_IF(csr_cs_get_ignored_malwares(context, dirs, sizeof(dirs) / sizeof(const char *),
-										  &ignored_list, nullptr), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_get_ignored_malwares(nullptr, dirs,
+										  sizeof(dirs) / sizeof(const char *),
+										  &ignored_list, &cnt),
+			  CSR_ERROR_INVALID_HANDLE);
+	ASSERT_IF(csr_cs_get_ignored_malwares(context, nullptr,
+										  sizeof(dirs) / sizeof(const char *),
+										  &ignored_list, &cnt),
+			  CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_get_ignored_malwares(context, dirs,
+										  sizeof(dirs) / sizeof(const char *),
+										  nullptr, &cnt),
+			  CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_get_ignored_malwares(context, dirs,
+										  sizeof(dirs) / sizeof(const char *),
+										  &ignored_list, nullptr),
+			  CSR_ERROR_INVALID_PARAMETER);
 
 	EXCEPTION_GUARD_END
 }
@@ -704,8 +747,9 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares_not_existing_dir)
 		TEST_FILE_NO_EXIST
 	};
 
-	ASSERT_IF(csr_cs_get_ignored_malwares(context, dirs, sizeof(dirs) / sizeof(const char *),
-										  &ignored_list, &cnt), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_ignored_malwares(context, dirs,
+											   sizeof(dirs) / sizeof(const char *),
+											   &ignored_list, &cnt));
 
 	ASSERT_IF(cnt, static_cast<size_t>(0));
 
@@ -721,46 +765,46 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware)
 	csr_cs_detected_h detected, stored;
 
 	// remove earlier test results
-	copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected), CSR_ERROR_NONE);
-	csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE);
-	copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
+	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected));
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE));
+	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
 
 	// store detected malware
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected));
 	CHECK_IS_NOT_NULL(detected);
 
-	ASSERT_IF(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NOT_NULL(stored);
 
-	ASSERT_IF(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NULL(stored);
 
-	// INGORE
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_IGNORE), CSR_ERROR_NONE);
+	// IGNORE
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_IGNORE));
 
-	ASSERT_IF(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NULL(stored);
 
-	ASSERT_IF(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NOT_NULL(stored);
 
 	// UNIGNORE
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_UNIGNORE), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_UNIGNORE));
 
-	ASSERT_IF(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NOT_NULL(stored);
 
-	ASSERT_IF(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NULL(stored);
 
 	// REMOVE
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE));
 
-	ASSERT_IF(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NULL(stored);
 
-	ASSERT_IF(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NULL(stored);
 
 	EXCEPTION_GUARD_END
@@ -775,27 +819,30 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_ignored_rescan)
 	csr_cs_detected_h detected, stored;
 
 	// remove earlier test results
-	copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected), CSR_ERROR_NONE);
+	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected));
 	csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE);
-	copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
+	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
 
 	// store detected malware
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected));
 	CHECK_IS_NOT_NULL(detected);
 
 	// ignore
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_IGNORE), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_IGNORE));
 
 	// rescan
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected), CSR_ERROR_NONE);
-	CHECK_IS_NOT_NULL(detected);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected));
+	CHECK_IS_NULL(detected);
 
-	ASSERT_IF(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NULL(stored);
 
-	ASSERT_IF(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NOT_NULL(stored);
+
+	// rollback to unignore
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, stored, CSR_CS_ACTION_UNIGNORE));
 
 	EXCEPTION_GUARD_END
 }
@@ -809,48 +856,48 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_remove_file)
 	csr_cs_detected_h detected, stored;
 
 	// remove earlier test results
-	copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected), CSR_ERROR_NONE);
+	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected));
 	csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE);
-	copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
+	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
 
 	// store detected malware
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected));
 	CHECK_IS_NOT_NULL(detected);
 
 	// remove detected malware file
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE));
 
-	ASSERT_IF(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NULL(stored);
 
-	ASSERT_IF(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NULL(stored);
 
-	ASSERT_IF(is_file_exist(TEST_FILE_MEDIA), false);
+	ASSERT_IF(Test::is_file_exist(TEST_FILE_MEDIA), false);
 
 	// make ignored
-	copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_IGNORE), CSR_ERROR_NONE);
+	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected));
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_IGNORE));
 
 	// remove ignored malware file
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE));
 
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE), CSR_ERROR_NONE);
-
-	ASSERT_IF(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NULL(stored);
 
-	ASSERT_IF(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_get_ignored_malware(context, TEST_FILE_MEDIA, &stored));
 	CHECK_IS_NULL(stored);
 
-	ASSERT_IF(is_file_exist(TEST_FILE_MEDIA), false);
+	ASSERT_IF(Test::is_file_exist(TEST_FILE_MEDIA), false);
 
 	// remove not existing file
-	copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE), CSR_ERROR_NONE);
+	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIA, &detected));
+	CHECK_IS_NOT_NULL(detected);
+
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE));
 
 	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE),
 			  CSR_ERROR_FILE_DO_NOT_EXIST);
@@ -867,16 +914,17 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_remove_wgt)
 	csr_cs_detected_h detected;
 
 	// remove old test data
-	uninstall_app(TEST_WGT_PKG_ID);
-	BOOST_REQUIRE_MESSAGE(install_app(TEST_WGT_PATH, TEST_WGT_TYPE) == true, "FAIL TO INSTALL.");
+	Test::uninstall_app(TEST_WGT_PKG_ID);
+
+	ASSERT_INSTALL_APP(TEST_WGT_PATH, TEST_WGT_TYPE);
 
 	// remove detected malware file
-	ASSERT_IF(csr_cs_scan_file(context, TEST_WGT_MAL_FILE, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_WGT_MAL_FILE, &detected));
 	CHECK_IS_NOT_NULL(detected);
 
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE));
 
-	ASSERT_IF(is_app_exist(TEST_WGT_PKG_ID), false);
+	ASSERT_IF(Test::is_app_exist(TEST_WGT_PKG_ID), false);
 
 	EXCEPTION_GUARD_END
 }
@@ -890,16 +938,16 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_remove_tpk)
 	csr_cs_detected_h detected;
 
 	// remove old test data
-	uninstall_app(TEST_TPK_PKG_ID);
-	BOOST_REQUIRE_MESSAGE(install_app(TEST_TPK_PATH, TEST_TPK_TYPE) == true, "FAIL TO INSTALL.");
+	Test::uninstall_app(TEST_TPK_PKG_ID);
+	ASSERT_INSTALL_APP(TEST_TPK_PATH, TEST_TPK_TYPE);
 
 	// remove detected malware file
-	ASSERT_IF(csr_cs_scan_file(context, TEST_TPK_MAL_FILE, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_TPK_MAL_FILE, &detected));
 	CHECK_IS_NOT_NULL(detected);
 
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE));
 
-	ASSERT_IF(is_app_exist(TEST_TPK_PKG_ID), false);
+	ASSERT_IF(Test::is_app_exist(TEST_TPK_PKG_ID), false);
 
 	EXCEPTION_GUARD_END
 }
@@ -912,14 +960,15 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_invalid_params)
 	auto context = c.get();
 	csr_cs_detected_h detected;
 
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_HIGH, &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_HIGH, &detected));
 	CHECK_IS_NOT_NULL(detected);
 
 	ASSERT_IF(csr_cs_judge_detected_malware(nullptr, detected, CSR_CS_ACTION_REMOVE),
 			  CSR_ERROR_INVALID_HANDLE);
 	ASSERT_IF(csr_cs_judge_detected_malware(context, nullptr, CSR_CS_ACTION_REMOVE),
 			  CSR_ERROR_INVALID_PARAMETER);
-	ASSERT_IF(csr_cs_judge_detected_malware(context, detected, static_cast<csr_cs_action_e>(-1)),
+	ASSERT_IF(csr_cs_judge_detected_malware(context, detected,
+											static_cast<csr_cs_action_e>(-1)),
 			  CSR_ERROR_INVALID_PARAMETER);
 
 	EXCEPTION_GUARD_END

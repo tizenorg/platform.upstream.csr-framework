@@ -369,6 +369,19 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 {
 	EXCEPTION_GUARD_START
 
+	// for file existence / status check. exception thrown.
+	FilePtr file;
+	try {
+		file = File::create(filepath);
+	} catch (const Exception &e) {
+		ERROR("file system related exception occured on file: " << filepath <<
+			  " let's refresh detected malware history...");
+
+		m_db->deleteDetectedMalware(filepath);
+
+		throw;
+	}
+
 	auto history = m_db->getDetectedMalware(filepath);
 
 	if (!history) {
@@ -376,31 +389,18 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
 	}
 
-	auto fileptr = File::create(filepath, static_cast<time_t>(history->ts));
-
-	if (fileptr) {
-		ERROR("Target modified since db delta inserted. name: " << filepath);
+	// TODO: make isModifiedSince member function to File class
+	//       not to regenerate like this.
+	if (File::create(filepath, static_cast<time_t>(history->ts))) {
 		m_db->deleteDetectedMalware(filepath);
 
-		// TODO: is it okay to just refresh db and return success?
-		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+		ThrowExc(FileSystemError, "Target modified since db delta inserted. "
+				 "name: " << filepath);
 	}
 
 	switch (action) {
 	case CSR_CS_ACTION_REMOVE:
-		try {
-			auto file = File::create(filepath);
-
-			if (!file && !file->remove()) {
-				ERROR("Failed to remove filepath: " << filepath);
-				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED).pop();
-			}
-		} catch (const FileDoNotExist &) {
-			WARN("File already removed... : " << filepath);
-		} catch (const FileSystemError &) {
-			WARN("File type is changed... it's considered as different file "
-				 "in same path: " << filepath);
-		}
+		file->remove();
 
 		m_db->deleteDetectedMalware(filepath);
 		break;
@@ -527,14 +527,11 @@ RawBuffer CsLogic::handleUserResponse(const CsDetected &d, FilePtr &&fileptr)
 			else
 				_fileptr = File::create(d.targetName);
 
-			if (!_fileptr->remove()) {
-				ERROR("Failed to remove file: " << d.targetName);
-				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, d).pop();
-			}
+			_fileptr->remove();
 		} catch (const FileDoNotExist &) {
 			WARN("File already removed.: " << d.targetName);
 		} catch (const FileSystemError &) {
-			WARN("File type is changed. it's considered as different file: " << d.targetName);
+			WARN("File type is changed, considered as different file: " << d.targetName);
 		}
 
 		m_db->deleteDetectedMalware(d.targetName);

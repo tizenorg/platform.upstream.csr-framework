@@ -21,22 +21,8 @@
  */
 #include <csr/content-screening.h>
 
-void ASSERT_STRING(const char *expected, const char *actual, const char *msg);
-
 void ASSERT_DETECTED(csr_cs_detected_h detected, const char *name, int severity, const char *detailed_url);
 
 void ASSERT_DETECTED_EXT(csr_cs_detected_h detected, time_t time, const char *file_name, bool is_app, const char *pkg_id);
 
 void ASSERT_DETECTED_HANDLE(csr_cs_detected_h expected, csr_cs_detected_h actual);
-
-void copy_file(const char *src_file, const char *dest_file);
-
-void touch_file(const char *file);
-
-bool is_file_exist(const char *file);
-
-bool install_app(const char *app_path, const char *app_type);
-
-bool uninstall_app(const char *pkg_id);
-
-bool is_app_exist(const char *pkg_id);

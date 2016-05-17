@@ -47,37 +47,6 @@ using namespace Csr;
 
 namespace {
 
-bool installed;
-GMainLoop *mainLoop;
-int __app_install_cb(int req_id, const char *pkg_type, const char *pkgid,
-					 const char *key, const char *val, const void *pmsg, void *data)
-{
-	(void) req_id;
-	(void) pkg_type;
-	(void) pkgid;
-	(void) pmsg;
-	(void) data;
-
-	installed = false;
-
-	if (key && strncmp(key, "end", strlen("end")) == 0) {
-		if (strncmp(val, "ok", strlen("ok")) == 0) {
-			installed = true;
-			g_main_loop_quit(mainLoop);
-			g_main_loop_unref(mainLoop);
-		}
-	}
-
-	return 0;
-}
-
-gboolean __app_uninstall_timeout(gpointer)
-{
-	installed = false;
-
-	return TRUE;
-}
-
 void __assertFile(const File &file, const std::string &path,
 				  const std::string &user,
 				  const std::string &pkgId, const std::string &pkgPath, bool inApp)
@@ -163,48 +132,44 @@ BOOST_AUTO_TEST_CASE(check_in_app)
 
 BOOST_AUTO_TEST_CASE(remove_file)
 {
+	EXCEPTION_GUARD_START
+
 	std::string fpath = "/tmp/test.txt";
 
 	__createFile(fpath);
 
 	auto file = File::create(fpath);
-	BOOST_REQUIRE_MESSAGE(file->remove(), "Faile to remove file. path=" << fpath);
+	BOOST_REQUIRE_NO_THROW(file->remove());
 
 	bool isRemoved = access(fpath.c_str(), F_OK) != 0 && errno == ENOENT;
 	__removeFile(fpath);
 
 	BOOST_REQUIRE_MESSAGE(isRemoved, "file remove done but file still exist...");
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(remove_app)
 {
+	EXCEPTION_GUARD_START
+
 	std::string fpath =
 		"/opt/usr/apps/org.example.maliciousapp/shared/res/maliciousapp.png";
-	std::string appPath = TEST_APP_PKG;
 
 	// install the test app
-	auto pkgmgr = pkgmgr_client_new(PC_REQUEST);
-	CHECK_IS_NOT_NULL(pkgmgr);
-
-	int ret = pkgmgr_client_install(pkgmgr, nullptr, nullptr,
-									appPath.c_str(), nullptr, PM_QUIET, ::__app_install_cb, nullptr);
-	BOOST_REQUIRE_MESSAGE(ret > PKGMGR_R_OK,
-						  std::string("expected>") << PKGMGR_R_OK << ", actual=" << ret);
-	g_timeout_add_seconds(30, __app_uninstall_timeout, this);
-	mainLoop = g_main_loop_new(nullptr, false);
-	g_main_loop_run(mainLoop);
-	pkgmgr_client_free(pkgmgr);
-	BOOST_REQUIRE_MESSAGE(installed, "fail to install test app");
+	BOOST_REQUIRE(Test::install_app(TEST_APP_PKG, "TPK"));
 
 	// remove the app
 	auto app = File::create(fpath);
 	CHECK_IS_NOT_NULL(app);
-	BOOST_REQUIRE_MESSAGE(app->remove(), "Faile to remove app. path=" << fpath);
+	BOOST_REQUIRE_NO_THROW(app->remove());
 
 	// check if the app still exists
 	pkgmgrinfo_pkginfo_h handle;
-	ret = pkgmgrinfo_pkginfo_get_pkginfo(app->getAppPkgId().c_str(), &handle);
-	BOOST_REQUIRE(ret < PKGMGR_R_OK);
+	BOOST_REQUIRE(pkgmgrinfo_pkginfo_get_pkginfo(app->getAppPkgId().c_str(), &handle)
+				  < PKGMGR_R_OK);
+
+	EXCEPTION_GUARD_END
 }
 
 BOOST_AUTO_TEST_CASE(file_visitor_positive_existing)

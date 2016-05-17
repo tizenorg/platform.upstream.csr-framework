@@ -82,7 +82,7 @@ static gboolean __app_uninstall_timeout(gpointer data)
 
 namespace Csr {
 
-bool AppDeleter::remove(const std::string &pkgid)
+void AppDeleter::remove(const std::string &pkgid)
 {
 	if (pkgid.empty())
 		ThrowExc(InternalError, "pkgid shouldn't be empty in AppDeleter");
@@ -98,17 +98,20 @@ bool AppDeleter::remove(const std::string &pkgid)
 
 	LoopData data(loop.get(), pkgid);
 
-	if (pkgmgr_client_uninstall(client.get(), nullptr, pkgid.c_str(), PM_QUIET,
-								::__app_uninstall_cb, &data) <= PKGMGR_R_OK)
-		return false;
+	auto ret = pkgmgr_client_uninstall(client.get(), nullptr, pkgid.c_str(), PM_QUIET,
+									   ::__app_uninstall_cb, &data);
+	if (ret <= PKGMGR_R_OK)
+		ThrowExc(RemoveFailed, "Failed to pkgmgr_client_uninstall for pkg: " << pkgid <<
+				 " ret: " << ret);
 
-	g_timeout_add_seconds(MAX_WAIT_SEC, __app_uninstall_timeout, &data);
+	g_timeout_add_seconds(MAX_WAIT_SEC, ::__app_uninstall_timeout, &data);
 
 	g_main_loop_run(loop.get());
 
 	DEBUG("App Removed. pkgid: " << pkgid);
 
-	return data.isDeleted;
+	if (!data.isDeleted)
+		ThrowExc(RemoveFailed, "Failed to remove app: " << pkgid);
 }
 
 } // namespace Csr

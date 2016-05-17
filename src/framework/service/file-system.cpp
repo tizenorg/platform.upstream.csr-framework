@@ -129,12 +129,16 @@ const std::string &File::getAppPkgPath() const
 	return m_appPkgPath;
 }
 
-bool File::remove() const
+void File::remove() const
 {
-	if (m_inApp)
-		return AppDeleter::remove(m_appPkgId);
-	else
-		return ::remove(m_path.c_str()) == 0;
+	if (m_inApp) {
+		DEBUG("remove app: " << m_appPkgId);
+		AppDeleter::remove(m_appPkgId);
+	} else {
+		DEBUG("remove file: " << m_path);
+		if (::remove(m_path.c_str()) != 0)
+			ThrowExc(RemoveFailed, "Failed to remove file: " << m_path);
+	}
 }
 
 FilePtr File::create(const std::string &fpath, time_t modifiedSince)

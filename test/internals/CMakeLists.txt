@@ -25,17 +25,10 @@ SET(CSR_FW_SRC_PATH ${PROJECT_SOURCE_DIR}/src/framework)
 PKG_CHECK_MODULES(${TARGET_CSR_INTERNAL_TEST}_DEP
 	REQUIRED
 	sqlite3
-	glib-2.0
-	pkgmgr
-	pkgmgr-info
 )
 
 SET(${TARGET_CSR_INTERNAL_TEST}_SRCS
-	${CSR_TEST_SRC_PATH}/colour_log_formatter.cpp
-	${CSR_TEST_SRC_PATH}/test-common.cpp
-
 	${CSR_FW_SRC_PATH}/common/exception.cpp
-
 	${CSR_FW_SRC_PATH}/db/connection.cpp
 	${CSR_FW_SRC_PATH}/db/statement.cpp
 	${CSR_FW_SRC_PATH}/db/manager.cpp
@@ -68,6 +61,7 @@ INCLUDE_DIRECTORIES(
 ADD_EXECUTABLE(${TARGET_CSR_INTERNAL_TEST} ${${TARGET_CSR_INTERNAL_TEST}_SRCS})
 
 TARGET_LINK_LIBRARIES(${TARGET_CSR_INTERNAL_TEST}
+	${TARGET_CSR_TEST_COMMON}
 	${TARGET_CSR_COMMON}
 	${${TARGET_CSR_INTERNAL_TEST}_DEP_LIBRARIES}
 	-lboost_unit_test_framework

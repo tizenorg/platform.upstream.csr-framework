@@ -80,7 +80,7 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 	if (result == nullptr)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-	auto d = convert(result, std::string());
+	auto d = this->convert(result, std::string());
 
 	d.response = getUserResponse(context, d);
 
@@ -106,12 +106,12 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 	if (!result)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-	auto detected = convert(result, pkgPath);
+	auto detected = this->convert(result, pkgPath);
 	detected.isApp = true;
 	detected.pkgId = pkgId;
-	detected.response = getUserResponse(context, detected);
+	detected.response = this->getUserResponse(context, detected);
 
-	return handleUserResponse(detected);
+	return this->handleUserResponse(detected);
 }
 
 CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::string &pkgId)
@@ -137,7 +137,7 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 
 		INFO("New malware detected on file: " << file->getPath());
 
-		auto candidate = convert(result, file->getPath());
+		auto candidate = this->convert(result, file->getPath());
 		candidate.isApp = true;
 		candidate.pkgId = pkgId;
 		this->m_db.insertDetectedMalware(candidate, this->m_dataVersion);
@@ -183,8 +183,10 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 			this->m_db.insertDetectedMalware(*riskiest, this->m_dataVersion);
 		} else {
 			INFO("new malware is found but not riskier than history. history reusable.");
-			history->response = history->isIgnored
-								? CSR_CS_IGNORE : this->getUserResponse(context, *history);
+			if (history->isIgnored)
+				return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
+			history->response = this->getUserResponse(context, *history);
 			return this->handleUserResponse(*history);
 		}
 	} else if (riskiest && !history) {
@@ -192,8 +194,10 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 		this->m_db.insertDetectedMalware(*riskiest, this->m_dataVersion);
 	} else if (!riskiest && history) {
 		INFO("no malware found and history exist! history reusable.");
-		history->response = history->isIgnored
-							? CSR_CS_IGNORE : this->getUserResponse(context, *history);
+		if (history->isIgnored)
+			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
+		history->response = this->getUserResponse(context, *history);
 		return this->handleUserResponse(*history);
 	} else {
 		INFO("no malware found and no history exist! it's clean!");
@@ -218,12 +222,12 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 	if (result == nullptr)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-	auto d = convert(result, filepath);
+	auto d = this->convert(result, filepath);
 
 	this->m_db.insertDetectedMalware(d, this->m_dataVersion);
 
-	d.response = getUserResponse(context, d);
-	return handleUserResponse(d, std::forward<FilePtr>(fileptr));
+	d.response = this->getUserResponse(context, d);
+	return this->handleUserResponse(d, std::forward<FilePtr>(fileptr));
 }
 
 RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepath)
@@ -233,7 +237,7 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 	setCoreUsage(context.coreUsage);
 
 	if (File::isInApp(filepath))
-		return scanApp(context, filepath);
+		return this->scanApp(context, filepath);
 
 	DEBUG("Scan request on file: " << filepath);
 
@@ -259,14 +263,16 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 
 		DEBUG("file[" << filepath << "] is modified since the detected time. "
 			  "let's remove history and re-scan");
-		return scanFileWithoutDelta(context, filepath, std::move(fileptr));
+		return this->scanFileWithoutDelta(context, filepath, std::move(fileptr));
 	}
 
 	DEBUG("Usable scan history exist on file: " << filepath);
 
-	history->response = history->isIgnored
-						? CSR_CS_IGNORE : getUserResponse(context, *history);
-	return handleUserResponse(*history);
+	if (history->isIgnored)
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
+	history->response = this->getUserResponse(context, *history);
+	return this->handleUserResponse(*history);
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
@@ -423,7 +429,7 @@ RawBuffer CsLogic::getDetected(const std::string &filepath)
 
 	auto row = this->m_db.getDetectedMalware(filepath);
 
-	if (row)
+	if (row && !row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
 	else
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
@@ -443,7 +449,8 @@ RawBuffer CsLogic::getDetectedList(const StrSet &dirSet)
 	std::for_each(dirSet.begin(), dirSet.end(),
 	[this, &rows](const std::string & dir) {
 		for (auto &row : this->m_db.getDetectedMalwares(dir))
-			rows.emplace_back(std::move(row));
+			if (!row->isIgnored)
+				rows.emplace_back(std::move(row));
 	});
 
 	if (rows.empty())

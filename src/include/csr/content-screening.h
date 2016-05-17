@@ -217,7 +217,7 @@ int csr_cs_scan_data(csr_cs_context_h handle,
  * @retval #CSR_ERROR_REMOVE_FAILED         File remove failed when malware exist and
  *                                          user select to remove by popup. @a pdetected
  *                                          will be allocated on this error unlike others.
- * @retval #CSR_ERROR_FILE_NOT_FOUND        File not found
+ * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
@@ -355,7 +355,7 @@ int csr_cs_set_callback_on_file_scanned(csr_cs_context_h handle,
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     file_paths or count is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
- * @retval #CSR_ERROR_FILE_NOT_FOUND        File not found
+ * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
@@ -393,7 +393,7 @@ int csr_cs_scan_files_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or presult is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
- * @retval #CSR_ERROR_FILE_NOT_FOUND        File not found
+ * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
@@ -432,7 +432,7 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     dir_paths or count is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
- * @retval #CSR_ERROR_FILE_NOT_FOUND        File not found
+ * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
@@ -455,13 +455,11 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle,
  * @remarks It's only for an asynchronous scan function.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
- * @param[in] callback  a callback function for the case that a file scan is completed.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_INVALID_PARAMETER     callback is invalid
  * @retval #CSR_ERROR_NO_TASK               No task to cancel
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
@@ -647,7 +645,8 @@ int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected,
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     detected or action is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     No permission to remove
- * @retval #CSR_ERROR_FILE_NOT_FOUND        File to take action on not found
+ * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File to take action on not found
+ * @retval #CSR_ERROR_FILE_CHANGED          File to take action on changed after detection
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -674,7 +673,7 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle,
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or action is invalid
- * @retval #CSR_ERROR_FILE_NOT_FOUND        No malware file
+ * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No malware file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -703,7 +702,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or action is invalid
- * @retval #CSR_ERROR_FILE_NOT_FOUND        No malware file
+ * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No malware file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -730,7 +729,7 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or action is invalid
- * @retval #CSR_ERROR_FILE_NOT_FOUND        No ignored file
+ * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No ignored file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -759,7 +758,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or action is invalid
- * @retval #CSR_ERROR_FILE_NOT_FOUND        No ingored file
+ * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No ingored file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason

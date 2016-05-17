@@ -35,19 +35,19 @@ struct Result {
 	csre_wp_risk_level_e risk_level;
 	std::string detailed_url;
 
-	Result(csre_wp_risk_level_e r, const char *durl) : risk_level(r),
-		detailed_url(durl) {}
+	Result(csre_wp_risk_level_e r, const char *durl) :
+		risk_level(r),
+		detailed_url(durl ? durl : std::string()) {}
 };
 
 std::unordered_map<std::string, Result> ExpectedResult = {
-	{"http://normal.test.com",      Result(CSRE_WP_RISK_UNVERIFIED, "")},
+	{"http://normal.test.com",      Result(CSRE_WP_RISK_UNVERIFIED, nullptr)},
 	{"http://highrisky.test.com",   Result(CSRE_WP_RISK_HIGH, "http://high.risky.com")},
 	{"http://mediumrisky.test.com", Result(CSRE_WP_RISK_MEDIUM, "http://medium.risky.com")},
-	{"http://lowrisky.test.com",    Result(CSRE_WP_RISK_LOW, "")}
+	{"http://lowrisky.test.com",    Result(CSRE_WP_RISK_LOW, "http://low.risky.com")}
 };
 
-inline void checkResult(const std::string &url, csre_wp_check_result_h &result,
-						const Result &expected)
+inline void checkResult(csre_wp_check_result_h &result, const Result &expected)
 {
 	EXCEPTION_GUARD_START
 
@@ -55,16 +55,11 @@ inline void checkResult(const std::string &url, csre_wp_check_result_h &result,
 
 	csre_wp_risk_level_e risk_level;
 	ASSERT_IF(csre_wp_result_get_risk_level(result, &risk_level), CSRE_ERROR_NONE);
-	BOOST_REQUIRE_MESSAGE(risk_level == expected.risk_level,
-						  "url[" << url << "] risk level isn't expected value. "
-						  "val: " << risk_level << " expected: " << expected.risk_level);
+	ASSERT_IF(risk_level, expected.risk_level);
 
 	const char *detailed_url = nullptr;
-	ASSERT_IF(csre_wp_result_get_detailed_url(result, &detailed_url),
-			  CSRE_ERROR_NONE);
-	BOOST_REQUIRE_MESSAGE(expected.detailed_url.compare(detailed_url) == 0,
-						  "url[" << url << "] detailed url isn't expected value. "
-						  "val: " << detailed_url << " expected: " << expected.detailed_url);
+	ASSERT_IF(csre_wp_result_get_detailed_url(result, &detailed_url), CSRE_ERROR_NONE);
+	ASSERT_IF(detailed_url, expected.detailed_url);
 
 	EXCEPTION_GUARD_END
 }
@@ -77,8 +72,7 @@ BOOST_AUTO_TEST_CASE(context_create_destroy)
 {
 	EXCEPTION_GUARD_START
 
-	auto c = Test::Context<csre_wp_context_h>();
-	(void) c;
+	Test::Context<csre_wp_context_h>();
 
 	EXCEPTION_GUARD_END
 }
@@ -94,7 +88,8 @@ BOOST_AUTO_TEST_CASE(check_url)
 		csre_wp_check_result_h result;
 		ASSERT_IF(csre_wp_check_url(context, pair.first.c_str(), &result),
 				  CSRE_ERROR_NONE);
-		checkResult(pair.first, result, pair.second);
+		BOOST_MESSAGE("check result from url: " << pair.first);
+		checkResult(result, pair.second);
 	}
 
 	EXCEPTION_GUARD_END

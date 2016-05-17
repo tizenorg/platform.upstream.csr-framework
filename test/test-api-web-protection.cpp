@@ -52,17 +52,15 @@ void ASSERT_RESULT(csr_wp_check_result_h result,
 	const char *a_detailed_url;
 	csr_wp_user_response_e a_response;
 
-	BOOST_REQUIRE_MESSAGE(result != nullptr, "Result handle is null");
+	CHECK_IS_NOT_NULL(result);
 
-	ASSERT_IF(csr_wp_result_get_risk_level(result, &a_risk), CSR_ERROR_NONE);
-	ASSERT_IF(csr_wp_result_get_detailed_url(result, &a_detailed_url), CSR_ERROR_NONE);
-	ASSERT_IF(csr_wp_result_get_user_response(result, &a_response), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_wp_result_get_risk_level(result, &a_risk));
+	ASSERT_SUCCESS(csr_wp_result_get_detailed_url(result, &a_detailed_url));
+	ASSERT_SUCCESS(csr_wp_result_get_user_response(result, &a_response));
 
-	BOOST_REQUIRE_MESSAGE(risk == a_risk,
-		"RISK LEVEL CMP FAIL. EXP=" << risk <<", ACT=" << a_risk);
-	ASSERT_STRING(detailed_url, a_detailed_url, "DETAIL URL CMP FAIL.");
-	BOOST_REQUIRE_MESSAGE(response == a_response,
-		"USER RESPONSE CMP FAIL. EXP=" << response <<", ACT=" << a_response);
+	ASSERT_IF(a_risk, risk);
+	ASSERT_IF(a_detailed_url, detailed_url);
+	ASSERT_IF(a_response, response);
 }
 
 BOOST_AUTO_TEST_SUITE(API_WEB_PROTECTION)
@@ -71,8 +69,7 @@ BOOST_AUTO_TEST_CASE(context_create_destroy)
 {
 	EXCEPTION_GUARD_START
 
-	auto c = Test::Context<csr_wp_context_h>();
-	(void) c;
+	Test::Context<csr_wp_context_h>();
 
 	EXCEPTION_GUARD_END
 }
@@ -84,9 +81,8 @@ BOOST_AUTO_TEST_CASE(set_ask_user)
 	auto c = Test::Context<csr_wp_context_h>();
 	auto context = c.get();
 
-	ASSERT_IF(csr_wp_set_ask_user(context, CSR_WP_ASK_USER), CSR_ERROR_NONE);
-
-	ASSERT_IF(csr_wp_set_ask_user(context, CSR_WP_NOT_ASK_USER), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_wp_set_ask_user(context, CSR_WP_ASK_USER));
+	ASSERT_SUCCESS(csr_wp_set_ask_user(context, CSR_WP_NOT_ASK_USER));
 
 	EXCEPTION_GUARD_END
 }
@@ -114,7 +110,7 @@ BOOST_AUTO_TEST_CASE(set_popup_message)
 	auto context = c.get();
 	const char *msg = "test popup message";
 
-	ASSERT_IF(csr_wp_set_popup_message(context, msg), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_wp_set_popup_message(context, msg));
 
 	EXCEPTION_GUARD_END
 }
@@ -128,7 +124,6 @@ BOOST_AUTO_TEST_CASE(set_popup_message_invalid_param)
 	const char *msg = "test popup message";
 
 	ASSERT_IF(csr_wp_set_popup_message(nullptr, msg), CSR_ERROR_INVALID_HANDLE);
-
 	ASSERT_IF(csr_wp_set_popup_message(context, nullptr), CSR_ERROR_INVALID_PARAMETER);
 
 	EXCEPTION_GUARD_END
@@ -142,7 +137,7 @@ BOOST_AUTO_TEST_CASE(check_url_high)
 	auto context = c.get();
 
 	csr_wp_check_result_h result;
-	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, &result), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_HIGH_URL, &result));
 
 	CHECK_IS_NOT_NULL(result);
 
@@ -159,7 +154,7 @@ BOOST_AUTO_TEST_CASE(check_url_medium)
 	auto context = c.get();
 
 	csr_wp_check_result_h result;
-	ASSERT_IF(csr_wp_check_url(context, RISK_MEDIUM_URL, &result), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_MEDIUM_URL, &result));
 
 	CHECK_IS_NOT_NULL(result);
 
@@ -176,7 +171,7 @@ BOOST_AUTO_TEST_CASE(check_url_low)
 	auto context = c.get();
 
 	csr_wp_check_result_h result;
-	ASSERT_IF(csr_wp_check_url(context, RISK_LOW_URL, &result), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_LOW_URL, &result));
 
 	CHECK_IS_NOT_NULL(result);
 
@@ -193,11 +188,12 @@ BOOST_AUTO_TEST_CASE(check_url_unverified)
 	auto context = c.get();
 
 	csr_wp_check_result_h result;
-	ASSERT_IF(csr_wp_check_url(context, RISK_UNVERIFIED_URL, &result), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_UNVERIFIED_URL, &result));
 
 	CHECK_IS_NOT_NULL(result);
 
-	ASSERT_RESULT(result, RISK_UNVERIFIED_RISK, RISK_UNVERIFIED_DETAILED_URL, CSR_WP_NO_ASK_USER);
+	ASSERT_RESULT(result, RISK_UNVERIFIED_RISK, RISK_UNVERIFIED_DETAILED_URL,
+				  CSR_WP_NO_ASK_USER);
 
 	EXCEPTION_GUARD_END
 }
@@ -212,7 +208,8 @@ BOOST_AUTO_TEST_CASE(check_url_invalid_param)
 	csr_wp_check_result_h result;
 	ASSERT_IF(csr_wp_check_url(nullptr, RISK_HIGH_URL, &result), CSR_ERROR_INVALID_HANDLE);
 	ASSERT_IF(csr_wp_check_url(context, nullptr, &result), CSR_ERROR_INVALID_PARAMETER);
-	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, nullptr), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, nullptr),
+			  CSR_ERROR_INVALID_PARAMETER);
 
 	EXCEPTION_GUARD_END
 }
@@ -226,12 +223,10 @@ BOOST_AUTO_TEST_CASE(get_risk_level)
 	csr_wp_risk_level_e risk_level;
 
 	csr_wp_check_result_h result;
-	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, &result), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_HIGH_URL, &result));
+	ASSERT_SUCCESS(csr_wp_result_get_risk_level(result, &risk_level));
 
-	ASSERT_IF(csr_wp_result_get_risk_level(result, &risk_level), CSR_ERROR_NONE);
-
-	BOOST_REQUIRE_MESSAGE( RISK_HIGH_RISK == risk_level,
-		"RISK LEVEL CMP FAIL. EXP=" << RISK_HIGH_RISK <<", ACT=" << risk_level);
+	ASSERT_IF(risk_level, RISK_HIGH_RISK);
 
 	EXCEPTION_GUARD_END
 }
@@ -245,10 +240,11 @@ BOOST_AUTO_TEST_CASE(get_risk_level_invalid_param)
 	csr_wp_risk_level_e risk_level;
 
 	csr_wp_check_result_h result;
-	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, &result), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_HIGH_URL, &result));
 
-	ASSERT_IF(csr_wp_result_get_risk_level(nullptr, &risk_level), CSR_ERROR_INVALID_HANDLE);
 	ASSERT_IF(csr_wp_result_get_risk_level(result, nullptr), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_wp_result_get_risk_level(nullptr, &risk_level),
+			  CSR_ERROR_INVALID_HANDLE);
 
 	EXCEPTION_GUARD_END
 }
@@ -262,10 +258,10 @@ BOOST_AUTO_TEST_CASE(get_detailed_url)
 	const char *detailed_url;
 
 	csr_wp_check_result_h result;
-	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, &result), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_HIGH_URL, &result));
 
-	ASSERT_IF(csr_wp_result_get_detailed_url(result, &detailed_url), CSR_ERROR_NONE);
-	ASSERT_STRING(RISK_HIGH_DETAILED_URL, detailed_url, "DETAILED URL not same");
+	ASSERT_SUCCESS(csr_wp_result_get_detailed_url(result, &detailed_url));
+	ASSERT_IF(detailed_url, RISK_HIGH_DETAILED_URL);
 
 	EXCEPTION_GUARD_END
 }
@@ -279,10 +275,12 @@ BOOST_AUTO_TEST_CASE(get_detailed_url_invalid_param)
 	const char *detailed_url;
 
 	csr_wp_check_result_h result;
-	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, &result), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_HIGH_URL, &result));
 
-	ASSERT_IF(csr_wp_result_get_detailed_url(nullptr, &detailed_url), CSR_ERROR_INVALID_HANDLE);
-	ASSERT_IF(csr_wp_result_get_detailed_url(result, nullptr), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_wp_result_get_detailed_url(nullptr, &detailed_url),
+			  CSR_ERROR_INVALID_HANDLE);
+	ASSERT_IF(csr_wp_result_get_detailed_url(result, nullptr),
+			  CSR_ERROR_INVALID_PARAMETER);
 
 	EXCEPTION_GUARD_END
 }

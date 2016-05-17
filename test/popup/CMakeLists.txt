@@ -23,8 +23,6 @@ PKG_CHECK_MODULES(${TARGET_CSR_POPUP_TEST}_DEP
 SET(${TARGET_CSR_POPUP_TEST}_SRCS
 	${PROJECT_SOURCE_DIR}/src/framework/ui/askuser.cpp
 	${PROJECT_SOURCE_DIR}/src/framework/ui/common.cpp
-	${PROJECT_SOURCE_DIR}/test/colour_log_formatter.cpp
-	${PROJECT_SOURCE_DIR}/test/test-common.cpp
 	test-main.cpp
 	test-popup.cpp
 )
@@ -40,6 +38,7 @@ INCLUDE_DIRECTORIES(
 ADD_EXECUTABLE(${TARGET_CSR_POPUP_TEST} ${${TARGET_CSR_POPUP_TEST}_SRCS})
 
 TARGET_LINK_LIBRARIES(${TARGET_CSR_POPUP_TEST}
+	${TARGET_CSR_TEST_COMMON}
 	${TARGET_CSR_COMMON}
 	-lboost_unit_test_framework
 	-ldl

@@ -20,15 +20,50 @@ FIND_PACKAGE(Threads REQUIRED)
 ADD_DEFINITIONS("-DBOOST_TEST_DYN_LINK")
 ADD_DEFINITIONS("-DTEST_TARGET=\"${TEST_TARGET}\"")
 
-PKG_CHECK_MODULES(${TARGET_CSR_TEST}_DEP
+################### make test common library ##################
+PKG_CHECK_MODULES(${TARGET_CSR_TEST_COMMON}_DEP
 	REQUIRED
 	glib-2.0
 	pkgmgr
 	pkgmgr-info
 )
 
-SET(${TARGET_CSR_TEST}_SRCS
+SET(${TARGET_CSR_TEST_COMMON}_SRCS
+	test-common.cpp
 	colour_log_formatter.cpp
+)
+
+INCLUDE_DIRECTORIES(
+	SYSTEM
+	${${TARGET_CSR_TEST_COMMON}_DEP_INCLUDE_DIRS}
+)
+
+INCLUDE_DIRECTORIES(
+	${PROJECT_SOURCE_DIR}/src/include
+	.
+)
+
+ADD_LIBRARY(${TARGET_CSR_TEST_COMMON} SHARED ${${TARGET_CSR_TEST_COMMON}_SRCS})
+
+SET_TARGET_PROPERTIES(${TARGET_CSR_TEST_COMMON}
+	PROPERTIES
+		COMPILE_FLAGS "-D_GNU_SOURCE -fvisibility=default"
+)
+
+TARGET_LINK_LIBRARIES(${TARGET_CSR_TEST_COMMON}
+	${${TARGET_CSR_TEST_COMMON}_DEP_LIBRARIES}
+	${TARGET_CSR_CLIENT}
+)
+
+INSTALL(TARGETS ${TARGET_CSR_TEST_COMMON} DESTINATION ${LIB_INSTALL_DIR})
+#################################################################
+
+###################### make api test program ####################
+PKG_CHECK_MODULES(${TARGET_CSR_TEST}_DEP
+	REQUIRED
+)
+
+SET(${TARGET_CSR_TEST}_SRCS
 	test-api-content-screening.cpp
 	test-api-content-screening-async.cpp
 	test-api-engine-manager.cpp
@@ -36,19 +71,23 @@ SET(${TARGET_CSR_TEST}_SRCS
 	test-api-engine-content-screening.cpp
 	test-api-engine-web-protection.cpp
 	test-main.cpp
-	test-common.cpp
 	test-helper.cpp
 )
 
 INCLUDE_DIRECTORIES(
-	${PROJECT_SOURCE_DIR}/src/include
-	./
+	SYSTEM
 	${${TARGET_CSR_TEST}_DEP_INCLUDE_DIRS}
+)
+
+INCLUDE_DIRECTORIES(
+	${PROJECT_SOURCE_DIR}/src/include
+	.
 )
 
 ADD_EXECUTABLE(${TARGET_CSR_TEST} ${${TARGET_CSR_TEST}_SRCS})
 
 TARGET_LINK_LIBRARIES(${TARGET_CSR_TEST}
+	${TARGET_CSR_TEST_COMMON}
 	${TARGET_CSR_CLIENT}
 	${TARGET_CSR_CS_ENGINE_SAMPLE}
 	${TARGET_CSR_WP_ENGINE_SAMPLE}
@@ -63,3 +102,4 @@ INSTALL(DIRECTORY resources/ DESTINATION ${TEST_DIR})
 ADD_SUBDIRECTORY(internals)
 ADD_SUBDIRECTORY(popup)
 ADD_SUBDIRECTORY(thread-pool)
+#################################################################

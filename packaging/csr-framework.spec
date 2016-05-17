@@ -253,6 +253,7 @@ fi
 %manifest %{service_name}-test.manifest
 %{ro_data_dir}/license/%{name}-test
 %{ro_data_dir}/license/%{name}-test.BSL-1.0
+%{_libdir}/lib%{service_name}-test-common.so
 %attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-test
 %attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-internal-test
 %attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-popup-test

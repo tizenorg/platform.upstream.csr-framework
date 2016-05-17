@@ -19,73 +19,55 @@
  * @version     1.0
  * @brief       CSR API test helper
  */
-
 #include <string>
-#include <iostream>
-#include <fstream>
-#include <boost/test/unit_test.hpp>
 
 #include <time.h>
 #include <utime.h>
 #include <unistd.h>
 
-#include <package-manager.h>
-#include <pkgmgr-info.h>
+#include <boost/test/unit_test.hpp>
 
 #include "test-common.h"
 
-void ASSERT_STRING(const char *expected, const char *actual, const char *msg)
+void ASSERT_DETECTED(csr_cs_detected_h detected, const char *e_malware_name,
+					 int e_severity, const char *e_detailed_url)
 {
-	if (expected == actual)  // true including nullptr
-		return;
+	csr_cs_severity_level_e a_severity;
+	const char *a_malware_name;
+	const char *a_detailed_url;
 
-	// null string and empty string are same
-	if ((expected == nullptr) && (actual != nullptr) && (strlen(actual) == 0))
-		return;
-	if ((actual == nullptr) && (expected != nullptr) && (strlen(expected) == 0))
-		return;
+	ASSERT_IF(csr_cs_detected_get_severity(detected, &a_severity), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_detected_get_malware_name(detected, &a_malware_name), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_detected_get_detailed_url(detected, &a_detailed_url), CSR_ERROR_NONE);
 
-	BOOST_REQUIRE_MESSAGE((expected != nullptr) && (actual != nullptr) && (strcmp(expected, actual) == 0),
-						  std::string((msg == nullptr) ? "NULL" : msg)
-						  << ", EXPECTED=" << std::string((expected == nullptr) ? "NULL" : expected)
-						  << ", ACTUAL=" << std::string((actual == nullptr) ? "NULL" : actual));
+	ASSERT_IF(a_severity, e_severity);
+	ASSERT_IF(a_malware_name, e_malware_name);
+	ASSERT_IF(a_detailed_url, e_detailed_url);
 }
 
-void ASSERT_DETECTED(csr_cs_detected_h detected, const char *name, int severity, const char *detailed_url)
+void ASSERT_DETECTED_EXT(csr_cs_detected_h detected, time_t e_timestamp,
+						 const char *e_file_name, bool e_is_app, const char *e_pkg_id)
 {
-	csr_cs_severity_level_e d_severity;
-	const char *d_malware_name;
-	const char *d_detailed_url;
+	time_t a_timestamp;
+	const char *a_file_name;
+	bool a_is_app;
+	const char *a_pkg_id;
 
-	ASSERT_IF(csr_cs_detected_get_severity(detected, &d_severity), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_detected_get_malware_name(detected, &d_malware_name), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_detected_get_detailed_url(detected, &d_detailed_url), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_detected_get_timestamp(detected, &a_timestamp), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_detected_get_file_name(detected, &a_file_name), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_detected_is_app(detected, &a_is_app), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_detected_get_pkg_id(detected, &a_pkg_id), CSR_ERROR_NONE);
 
-	BOOST_REQUIRE_MESSAGE(severity == d_severity,
-						  "EXPECTED=" << severity << ", ACTUAL=" << d_severity);
-	ASSERT_STRING(name, d_malware_name, "MALWARE NAME CMP FAIL");
-	ASSERT_STRING(detailed_url, d_detailed_url, "DETAILED ULR CMP FAIL");
-}
+	ASSERT_IF(a_file_name, e_file_name);
+	ASSERT_IF(a_is_app, e_is_app);
+	ASSERT_IF(a_pkg_id, e_pkg_id);
 
-void ASSERT_DETECTED_EXT(csr_cs_detected_h detected, time_t time, const char *file_name, bool is_app, const char *pkg_id)
-{
-	time_t d_timestamp;
-	const char *d_file_name;
-	bool d_is_app;
-	const char *d_pkg_id;
-
-	ASSERT_IF(csr_cs_detected_get_timestamp(detected, &d_timestamp), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_detected_get_file_name(detected, &d_file_name), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_detected_is_app(detected, &d_is_app), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_detected_get_pkg_id(detected, &d_pkg_id), CSR_ERROR_NONE);
-
-	BOOST_REQUIRE_MESSAGE(time <= d_timestamp,
-						  "TIMESTAMP CMP FAIL. EXPECTED should be smaller than ACTUAL, EXPECTED="
-						  << time << ", ACTUAL=" << d_timestamp);
-	ASSERT_STRING(file_name, d_file_name, "NAME CMP FAIL");
-	BOOST_REQUIRE_MESSAGE(is_app == d_is_app,
-						  "IS_APP CMP FAIL. EXPECTED=" << is_app << ", ACTUAL=" << d_is_app);
-	ASSERT_STRING(pkg_id, d_pkg_id, "PKGID CMP FAIL");
+	BOOST_CHECK_MESSAGE(e_timestamp <= a_timestamp,
+						"Actual detected item's time stamp is later than expected time "
+						"stamp (which is start time before scan_file maybe..). this case "
+						"should be the returned detected item comes from history which is "
+						"scanned in the past. actual time: " << a_timestamp <<
+						" expected(started) time: " << e_timestamp);
 }
 
 void ASSERT_DETECTED_HANDLE(csr_cs_detected_h expected, csr_cs_detected_h actual)
@@ -114,147 +96,11 @@ void ASSERT_DETECTED_HANDLE(csr_cs_detected_h expected, csr_cs_detected_h actual
 	ASSERT_IF(csr_cs_detected_is_app(actual, &a_is_app), CSR_ERROR_NONE);
 	ASSERT_IF(csr_cs_detected_get_pkg_id(actual, &a_pkg_id), CSR_ERROR_NONE);
 
-	BOOST_REQUIRE_MESSAGE(e_severity == a_severity,
-						  "EXPECTED=" << e_severity << ", ACTUAL=" << a_severity);
-	ASSERT_STRING(e_malware_name, a_malware_name, "MALWARE NAME CMP FAIL");
-	ASSERT_STRING(e_detailed_url, a_detailed_url, "DETAILED ULR CMP FAIL");
-	BOOST_REQUIRE_MESSAGE(e_timestamp == a_timestamp,
-						  "EXPECTED=" << e_timestamp << ", ACTUAL=" << a_timestamp);
-	ASSERT_STRING(e_file_name, a_file_name, "FILE NAME CMP FAIL");
-	BOOST_REQUIRE_MESSAGE(e_is_app == a_is_app,
-						  "EXPECTED=" << e_is_app << ", ACTUAL=" << a_is_app);
-	ASSERT_STRING(e_pkg_id, a_pkg_id, "PKG ID CMP FAIL");
-}
-
-
-void copy_file(const char *src_file, const char *dest_file)
-{
-	std::ifstream srce(src_file, std::ios::binary) ;
-	std::ofstream dest(dest_file, std::ios::binary) ;
-	dest << srce.rdbuf() ;
-}
-
-void touch_file(const char *file)
-{
-	struct utimbuf new_times;
-	time_t now = time(nullptr);
-
-	new_times.actime = now;
-	new_times.modtime = now;
-
-	utime(file, &new_times);
-}
-
-bool is_file_exist(const char *file)
-{
-	return (access(file, F_OK) != -1);
-}
-
-bool installed;
-GMainLoop *installMainLoop;
-int __app_install_cb(int req_id, const char *pkg_type, const char *pkgid,
-					 const char *key, const char *val, const void *pmsg, void *data)
-{
-	(void) req_id;
-	(void) pkg_type;
-	(void) pkgid;
-	(void) pmsg;
-	(void) data;
-
-	installed = false;
-
-	if (key && strncmp(key, "end", strlen("end")) == 0) {
-		if (strncmp(val, "ok", strlen("ok")) == 0) {
-			installed = true;
-			g_main_loop_quit(installMainLoop);
-			g_main_loop_unref(installMainLoop);
-		}
-	}
-
-	return 0;
-}
-
-gboolean __app_install_timeout(gpointer)
-{
-	installed = false;
-	return TRUE;
-}
-
-bool install_app(const char *app_path, const char *pkg_type)
-{
-	auto pkgmgr = pkgmgr_client_new(PC_REQUEST);
-	CHECK_IS_NOT_NULL(pkgmgr);
-
-	installed = false;
-	int ret = pkgmgr_client_install(pkgmgr, pkg_type, nullptr, app_path, nullptr, PM_QUIET,
-									__app_install_cb, nullptr);
-	if (ret <= PKGMGR_R_OK)
-		return false;
-
-	g_timeout_add_seconds(30, __app_install_timeout, nullptr);
-	installMainLoop = g_main_loop_new(nullptr, false);
-	g_main_loop_run(installMainLoop);
-	pkgmgr_client_free(pkgmgr);
-
-	return installed;
-}
-
-
-bool uninstalled;
-GMainLoop *uninstallMainLoop;
-int __app_uninstall_cb(int req_id, const char *pkg_type, const char *pkgid, const char *key,
-					   const char *val, const void *pmsg, void *data)
-{
-	(void) req_id;
-	(void) pkg_type;
-	(void) pkgid;
-	(void) pmsg;
-	(void) data;
-
-	uninstalled = false;
-
-	if (key && strncmp(key, "end", strlen("end")) == 0) {
-		if (strncmp(val, "ok", strlen("ok")) == 0) {
-			uninstalled = true;
-			g_main_loop_quit(uninstallMainLoop);
-			g_main_loop_unref(uninstallMainLoop);
-		}
-	}
-
-	return 0;
-}
-
-gboolean __app_uninstall_timeout(gpointer)
-{
-	uninstalled = false;
-	return TRUE;
-}
-
-bool uninstall_app(const char *pkg_id)
-{
-	auto pkgmgr = pkgmgr_client_new(PC_REQUEST);
-	CHECK_IS_NOT_NULL(pkgmgr);
-
-	uninstalled = false;
-	int ret = pkgmgr_client_uninstall(pkgmgr, nullptr, pkg_id, PM_QUIET, __app_uninstall_cb, nullptr);
-	if (ret <= PKGMGR_R_OK)
-		return false;
-
-	g_timeout_add_seconds(30, __app_uninstall_timeout, nullptr);
-	uninstallMainLoop = g_main_loop_new(nullptr, false);
-	g_main_loop_run(uninstallMainLoop);
-	pkgmgr_client_free(pkgmgr);
-
-	return uninstalled;
-}
-
-bool is_app_exist(const char *pkg_id)
-{
-	pkgmgrinfo_pkginfo_h handle;
-
-	if (pkgmgrinfo_pkginfo_get_pkginfo(pkg_id, &handle) != PMINFO_R_OK)
-		return false;
-
-	pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
-	return true;
+	ASSERT_IF(a_severity, e_severity);
+	ASSERT_IF(a_malware_name, e_malware_name);
+	ASSERT_IF(a_detailed_url, e_detailed_url);
+	ASSERT_IF(a_file_name, e_file_name);
+	ASSERT_IF(a_is_app, e_is_app);
+	ASSERT_IF(a_pkg_id, e_pkg_id);
+	ASSERT_IF(a_timestamp, e_timestamp);
 }

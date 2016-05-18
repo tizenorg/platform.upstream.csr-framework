@@ -10,6 +10,7 @@
 			<smack request="@SERVICE_NAME@" type="rwxat" />
 			<smack request="sdbd" type="rx" />
 			<smack request="pkgmgr::db" type="rwx" />
+			<smack request="pkgmgr::svc" type="r" />
 
 			<smack request="csr::api-cs" type="w" />
 			<smack request="csr::api-wp" type="w" />

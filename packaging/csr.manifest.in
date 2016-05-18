@@ -16,6 +16,7 @@
 			<smack request="pulseaudio" type="w" />
 			<smack request="sdbd" type="rx" />
 			<smack request="pkgmgr::db" type="rwx" />
+			<smack request="pkgmgr::svc" type="r" />
 
 			<smack request="system::media" type="rwxat" />
 			<smack request="system::homedir" type="rwxat" />

@@ -114,14 +114,15 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 	return this->handleUserResponse(detected);
 }
 
-CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::string &pkgId)
+CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::string &pkgId,
+									std::string &riskiestPath)
 {
 	auto starttime = time(nullptr);
 
 	CsEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
-	// traverse files in app and take which is more danger than riskiest.
+	// traverse files in app and take which is more danger than riskiest
 	auto visitor = FsVisitor::create(
 					   pkgPath,
 					   this->m_db.getLastScanTime(pkgPath, this->m_dataVersion));
@@ -132,28 +133,30 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 		csre_cs_detected_h result;
 		toException(this->m_loader.scanFile(c, file->getPath(), &result));
 
-		if (!result)
+		if (!result) {
+			this->m_db.deleteDetectedByFilepathOnPath(file->getPath());
 			continue;
+		}
 
 		INFO("New malware detected on file: " << file->getPath());
 
-		auto candidate = this->convert(result, file->getPath());
+		auto candidate = this->convert(result, pkgPath);
 		candidate.isApp = true;
 		candidate.pkgId = pkgId;
-		this->m_db.insertDetectedMalware(candidate, this->m_dataVersion);
 
-		if (!riskiest)
+		this->m_db.insertName(pkgPath);
+		this->m_db.insertDetected(candidate, file->getPath(), this->m_dataVersion);
+
+		if (!riskiest) {
 			riskiest.reset(new CsDetected(std::move(candidate)));
-		else if (*riskiest < candidate)
+			riskiestPath = file->getPath();
+		} else if (*riskiest < candidate) {
 			*riskiest = std::move(candidate);
+			riskiestPath = file->getPath();
+		}
 	}
 
 	this->m_db.insertLastScanTime(pkgPath, starttime, this->m_dataVersion);
-
-	if (riskiest) {
-		INFO("Riskiest malware selected in pkg: " << pkgPath);
-		riskiest->targetName = pkgPath;
-	}
 
 	return riskiest;
 }
@@ -174,39 +177,111 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 	if (context.isScanOnCloud)
 		return this->scanAppOnCloud(context, pkgPath, pkgId);
 
-	auto riskiest = this->scanAppDelta(pkgPath, pkgId);
-	auto history = this->m_db.getDetectedMalware(pkgPath);
+	// old history
+	auto history = this->m_db.getWorstByPkgId(pkgId);
+	// riskiest detected among newly scanned files
+	std::string riskiestPath;
+	auto riskiest = this->scanAppDelta(pkgPath, pkgId, riskiestPath);
+	// history after delta scan. if worst file is changed, it's rescanned in scanAppDelta
+	// and deleted from db if it's cured. if history != nullptr && after == nullptr,
+	// it means worst detected item is cured anyway.
+	auto after = this->m_db.getWorstByPkgId(pkgId);
+	if (history && after && riskiest) {
+		if (*history < *riskiest) {
+			INFO("worst case is remained but the more worst newly detected. on pkg[" <<
+				 pkgPath << "]");
+			if (history->isIgnored)
+				this->m_db.updateIgnoreFlag(pkgPath, false);
 
-	if (riskiest && history) {
-		if (*riskiest > *history) {
-			INFO("new malware found and more risky! history should be updated.");
-			this->m_db.insertDetectedMalware(*riskiest, this->m_dataVersion);
+			this->m_db.insertWorst(pkgId, pkgPath, riskiestPath);
+
+			riskiest->response = this->getUserResponse(context, *riskiest);
+			return this->handleUserResponse(*riskiest);
 		} else {
-			INFO("new malware is found but not riskier than history. history reusable.");
+			INFO("worst case is remained and can be re-used on pkg[" << pkgPath << "]");
 			if (history->isIgnored)
 				return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
 			history->response = this->getUserResponse(context, *history);
 			return this->handleUserResponse(*history);
 		}
-	} else if (riskiest && !history) {
-		INFO("new malware found and no history exist! history should be inserted.");
-		this->m_db.insertDetectedMalware(*riskiest, this->m_dataVersion);
-	} else if (!riskiest && history) {
-		INFO("no malware found and history exist! history reusable.");
+	} else if (history && after && !riskiest) {
+		INFO("worst case is remained and NO new detected. history can be re-used. "
+			 "on pkg[" << pkgPath << "]");
 		if (history->isIgnored)
 			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
 		history->response = this->getUserResponse(context, *history);
 		return this->handleUserResponse(*history);
+	} else if (history && !after && riskiest) {
+		INFO("worst case is deleted but new detected. we have to find out "
+			 "worse case in db and compare it with riskiest first. on pkg[" << pkgPath <<
+			 "]");
+		Db::RowShPtr worse;
+		for (auto &row : this->m_db.getDetectedByFilepathOnDir(pkgPath))
+			if (!worse || *worse < *row)
+				worse = std::move(row);
+
+		if (*riskiest < *worse) {
+			INFO("worse case in db is worse than riskiest. on pkg[" << pkgPath << "]");
+			riskiestPath = worse->fileInAppPath;
+			*riskiest = std::move(*worse);
+		}
+
+		if (*history < *riskiest) {
+			INFO("worst case is deleted but the more worst newly detected. on pkg[" <<
+				 pkgPath << "]");
+			if (history->isIgnored)
+				this->m_db.updateIgnoreFlag(pkgPath, false);
+
+			this->m_db.insertWorst(pkgId, pkgPath, riskiestPath);
+
+			riskiest->response = this->getUserResponse(context, *riskiest);
+			return this->handleUserResponse(*riskiest);
+		} else {
+			INFO("worst case is deleted but same or less level newly detected. on pkg[" <<
+				 pkgPath << "]");
+			this->m_db.insertWorst(pkgId, pkgPath, riskiestPath);
+
+			if (history->isIgnored)
+				return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
+			riskiest->response = this->getUserResponse(context, *riskiest);
+			return this->handleUserResponse(*riskiest);
+		}
+	} else if (history && !after && !riskiest) {
+		auto rows = this->m_db.getDetectedByFilepathOnDir(pkgPath);
+		if (rows.empty()) {
+			INFO("worst case is deleted cascadingly and NO new detected and "
+				 "NO worse case. the pkg[" << pkgPath << "] is clean.");
+			this->m_db.deleteDetectedByNameOnPath(pkgPath);
+			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+		} else {
+			INFO("worst case is deleted cascadingly and NO new detected and "
+				 "worse case exist on pkg[" << pkgPath << "]. insert it to worst.");
+			Db::RowShPtr worse;
+			for (auto &row : rows)
+				if (!worse || *worse < *row)
+					worse = std::move(row);
+
+			this->m_db.insertWorst(pkgId, pkgPath, worse->fileInAppPath);
+
+			if (worse->isIgnored)
+				return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
+			worse->response = this->getUserResponse(context, *worse);
+			return this->handleUserResponse(*worse);
+		}
+	} else if (!history && riskiest) {
+		INFO("no history and new detected");
+		this->m_db.insertWorst(pkgId, pkgPath, riskiestPath);
+
+		riskiest->response = this->getUserResponse(context, *riskiest);
+		return this->handleUserResponse(*riskiest);
 	} else {
-		INFO("no malware found and no history exist! it's clean!");
+		DEBUG("no history and no new detected");
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 	}
-
-	// new and more risky malware found and db updated case only left.
-	riskiest->response = this->getUserResponse(context, *riskiest);
-	return this->handleUserResponse(*riskiest);
 }
 
 RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
@@ -224,7 +299,8 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 
 	auto d = this->convert(result, filepath);
 
-	this->m_db.insertDetectedMalware(d, this->m_dataVersion);
+	this->m_db.insertName(d.targetName);
+	this->m_db.insertDetected(d, d.targetName, this->m_dataVersion);
 
 	d.response = this->getUserResponse(context, d);
 	return this->handleUserResponse(d, std::forward<FilePtr>(fileptr));
@@ -241,7 +317,7 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 
 	DEBUG("Scan request on file: " << filepath);
 
-	auto history = this->m_db.getDetectedMalware(filepath);
+	auto history = this->m_db.getDetectedByNameOnPath(filepath);
 
 	FilePtr fileptr;
 
@@ -256,7 +332,7 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 	// OR there's no history at all.
 	if (fileptr) {
 		if (history)
-			this->m_db.deleteDetectedMalware(filepath);
+			this->m_db.deleteDetectedByNameOnPath(filepath);
 
 		if (fileptr->isDir())
 			ThrowExc(FileSystemError, "file type shouldn't be directory: " << filepath);
@@ -330,18 +406,16 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 
 	if (lastScanTime != -1) {
 		// for case: scan history exist and not modified.
-		for (auto &row : this->m_db.getDetectedMalwares(dir)) {
+		for (auto &row : this->m_db.getDetectedByNameOnDir(File::getPkgPath(dir))) {
 			try {
 				auto fileptr = File::create(row->targetName);
 
-				if (fileptr->isInApp())
-					fileset.insert(fileptr->getAppPkgPath());
-				else
-					fileset.insert(fileptr->getPath());
+				fileset.insert(fileptr->isInApp() ?
+						fileptr->getAppPkgPath() : fileptr->getPath());
 			} catch (const FileDoNotExist &) {
-				this->m_db.deleteDetectedMalware(row->targetName);
+				this->m_db.deleteDetectedByNameOnPath(row->targetName);
 			} catch (const FileSystemError &) {
-				this->m_db.deleteDetectedMalware(row->targetName);
+				this->m_db.deleteDetectedByNameOnPath(row->targetName);
 			}
 		}
 	}
@@ -371,14 +445,14 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 		file = File::create(filepath);
 	} catch (const Exception &e) {
 		ERROR("file system related exception occured on file: " << filepath <<
-			  " let's refresh detected malware history...");
-
-		this->m_db.deleteDetectedMalware(filepath);
+			  " This case might be file not exist or type invalid,"
+			  " file has changed anyway... Don't refresh detected history to know that"
+			  " it's changed since the time.");
 
 		throw;
 	}
 
-	auto history = this->m_db.getDetectedMalware(filepath);
+	auto history = this->m_db.getDetectedByNameOnPath(File::getPkgPath(filepath));
 
 	if (!history) {
 		ERROR("Target to be judged doesn't exist in db. name: " << filepath);
@@ -387,26 +461,25 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 
 	// TODO: make isModifiedSince member function to File class
 	//       not to regenerate like this.
-	if (File::create(filepath, static_cast<time_t>(history->ts))) {
-		this->m_db.deleteDetectedMalware(filepath);
-
-		ThrowExc(FileSystemError, "Target modified since db delta inserted. "
-				 "name: " << filepath);
-	}
+	if (File::create(filepath, static_cast<time_t>(history->ts)))
+		ThrowExc(FileSystemError, "File[" << filepath << "] modified since db delta "
+				 "inserted. Don't refresh detected history to know that it's changed "
+				 "since the time.");
 
 	switch (action) {
 	case CSR_CS_ACTION_REMOVE:
 		file->remove();
 
-		this->m_db.deleteDetectedMalware(filepath);
+		this->m_db.deleteDetectedByNameOnPath(
+				(file->isInApp() ? file->getAppPkgPath() : file->getPath()));
 		break;
 
 	case CSR_CS_ACTION_IGNORE:
-		this->m_db.setDetectedMalwareIgnored(filepath, true);
+		this->m_db.updateIgnoreFlag(File::getPkgPath(filepath), true);
 		break;
 
 	case CSR_CS_ACTION_UNIGNORE:
-		this->m_db.setDetectedMalwareIgnored(filepath, false);
+		this->m_db.updateIgnoreFlag(File::getPkgPath(filepath), false);
 		break;
 
 	default:
@@ -427,7 +500,7 @@ RawBuffer CsLogic::getDetected(const std::string &filepath)
 {
 	EXCEPTION_GUARD_START
 
-	auto row = this->m_db.getDetectedMalware(filepath);
+	auto row = this->m_db.getDetectedByNameOnPath(File::getPkgPath(filepath));
 
 	if (row && !row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -448,7 +521,7 @@ RawBuffer CsLogic::getDetectedList(const StrSet &dirSet)
 	Db::RowShPtrs rows;
 	std::for_each(dirSet.begin(), dirSet.end(),
 	[this, &rows](const std::string & dir) {
-		for (auto &row : this->m_db.getDetectedMalwares(dir))
+		for (auto &row : this->m_db.getDetectedByNameOnDir(File::getPkgPath(dir)))
 			if (!row->isIgnored)
 				rows.emplace_back(std::move(row));
 	});
@@ -470,7 +543,7 @@ RawBuffer CsLogic::getIgnored(const std::string &filepath)
 {
 	EXCEPTION_GUARD_START
 
-	auto row = this->m_db.getDetectedMalware(filepath);
+	auto row = this->m_db.getDetectedByNameOnPath(File::getPkgPath(filepath));
 
 	if (row && row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -491,7 +564,7 @@ RawBuffer CsLogic::getIgnoredList(const StrSet &dirSet)
 	Db::RowShPtrs rows;
 	std::for_each(dirSet.begin(), dirSet.end(),
 	[this, &rows](const std::string & dir) {
-		for (auto &row : this->m_db.getDetectedMalwares(dir))
+		for (auto &row : this->m_db.getDetectedByNameOnDir(File::getPkgPath(dir)))
 			if (row->isIgnored)
 				rows.emplace_back(std::move(row));
 	});
@@ -512,7 +585,7 @@ RawBuffer CsLogic::handleUserResponse(const CsDetected &d, FilePtr &&fileptr)
 {
 	switch (d.response) {
 	case CSR_CS_IGNORE:
-		this->m_db.setDetectedMalwareIgnored(d.targetName, true);
+		this->m_db.updateIgnoreFlag(File::getPkgPath(d.targetName), true);
 		break;
 
 	case CSR_CS_REMOVE:
@@ -531,7 +604,7 @@ RawBuffer CsLogic::handleUserResponse(const CsDetected &d, FilePtr &&fileptr)
 			WARN("File type is changed, considered as different file: " << d.targetName);
 		}
 
-		this->m_db.deleteDetectedMalware(d.targetName);
+		this->m_db.deleteDetectedByNameOnPath(File::getPkgPath(d.targetName));
 		break;
 
 	case CSR_CS_SKIP:

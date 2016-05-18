@@ -40,15 +40,16 @@ struct Result {
 	csre_wp_risk_level_e risk_level;
 	std::string detailed_url;
 
-	Result(csre_wp_risk_level_e r, const char *durl) : risk_level(r),
-		detailed_url(durl) {}
+	Result(csre_wp_risk_level_e r, const char *durl) :
+		risk_level(r),
+		detailed_url(durl ? durl : std::string()) {}
 };
 
 std::unordered_map<std::string, Result> ExpectedResult = {
-	{"http://normal.test.com",      Result(CSRE_WP_RISK_UNVERIFIED, "")},
+	{"http://normal.test.com",      Result(CSRE_WP_RISK_UNVERIFIED, nullptr)},
 	{"http://highrisky.test.com",   Result(CSRE_WP_RISK_HIGH, "http://high.risky.com")},
 	{"http://mediumrisky.test.com", Result(CSRE_WP_RISK_MEDIUM, "http://medium.risky.com")},
-	{"http://lowrisky.test.com",    Result(CSRE_WP_RISK_LOW, "")}
+	{"http://lowrisky.test.com",    Result(CSRE_WP_RISK_LOW, "http://low.risky.com")}
 };
 
 inline void checkResult(Csr::WpLoader &loader,

@@ -62,12 +62,12 @@ void ASSERT_DETECTED_EXT(csr_cs_detected_h detected, time_t e_timestamp,
 	ASSERT_IF(a_is_app, e_is_app);
 	ASSERT_IF(a_pkg_id, e_pkg_id);
 
-	BOOST_CHECK_MESSAGE(e_timestamp <= a_timestamp,
-						"Actual detected item's time stamp is later than expected time "
-						"stamp (which is start time before scan_file maybe..). this case "
-						"should be the returned detected item comes from history which is "
-						"scanned in the past. actual time: " << a_timestamp <<
-						" expected(started) time: " << e_timestamp);
+	BOOST_WARN_MESSAGE(e_timestamp <= a_timestamp,
+					   "Actual detected item's time stamp is later than expected time "
+					   "stamp (which is start time before scan_file maybe..). this case "
+					   "should be the returned detected item comes from history which is "
+					   "scanned in the past. actual time: " << a_timestamp <<
+					   " expected(started) time: " << e_timestamp);
 }
 
 void ASSERT_DETECTED_HANDLE(csr_cs_detected_h expected, csr_cs_detected_h actual)

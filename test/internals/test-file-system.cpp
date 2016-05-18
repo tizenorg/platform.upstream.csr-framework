@@ -38,8 +38,8 @@
 #include <boost/test/unit_test.hpp>
 
 #include "test-common.h"
+#include "test-resource.h"
 
-#define TEST_APP_PKG      TEST_DIR "/maliciousapp.tpk"
 #define TEST_DIR_VISIT    TEST_DIR "/test_dir"
 #define TEST_WRITE_FILE   TEST_DIR_VISIT "/testwritefile.txt"
 
@@ -153,16 +153,14 @@ BOOST_AUTO_TEST_CASE(remove_app)
 {
 	EXCEPTION_GUARD_START
 
-	std::string fpath =
-		"/opt/usr/apps/org.example.maliciousapp/shared/res/maliciousapp.png";
-
+	Test::uninstall_app(TEST_TPK_PKG_ID);
 	// install the test app
-	BOOST_REQUIRE(Test::install_app(TEST_APP_PKG, "TPK"));
+	ASSERT_INSTALL_APP(TEST_TPK_PATH, TEST_TPK_TYPE);
 
 	// remove the app
-	auto app = File::create(fpath);
+	auto app = File::create(TEST_TPK_MAL_FILE);
 	CHECK_IS_NOT_NULL(app);
-	BOOST_REQUIRE_NO_THROW(app->remove());
+	app->remove();
 
 	// check if the app still exists
 	pkgmgrinfo_pkginfo_h handle;

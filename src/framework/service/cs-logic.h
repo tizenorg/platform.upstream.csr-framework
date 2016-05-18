@@ -53,7 +53,8 @@ private:
 	RawBuffer scanApp(const CsContext &context, const std::string &path);
 	RawBuffer scanAppOnCloud(const CsContext &context, const std::string &pkgPath,
 							 const std::string &pkgId);
-	CsDetectedPtr scanAppDelta(const std::string &pkgPath, const std::string &pkgId);
+	CsDetectedPtr scanAppDelta(const std::string &pkgPath, const std::string &pkgId,
+							   std::string &riskiestPath);
 
 	RawBuffer scanFileWithoutDelta(const CsContext &context, const std::string &filepath,
 								   FilePtr &&fileptr);

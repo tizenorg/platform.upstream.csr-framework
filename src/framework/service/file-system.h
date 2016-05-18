@@ -53,6 +53,7 @@ public:
 	static FilePtr create(const std::string &fpath, time_t modifiedSince = -1);
 
 	static bool isInApp(const std::string &path);
+	static std::string getPkgPath(const std::string &path);
 
 private:
 	explicit File(const std::string &fpath, bool isDir);

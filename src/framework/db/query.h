@@ -39,7 +39,7 @@ const std::string SEL_SCAN_REQUEST =
 
 const std::string INS_SCAN_REQUEST =
 	"insert or replace into SCAN_REQUEST (dir, last_scan, data_version)"
-	"values (?, ?, ?)";
+	" values (?, ?, ?)";
 
 const std::string DEL_SCAN_REQUEST_BY_DIR =
 	"delete from SCAN_REQUEST where dir = ?";
@@ -47,34 +47,52 @@ const std::string DEL_SCAN_REQUEST_BY_DIR =
 const std::string DEL_SCAN_REQUEST =
 	"delete from SCAN_REQUEST";
 
+const std::string SEL_DETECTED_BY_NAME_ON_PATH =
+	"select name, file_path, data_version, malware_name, detailed_url, severity,"
+	"       detected_time, pkg_id, is_ignored"
+	" from join_detecteds_by_name"
+	" where name = ?";
 
-const std::string SEL_DETECTED_BY_DIR =
-	"SELECT path, data_version, "
-	"severity, malware_name, "
-	"detailed_url, detected_time, ignored "
-	"FROM detected_malware_file where path like ? || '%'";
+const std::string SEL_DETECTED_BY_NAME_ON_DIR =
+	"select name, file_path, data_version, malware_name, detailed_url, severity,"
+	"       detected_time, pkg_id, is_ignored"
+	" from join_detecteds_by_name"
+	" where name like ? || '%'";
 
-const std::string SEL_DETECTED_BY_PATH =
-	"SELECT path, data_version, "
-	"severity, malware_name, "
-	"detailed_url, detected_time, ignored "
-	"FROM detected_malware_file where path = ?";
+const std::string SEL_DETECTED_BY_FILEPATH_ON_DIR =
+	"select name, file_path, data_version, malware_name, detailed_url, severity,"
+	"       detected_time, pkg_id, is_ignored"
+	" from join_detecteds_by_file_path"
+	" where file_path like ? || '%'";
+
+const std::string SEL_WORST_BY_PKGID =
+	"select file_path, data_version, malware_name, detailed_url, severity, detected_time"
+	" from join_p_d"
+	" where pkg_id = ?";
+
+const std::string INS_NAME =
+	"insert or replace into NAMES(name) values(?)";
 
 const std::string INS_DETECTED =
-	"insert or replace into DETECTED_MALWARE_FILE "
-	"(path, data_version, severity, malware_name, "
-	"detailed_url, detected_time, ignored) "
-	"values (?, ?, ?, ?, ?, ?, ?)";
+	"insert or replace into DETECTED_MALWARE(file_path, name, data_version, malware_name,"
+	"                                        detailed_url, severity, detected_time)"
+	" values(?, ?, ?, ?, ?, ?, ?)";
 
-const std::string UPD_DETECTED_INGNORED =
-	"update DETECTED_MALWARE_FILE set ignored = ? where path = ?";
+const std::string INS_WORST =
+	"insert or replace into PACKAGE_INFO(pkg_id, name, worst) values(?, ?, ?)";
 
-const std::string DEL_DETECTED_BY_PATH =
-	"delete from DETECTED_MALWARE_FILE where path = ?";
+const std::string UPD_IGNORE =
+	"update NAMES set is_ignored = ? where name = ?";
 
-const std::string DEL_DETECTED_DEPRECATED =
-	"delete from DETECTED_MALWARE_FILE where path like ? || '%' "
-	"and data_version != ?";
+const std::string DEL_DETECTED_BY_NAME_ON_PATH =
+	"delete from NAMES where name = ?";
+
+const std::string DEL_DETECTED_BY_FILEPATH_ON_PATH =
+	"delete from DETECTED_MALWARE where file_path = ?";
+
+const std::string DEL_DETECTED_DEPRECATED_ON_DIR =
+	"delete from DETECTED_MALWARE where file_path like ? || '%' "
+	" and data_version != ?";
 
 } // namespace Query
 } // namespace Db

@@ -76,6 +76,23 @@ bool File::isInApp(const std::string &path)
 	return false;
 }
 
+std::string File::getPkgPath(const std::string &path)
+{
+	std::smatch matched;
+
+	for (const auto &rege : g_regexprs) {
+		if (!std::regex_search(path, matched, rege))
+			continue;
+
+		if (matched.size() == 3)
+			return matched[1];
+		else if (matched.size() == 4)
+			return matched[1];
+	}
+
+	return path;
+}
+
 File::File(const std::string &fpath, bool isDir) : m_path(fpath), m_inApp(false), m_isDir(isDir)
 {
 	std::smatch matched;

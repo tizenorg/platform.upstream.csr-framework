@@ -46,7 +46,7 @@ public:
 	// get column values. index of column auto-incremented
 	int getInt() const;
 	sqlite3_int64 getInt64() const;
-	const char *getText() const;
+	std::string getText() const;
 
 	bool isNullColumn() const; // it's checking func. not auto incremented.
 

@@ -47,7 +47,6 @@ Statement::Statement(const Connection &db, const std::string &query) :
 	default:
 		ThrowExc(DbFailed, db.getErrorMessage());
 	}
-
 }
 
 Statement::~Statement()
@@ -177,14 +176,17 @@ sqlite3_int64 Statement::getInt64() const
 	return sqlite3_column_int64(m_stmt, ++m_columnIndex);
 }
 
-const char *Statement::getText() const
+std::string Statement::getText() const
 {
 	if (!isColumnIndexValid())
 		ThrowExc(DbFailed, "index overflowed when getting text from row."
 				 " query: " << m_query << " index: " << m_columnIndex);
 
-	return reinterpret_cast<const char *>(sqlite3_column_text(m_stmt,
-										  ++m_columnIndex));
+	const char *text = reinterpret_cast<const char *>(sqlite3_column_text(m_stmt,
+													  ++m_columnIndex));
+	std::string str = (text ? text : std::string());
+
+	return str;
 }
 
 } // namespace Db

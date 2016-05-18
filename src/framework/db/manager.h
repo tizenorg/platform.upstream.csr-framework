@@ -52,13 +52,22 @@ public:
 	void cleanLastScanTime();
 
 	// DETECTED_MALWARE_FILE & USER_RESPONSE
-	RowShPtrs getDetectedMalwares(const std::string &dirpath);
-	RowShPtr getDetectedMalware(const std::string &filepath);
-	void insertDetectedMalware(const CsDetected &, const std::string &dataVersion);
-	void setDetectedMalwareIgnored(const std::string &path, bool flag);
-	void deleteDetectedMalware(const std::string &path);
-	void deleteDeprecatedDetectedMalwares(const std::string &dir,
-										  const std::string &dataVersion);
+	RowShPtr getDetectedByNameOnPath(const std::string &path);
+	RowShPtrs getDetectedByNameOnDir(const std::string &dir);
+	RowShPtrs getDetectedByFilepathOnDir(const std::string &dir);
+	RowShPtr getWorstByPkgId(const std::string &pkgId);
+
+	void insertName(const std::string &name);
+	void insertDetected(const CsDetected &, const std::string &filename,
+						const std::string &dataVersion);
+	void insertWorst(const std::string &pkgId, const std::string &name,
+					 const std::string &filepath);
+
+	void updateIgnoreFlag(const std::string &name, bool flag);
+	void deleteDetectedByNameOnPath(const std::string &path);
+	void deleteDetectedByFilepathOnPath(const std::string &path);
+	void deleteDetectedDeprecatedOnDir(const std::string &dir,
+									   const std::string &dataVersion);
 
 private:
 	void resetDatabase();

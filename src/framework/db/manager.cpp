@@ -47,6 +47,24 @@ const std::string SCRIPT_MIGRATE        = "migrate_";
 const std::string DB_VERSION_STR    = "DB_VERSION";
 const std::string SCHEMA_INFO_TABLE = "SCHEMA_INFO";
 
+RowShPtr extractRow(Statement &stmt)
+{
+	RowShPtr row = std::make_shared<Row>();
+
+	row->targetName = stmt.getText(); // name.
+	row->fileInAppPath = stmt.getText(); // file_path
+	row->dataVersion = stmt.getText(); // data_version
+	row->malwareName = stmt.getText(); // malware_name
+	row->detailedUrl = stmt.getText(); // detailed_url
+	row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt()); // severity
+	row->ts = static_cast<time_t>(stmt.getInt64()); // detected_time
+	row->pkgId = stmt.getText(); // pkg_id
+	row->isApp = !row->pkgId.empty();
+	row->isIgnored = static_cast<bool>(stmt.getInt());
+
+	return row;
+}
+
 } // namespace anonymous
 
 Manager::Manager(const std::string &dbfile, const std::string &scriptsDir) :
@@ -237,91 +255,132 @@ void Manager::cleanLastScanTime()
 //===========================================================================
 // DETECTED_MALWARE_FILE table
 //===========================================================================
-RowShPtrs Manager::getDetectedMalwares(const std::string &dir)
+RowShPtr Manager::getDetectedByNameOnPath(const std::string &path)
 {
-	Statement stmt(m_conn, Query::SEL_DETECTED_BY_DIR);
+	Statement stmt(m_conn, Query::SEL_DETECTED_BY_NAME_ON_PATH);
+	stmt.bind(path);
+
+	if (!stmt.step())
+		return nullptr;
+
+	return extractRow(stmt);
+}
+
+RowShPtrs Manager::getDetectedByNameOnDir(const std::string &dir)
+{
+	Statement stmt(m_conn, Query::SEL_DETECTED_BY_NAME_ON_DIR);
 	stmt.bind(dir);
 
 	RowShPtrs rows;
 
-	while (stmt.step()) {
-		RowShPtr row = std::make_shared<Row>();
-
-		row->targetName = stmt.getText();
-		row->dataVersion = stmt.getText();
-		row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt());
-		row->malwareName = stmt.getText();
-		row->detailedUrl = stmt.getText();
-		row->ts = static_cast<time_t>(stmt.getInt64());
-		row->isIgnored = static_cast<bool>(stmt.getInt());
-
-		rows.emplace_back(std::move(row));
-	}
+	while (stmt.step())
+		rows.emplace_back(extractRow(stmt));
 
 	return rows;
 }
 
-RowShPtr Manager::getDetectedMalware(const std::string &path)
+RowShPtrs Manager::getDetectedByFilepathOnDir(const std::string &dir)
 {
-	Statement stmt(m_conn, Query::SEL_DETECTED_BY_PATH);
-	stmt.bind(path);
+	Statement stmt(m_conn, Query::SEL_DETECTED_BY_FILEPATH_ON_DIR);
+	stmt.bind(dir);
+
+	RowShPtrs rows;
+
+	while (stmt.step())
+		rows.emplace_back(extractRow(stmt));
+
+	return rows;
+}
+
+RowShPtr Manager::getWorstByPkgId(const std::string &pkgId)
+{
+	Statement stmt(m_conn, Query::SEL_WORST_BY_PKGID);
+	stmt.bind(pkgId);
 
 	if (!stmt.step())
 		return nullptr;
 
 	RowShPtr row = std::make_shared<Row>();
 
-	row->targetName = stmt.getText();
-	row->dataVersion = stmt.getText();
-	row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt());
-	row->malwareName = stmt.getText();
-	row->detailedUrl = stmt.getText();
-	row->ts = static_cast<time_t>(stmt.getInt64());
-	row->isIgnored = static_cast<bool>(stmt.getInt());
+	row->targetName = stmt.getText(); // name
+	row->fileInAppPath = stmt.getText(); // file_path
+	row->dataVersion = stmt.getText(); // data_version
+	row->malwareName = stmt.getText(); // malware_name
+	row->detailedUrl = stmt.getText(); // detailed_url
+	row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt()); // severity
+	row->ts = static_cast<time_t>(stmt.getInt64()); // detected_time
+	row->pkgId = pkgId;
+	row->isApp = true;
 
 	return row;
 }
 
-void Manager::insertDetectedMalware(const CsDetected &d, const std::string &dataVersion)
+void Manager::insertName(const std::string &name)
+{
+	Statement stmt(m_conn, Query::INS_NAME);
+
+	stmt.bind(name);
+	stmt.exec();
+}
+
+void Manager::insertDetected(const CsDetected &d, const std::string &filepath,
+							 const std::string &dataVersion)
 {
 	Statement stmt(m_conn, Query::INS_DETECTED);
 
+	stmt.bind(filepath);
 	stmt.bind(d.targetName);
 	stmt.bind(dataVersion);
-	stmt.bind(static_cast<int>(d.severity));
 	stmt.bind(d.malwareName);
 	stmt.bind(d.detailedUrl);
+	stmt.bind(static_cast<int>(d.severity));
 	stmt.bind(static_cast<sqlite3_int64>(d.ts));
-	stmt.bind(static_cast<int>(false));
 	stmt.exec();
 }
 
-void Manager::setDetectedMalwareIgnored(const std::string &path,
-										bool flag)
+void Manager::insertWorst(const std::string &pkgId, const std::string &name,
+						  const std::string &filepath)
 {
-	Statement stmt(m_conn, Query::UPD_DETECTED_INGNORED);
+	Statement stmt(m_conn, Query::INS_WORST);
 
-	stmt.bind(flag);
+	stmt.bind(pkgId);
+	stmt.bind(name);
+	stmt.bind(filepath);
+	stmt.exec();
+}
+
+void Manager::updateIgnoreFlag(const std::string &name, bool flag)
+{
+	Statement stmt(m_conn, Query::UPD_IGNORE);
+
+	stmt.bind((flag ? 1 : 0));
+	stmt.bind(name);
+	stmt.exec();
+}
+
+void Manager::deleteDetectedByNameOnPath(const std::string &path)
+{
+	Statement stmt(m_conn, Query::DEL_DETECTED_BY_NAME_ON_PATH);
+
 	stmt.bind(path);
 	stmt.exec();
 }
 
-void Manager::deleteDetectedMalware(const std::string &path)
+void Manager::deleteDetectedByFilepathOnPath(const std::string &path)
 {
-	Statement stmt(m_conn, Query::DEL_DETECTED_BY_PATH);
+	Statement stmt(m_conn, Query::DEL_DETECTED_BY_FILEPATH_ON_PATH);
 
 	stmt.bind(path);
 	stmt.exec();
 }
 
-void Manager::deleteDeprecatedDetectedMalwares(const std::string &dir,
-		const std::string &dataVersion)
+void Manager::deleteDetectedDeprecatedOnDir(const std::string &dir,
+											const std::string &dataVersion)
 {
-	Statement stmt(m_conn, Query::DEL_DETECTED_DEPRECATED);
+	Statement stmt(m_conn, Query::DEL_DETECTED_DEPRECATED_ON_DIR);
 
 	stmt.bind(dir);
 	stmt.bind(dataVersion);
-
 	stmt.exec();
 }
 

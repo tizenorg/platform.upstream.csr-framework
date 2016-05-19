@@ -25,9 +25,11 @@
 #include <fstream>
 #include <unistd.h>
 #include <utime.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <glib.h>
 
 #include <package-manager.h>
-#include <pkgmgr-info.h>
 
 namespace Test {
 
@@ -206,6 +208,11 @@ void copy_file(const char *src_file, const char *dest_file)
 	dest << srce.rdbuf();
 }
 
+void make_dir(const char *dir)
+{
+	mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+}
+
 void touch_file(const char *file)
 {
 	struct utimbuf new_times;
@@ -215,6 +222,11 @@ void touch_file(const char *file)
 	new_times.modtime = now;
 
 	utime(file, &new_times);
+}
+
+void remove_file(const char *file)
+{
+	unlink(file);
 }
 
 bool is_file_exist(const char *file)
@@ -241,17 +253,6 @@ bool uninstall_app(const char *pkg_id)
 	return uninstalled;
 }
 
-bool is_app_exist(const char *pkg_id)
-{
-	pkgmgrinfo_pkginfo_h handle;
-
-	if (pkgmgrinfo_pkginfo_get_pkginfo(pkg_id, &handle) != PMINFO_R_OK)
-		return false;
-
-	pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
-	return true;
-}
-
 bool install_app(const char *app_path, const char *pkg_type)
 {
 	auto pkgmgr = pkgmgr_client_new(PC_REQUEST);
@@ -269,6 +270,15 @@ bool install_app(const char *app_path, const char *pkg_type)
 	pkgmgr_client_free(pkgmgr);
 
 	return installed;
+}
+
+void initialize_db()
+{
+	remove_file(RW_DBSPACE ".csr.db");
+	remove_file(RW_DBSPACE ".csr.db-journal");
+
+	int ret = system("systemctl restart csr.service");
+	BOOST_MESSAGE("CSR DB Initalization & Daemon Restart. Result=" << ret);
 }
 
 } // namespace Test

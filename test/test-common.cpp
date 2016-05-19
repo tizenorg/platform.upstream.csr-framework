@@ -25,6 +25,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <utime.h>
+#include <sys/stat.h>
 
 #include <package-manager.h>
 #include <pkgmgr-info.h>
@@ -200,9 +201,15 @@ void exceptionGuard(const std::function<void()> &f)
 
 void copy_file(const char *src_file, const char *dest_file)
 {
+	BOOST_MESSAGE("copy_file: cp " << src_file << " " << dest_file);
 	std::ifstream srce(src_file, std::ios::binary);
 	std::ofstream dest(dest_file, std::ios::binary);
 	dest << srce.rdbuf();
+}
+
+void make_dir(const char *dir)
+{
+	mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 }
 
 void touch_file(const char *file)
@@ -214,6 +221,11 @@ void touch_file(const char *file)
 	new_times.modtime = now;
 
 	utime(file, &new_times);
+}
+
+void remove_file(const char *file)
+{
+	unlink(file);
 }
 
 bool is_file_exist(const char *file)

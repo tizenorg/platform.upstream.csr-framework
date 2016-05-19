@@ -102,6 +102,7 @@ void exceptionGuard(const std::function<void()> &);
 
 void copy_file(const char *src_file, const char *dest_file);
 void touch_file(const char *file);
+void remove_file(const char *file);
 bool is_file_exist(const char *file);
 bool install_app(const char *app_path, const char *app_type);
 bool uninstall_app(const char *pkg_id);

@@ -216,6 +216,11 @@ void touch_file(const char *file)
 	utime(file, &new_times);
 }
 
+void remove_file(const char *file)
+{
+	unlink(file);
+}
+
 bool is_file_exist(const char *file)
 {
 	return (access(file, F_OK) != -1);

@@ -24,61 +24,10 @@
 #include <memory>
 #include <cstring>
 
-#include <glib.h>
 #include <package-manager.h>
 
 #include "common/audit/logger.h"
 #include "service/exception.h"
-
-#define MAX_WAIT_SEC 10
-
-namespace {
-
-struct LoopData {
-	bool isDeleted;
-	GMainLoop *loop;
-	const std::string &pkgid;
-
-	explicit LoopData(GMainLoop *_loop, const std::string &_pkgid) :
-		isDeleted(false), loop(_loop), pkgid(_pkgid) {}
-};
-
-void setRemoveResult(bool result, gpointer data)
-{
-	auto pdata = reinterpret_cast<LoopData *>(data);
-
-	pdata->isDeleted = result;
-	g_main_loop_quit(pdata->loop);
-}
-
-static int __app_uninstall_cb(int req_id, const char *pkg_type,
-							  const char *pkgid, const char *key,
-							  const char *val, const void *pmsg, void *data)
-{
-	(void) req_id;
-	(void) pkg_type;
-	(void) pkgid;
-	(void) pmsg;
-
-	DEBUG("__app_uninstall_cb called : " << pkgid << ":" << key << ":" << val);
-
-	if (key && strncmp(key, "end", strlen("end")) == 0)
-		setRemoveResult(strncmp(val, "ok", strlen("ok")) == 0, data);
-
-	return 0;
-}
-
-static gboolean __app_uninstall_timeout(gpointer data)
-{
-	ERROR("Package[" << reinterpret_cast<LoopData *>(data)->pkgid
-		  << "] remove timed out!");
-
-	setRemoveResult(false, data);
-
-	return FALSE;
-}
-
-} // namespace anonymous
 
 namespace Csr {
 
@@ -90,28 +39,16 @@ void AppDeleter::remove(const std::string &pkgid)
 	std::unique_ptr<pkgmgr_client, int(*)(pkgmgr_client *)> client(
 		pkgmgr_client_new(PC_REQUEST), pkgmgr_client_free);
 
-	std::unique_ptr<GMainLoop, void(*)(GMainLoop *)> loop(
-		g_main_loop_new(nullptr, false), g_main_loop_unref);
-
-	if (!client || !loop)
+	if (!client)
 		throw std::bad_alloc();
 
-	LoopData data(loop.get(), pkgid);
-
 	auto ret = pkgmgr_client_uninstall(client.get(), nullptr, pkgid.c_str(), PM_QUIET,
-									   ::__app_uninstall_cb, &data);
-	if (ret <= PKGMGR_R_OK)
+									   nullptr, nullptr);
+	if (ret < PKGMGR_R_OK)
 		ThrowExc(RemoveFailed, "Failed to pkgmgr_client_uninstall for pkg: " << pkgid <<
 				 " ret: " << ret);
 
-	g_timeout_add_seconds(MAX_WAIT_SEC, ::__app_uninstall_timeout, &data);
-
-	g_main_loop_run(loop.get());
-
-	if (data.isDeleted)
-		DEBUG("App Removed. pkgid: " << pkgid);
-	else
-		ThrowExc(RemoveFailed, "Failed to remove app: " << pkgid);
+	DEBUG("App Removed. pkgid: " << pkgid);
 }
 
 } // namespace Csr

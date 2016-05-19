@@ -887,8 +887,6 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_remove_wgt)
 
 	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE));
 
-	ASSERT_IF(Test::is_app_exist(TEST_WGT_PKG_ID), false);
-
 	EXCEPTION_GUARD_END
 }
 
@@ -909,8 +907,6 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_remove_tpk)
 	CHECK_IS_NOT_NULL(detected);
 
 	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE));
-
-	ASSERT_IF(Test::is_app_exist(TEST_TPK_PKG_ID), false);
 
 	EXCEPTION_GUARD_END
 }

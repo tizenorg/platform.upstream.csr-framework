@@ -105,7 +105,6 @@ void touch_file(const char *file);
 bool is_file_exist(const char *file);
 bool install_app(const char *app_path, const char *app_type);
 bool uninstall_app(const char *pkg_id);
-bool is_app_exist(const char *pkg_id);
 
 template <typename T>
 class Context {

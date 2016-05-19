@@ -22,7 +22,6 @@ PKG_CHECK_MODULES(${TARGET_CSR_SERVER}_DEP
 	REQUIRED
 	libsystemd-daemon
 	sqlite3
-	glib-2.0
 	pkgmgr
 	libsmack
 )

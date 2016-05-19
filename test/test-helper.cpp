@@ -104,3 +104,54 @@ void ASSERT_DETECTED_HANDLE(csr_cs_detected_h expected, csr_cs_detected_h actual
 	ASSERT_IF(a_pkg_id, e_pkg_id);
 	ASSERT_IF(a_timestamp, e_timestamp);
 }
+
+void ASSERT_DETECTED_IN_LIST(std::vector<csr_cs_detected_h> detectedList,
+	const char *file_name, const char *name, int severity, const char *detailed_url)
+{
+	const char *a_file_name;
+	const char *a_name;
+	csr_cs_severity_level_e a_severity;
+	const char *a_detailed_url;
+
+	std::vector<csr_cs_detected_h>::iterator iter;
+	for(iter = detectedList.begin(); iter != detectedList.end(); iter++) {
+		ASSERT_IF(csr_cs_detected_get_file_name(*iter, &a_file_name), CSR_ERROR_NONE);
+		if(strcmp(file_name, a_file_name) != 0)
+			continue;
+		ASSERT_IF(csr_cs_detected_get_malware_name(*iter, &a_name), CSR_ERROR_NONE);
+		ASSERT_IF(csr_cs_detected_get_severity(*iter, &a_severity), CSR_ERROR_NONE);
+		ASSERT_IF(csr_cs_detected_get_detailed_url(*iter, &a_detailed_url), CSR_ERROR_NONE);
+
+		ASSERT_IF(name, a_name);
+		ASSERT_IF(severity, a_severity);
+		ASSERT_IF(detailed_url, a_detailed_url);
+
+		return;
+	}
+
+	ASSERT_IF( 1, -1);
+}
+
+void ASSERT_DETECTED_IN_LIST_EXT(std::vector<csr_cs_detected_h> detectedList,
+	const char *file_name, bool is_app, const char *pkg_id)
+{
+	const char *a_file_name;
+	bool a_is_app;
+	const char *a_pkg_id;
+
+	std::vector<csr_cs_detected_h>::iterator iter;
+	for(iter = detectedList.begin(); iter != detectedList.end(); iter++) {
+		ASSERT_IF(csr_cs_detected_get_file_name(*iter, &a_file_name), CSR_ERROR_NONE);
+		if(strcmp(file_name, a_file_name) != 0)
+			continue;
+		ASSERT_IF(csr_cs_detected_is_app(*iter, &a_is_app), CSR_ERROR_NONE);
+		ASSERT_IF(csr_cs_detected_get_pkg_id(*iter, &a_pkg_id), CSR_ERROR_NONE);
+
+		ASSERT_IF(is_app, a_is_app);
+		ASSERT_IF(pkg_id, a_pkg_id);
+
+		return;
+	}
+
+	ASSERT_IF( 1, -1);
+}

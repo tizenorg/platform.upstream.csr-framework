@@ -18,6 +18,7 @@
 
 			<smack request="system::media" type="rwxat" />
 			<smack request="system::homedir" type="rwxat" />
+			<smack request="_" type="rwx" />
 		</request>
 		<permit>
 			<smack permit="_" type="rx" />

@@ -452,34 +452,36 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 		throw;
 	}
 
-	auto history = this->m_db.getDetectedByNameOnPath(File::getPkgPath(filepath));
+	const auto &targetName = (file->isInApp() ? file->getAppPkgPath() : filepath);
+
+	auto history = this->m_db.getDetectedByNameOnPath(targetName);
 
 	if (!history) {
-		ERROR("Target to be judged doesn't exist in db. name: " << filepath);
+		ERROR("Target to be judged doesn't exist in db. name: " << targetName);
 		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
 	}
 
 	// TODO: make isModifiedSince member function to File class
 	//       not to regenerate like this.
-	if (File::create(filepath, static_cast<time_t>(history->ts)))
-		ThrowExc(FileSystemError, "File[" << filepath << "] modified since db delta "
-				 "inserted. Don't refresh detected history to know that it's changed "
-				 "since the time.");
+	// file create based on fileInAppPath(for app target, it is worst detected)
+	if (File::create(history->fileInAppPath, static_cast<time_t>(history->ts)))
+		ThrowExc(FileSystemError, "File[" << history->fileInAppPath << "] modified since "
+				 "db delta inserted. Don't refresh detected history to know that it's "
+				 "changed since the time.");
 
 	switch (action) {
 	case CSR_CS_ACTION_REMOVE:
 		file->remove();
 
-		this->m_db.deleteDetectedByNameOnPath(
-				(file->isInApp() ? file->getAppPkgPath() : file->getPath()));
+		this->m_db.deleteDetectedByNameOnPath(targetName);
 		break;
 
 	case CSR_CS_ACTION_IGNORE:
-		this->m_db.updateIgnoreFlag(File::getPkgPath(filepath), true);
+		this->m_db.updateIgnoreFlag(targetName, true);
 		break;
 
 	case CSR_CS_ACTION_UNIGNORE:
-		this->m_db.updateIgnoreFlag(File::getPkgPath(filepath), false);
+		this->m_db.updateIgnoreFlag(targetName, false);
 		break;
 
 	default:

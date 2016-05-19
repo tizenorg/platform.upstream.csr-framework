@@ -21,8 +21,17 @@
  */
 #include <csr/content-screening.h>
 
-void ASSERT_DETECTED(csr_cs_detected_h detected, const char *name, int severity, const char *detailed_url);
+void ASSERT_DETECTED(csr_cs_detected_h detected, const char *name,
+					 csr_cs_severity_level_e severity, const char *detailed_url);
 
-void ASSERT_DETECTED_EXT(csr_cs_detected_h detected, time_t time, const char *file_name, bool is_app, const char *pkg_id);
+void ASSERT_DETECTED_EXT(csr_cs_detected_h detected, time_t time, const char *file_name,
+						 bool is_app, const char *pkg_id);
 
 void ASSERT_DETECTED_HANDLE(csr_cs_detected_h expected, csr_cs_detected_h actual);
+
+void ASSERT_DETECTED_IN_LIST(const std::vector<csr_cs_detected_h> &detectedList,
+							 const char *file_name, const char *name,
+							 csr_cs_severity_level_e severity, const char *detailed_url);
+
+void ASSERT_DETECTED_IN_LIST_EXT(const std::vector<csr_cs_detected_h> &detectedList,
+								 const char *file_name, bool is_app, const char *pkg_id);

@@ -21,6 +21,9 @@
  */
 #pragma once
 
+#include <sstream>
+#include <iostream>
+#include <ios>
 #include <functional>
 #include <typeinfo>
 #include <string>
@@ -41,11 +44,18 @@
 #define __FILENAME__ (::strrchr(__FILE__, '/') ? ::strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
 
+#define TOSTRING(ITEMS)                                                         \
+	(dynamic_cast<std::ostringstream &>(std::ostringstream().seekp(             \
+										0, std::ios_base::cur) << ITEMS)).str()
+
+#define ASSERT_IF_MSG(value, expected, msg) \
+	Test::_assert(value, expected, __FILENAME__, __func__, __LINE__, TOSTRING(msg))
+
 #define ASSERT_IF(value, expected) \
-	Test::_assert(value, expected, __FILENAME__, __func__, __LINE__)
+	Test::_assert(value, expected, __FILENAME__, __func__, __LINE__, "")
 
 #define ASSERT_SUCCESS(value) \
-	Test::_assert(value, CSR_ERROR_NONE, __FILENAME__, __func__, __LINE__)
+	Test::_assert(value, CSR_ERROR_NONE, __FILENAME__, __func__, __LINE__, "")
 
 #define ASSERT_INSTALL_APP(path, type)                       \
 	BOOST_REQUIRE_MESSAGE(Test::install_app(path, type),     \
@@ -65,11 +75,12 @@ namespace Test {
 
 template <typename T, typename U>
 void _assert(const T &value, const U &expected, const std::string &filename,
-			 const std::string &funcname, unsigned int line)
+			 const std::string &funcname, unsigned int line, const std::string &msg)
 {
 	BOOST_REQUIRE_MESSAGE(value == expected,
 						  "[" << filename << " > " << funcname << " : " << line << "]" <<
-						  " returned[" << value << "] expected[" << expected << "]");
+						  " returned[" << value << "] expected[" << expected <<
+						  "] " << msg);
 }
 
 template <>
@@ -77,34 +88,40 @@ void _assert<csr_error_e, csr_error_e>(const csr_error_e &value,
 									   const csr_error_e &expected,
 									   const std::string &filename,
 									   const std::string &funcname,
-									   unsigned int line);
+									   unsigned int line,
+									   const std::string &msg);
 
 template <>
 void _assert<csr_error_e, int>(const csr_error_e &value,
 							   const int &expected,
 							   const std::string &filename,
 							   const std::string &funcname,
-							   unsigned int line);
+							   unsigned int line,
+							   const std::string &msg);
 
 template <>
 void _assert<int, csr_error_e>(const int &value,
 							   const csr_error_e &expected,
 							   const std::string &filename,
 							   const std::string &funcname,
-							   unsigned int line);
+							   unsigned int line,
+							   const std::string &msg);
 
 void _assert(const char *value, const char *expected, const std::string &filename,
-			 const std::string &funcname, unsigned int line);
+			 const std::string &funcname, unsigned int line, const std::string &msg);
 void _assert(const char *value, const std::string &expected, const std::string &filename,
-			 const std::string &funcname, unsigned int line);
+			 const std::string &funcname, unsigned int line, const std::string &msg);
 
 void exceptionGuard(const std::function<void()> &);
 
+void make_dir(const char *dir);
 void copy_file(const char *src_file, const char *dest_file);
 void touch_file(const char *file);
+void remove_file(const char *file);
 bool is_file_exist(const char *file);
 bool install_app(const char *app_path, const char *app_type);
 bool uninstall_app(const char *pkg_id);
+void initialize_db();
 
 template <typename T>
 class Context {

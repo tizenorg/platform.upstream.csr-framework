@@ -27,23 +27,7 @@
 
 #include "test-common.h"
 #include "test-helper.h"
-
-#define RISK_HIGH_RISK              CSR_WP_RISK_HIGH
-#define RISK_HIGH_URL               "http://highrisky.test.com/abc/def"
-#define RISK_HIGH_DETAILED_URL      "http://high.risky.com"
-
-#define RISK_MEDIUM_RISK            CSR_WP_RISK_MEDIUM
-#define RISK_MEDIUM_URL             "https://mediumrisky.test.com:80/abc/def"
-#define RISK_MEDIUM_DETAILED_URL    "http://medium.risky.com"
-
-#define RISK_LOW_RISK               CSR_WP_RISK_LOW
-#define RISK_LOW_URL                "lowrisky.test.com:8080/abc/def"
-#define RISK_LOW_DETAILED_URL       "http://low.risky.com"
-
-#define RISK_UNVERIFIED_RISK         CSR_WP_RISK_UNVERIFIED
-#define RISK_UNVERIFIED_URL          "http://unverified.test.com:8080/abc/def"
-#define RISK_UNVERIFIED_DETAILED_URL (nullptr)
-
+#include "test-resource.h"
 
 void ASSERT_RESULT(csr_wp_check_result_h result,
 	csr_wp_risk_level_e risk, const char * detailed_url, csr_wp_user_response_e response)

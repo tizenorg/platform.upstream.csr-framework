@@ -23,74 +23,74 @@
 
 #include <iostream>
 #include <fstream>
+#include <functional>
 #include <unistd.h>
 #include <utime.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <glib.h>
 
 #include <package-manager.h>
-#include <pkgmgr-info.h>
 
 namespace Test {
 
 namespace {
 
-bool installed;
-GMainLoop *installMainLoop;
-int __app_install_cb(int req_id, const char *pkg_type, const char *pkgid,
-					 const char *key, const char *val, const void *pmsg, void *data)
+struct PkgEventData {
+	bool isSuccess;
+	GMainLoop *loop;
+
+	PkgEventData() : isSuccess(false), loop(nullptr) {}
+};
+
+int __quit_loop_on_end_cb(int req_id, const char *pkg_type, const char *pkgid,
+						  const char *key, const char *val, const void *pmsg, void *data)
 {
 	(void) req_id;
 	(void) pkg_type;
 	(void) pkgid;
 	(void) pmsg;
-	(void) data;
 
-	installed = false;
+	auto eventData = reinterpret_cast<PkgEventData *>(data);
 
 	if (key && strncmp(key, "end", strlen("end")) == 0) {
-		if (strncmp(val, "ok", strlen("ok")) == 0) {
-			installed = true;
-			g_main_loop_quit(installMainLoop);
-			g_main_loop_unref(installMainLoop);
-		}
+		eventData->isSuccess = (strncmp(val, "ok", strlen("ok")) == 0);
+
+		g_main_loop_quit(eventData->loop);
 	}
 
 	return 0;
 }
 
-gboolean __app_install_timeout(gpointer)
+gboolean __quit_loop_on_timeout_cb(gpointer data)
 {
-	installed = false;
-	return TRUE;
+	auto eventData = reinterpret_cast<PkgEventData *>(data);
+
+	eventData->isSuccess = false;
+	g_main_loop_quit(eventData->loop);
+
+	return FALSE;
 }
 
-bool uninstalled;
-GMainLoop *uninstallMainLoop;
-int __app_uninstall_cb(int req_id, const char *pkg_type, const char *pkgid,
-					   const char *key, const char *val, const void *pmsg, void *data)
+bool pkgmgr_request(const std::function<int(pkgmgr_client *, PkgEventData *)> &request)
 {
-	(void) req_id;
-	(void) pkg_type;
-	(void) pkgid;
-	(void) pmsg;
-	(void) data;
+	auto pkgmgr = pkgmgr_client_new(PC_REQUEST);
+	CHECK_IS_NOT_NULL(pkgmgr);
 
-	uninstalled = false;
+	PkgEventData data;
+	auto ret = request(pkgmgr, &data);
+	if (ret <= PKGMGR_R_OK)
+		return false;
 
-	if (key && strncmp(key, "end", strlen("end")) == 0) {
-		if (strncmp(val, "ok", strlen("ok")) == 0) {
-			uninstalled = true;
-			g_main_loop_quit(uninstallMainLoop);
-			g_main_loop_unref(uninstallMainLoop);
-		}
-	}
+	auto id = g_timeout_add_seconds(10, __quit_loop_on_timeout_cb, &data);
+	data.loop = g_main_loop_new(nullptr, false);
+	g_main_loop_run(data.loop);
+	BOOST_REQUIRE_MESSAGE(g_source_remove(id),
+			"Failed to remove timeout event source from main loop.");
+	g_main_loop_unref(data.loop);
+	pkgmgr_client_free(pkgmgr);
 
-	return 0;
-}
-
-gboolean __app_uninstall_timeout(gpointer)
-{
-	uninstalled = false;
-	return TRUE;
+	return data.isSuccess;
 }
 
 #define ERRORDESCRIBE(name) case name: return #name
@@ -129,12 +129,13 @@ void _assert<csr_error_e, csr_error_e>(const csr_error_e &value,
 									   const csr_error_e &expected,
 									   const std::string &filename,
 									   const std::string &funcname,
-									   unsigned int line)
+									   unsigned int line,
+									   const std::string &msg)
 {
 	BOOST_REQUIRE_MESSAGE(value == expected,
 						  "[" << filename << " > " << funcname << " : " << line << "]" <<
 						  " returned[" << capi_ec_to_string(value) <<
-						  "] expected[" << capi_ec_to_string(expected) << "]");
+						  "] expected[" << capi_ec_to_string(expected) << "] " << msg);
 }
 
 template <>
@@ -142,12 +143,14 @@ void _assert<csr_error_e, int>(const csr_error_e &value,
 							   const int &expected,
 							   const std::string &filename,
 							   const std::string &funcname,
-							   unsigned int line)
+							   unsigned int line,
+							   const std::string &msg)
 {
 	BOOST_REQUIRE_MESSAGE(value == expected,
 						  "[" << filename << " > " << funcname << " : " << line << "]" <<
 						  " returned[" << capi_ec_to_string(value) << "] expected[" <<
-						  capi_ec_to_string(static_cast<csr_error_e>(expected)) << "]");
+						  capi_ec_to_string(static_cast<csr_error_e>(expected)) << "]" <<
+						  " " << msg);
 }
 
 template <>
@@ -155,37 +158,38 @@ void _assert<int, csr_error_e>(const int &value,
 							   const csr_error_e &expected,
 							   const std::string &filename,
 							   const std::string &funcname,
-							   unsigned int line)
+							   unsigned int line,
+							   const std::string &msg)
 {
 	BOOST_REQUIRE_MESSAGE(value == expected,
 						  "[" << filename << " > " << funcname << " : " << line << "]" <<
 						  " returned[" <<
 						  capi_ec_to_string(static_cast<csr_error_e>(value)) <<
-						  "] expected[" << capi_ec_to_string(expected) << "]");
+						  "] expected[" << capi_ec_to_string(expected) << "] " << msg);
 }
 
 void _assert(const char *value, const char *expected, const std::string &filename,
-			 const std::string &funcname, unsigned int line)
+			 const std::string &funcname, unsigned int line, const std::string &msg)
 {
 	if (value == nullptr && expected == nullptr)
 		BOOST_REQUIRE(true);
 	else if (value != nullptr && expected != nullptr)
-		_assert(std::string(value), expected, filename, funcname, line);
+		_assert(std::string(value), expected, filename, funcname, line, msg);
 	else if (value == nullptr && expected != nullptr)
 		BOOST_REQUIRE_MESSAGE(std::string(expected).empty(),
 							  "[" << filename << " > " << funcname << " : " << line <<
-							  "] returned[nullptr] expected[" << expected << "]");
+							  "] returned[nullptr] expected[" << expected << "] " << msg);
 	else
 		BOOST_REQUIRE_MESSAGE(std::string(value).empty(),
 							  "[" << filename << " > " << funcname << " : " << line <<
-							  "] returned[" << value << "] expected[nullptr]");
+							  "] returned[" << value << "] expected[nullptr] " << msg);
 }
 
 void _assert(const char *value, const std::string &expected, const std::string &filename,
-			 const std::string &funcname, unsigned int line)
+			 const std::string &funcname, unsigned int line, const std::string &msg)
 {
 	_assert((value == nullptr) ? std::string() : std::string(value),
-			expected, filename, funcname, line);
+			expected, filename, funcname, line, msg);
 }
 
 void exceptionGuard(const std::function<void()> &f)
@@ -206,6 +210,11 @@ void copy_file(const char *src_file, const char *dest_file)
 	dest << srce.rdbuf();
 }
 
+void make_dir(const char *dir)
+{
+	mkdir(dir, S_IRWXU | S_IRWXG | S_IRWXO);
+}
+
 void touch_file(const char *file)
 {
 	struct utimbuf new_times;
@@ -217,6 +226,11 @@ void touch_file(const char *file)
 	utime(file, &new_times);
 }
 
+void remove_file(const char *file)
+{
+	unlink(file);
+}
+
 bool is_file_exist(const char *file)
 {
 	return (access(file, F_OK) != -1);
@@ -224,51 +238,27 @@ bool is_file_exist(const char *file)
 
 bool uninstall_app(const char *pkg_id)
 {
-	auto pkgmgr = pkgmgr_client_new(PC_REQUEST);
-	CHECK_IS_NOT_NULL(pkgmgr);
-
-	uninstalled = false;
-	int ret = pkgmgr_client_uninstall(pkgmgr, nullptr, pkg_id, PM_QUIET,
-									  __app_uninstall_cb, nullptr);
-	if (ret <= PKGMGR_R_OK)
-		return false;
-
-	g_timeout_add_seconds(30, __app_uninstall_timeout, nullptr);
-	uninstallMainLoop = g_main_loop_new(nullptr, false);
-	g_main_loop_run(uninstallMainLoop);
-	pkgmgr_client_free(pkgmgr);
-
-	return uninstalled;
-}
-
-bool is_app_exist(const char *pkg_id)
-{
-	pkgmgrinfo_pkginfo_h handle;
-
-	if (pkgmgrinfo_pkginfo_get_pkginfo(pkg_id, &handle) != PMINFO_R_OK)
-		return false;
-
-	pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
-	return true;
+	return pkgmgr_request([&](pkgmgr_client *pc, PkgEventData *data) {
+		return pkgmgr_client_uninstall(pc, nullptr, pkg_id, PM_QUIET,
+									   __quit_loop_on_end_cb, data);
+	});
 }
 
 bool install_app(const char *app_path, const char *pkg_type)
 {
-	auto pkgmgr = pkgmgr_client_new(PC_REQUEST);
-	CHECK_IS_NOT_NULL(pkgmgr);
+	return pkgmgr_request([&](pkgmgr_client *pc, PkgEventData *data) {
+		return pkgmgr_client_install(pc, pkg_type, nullptr, app_path, nullptr, PM_QUIET,
+									 __quit_loop_on_end_cb, data);
+	});
+}
 
-	installed = false;
-	int ret = pkgmgr_client_install(pkgmgr, pkg_type, nullptr, app_path, nullptr, PM_QUIET,
-									__app_install_cb, nullptr);
-	if (ret <= PKGMGR_R_OK)
-		return false;
+void initialize_db()
+{
+	remove_file(RW_DBSPACE ".csr.db");
+	remove_file(RW_DBSPACE ".csr.db-journal");
 
-	g_timeout_add_seconds(30, __app_install_timeout, nullptr);
-	installMainLoop = g_main_loop_new(nullptr, false);
-	g_main_loop_run(installMainLoop);
-	pkgmgr_client_free(pkgmgr);
-
-	return installed;
+	int ret = system("systemctl restart csr.service");
+	BOOST_MESSAGE("CSR DB Initalization & Daemon Restart. Result=" << ret);
 }
 
 } // namespace Test

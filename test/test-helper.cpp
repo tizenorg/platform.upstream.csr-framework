@@ -30,7 +30,7 @@
 #include "test-common.h"
 
 void ASSERT_DETECTED(csr_cs_detected_h detected, const char *e_malware_name,
-					 int e_severity, const char *e_detailed_url)
+					 csr_cs_severity_level_e e_severity, const char *e_detailed_url)
 {
 	csr_cs_severity_level_e a_severity;
 	const char *a_malware_name;
@@ -103,4 +103,59 @@ void ASSERT_DETECTED_HANDLE(csr_cs_detected_h expected, csr_cs_detected_h actual
 	ASSERT_IF(a_is_app, e_is_app);
 	ASSERT_IF(a_pkg_id, e_pkg_id);
 	ASSERT_IF(a_timestamp, e_timestamp);
+}
+
+void ASSERT_DETECTED_IN_LIST(const std::vector<csr_cs_detected_h> &detectedList,
+							 const char *file_name, const char *name,
+							 csr_cs_severity_level_e severity, const char *detailed_url)
+{
+	const char *a_file_name;
+	const char *a_name;
+	csr_cs_severity_level_e a_severity;
+	const char *a_detailed_url;
+
+	std::vector<csr_cs_detected_h>::iterator iter;
+	for (auto &d : detectedList) {
+		ASSERT_IF(csr_cs_detected_get_file_name(d, &a_file_name), CSR_ERROR_NONE);
+		if (strcmp(file_name, a_file_name) != 0)
+			continue;
+
+		ASSERT_IF(csr_cs_detected_get_malware_name(d, &a_name), CSR_ERROR_NONE);
+		ASSERT_IF(csr_cs_detected_get_severity(d, &a_severity), CSR_ERROR_NONE);
+		ASSERT_IF(csr_cs_detected_get_detailed_url(d, &a_detailed_url), CSR_ERROR_NONE);
+
+		ASSERT_IF(name, a_name);
+		ASSERT_IF(severity, a_severity);
+		ASSERT_IF(detailed_url, a_detailed_url);
+
+		return;
+	}
+
+	BOOST_REQUIRE_MESSAGE(false,
+			"Cannot find the file[" << file_name << "] in detected list.");
+}
+
+void ASSERT_DETECTED_IN_LIST_EXT(const std::vector<csr_cs_detected_h> &detectedList,
+								 const char *file_name, bool is_app, const char *pkg_id)
+{
+	const char *a_file_name;
+	bool a_is_app;
+	const char *a_pkg_id;
+
+	for (auto &d : detectedList) {
+		ASSERT_IF(csr_cs_detected_get_file_name(d, &a_file_name), CSR_ERROR_NONE);
+		if (strcmp(file_name, a_file_name) != 0)
+			continue;
+
+		ASSERT_IF(csr_cs_detected_is_app(d, &a_is_app), CSR_ERROR_NONE);
+		ASSERT_IF(csr_cs_detected_get_pkg_id(d, &a_pkg_id), CSR_ERROR_NONE);
+
+		ASSERT_IF(is_app, a_is_app);
+		ASSERT_IF(pkg_id, a_pkg_id);
+
+		return;
+	}
+
+	BOOST_REQUIRE_MESSAGE(false,
+			"Cannot find the file[" << file_name << "] in detected list.");
 }

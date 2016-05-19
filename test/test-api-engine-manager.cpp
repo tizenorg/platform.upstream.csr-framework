@@ -25,6 +25,8 @@
 #include <boost/test/unit_test.hpp>
 
 #include "test-common.h"
+#include "test-helper.h"
+#include "test-resource.h"
 
 namespace {
 
@@ -89,6 +91,62 @@ BOOST_AUTO_TEST_CASE(fields_getters)
 	EXCEPTION_GUARD_END
 }
 
+BOOST_AUTO_TEST_CASE(set_state)
+{
+	EXCEPTION_GUARD_START
+
+	Engine e(CSR_ENGINE_CS);
+
+	csr_state_e state = CSR_ENABLE;
+
+	// enable
+	ASSERT_IF(csr_engine_set_state(e.get(), CSR_ENABLE), CSR_ERROR_NONE);
+	ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
+	ASSERT_IF(state, CSR_ENABLE);
+
+	// prepare data
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_detected_h detected;
+	unsigned char data[100] = {0, };
+	//const char *files[1] = { TEST_FILE_NORMAL };
+	//const char *dirs[1] = { TEST_DIR };
+
+	// check if engine is working well
+	memcpy(data, MALWARE_HIGH_SIGNATURE, strlen(MALWARE_HIGH_SIGNATURE));
+	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected), CSR_ERROR_NONE);
+
+	// disable
+	ASSERT_IF(csr_engine_set_state(e.get(), CSR_DISABLE), CSR_ERROR_NONE);
+	ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
+	ASSERT_IF(state, CSR_DISABLE);
+
+	// test operation
+	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected), CSR_ERROR_ENGINE_DISABLED);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NORMAL, &detected), CSR_ERROR_ENGINE_DISABLED);
+	//ASSERT_IF(csr_cs_scan_files_async(context, files, sizeof(files) / sizeof(const char *), nullptr),
+	//	CSR_ERROR_ENGINE_DISABLED);
+	//ASSERT_IF(csr_cs_scan_dir_async(context, TEST_DIR, nullptr), CSR_ERROR_ENGINE_DISABLED);
+	//ASSERT_IF(csr_cs_scan_dirs_async(context, dirs, sizeof(dirs) / sizeof(const char *), nullptr),
+	//	CSR_ERROR_ENGINE_DISABLED);
+
+	// enable
+	ASSERT_IF(csr_engine_set_state(e.get(), CSR_ENABLE), CSR_ERROR_NONE);
+	ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
+	ASSERT_IF(state, CSR_ENABLE);
+
+	// test operation
+	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NORMAL, &detected), CSR_ERROR_NONE);
+	//ASSERT_IF(csr_cs_scan_files_async(context, files, sizeof(files) / sizeof(const char *), nullptr),
+	//	CSR_ERROR_NONE);
+	//ASSERT_IF(csr_cs_scan_dir_async(context, TEST_DIR, nullptr), CSR_ERROR_NONE);
+	//ASSERT_IF(csr_cs_scan_dirs_async(context, dirs, sizeof(dirs) / sizeof(const char *), nullptr),
+	//	CSR_ERROR_NONE);
+
+	EXCEPTION_GUARD_END
+}
+
 BOOST_AUTO_TEST_SUITE_END() // CS
 
 BOOST_AUTO_TEST_SUITE(WP)
@@ -127,6 +185,47 @@ BOOST_AUTO_TEST_CASE(fields_getters)
 
 	EXCEPTION_GUARD_END
 }
+
+BOOST_AUTO_TEST_CASE(set_state)
+{
+	EXCEPTION_GUARD_START
+
+	Engine e(CSR_ENGINE_WP);
+
+	csr_state_e state = CSR_ENABLE;
+
+	// enable
+	ASSERT_IF(csr_engine_set_state(e.get(), CSR_ENABLE), CSR_ERROR_NONE);
+	ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
+	ASSERT_IF(state, CSR_ENABLE);
+
+        // prepare data
+	auto c = Test::Context<csr_wp_context_h>();
+	auto context = c.get();
+	csr_wp_check_result_h result;
+
+        // check if engine is working well
+	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, &result), CSR_ERROR_NONE);
+
+        // disable
+        ASSERT_IF(csr_engine_set_state(e.get(), CSR_DISABLE), CSR_ERROR_NONE);
+        ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
+        ASSERT_IF(state, CSR_DISABLE);
+
+        // test operation
+	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, &result), CSR_ERROR_ENGINE_DISABLED);
+
+        // enable
+        ASSERT_IF(csr_engine_set_state(e.get(), CSR_ENABLE), CSR_ERROR_NONE);
+        ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
+        ASSERT_IF(state, CSR_ENABLE);
+
+        // test operation
+	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, &result), CSR_ERROR_NONE);
+
+	EXCEPTION_GUARD_END
+}
+
 
 BOOST_AUTO_TEST_SUITE_END() // WP
 BOOST_AUTO_TEST_SUITE_END() // API_ENGINE_MANAGER

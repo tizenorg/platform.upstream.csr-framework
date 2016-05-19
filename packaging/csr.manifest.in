@@ -27,6 +27,8 @@
 			<smack permit="pkgmgr" type="rx" />
 			<smack permit="pkgmgr-server" type="rx" />
 			<smack permit="wrt-installer" type="rx" />
+
+			<smack permit="crash-worker" type="rx" />
 		</permit>
 	</define>
 	<request>

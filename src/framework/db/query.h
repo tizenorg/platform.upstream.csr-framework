@@ -75,12 +75,15 @@ const std::string INS_NAME =
 	"insert or replace into NAMES(name) values(?)";
 
 const std::string INS_DETECTED =
-	"insert or replace into DETECTED_MALWARE(file_path, name, data_version, malware_name,"
+	"insert or replace into DETECTED_MALWARE(file_path, idx, data_version, malware_name,"
 	"                                        detailed_url, severity, detected_time)"
-	" values(?, ?, ?, ?, ?, ?, ?)";
+	" values(?, (select idx from NAMES where name = ?), ?, ?, ?, ?, ?)";
 
 const std::string INS_WORST =
-	"insert or replace into PACKAGE_INFO(pkg_id, name, worst) values(?, ?, ?)";
+	"insert or replace into PACKAGE_INFO(pkg_id, idx, worst_filepath_idx)"
+	" values(?,"
+	"  (select idx from NAMES where name = ?),"
+	"  (select filepath_idx from DETECTED_MALWARE where file_path = ?))";
 
 const std::string UPD_IGNORE =
 	"update NAMES set is_ignored = ? where name = ?";

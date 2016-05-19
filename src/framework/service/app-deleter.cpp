@@ -75,7 +75,7 @@ static gboolean __app_uninstall_timeout(gpointer data)
 
 	setRemoveResult(false, data);
 
-	return TRUE;
+	return FALSE;
 }
 
 } // namespace anonymous
@@ -108,9 +108,9 @@ void AppDeleter::remove(const std::string &pkgid)
 
 	g_main_loop_run(loop.get());
 
-	DEBUG("App Removed. pkgid: " << pkgid);
-
-	if (!data.isDeleted)
+	if (data.isDeleted)
+		DEBUG("App Removed. pkgid: " << pkgid);
+	else
 		ThrowExc(RemoveFailed, "Failed to remove app: " << pkgid);
 }
 

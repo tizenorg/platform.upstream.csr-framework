@@ -31,7 +31,7 @@ Connection::Connection(const std::string &name, const int flags) :
 
 Connection::~Connection()
 {
-	sqlite3_close(m_handle);
+	::sqlite3_close(m_handle);
 }
 
 int Connection::exec(const std::string &query)
@@ -40,7 +40,7 @@ int Connection::exec(const std::string &query)
 					   nullptr) != SQLITE_OK)
 		ThrowExc(DbFailed, "db connection exec failed: " << getErrorMessage());
 
-	return sqlite3_changes(m_handle);
+	return ::sqlite3_changes(m_handle);
 }
 
 } // namespace Db

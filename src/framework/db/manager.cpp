@@ -72,12 +72,14 @@ Manager::Manager(const std::string &dbfile, const std::string &scriptsDir) :
 		   Connection::Serialized),
 	m_scriptsDir(scriptsDir)
 {
+	this->m_conn.exec("PRAGMA foreign_keys = ON;");
+
 	// run migration if old database is present
-	auto sv = getSchemaVersion();
+	auto sv = this->getSchemaVersion();
 
 	if (sv < SchemaVersion::NOT_EXIST || sv > SchemaVersion::LATEST) {
 		ERROR("Database corrupted! invalid db version returned! : " << sv);
-		resetDatabase();
+		this->resetDatabase();
 		return;
 	} else if (sv == SchemaVersion::LATEST) {
 		DEBUG("Database version is latest");
@@ -86,18 +88,18 @@ Manager::Manager(const std::string &dbfile, const std::string &scriptsDir) :
 
 	if (sv == SchemaVersion::NOT_EXIST) {
 		INFO("Database initializing!");
-		resetDatabase();
+		this->resetDatabase();
 	} else if (sv < SchemaVersion::LATEST) {
 		INFO("Database migration! from[" << sv <<
 			 "] to[" << SchemaVersion::LATEST << "]");
 
 		for (int vi = sv; vi < SchemaVersion::LATEST; ++vi)
-			m_conn.exec(getMigrationScript(vi).c_str());
+			this->m_conn.exec(this->getMigrationScript(vi).c_str());
 
-		setSchemaVersion(SchemaVersion::LATEST);
+		this->setSchemaVersion(SchemaVersion::LATEST);
 	}
 
-	m_conn.exec("VACUUM;");
+	this->m_conn.exec("VACUUM;");
 }
 
 Manager::~Manager()
@@ -106,19 +108,19 @@ Manager::~Manager()
 
 void Manager::resetDatabase()
 {
-	m_conn.exec(getScript(SCRIPT_DROP_ALL_ITEMS).c_str());
-	m_conn.exec(getScript(SCRIPT_CREATE_SCHEMA).c_str());
-	setSchemaVersion(SchemaVersion::LATEST);
+	this->m_conn.exec(this->getScript(SCRIPT_DROP_ALL_ITEMS).c_str());
+	this->m_conn.exec(this->getScript(SCRIPT_CREATE_SCHEMA).c_str());
+	this->setSchemaVersion(SchemaVersion::LATEST);
 }
 
 std::string Manager::getMigrationScript(int sv)
 {
-	return getScript(SCRIPT_MIGRATE + std::to_string(sv));
+	return this->getScript(SCRIPT_MIGRATE + std::to_string(sv));
 }
 
 std::string Manager::getScript(const std::string &scriptName)
 {
-	auto scriptPath = m_scriptsDir + std::string("/") + scriptName + ".sql";
+	auto scriptPath = this->m_scriptsDir + std::string("/") + scriptName + ".sql";
 	std::ifstream is(scriptPath);
 
 	if (is.fail())
@@ -135,7 +137,7 @@ std::string Manager::getScript(const std::string &scriptName)
 
 bool Manager::isTableExist(const std::string &name)
 {
-	Statement stmt(m_conn, Query::CHK_TABLE);
+	Statement stmt(this->m_conn, Query::CHK_TABLE);
 
 	stmt.bind(name);
 
@@ -144,25 +146,25 @@ bool Manager::isTableExist(const std::string &name)
 
 int Manager::getSchemaVersion()
 {
-	if (!isTableExist(SCHEMA_INFO_TABLE)) {
+	if (!this->isTableExist(SCHEMA_INFO_TABLE)) {
 		WARN("Schema table doesn't exist. This case would be the first time of "
 			 "db manager instantiated in target");
 		return SchemaVersion::NOT_EXIST;
 	}
 
-	Statement stmt(m_conn, Query::SEL_SCHEMA_INFO);
+	Statement stmt(this->m_conn, Query::SEL_SCHEMA_INFO);
 
 	stmt.bind(DB_VERSION_STR);
 
 	if (!stmt.step())
-		ThrowExc(DbFailed, "schema info table should exist!");
+		ThrowExc(DbFailed, "schema version row isn't exist!");
 
 	return stmt.getInt();
 }
 
 void Manager::setSchemaVersion(int sv)
 {
-	Statement stmt(m_conn, Query::INS_SCHEMA_INFO);
+	Statement stmt(this->m_conn, Query::INS_SCHEMA_INFO);
 
 	stmt.bind(DB_VERSION_STR);
 	stmt.bind(sv);
@@ -176,7 +178,7 @@ void Manager::setSchemaVersion(int sv)
 //===========================================================================
 int Manager::getEngineState(int engineId)
 {
-	Statement stmt(m_conn, Query::SEL_ENGINE_STATE);
+	Statement stmt(this->m_conn, Query::SEL_ENGINE_STATE);
 
 	stmt.bind(engineId);
 
@@ -185,7 +187,7 @@ int Manager::getEngineState(int engineId)
 
 void Manager::setEngineState(int engineId, int state)
 {
-	Statement stmt(m_conn, Query::INS_ENGINE_STATE);
+	Statement stmt(this->m_conn, Query::INS_ENGINE_STATE);
 
 	stmt.bind(engineId);
 	stmt.bind(state);
@@ -202,7 +204,7 @@ time_t Manager::getLastScanTime(const std::string &dir,
 {
 	time_t latest = -1;
 	std::string current = dir;
-	Statement stmt(m_conn, Query::SEL_SCAN_REQUEST);
+	Statement stmt(this->m_conn, Query::SEL_SCAN_REQUEST);
 
 	while (true) {
 		stmt.bind(current);
@@ -229,7 +231,7 @@ time_t Manager::getLastScanTime(const std::string &dir,
 void Manager::insertLastScanTime(const std::string &dir, time_t scanTime,
 								 const std::string &dataVersion)
 {
-	Statement stmt(m_conn, Query::INS_SCAN_REQUEST);
+	Statement stmt(this->m_conn, Query::INS_SCAN_REQUEST);
 
 	stmt.bind(dir);
 	stmt.bind(static_cast<sqlite3_int64>(scanTime));
@@ -239,7 +241,7 @@ void Manager::insertLastScanTime(const std::string &dir, time_t scanTime,
 
 void Manager::deleteLastScanTime(const std::string &dir)
 {
-	Statement stmt(m_conn, Query::DEL_SCAN_REQUEST_BY_DIR);
+	Statement stmt(this->m_conn, Query::DEL_SCAN_REQUEST_BY_DIR);
 
 	stmt.bind(dir);
 	stmt.exec();
@@ -247,7 +249,7 @@ void Manager::deleteLastScanTime(const std::string &dir)
 
 void Manager::cleanLastScanTime()
 {
-	Statement stmt(m_conn, Query::DEL_SCAN_REQUEST);
+	Statement stmt(this->m_conn, Query::DEL_SCAN_REQUEST);
 
 	stmt.exec();
 }
@@ -257,7 +259,7 @@ void Manager::cleanLastScanTime()
 //===========================================================================
 RowShPtr Manager::getDetectedByNameOnPath(const std::string &path)
 {
-	Statement stmt(m_conn, Query::SEL_DETECTED_BY_NAME_ON_PATH);
+	Statement stmt(this->m_conn, Query::SEL_DETECTED_BY_NAME_ON_PATH);
 	stmt.bind(path);
 
 	if (!stmt.step())
@@ -268,7 +270,7 @@ RowShPtr Manager::getDetectedByNameOnPath(const std::string &path)
 
 RowShPtrs Manager::getDetectedByNameOnDir(const std::string &dir)
 {
-	Statement stmt(m_conn, Query::SEL_DETECTED_BY_NAME_ON_DIR);
+	Statement stmt(this->m_conn, Query::SEL_DETECTED_BY_NAME_ON_DIR);
 	stmt.bind(dir);
 
 	RowShPtrs rows;
@@ -281,7 +283,7 @@ RowShPtrs Manager::getDetectedByNameOnDir(const std::string &dir)
 
 RowShPtrs Manager::getDetectedByFilepathOnDir(const std::string &dir)
 {
-	Statement stmt(m_conn, Query::SEL_DETECTED_BY_FILEPATH_ON_DIR);
+	Statement stmt(this->m_conn, Query::SEL_DETECTED_BY_FILEPATH_ON_DIR);
 	stmt.bind(dir);
 
 	RowShPtrs rows;
@@ -294,7 +296,7 @@ RowShPtrs Manager::getDetectedByFilepathOnDir(const std::string &dir)
 
 RowShPtr Manager::getWorstByPkgId(const std::string &pkgId)
 {
-	Statement stmt(m_conn, Query::SEL_WORST_BY_PKGID);
+	Statement stmt(this->m_conn, Query::SEL_WORST_BY_PKGID);
 	stmt.bind(pkgId);
 
 	if (!stmt.step())
@@ -317,7 +319,7 @@ RowShPtr Manager::getWorstByPkgId(const std::string &pkgId)
 
 void Manager::insertName(const std::string &name)
 {
-	Statement stmt(m_conn, Query::INS_NAME);
+	Statement stmt(this->m_conn, Query::INS_NAME);
 
 	stmt.bind(name);
 	stmt.exec();
@@ -326,7 +328,7 @@ void Manager::insertName(const std::string &name)
 void Manager::insertDetected(const CsDetected &d, const std::string &filepath,
 							 const std::string &dataVersion)
 {
-	Statement stmt(m_conn, Query::INS_DETECTED);
+	Statement stmt(this->m_conn, Query::INS_DETECTED);
 
 	stmt.bind(filepath);
 	stmt.bind(d.targetName);
@@ -341,7 +343,7 @@ void Manager::insertDetected(const CsDetected &d, const std::string &filepath,
 void Manager::insertWorst(const std::string &pkgId, const std::string &name,
 						  const std::string &filepath)
 {
-	Statement stmt(m_conn, Query::INS_WORST);
+	Statement stmt(this->m_conn, Query::INS_WORST);
 
 	stmt.bind(pkgId);
 	stmt.bind(name);
@@ -351,7 +353,7 @@ void Manager::insertWorst(const std::string &pkgId, const std::string &name,
 
 void Manager::updateIgnoreFlag(const std::string &name, bool flag)
 {
-	Statement stmt(m_conn, Query::UPD_IGNORE);
+	Statement stmt(this->m_conn, Query::UPD_IGNORE);
 
 	stmt.bind((flag ? 1 : 0));
 	stmt.bind(name);
@@ -360,7 +362,7 @@ void Manager::updateIgnoreFlag(const std::string &name, bool flag)
 
 void Manager::deleteDetectedByNameOnPath(const std::string &path)
 {
-	Statement stmt(m_conn, Query::DEL_DETECTED_BY_NAME_ON_PATH);
+	Statement stmt(this->m_conn, Query::DEL_DETECTED_BY_NAME_ON_PATH);
 
 	stmt.bind(path);
 	stmt.exec();
@@ -368,7 +370,7 @@ void Manager::deleteDetectedByNameOnPath(const std::string &path)
 
 void Manager::deleteDetectedByFilepathOnPath(const std::string &path)
 {
-	Statement stmt(m_conn, Query::DEL_DETECTED_BY_FILEPATH_ON_PATH);
+	Statement stmt(this->m_conn, Query::DEL_DETECTED_BY_FILEPATH_ON_PATH);
 
 	stmt.bind(path);
 	stmt.exec();
@@ -377,7 +379,7 @@ void Manager::deleteDetectedByFilepathOnPath(const std::string &path)
 void Manager::deleteDetectedDeprecatedOnDir(const std::string &dir,
 											const std::string &dataVersion)
 {
-	Statement stmt(m_conn, Query::DEL_DETECTED_DEPRECATED_ON_DIR);
+	Statement stmt(this->m_conn, Query::DEL_DETECTED_DEPRECATED_ON_DIR);
 
 	stmt.bind(dir);
 	stmt.bind(dataVersion);

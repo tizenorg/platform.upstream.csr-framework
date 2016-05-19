@@ -30,7 +30,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <glib.h>
 
 #include <package-manager.h>
 #include <pkgmgr-info.h>
@@ -154,18 +153,11 @@ BOOST_AUTO_TEST_CASE(remove_app)
 	EXCEPTION_GUARD_START
 
 	Test::uninstall_app(TEST_TPK_PKG_ID);
-	// install the test app
 	ASSERT_INSTALL_APP(TEST_TPK_PATH, TEST_TPK_TYPE);
 
-	// remove the app
 	auto app = File::create(TEST_TPK_MAL_FILE);
 	CHECK_IS_NOT_NULL(app);
 	app->remove();
-
-	// check if the app still exists
-	pkgmgrinfo_pkginfo_h handle;
-	BOOST_REQUIRE(pkgmgrinfo_pkginfo_get_pkginfo(app->getAppPkgId().c_str(), &handle)
-				  < PKGMGR_R_OK);
 
 	EXCEPTION_GUARD_END
 }

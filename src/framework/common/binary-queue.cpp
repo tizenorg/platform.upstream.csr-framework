@@ -54,12 +54,14 @@ void BinaryQueue::push(const RawBuffer &data)
 
 void BinaryQueue::write(size_t size, const void *bytes)
 {
+	int idx = 0;
 	while (size > 0) {
 		auto s = (size > MaxBucketSize) ? MaxBucketSize : size;
 		auto b = new unsigned char[s];
-		memcpy(b, bytes, s);
+		memcpy(b, static_cast<const unsigned char *>(bytes) + idx, s);
 		m_buckets.emplace(new Bucket(b, s));
 		m_size += s;
+		idx += s;
 		size -= s;
 	}
 }

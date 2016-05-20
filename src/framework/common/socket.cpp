@@ -147,15 +147,19 @@ int Socket::getFd(void) const noexcept
 RawBuffer Socket::read(void) const
 {
 	size_t total = 0;
-
-	RawBuffer data(1024, 0);
-	auto buf = reinterpret_cast<char *>(data.data());
-	auto size = data.size();
+	size_t size = 0;
 
 	DEBUG("Read data from stream on socket fd[" << m_fd << "]");
 
+	auto bytes = ::read(m_fd, &size, sizeof(size));
+	if (bytes < 0)
+		ThrowExc(SocketError, "Socket data size read failed with errno: " << errno);
+
+	RawBuffer data(size, 0);
+	auto buf = reinterpret_cast<char *>(data.data());
+
 	while (total < size) {
-		int bytes = ::read(m_fd, buf + total, size - total);
+		bytes = ::read(m_fd, buf + total, size - total);
 
 		if (bytes < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
@@ -164,9 +168,7 @@ RawBuffer Socket::read(void) const
 				ThrowExc(SocketError, "Socket read failed with errno: " << errno);
 		}
 
-		/* TODO: handle the case of more bytes in stream to read than buffer size */
 		total += bytes;
-		break;
 	}
 
 	data.resize(total);
@@ -186,8 +188,12 @@ void Socket::write(const RawBuffer &data) const
 
 	DEBUG("Write data to stream on socket fd[" << m_fd << "]");
 
+	auto bytes = ::write(m_fd, &size, sizeof(size));
+	if (bytes < 0)
+		ThrowExc(SocketError, "Socket data size write failed with errno: " << errno);
+
 	while (total < size) {
-		int bytes = ::write(m_fd, buf + total, size - total);
+		bytes = ::write(m_fd, buf + total, size - total);
 
 		if (bytes < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)

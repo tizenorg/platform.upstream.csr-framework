@@ -110,6 +110,14 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		return m_cslogic.getScannableFiles(dir);
 	}
 
+	case CommandId::SET_DIR_TIMESTAMP: {
+		std::string dir;
+		time_t ts = 0;
+		q.Deserialize(dir, ts);
+
+		return m_cslogic.setDirTimestamp(dir, ts);
+	}
+
 	case CommandId::JUDGE_STATUS: {
 		// judge status needs admin privilege
 		if (!hasPermission(conn, SockId::ADMIN))

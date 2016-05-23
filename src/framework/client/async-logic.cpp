@@ -69,6 +69,8 @@ AsyncLogic::Ending AsyncLogic::scanDirs(const StrSet &dirs)
 
 AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 {
+	auto startTime = ::time(nullptr);
+
 	// Already scanned files are included in history. it'll be skipped later
 	// on server side by every single scan_file request.
 	auto retFiles = m_dispatcher->methodCall<std::pair<int, std::shared_ptr<StrSet>>>(
@@ -83,9 +85,24 @@ AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 		});
 	}
 
+#ifdef TIZEN_DEBUG_ENABLE
+	DEBUG("scannable file list in dir[" << dir <<
+		  "], count[" << retFiles.second->size() << "]:");
+	size_t count = 0;
+	for (const auto &file : *(retFiles.second))
+		DEBUG(std::to_string(++count) << " : " << file);
+#endif
+
 	// Let's start scan files!
 	auto task = scanFiles(*(retFiles.second));
-	// TODO: register results(in outs) to db and update dir scanning history...
+
+	auto ret = m_dispatcher->methodCall<int>(CommandId::SET_DIR_TIMESTAMP, dir, startTime);
+	if (ret != CSR_ERROR_NONE)
+		ERROR("Failed to set dir timestamp after scan dir[" << dir << "] with "
+			  "ec[" << ret << "] This is server error and not affects to "
+			  "client / scan result when it doesn't comes to delta scanning... "
+			  "So just ignore this error on client side.");
+
 	return task;
 }
 

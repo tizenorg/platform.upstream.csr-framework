@@ -417,13 +417,22 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 		}
 	}
 
-	// update last scan time before start.
-	// to set scan time early is safe because file which is modified between
-	// scan start time and end time will be traversed by FsVisitor and re-scanned
-	// being compared to start time as modified since.
-	this->m_db.insertLastScanTime(dir, time(nullptr), this->m_dataVersion);
-
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
+
+	EXCEPTION_GUARD_CLOSER(ret)
+
+	return BinaryQueue::Serialize(ret).pop();
+
+	EXCEPTION_GUARD_END
+}
+
+RawBuffer CsLogic::setDirTimestamp(const std::string &dir, time_t ts)
+{
+	EXCEPTION_GUARD_START
+
+	this->m_db.insertLastScanTime(dir, ts, this->m_dataVersion);
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
 	EXCEPTION_GUARD_CLOSER(ret)
 

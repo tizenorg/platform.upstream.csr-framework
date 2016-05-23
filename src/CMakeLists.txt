@@ -23,6 +23,7 @@ PKG_CHECK_MODULES(${TARGET_CSR_SERVER}_DEP
 	libsystemd-daemon
 	sqlite3
 	pkgmgr
+	pkgmgr-info
 	libsmack
 )
 

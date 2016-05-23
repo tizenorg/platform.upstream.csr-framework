@@ -33,6 +33,8 @@
 #include "service/app-deleter.h"
 #include "service/fs-utils.h"
 
+#include <pkgmgr-info.h>
+
 namespace Csr {
 
 namespace {
@@ -56,12 +58,28 @@ std::vector<std::regex> g_regexprs{
 	//makeRegexpr("^(/sdcard/apps/([^/]+)/apps_rw/([^/]+))") // /sdcard/apps/{user}/apps_rw/{pkgid}/
 };
 
+bool isInPackageList(const std::string &pkgid)
+{
+	if (pkgid.empty())
+		return false;
+
+	bool isPackage = false;
+	pkgmgrinfo_pkginfo_h handle;
+	auto ret = ::pkgmgrinfo_pkginfo_get_pkginfo(pkgid.c_str(), &handle);
+	if (ret == PMINFO_R_OK) {
+		isPackage = true;
+		::pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
+	}
+
+	return isPackage;
+}
+
 } // namespace anonymous
 
 bool hasPermToRemove(const std::string &filepath)
 {
 	auto parent = filepath.substr(0, filepath.find_last_of('/'));
-	return access(parent.c_str(), W_OK) == 0;
+	return ::access(parent.c_str(), W_OK) == 0;
 }
 
 bool File::isInApp(const std::string &path)
@@ -69,7 +87,19 @@ bool File::isInApp(const std::string &path)
 	std::smatch matched;
 
 	for (const auto &rege : g_regexprs) {
-		if (std::regex_search(path, matched, rege))
+		if (!std::regex_search(path, matched, rege))
+			continue;
+
+		std::string pkgId;
+
+		if (matched.size() == 3)
+			pkgId = matched[2];
+		else if (matched.size() == 4)
+			pkgId = matched[3];
+		else
+			continue;
+
+		if (isInPackageList(pkgId))
 			return true;
 	}
 
@@ -84,16 +114,28 @@ std::string File::getPkgPath(const std::string &path)
 		if (!std::regex_search(path, matched, rege))
 			continue;
 
-		if (matched.size() == 3)
-			return matched[1];
-		else if (matched.size() == 4)
-			return matched[1];
+		std::string pkgPath;
+		std::string pkgId;
+
+		if (matched.size() == 3) {
+			pkgPath = matched[1];
+			pkgId = matched[2];
+		} else if (matched.size() == 4) {
+			pkgPath = matched[1];
+			pkgId = matched[3];
+		} else {
+			continue;
+		}
+
+		if (isInPackageList(pkgId))
+			return pkgPath;
 	}
 
 	return path;
 }
 
-File::File(const std::string &fpath, bool isDir) : m_path(fpath), m_inApp(false), m_isDir(isDir)
+File::File(const std::string &fpath, bool isDir) :
+	m_path(fpath), m_inApp(false), m_isDir(isDir)
 {
 	std::smatch matched;
 
@@ -112,7 +154,10 @@ File::File(const std::string &fpath, bool isDir) : m_path(fpath), m_inApp(false)
 			continue;
 		}
 
-		m_inApp = true;
+		if (isInPackageList(m_appPkgId)) {
+			m_inApp = true;
+			return;
+		}
 	}
 }
 

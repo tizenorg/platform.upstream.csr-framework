@@ -13,6 +13,7 @@ BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(elementary)
 BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(pkgmgr)
+BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(libsmack)
 Requires:      lib%{name}-common = %{version}-%{release}
 %{?systemd_requires}

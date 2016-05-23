@@ -465,8 +465,8 @@ int csr_cs_scan_cancel(csr_cs_context_h handle)
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
-	if (hExt->isStopped())
-		return CSR_ERROR_NONE;
+	if (!hExt->hasRunning() || hExt->isStopped())
+		return CSR_ERROR_NO_TASK;
 
 	hExt->stop();
 

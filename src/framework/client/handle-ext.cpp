@@ -55,6 +55,19 @@ bool HandleExt::isStopped() const
 	return m_stop.load();
 }
 
+bool HandleExt::hasRunning()
+{
+	std::unique_lock<std::mutex> l(m_mutex);
+	auto it = m_workerMap.begin();
+
+	while (it != m_workerMap.end()) {
+		if (!it->second.isDone.load())
+			return true;
+	}
+
+	return false;
+}
+
 void HandleExt::eraseJoinableIf(std::function<bool(const WorkerMapPair &)> pred)
 {
 	std::unique_lock<std::mutex> l(m_mutex);

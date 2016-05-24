@@ -22,6 +22,7 @@
 #include "common/cs-detected.h"
 
 #include <stdexcept>
+#include <cstdint>
 
 #include "common/audit/logger.h"
 
@@ -46,10 +47,12 @@ CsDetected::CsDetected(IStream &stream)
 
 	int intSeverity;
 	int intResponse;
-	Deserializer<int, int, bool, time_t>::Deserialize(
-		stream, intSeverity, intResponse, isApp, ts);
+	int64_t ts64;
+	Deserializer<int, int, bool, int64_t>::Deserialize(
+		stream, intSeverity, intResponse, isApp, ts64);
 	severity = static_cast<csr_cs_severity_level_e>(intSeverity);
 	response = static_cast<csr_cs_user_response_e>(intResponse);
+	ts = static_cast<time_t>(ts64);
 }
 
 void CsDetected::Serialize(IStream &stream) const
@@ -57,8 +60,10 @@ void CsDetected::Serialize(IStream &stream) const
 	Serializer<std::string, std::string, std::string, std::string>::Serialize(
 		stream, targetName, malwareName, detailedUrl, pkgId);
 
-	Serializer<int, int, bool, time_t>::Serialize(
-		stream, static_cast<int>(severity), static_cast<int>(response), isApp, ts);
+	int64_t ts64 = static_cast<int64_t>(ts);
+
+	Serializer<int, int, bool, int64_t>::Serialize(
+		stream, static_cast<int>(severity), static_cast<int>(response), isApp, ts64);
 }
 
 CsDetected::CsDetected(CsDetected &&other) :

@@ -424,7 +424,7 @@ int csre_wp_engine_get_vendor_logo(csre_wp_engine_h engine,
 	if (s > UINT_MAX - 1)
 		return CSRET_WP_ERROR_FILE_IO;
 
-	*image_size = reinterpret_cast<unsigned int>(s);
+	*image_size = static_cast<unsigned int>(s);
 	*vendor_logo_image = eng->logoImage.data();
 
 	return CSRE_ERROR_NONE;

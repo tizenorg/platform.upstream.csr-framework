@@ -23,6 +23,7 @@
 
 #include <string>
 #include <utility>
+#include <cstdint>
 
 #include "common/audit/logger.h"
 #include "service/engine-error-converter.h"
@@ -225,7 +226,9 @@ RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 		time_t value;
 		toException(this->m_cs.getEngineLatestUpdateTime(c, &value));
 
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
+		int64_t ts64 = static_cast<int64_t>(value);
+
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, ts64).pop();
 	} else {
 		WpEngineInfo engineInfo(this->m_wp);
 		auto &c = engineInfo.get();
@@ -233,7 +236,9 @@ RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 		time_t value;
 		toException(this->m_wp.getEngineLatestUpdateTime(c, &value));
 
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
+		int64_t ts64 = static_cast<int64_t>(value);
+
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, ts64).pop();
 	}
 
 	EXCEPTION_GUARD_CLOSER(ret)

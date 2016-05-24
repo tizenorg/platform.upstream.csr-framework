@@ -14,7 +14,7 @@
  *  limitations under the License
  */
 /*
- * @file        credential.cpp
+ * @file        credential-smack.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
  * @brief
@@ -31,6 +31,11 @@ namespace Csr {
 
 Credential::Credential(uid_t _uid, gid_t _gid, const std::string &_label) :
 	uid(_uid), gid(_gid), label(_label) {}
+
+Credential::Credential(const std::string &, const std::string &)
+{
+	ThrowExc(InternalError, "Invalid credential ctor called which is for cynara backend.");
+}
 
 std::unique_ptr<Credential> Credential::get(int sockfd)
 {

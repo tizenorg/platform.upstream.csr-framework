@@ -1,37 +1,5 @@
 <manifest>
-	<define>
-		<domain name="@SERVICE_NAME@" />
-		<request>
-			<smack request="device::sys_logging" type="rw" />
-			<smack request="device::app_logging" type="rw" />
-			<smack request="sys-assert::core" type="rwxat" />
-			<smack request="systemd" type="rx" />
-			<smack request="xorg" type="rwxat" />
-			<smack request="tizen::vconf::setting" type="rl" />
-			<smack request="tizen::vconf::setting::admin" type="rl" />
-			<smack request="tizen::vconf::public::r::platform::rw" type="rl" />
-			<smack request="tizen::vconf::camcorder" type="rl" />
-			<smack request="isf" type="rx" />
-			<smack request="dbus" type="w" />
-			<smack request="pulseaudio" type="w" />
-			<smack request="sdbd" type="rx" />
-			<smack request="pkgmgr::db" type="rwx" />
-			<smack request="pkgmgr::svc" type="r" />
-
-			<smack request="system::media" type="rwxat" />
-			<smack request="system::homedir" type="rwxat" />
-		</request>
-		<permit>
-			<smack permit="_" type="rwx" />
-			<smack permit="xorg" type="rx" />
-			<smack permit="pkgmgr" type="rx" />
-			<smack permit="pkgmgr-server" type="rx" />
-			<smack permit="wrt-installer" type="rx" />
-
-			<smack permit="crash-worker" type="rx" />
-		</permit>
-	</define>
 	<request>
-		<domain name="@SERVICE_NAME@" />
+		<domain name="_" />
 	</request>
 </manifest>

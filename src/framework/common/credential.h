@@ -31,11 +31,14 @@ struct Credential {
 	uid_t uid;
 	gid_t gid;
 	std::string label;
+	std::string user;
+	std::string client;
 
 	static std::unique_ptr<Credential> get(int sockfd);
 
 private:
 	explicit Credential(uid_t, gid_t, const std::string &);
+	explicit Credential(const std::string &user, const std::string &client);
 };
 
 }

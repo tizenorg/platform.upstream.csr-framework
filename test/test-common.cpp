@@ -26,6 +26,7 @@
 #include <functional>
 #include <unistd.h>
 #include <utime.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <glib.h>
@@ -43,8 +44,13 @@ struct PkgEventData {
 	PkgEventData() : isSuccess(false), loop(nullptr) {}
 };
 
+#ifdef PLATFORM_VERSION_3
+int __quit_loop_on_end_cb(uid_t, int req_id, const char *pkg_type, const char *pkgid,
+						  const char *key, const char *val, const void *pmsg, void *data)
+#else
 int __quit_loop_on_end_cb(int req_id, const char *pkg_type, const char *pkgid,
 						  const char *key, const char *val, const void *pmsg, void *data)
+#endif
 {
 	(void) req_id;
 	(void) pkg_type;

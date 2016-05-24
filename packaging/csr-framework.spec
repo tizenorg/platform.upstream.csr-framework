@@ -1,3 +1,5 @@
+%define platform_version 3.0
+
 Summary: A general purpose content screening and reputation solution
 Name: csr-framework
 Version: 2.0.0
@@ -15,6 +17,11 @@ BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(pkgmgr)
 BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(libsmack)
+%if "%{platform_version}" == "3.0"
+BuildRequires: pkgconfig(cynara-client)
+%else
+BuildRequires: pkgconfig(libsmack)
+%endif
 Requires:      lib%{name}-common = %{version}-%{release}
 %{?systemd_requires}
 
@@ -40,6 +47,11 @@ file contents and checking url to prevent malicious items.
 Summary: Common library package for %{name}
 License: Apache-2.0
 Group:   Security/Libraries
+%if "%{platform_version}" == "3.0"
+BuildRequires: pkgconfig(cynara-creds-socket)
+%else
+BuildRequires: pkgconfig(libsmack)
+%endif
 Requires: %{sbin_dir}/ldconfig
 
 %description -n lib%{name}-common
@@ -116,7 +128,12 @@ test program of csr-framework
     -DSAMPLE_ENGINE_RW_WORKING_DIR:PATH=%{sample_engine_rw_working_dir} \
     -DSAMPLE_ENGINE_DIR:PATH=%{sample_engine_dir} \
     -DTEST_TARGET=%{test_target} \
-    -DTEST_DIR:PATH=%{test_dir}
+    -DTEST_DIR:PATH=%{test_dir} \
+%if "%{platform_version}" == "3.0"
+    -DPLATFORM_VERSION_3:BOOL=ON
+%else
+    -DPLATFORM_VERSION_3:BOOL=OFF
+%endif
 
 make %{?jobs:-j%jobs}
 

@@ -153,7 +153,7 @@ int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *ptime)
 	GETTER_PARAM_CHECK(engine, ptime);
 
 	auto h = reinterpret_cast<Csr::Client::Handle *>(engine);
-	auto ret = h->dispatch<std::pair<int, time_t>>(
+	auto ret = h->dispatch<std::pair<int, int64_t>>(
 			Csr::CommandId::EM_GET_UPDATED_TIME, h->getContext());
 
 	if (ret.first != CSR_ERROR_NONE) {
@@ -161,7 +161,7 @@ int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *ptime)
 		return ret.first;
 	}
 
-	*ptime = ret.second;
+	*ptime = static_cast<time_t>(ret.second);
 	return CSR_ERROR_NONE;
 
 	EXCEPTION_SAFE_END

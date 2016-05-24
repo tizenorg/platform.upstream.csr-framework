@@ -21,6 +21,7 @@
  */
 #include "client/async-logic.h"
 
+#include <cstdint>
 #include <utility>
 
 #include "common/cs-detected.h"
@@ -96,7 +97,10 @@ AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 	// Let's start scan files!
 	auto task = scanFiles(*(retFiles.second));
 
-	auto ret = m_dispatcher->methodCall<int>(CommandId::SET_DIR_TIMESTAMP, dir, startTime);
+	int64_t ts64 = static_cast<int64_t>(startTime);
+
+	auto ret = m_dispatcher->methodCall<int>(
+			CommandId::SET_DIR_TIMESTAMP, dir, ts64);
 	if (ret != CSR_ERROR_NONE)
 		ERROR("Failed to set dir timestamp after scan dir[" << dir << "] with "
 			  "ec[" << ret << "] This is server error and not affects to "

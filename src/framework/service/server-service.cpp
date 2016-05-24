@@ -23,6 +23,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 
 #include "common/binary-queue.h"
 #include "common/command-id.h"
@@ -112,10 +113,10 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::SET_DIR_TIMESTAMP: {
 		std::string dir;
-		time_t ts = 0;
-		q.Deserialize(dir, ts);
+		int64_t ts64 = 0;
+		q.Deserialize(dir, ts64);
 
-		return m_cslogic.setDirTimestamp(dir, ts);
+		return m_cslogic.setDirTimestamp(dir, static_cast<time_t>(ts64));
 	}
 
 	case CommandId::JUDGE_STATUS: {

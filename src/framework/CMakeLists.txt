@@ -16,11 +16,22 @@
 # @author      Kyungwook Tak (k.tak@samsung.com)
 # @brief       Make common library for both of server and client
 #
+
+IF (PLATFORM_VERSION_3)
+	MESSAGE("Use Cynara as access control backend")
+	SET(AC_BACKEND_COMMON_REQUIRE cynara-creds-socket)
+	SET(AC_BACKEND_COMMON_SRCS common/credential-cynara.cpp)
+ELSE (PLATFORM_VERSION_3)
+	MESSAGE("Use Smack as access control backend")
+	SET(AC_BACKEND_COMMON_REQUIRE libsmack)
+	SET(AC_BACKEND_COMMON_SRCS common/credential-smack.cpp)
+ENDIF (PLATFORM_VERSION_3)
+
 PKG_CHECK_MODULES(${TARGET_CSR_COMMON}_DEP
 	REQUIRED
 	dlog
 	libsystemd-daemon
-	libsmack
+	${AC_BACKEND_COMMON_REQUIRE}
 )
 
 SET(${TARGET_CSR_COMMON}_SRCS
@@ -42,7 +53,8 @@ SET(${TARGET_CSR_COMMON}_SRCS
 	common/service.cpp
 	common/socket.cpp
 	common/socket-descriptor.cpp
-	common/credential.cpp
+
+	${AC_BACKEND_COMMON_SRCS}
 )
 
 INCLUDE_DIRECTORIES(

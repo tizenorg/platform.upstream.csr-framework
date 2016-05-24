@@ -18,13 +18,24 @@
 #
 
 ###############     SERVER     ###################
+
+IF (PLATFORM_VERSION_3)
+	MESSAGE("Use Cynara as access control backend")
+	SET(AC_BACKEND_REQUIRE cynara-client)
+	SET(AC_BACKEND_SRCS framework/service/access-control-cynara.cpp)
+ELSE (PLATFORM_VERSION_3)
+	MESSAGE("Use Smack as access control backend")
+	SET(AC_BACKEND_REQUIRE libsmack)
+	SET(AC_BACKEND_SRCS framework/service/access-control-smack.cpp)
+ENDIF (PLATFORM_VERSION_3)
+
 PKG_CHECK_MODULES(${TARGET_CSR_SERVER}_DEP
 	REQUIRED
 	libsystemd-daemon
 	sqlite3
 	pkgmgr
 	pkgmgr-info
-	libsmack
+	${AC_BACKEND_REQUIRE}
 )
 
 SET(${TARGET_CSR_SERVER}_SRCS
@@ -38,7 +49,6 @@ SET(${TARGET_CSR_SERVER}_SRCS
 	framework/service/thread-pool.cpp
 	framework/service/core-usage.cpp
 	framework/service/fs-utils.cpp
-	framework/service/access-control-smack.cpp
 	framework/service/file-system.cpp
 	framework/service/app-deleter.cpp
 	framework/service/cs-loader.cpp
@@ -52,6 +62,8 @@ SET(${TARGET_CSR_SERVER}_SRCS
 	framework/db/connection.cpp
 	framework/db/statement.cpp
 	framework/db/manager.cpp
+
+	${AC_BACKEND_SRCS}
 )
 
 INCLUDE_DIRECTORIES(

@@ -43,6 +43,34 @@ namespace Csr {
 
 namespace {
 
+#define CID_TOSTRING(name) case CommandId::name: return #name
+std::string cidToString(const CommandId &cid)
+{
+	switch (cid) {
+	CID_TOSTRING(SCAN_DATA);
+	CID_TOSTRING(SCAN_FILE);
+	CID_TOSTRING(GET_DETECTED);
+	CID_TOSTRING(GET_DETECTED_LIST);
+	CID_TOSTRING(GET_IGNORED);
+	CID_TOSTRING(GET_IGNORED_LIST);
+	CID_TOSTRING(GET_SCANNABLE_FILES);
+	CID_TOSTRING(SET_DIR_TIMESTAMP);
+	CID_TOSTRING(JUDGE_STATUS);
+
+	CID_TOSTRING(CHECK_URL);
+
+	CID_TOSTRING(EM_GET_VENDOR);
+	CID_TOSTRING(EM_GET_NAME);
+	CID_TOSTRING(EM_GET_DATA_VERSION);
+	CID_TOSTRING(EM_GET_UPDATED_TIME);
+	CID_TOSTRING(EM_GET_ACTIVATED);
+	CID_TOSTRING(EM_GET_STATE);
+	CID_TOSTRING(EM_SET_STATE);
+	default: return FORMAT("Undefined command id: " << static_cast<int>(cid));
+	}
+}
+#undef CID_TOSTRING
+
 inline CommandId extractCommandId(BinaryQueue &q)
 {
 	CommandId id;
@@ -78,7 +106,11 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 	BinaryQueue q;
 	q.push(data);
 
-	switch (extractCommandId(q)) {
+	auto cid = extractCommandId(q);
+
+	INFO("Content scanning request process. command id: " << cidToString(cid));
+
+	switch (cid) {
 	case CommandId::SCAN_DATA: {
 		if (!hasPermission(conn))
 			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, CsDetected()).pop();
@@ -184,7 +216,11 @@ RawBuffer ServerService::processWp(const ConnShPtr &conn, RawBuffer &data)
 	BinaryQueue q;
 	q.push(data);
 
-	switch (extractCommandId(q)) {
+	auto cid = extractCommandId(q);
+
+	INFO("Web protection request process. command id: " << cidToString(cid));
+
+	switch (cid) {
 	case CommandId::CHECK_URL: {
 		WpContextShPtr cptr;
 		std::string url;
@@ -205,7 +241,11 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 
 	bool hasPerm = hasPermission(conn);
 
-	switch (extractCommandId(q)) {
+	auto cid = extractCommandId(q);
+
+	INFO("Admin request process. command id: " << cidToString(cid));
+
+	switch (cid) {
 	case CommandId::EM_GET_NAME: {
 		if (!hasPerm)
 			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, EmString()).pop();

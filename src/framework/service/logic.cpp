@@ -37,11 +37,11 @@ RawBuffer Logic::exceptionGuard(const std::function<RawBuffer()> &func,
 	} catch (const Exception &e) {
 		ERROR("Exception caught. code: " << e.error() << " message: " << e.what());
 		return closer(e.error());
-	} catch (const std::invalid_argument &) {
-		ERROR("Invalid argument.");
+	} catch (const std::invalid_argument &e) {
+		ERROR("Invalid argument: " << e.what());
 		return closer(CSR_ERROR_INVALID_PARAMETER);
-	} catch (const std::bad_alloc &) {
-		ERROR("memory alloc failed.");
+	} catch (const std::bad_alloc &e) {
+		ERROR("memory alloc failed: " << e.what());
 		return closer(CSR_ERROR_OUT_OF_MEMORY);
 	} catch (const std::exception &e) {
 		ERROR("std exception: " << e.what());

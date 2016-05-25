@@ -127,6 +127,12 @@ AsyncLogic::Ending AsyncLogic::scanFiles(const StrSet &fileSet)
 		// for auto memory deleting in case of exception
 		ResultPtr resultPtr(ret.second);
 
+		// ignore all file-system related error in async operation.
+		if (ret.first == CSR_ERROR_FILE_DO_NOT_EXIST ||
+			ret.first == CSR_ERROR_FILE_CHANGED ||
+			ret.first == CSR_ERROR_FILE_SYSTEM)
+			continue;
+
 		if (ret.first != CSR_ERROR_NONE) {
 			ERROR("[Error] ret: " << ret.first << " while scan file: " << file);
 			auto ec = ret.first;

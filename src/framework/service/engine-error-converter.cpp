@@ -34,11 +34,14 @@ void toException(int ee)
 	case CSRE_ERROR_OUT_OF_MEMORY:
 		throw std::bad_alloc();
 
+	case CSRE_ERROR_PERMISSION_DENIED:
+		ThrowExc(PermDenied, "access denied related to engine");
+
+	case CSRE_ERROR_FILE_NOT_FOUND:
+		ThrowExc(FileDoNotExist, "file not found.");
+
 	case CSRE_ERROR_ENGINE_NOT_ACTIVATED:
 		ThrowExc(EngineNotActivated, "engine is not activated yet");
-
-	case CSRE_ERROR_PERMISSION_DENIED:
-		ThrowExc(EnginePermDenied, "access denied related to engine");
 
 	default:
 		ThrowExc(EngineError, "engine internal error. ec: " << ee);

@@ -26,12 +26,12 @@
 namespace Csr {
 
 // exceptions listed here are only thrown in server side.
+using PermDenied   = DerivedException<CSR_ERROR_ENGINE_PERMISSION>;
 using DbFailed           = DerivedException<CSR_ERROR_DB>;
-using EngineError        = DerivedException<CSR_ERROR_ENGINE_INTERNAL>;
-using EngineNotActivated = DerivedException<CSR_ERROR_ENGINE_NOT_ACTIVATED>;
-using EnginePermDenied   = DerivedException<CSR_ERROR_ENGINE_PERMISSION>;
-using EngineDisabled     = DerivedException<CSR_ERROR_ENGINE_DISABLED>;
 using RemoveFailed       = DerivedException<CSR_ERROR_REMOVE_FAILED>;
 using FileChanged        = DerivedException<CSR_ERROR_FILE_CHANGED>;
+using EngineError        = DerivedException<CSR_ERROR_ENGINE_INTERNAL>;
+using EngineNotActivated = DerivedException<CSR_ERROR_ENGINE_NOT_ACTIVATED>;
+using EngineDisabled     = DerivedException<CSR_ERROR_ENGINE_DISABLED>;
 
 }

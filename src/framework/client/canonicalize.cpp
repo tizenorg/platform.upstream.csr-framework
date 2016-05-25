@@ -36,12 +36,13 @@ std::string getAbsolutePath(const std::string &path)
 	if (resolved == nullptr) {
 		int err = errno;
 		if (err == ENOENT)
-			ERROR("File not found: " << path);
+			ThrowExc(FileDoNotExist, "File do not exist: " << path);
 		else if (err == EACCES)
-			ERROR("Perm denied for a component of the path prefix: " << path);
-
-		ThrowExc(FileSystemError, "Failed to get resolved path: " << path <<
-				 " errno: " << err);
+			ThrowExc(FileSystemError, "Perm denied for a component of the "
+					 "path prefix: " << path);
+		else
+			ThrowExc(FileSystemError, "Failed to get resolved path: " << path <<
+					 " errno: " << err);
 	}
 
 	std::string resolvedStr(resolved);

@@ -251,7 +251,7 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 	auto ret = hExt->dispatch<std::pair<int, CsDetected *>>(
 				   CommandId::SCAN_FILE,
 				   hExt->getContext(),
-				   std::string(file_path));
+				   Client::getAbsolutePath(file_path));
 
 	if (ret.second)
 		hExt->add(ResultPtr(ret.second));

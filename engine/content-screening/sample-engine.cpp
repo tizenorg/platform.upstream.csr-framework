@@ -389,9 +389,7 @@ int csre_cs_scan_file(csre_cs_context_h handle,
 	if (file_path == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
 
-	int fd = open(file_path, O_RDONLY);
-
-	if (fd < 0)
+	if (::access(file_path, R_OK) != 0)
 		return CSRE_ERROR_FILE_NOT_FOUND;
 
 	if (handle == nullptr)

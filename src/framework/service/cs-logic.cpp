@@ -167,7 +167,25 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 
 RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 {
-	auto fileptr = File::create(path);
+	FilePtr fileptr;
+	try {
+		fileptr = File::create(path);
+	} catch (const FileDoNotExist &e) {
+		WARN("Pinned file[" << path << " in app doesn't exist or perm denied.");
+	} catch (const FileSystemError &e) {
+		WARN("Pinned file[" << path << " in app type isn't regular file or dir.");
+	}
+
+	// try again to create FilePtr by package path
+	if (!fileptr) {
+		try {
+			fileptr = File::create(File::getPkgPath(path));
+		} catch (const FileDoNotExist &e) {
+			WARN("Package path of file[" << path << "] doesn't exist or perm denied.");
+		} catch (const FileSystemError &e) {
+			WARN("Package path of file[" << path << "] type isn't regular file or dir.");
+		}
+	}
 
 	if (!fileptr)
 		ThrowExc(InternalError, "fileptr shouldn't be null because no modified since.");

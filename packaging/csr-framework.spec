@@ -40,7 +40,7 @@ file contents and checking url to prevent malicious items.
 %global rw_db_dir                    %{rw_data_dir}/%{service_name}/dbspace
 %global sample_engine_ro_res_dir     %{ro_data_dir}/%{service_name}/engine
 %global sample_engine_rw_working_dir %{rw_data_dir}/%{service_name}/engine
-%global sample_engine_dir            %{_libdir}
+%global sample_engine_dir            %{rw_data_dir}/%{service_name}/lib
 %global test_dir                     %{rw_data_dir}/%{service_name}-test
 
 %package -n lib%{name}-common

@@ -41,6 +41,11 @@ public:
 	Manager(const std::string &dbfile, const std::string &scriptsDir);
 	virtual ~Manager();
 
+	Manager(const Manager &) = delete;
+	Manager &operator=(const Manager &) = delete;
+	Manager(Manager &&) = delete;
+	Manager &operator=(Manager &&) = delete;
+
 	// SCHEMA_INFO. it's public only for testing for now...
 	int getSchemaVersion();
 

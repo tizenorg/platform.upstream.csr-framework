@@ -156,10 +156,7 @@ int Manager::getSchemaVersion()
 
 	stmt.bind(DB_VERSION_STR);
 
-	if (!stmt.step())
-		ThrowExc(DbFailed, "schema version row isn't exist!");
-
-	return stmt.getInt();
+	return stmt.step() ? stmt.getInt() : SchemaVersion::NOT_EXIST;
 }
 
 void Manager::setSchemaVersion(int sv)

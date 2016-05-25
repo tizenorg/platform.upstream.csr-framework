@@ -52,7 +52,7 @@ Statement::Statement(const Connection &db, const std::string &query) :
 Statement::~Statement()
 {
 	if (SQLITE_OK != ::sqlite3_finalize(m_stmt))
-		ThrowExc(DbFailed, getErrorMessage());
+		ERROR("Failed to sqlite3_finalize: " << getErrorMessage());
 }
 
 void Statement::reset()
@@ -98,7 +98,8 @@ bool Statement::step()
 int Statement::exec()
 {
 	if (::sqlite3_step(m_stmt) != SQLITE_DONE)
-		ThrowExc(DbFailed, getErrorMessage());
+		ThrowExc(DbFailed, "exec() failed. query: " << m_query <<
+				 " msg: " << getErrorMessage());
 
 	// column cannot be 'get' after sqlite done, so make index overflow.
 	m_columnIndex = m_columnCount + 1;

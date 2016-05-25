@@ -122,19 +122,23 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 	CsEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
+	auto lastScanTime = this->m_db.getLastScanTime(pkgPath, this->m_dataVersion);
+
 	// traverse files in app and take which is more danger than riskiest
-	auto visitor = FsVisitor::create(
-					   pkgPath,
-					   this->m_db.getLastScanTime(pkgPath, this->m_dataVersion));
+	auto visitor = FsVisitor::create(pkgPath, lastScanTime);
 
 	CsDetectedPtr riskiest;
 
 	while (auto file = visitor->next()) {
+		DEBUG("Scan file by engine: " << file->getPath());
+
 		csre_cs_detected_h result;
 		toException(this->m_loader.scanFile(c, file->getPath(), &result));
 
 		if (!result) {
-			this->m_db.deleteDetectedByFilepathOnPath(file->getPath());
+			if (lastScanTime != -1)
+				this->m_db.deleteDetectedByFilepathOnPath(file->getPath());
+
 			continue;
 		}
 

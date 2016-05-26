@@ -21,7 +21,7 @@
  */
 #pragma once
 
-#include <csr/content-screening-types.h>
+#include <csr-content-screening-types.h>
 
 namespace Csr {
 

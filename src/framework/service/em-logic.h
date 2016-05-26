@@ -30,7 +30,7 @@
 #include "service/wp-loader.h"
 #include "service/logic.h"
 #include "db/manager.h"
-#include "csr/engine-manager.h"
+#include <csr-engine-manager.h>
 
 namespace Csr {
 

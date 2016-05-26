@@ -25,8 +25,8 @@
 #include <vector>
 #include <string>
 
-#include "csre/content-screening-types.h"
-#include "csre/content-screening-engine-info.h"
+#include <csre-content-screening-types.h>
+#include <csre-content-screening-engine-info.h>
 
 namespace Csr {
 

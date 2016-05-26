@@ -24,7 +24,7 @@
 #include <utility>
 #include <stdexcept>
 
-#include "csr/content-screening-types.h"
+#include <csr-content-screening-types.h>
 
 namespace Csr {
 

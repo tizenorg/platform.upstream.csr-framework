@@ -14,7 +14,7 @@
  *  limitations under the License
  */
 /*
- * @file        content-screening.h
+ * @file        csre-content-screening.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
  * @brief       Interface for content-screening engine
@@ -22,8 +22,8 @@
 #ifndef __CSRE_CONTENT_SCREENING_API_H_
 #define __CSRE_CONTENT_SCREENING_API_H_
 
-#include "csre/content-screening-types.h"
-#include "csre/error.h"
+#include <csre-content-screening-types.h>
+#include <csre-error.h>
 
 #include <stddef.h>
 #include <time.h>

@@ -32,7 +32,7 @@
 #include "service/file-system.h"
 #include "service/logic.h"
 
-#include "csr/content-screening-types.h"
+#include <csr-content-screening-types.h>
 
 namespace Csr {
 

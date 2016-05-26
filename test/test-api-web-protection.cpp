@@ -19,7 +19,7 @@
  * @version     1.0
  * @brief       CSR Web protection API test
  */
-#include <csr/web-protection.h>
+#include <csr-web-protection.h>
 
 #include <string>
 #include <iostream>

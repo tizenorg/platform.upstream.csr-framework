@@ -19,7 +19,7 @@
  * @version     1.0
  * @brief       CSR Engine manager API test
  */
-#include <csr/engine-manager.h>
+#include <csr-engine-manager.h>
 
 #include <string>
 #include <boost/test/unit_test.hpp>

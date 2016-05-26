@@ -14,7 +14,7 @@
  *  limitations under the License
  */
 /*
- * @file        content-screening-types.h
+ * @file        csr-content-screening-types.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
  * @brief       Content screening CAPI enums, handles and callbacks

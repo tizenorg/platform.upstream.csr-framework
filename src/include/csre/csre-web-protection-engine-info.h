@@ -14,7 +14,7 @@
  *  limitations under the License
  */
 /*
- * @file        web-protection-engine-info.h
+ * @file        csre-web-protection-engine-info.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
  * @brief       Interface for engine management on engine
@@ -23,7 +23,7 @@
 #define __CSRE_WEB_PROTECTION_ENGINE_INFO_H_
 
 #include <time.h>
-#include "csre/error.h"
+#include <csre-error.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -14,10 +14,10 @@
  *  limitations under the License
  */
 /*
- * @file        content-screening.h
+ * @file        csr-content-screening.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       Main API header for content screening
  */
 #ifndef __CSR_CONTENT_SCREENING_API_H_
 #define __CSR_CONTENT_SCREENING_API_H_
@@ -26,8 +26,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "csr/content-screening-types.h"
-#include "csr/error.h"
+#include <csr-content-screening-types.h>
+#include <csr-error.h>
 
 #ifdef __cplusplus
 extern "C" {

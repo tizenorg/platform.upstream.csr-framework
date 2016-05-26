@@ -19,7 +19,7 @@
  * @version     1.0
  * @brief       CSR Engine manager APIs
  */
-#include "csr/engine-manager.h"
+#include <csr-engine-manager.h>
 
 #include <new>
 #include <utility>

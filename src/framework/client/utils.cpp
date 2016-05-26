@@ -25,7 +25,7 @@
 
 #include "common/audit/logger.h"
 #include "common/exception.h"
-#include "csr/error.h"
+#include <csr-error.h>
 
 __attribute__((constructor))
 static void init_lib(void)

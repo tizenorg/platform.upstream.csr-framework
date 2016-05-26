@@ -14,7 +14,7 @@
  *  limitations under the License
  */
 /*
- * @file        web-protection.h
+ * @file        csre-web-protection.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
  * @brief
@@ -22,8 +22,8 @@
 #ifndef __CSRE_WEB_PROTECTION_API_H_
 #define __CSRE_WEB_PROTECTION_API_H_
 
-#include "csre/web-protection-types.h"
-#include "csre/error.h"
+#include <csre-web-protection-types.h>
+#include <csre-error.h>
 
 #ifdef __cplusplus
 extern "C" {

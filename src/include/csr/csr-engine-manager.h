@@ -14,7 +14,7 @@
  *  limitations under the License
  */
 /*
- * @file        engine-manager.h
+ * @file        csr-engine-manager.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
  * @brief
@@ -23,7 +23,7 @@
 #define __CSR_ENGINE_MANAGER_H_
 
 #include <time.h>
-#include "csr/error.h"
+#include <csr-error.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -19,8 +19,8 @@
  * @version     1.0
  * @brief       CSR Content screening Engine API test
  */
-#include <csre/web-protection.h>
-#include <csre/web-protection-engine-info.h>
+#include <csre-web-protection.h>
+#include <csre-web-protection-engine-info.h>
 
 #include <unordered_map>
 #include <string>

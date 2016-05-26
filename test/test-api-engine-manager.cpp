@@ -62,21 +62,21 @@ BOOST_AUTO_TEST_CASE(fields_getters)
 
 	Engine e(CSR_ENGINE_CS);
 
-	const char *vendor = nullptr;
-	ASSERT_IF(csr_engine_get_vendor(e.get(), &vendor), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("TEST_VENDOR"), vendor);
+	Test::ScopedCstr vendor;
+	ASSERT_IF(csr_engine_get_vendor(e.get(), &vendor.ptr), CSR_ERROR_NONE);
+	ASSERT_IF(std::string("TEST_VENDOR"), vendor.ptr);
 
-	const char *name = nullptr;
-	ASSERT_IF(csr_engine_get_name(e.get(), &name), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("TEST_LOCAL_TCS_ENGINE"), name);
+	Test::ScopedCstr name;
+	ASSERT_IF(csr_engine_get_name(e.get(), &name.ptr), CSR_ERROR_NONE);
+	ASSERT_IF(std::string("TEST_LOCAL_TCS_ENGINE"), name.ptr);
 
-	const char *version = nullptr;
-	ASSERT_IF(csr_engine_get_version(e.get(), &version), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("0.0.1"), version);
+	Test::ScopedCstr version;
+	ASSERT_IF(csr_engine_get_version(e.get(), &version.ptr), CSR_ERROR_NONE);
+	ASSERT_IF(std::string("0.0.1"), version.ptr);
 
-	const char *dataVersion = nullptr;
-	ASSERT_IF(csr_engine_get_version(e.get(), &dataVersion), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("0.0.1"), dataVersion);
+	Test::ScopedCstr dataVersion;
+	ASSERT_IF(csr_engine_get_version(e.get(), &dataVersion.ptr), CSR_ERROR_NONE);
+	ASSERT_IF(std::string("0.0.1"), dataVersion.ptr);
 
 	csr_activated_e activated;
 	ASSERT_IF(csr_engine_get_activated(e.get(), &activated), CSR_ERROR_NONE);
@@ -157,21 +157,21 @@ BOOST_AUTO_TEST_CASE(fields_getters)
 
 	Engine e(CSR_ENGINE_WP);
 
-	const char *vendor = nullptr;
-	ASSERT_IF(csr_engine_get_vendor(e.get(), &vendor), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("TEST_VENDOR"), vendor);
+	Test::ScopedCstr vendor;
+	ASSERT_IF(csr_engine_get_vendor(e.get(), &vendor.ptr), CSR_ERROR_NONE);
+	ASSERT_IF(std::string("TEST_VENDOR"), vendor.ptr);
 
-	const char *name = nullptr;
-	ASSERT_IF(csr_engine_get_name(e.get(), &name), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("TEST_LOCAL_TWP_ENGINE"), name);
+	Test::ScopedCstr name;
+	ASSERT_IF(csr_engine_get_name(e.get(), &name.ptr), CSR_ERROR_NONE);
+	ASSERT_IF(std::string("TEST_LOCAL_TWP_ENGINE"), name.ptr);
 
-	const char *version = nullptr;
-	ASSERT_IF(csr_engine_get_version(e.get(), &version), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("0.0.1"), version);
+	Test::ScopedCstr version;
+	ASSERT_IF(csr_engine_get_version(e.get(), &version.ptr), CSR_ERROR_NONE);
+	ASSERT_IF(std::string("0.0.1"), version.ptr);
 
-	const char *dataVersion = nullptr;
-	ASSERT_IF(csr_engine_get_version(e.get(), &dataVersion), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("0.0.1"), dataVersion);
+	Test::ScopedCstr dataVersion;
+	ASSERT_IF(csr_engine_get_version(e.get(), &dataVersion.ptr), CSR_ERROR_NONE);
+	ASSERT_IF(std::string("0.0.1"), dataVersion.ptr);
 
 	csr_activated_e activated;
 	ASSERT_IF(csr_engine_get_activated(e.get(), &activated), CSR_ERROR_NONE);

@@ -33,17 +33,17 @@ void ASSERT_RESULT(csr_wp_check_result_h result,
 	csr_wp_risk_level_e risk, const char * detailed_url, csr_wp_user_response_e response)
 {
 	csr_wp_risk_level_e a_risk;
-	const char *a_detailed_url;
 	csr_wp_user_response_e a_response;
+	Test::ScopedCstr a_detailed_url;
 
 	CHECK_IS_NOT_NULL(result);
 
 	ASSERT_SUCCESS(csr_wp_result_get_risk_level(result, &a_risk));
-	ASSERT_SUCCESS(csr_wp_result_get_detailed_url(result, &a_detailed_url));
+	ASSERT_SUCCESS(csr_wp_result_get_detailed_url(result, &a_detailed_url.ptr));
 	ASSERT_SUCCESS(csr_wp_result_get_user_response(result, &a_response));
 
 	ASSERT_IF(a_risk, risk);
-	ASSERT_IF(a_detailed_url, detailed_url);
+	ASSERT_IF(a_detailed_url.ptr, detailed_url);
 	ASSERT_IF(a_response, response);
 }
 
@@ -239,13 +239,14 @@ BOOST_AUTO_TEST_CASE(get_detailed_url)
 
 	auto c = Test::Context<csr_wp_context_h>();
 	auto context = c.get();
-	const char *detailed_url;
+
+	Test::ScopedCstr detailed_url;
 
 	csr_wp_check_result_h result;
 	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_HIGH_URL, &result));
 
-	ASSERT_SUCCESS(csr_wp_result_get_detailed_url(result, &detailed_url));
-	ASSERT_IF(detailed_url, RISK_HIGH_DETAILED_URL);
+	ASSERT_SUCCESS(csr_wp_result_get_detailed_url(result, &detailed_url.ptr));
+	ASSERT_IF(detailed_url.ptr, RISK_HIGH_DETAILED_URL);
 
 	EXCEPTION_GUARD_END
 }
@@ -256,12 +257,13 @@ BOOST_AUTO_TEST_CASE(get_detailed_url_invalid_param)
 
 	auto c = Test::Context<csr_wp_context_h>();
 	auto context = c.get();
-	const char *detailed_url;
+
+	Test::ScopedCstr detailed_url;
 
 	csr_wp_check_result_h result;
 	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_HIGH_URL, &result));
 
-	ASSERT_IF(csr_wp_result_get_detailed_url(nullptr, &detailed_url),
+	ASSERT_IF(csr_wp_result_get_detailed_url(nullptr, &detailed_url.ptr),
 			  CSR_ERROR_INVALID_HANDLE);
 	ASSERT_IF(csr_wp_result_get_detailed_url(result, nullptr),
 			  CSR_ERROR_INVALID_PARAMETER);

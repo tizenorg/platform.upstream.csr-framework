@@ -496,7 +496,7 @@ int csr_cs_detected_get_severity(csr_cs_detected_h detected,
  *
  * @param[in]  detected      A detected malware handle.
  * @param[out] malware_name  A pointer of the name of a detected malware. A caller
- *                           should not free this string.
+ *                           should free this string.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -505,8 +505,7 @@ int csr_cs_detected_get_severity(csr_cs_detected_h detected,
  * @retval #CSR_ERROR_INVALID_PARAMETER    malware_name is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_malware_name(csr_cs_detected_h detected,
-									 const char **pmalware_name);
+int csr_cs_detected_get_malware_name(csr_cs_detected_h detected, char **pmalware_name);
 
 /**
  * @brief extracts an url that contains detailed information on vendor's web site from the detected malware handle.
@@ -516,7 +515,7 @@ int csr_cs_detected_get_malware_name(csr_cs_detected_h detected,
  * @param[in]  detected      A detected malware handle.
  * @param[out] detailed_url  A pointer of an url that contains detailed information on vendor's web site.\n
  *                           It can be null if a vendor doesn't provide this information.\n
- *                           A caller should not free this string.
+ *                           A caller should free this string.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -525,8 +524,7 @@ int csr_cs_detected_get_malware_name(csr_cs_detected_h detected,
  * @retval #CSR_ERROR_INVALID_PARAMETER    malware_name is invalid.
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected,
-									 const char **pdetailed_url);
+int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, char **pdetailed_url);
 
 /**
  * @brief extracts the time stamp when a malware is detected from the detected malware handle.
@@ -552,7 +550,7 @@ int csr_cs_detected_get_timestamp(csr_cs_detected_h detected,
  * @since_tizen 3.0
  *
  * @param[in]  detected      A detected malware handle.
- * @param[out] file_name  A pointer of the file name where a malware is detected. A caller should not free this string. The file name is Null for csr_cs_scan_data.
+ * @param[out] file_name  A pointer of the file name where a malware is detected. A caller should free this string. The file name is Null for csr_cs_scan_data.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -561,8 +559,7 @@ int csr_cs_detected_get_timestamp(csr_cs_detected_h detected,
  * @retval #CSR_ERROR_INVALID_PARAMETER    file_name is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_file_name(csr_cs_detected_h detected,
-								  const char **pfile_name);
+int csr_cs_detected_get_file_name(csr_cs_detected_h detected, char **pfile_name);
 
 /**
  * @brief extracts a user reponse of a popup from the detected malware handle.
@@ -605,7 +602,7 @@ int csr_cs_detected_is_app(csr_cs_detected_h detected, bool *pis_app);
  * @since_tizen 3.0
  *
  * @param[in]  detected      A detected malware handle.
- * @param[out] ppkg_id       A pointer of the pakcage id where a malware is detected. A caller should not free this string. This is a null when a malware was not detected in an application.
+ * @param[out] ppkg_id       A pointer of the pakcage id where a malware is detected. A caller should free this string. This is a null when a malware was not detected in an application.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -614,8 +611,7 @@ int csr_cs_detected_is_app(csr_cs_detected_h detected, bool *pis_app);
  * @retval #CSR_ERROR_INVALID_PARAMETER    ppkg_id is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected,
-							   const char **ppkg_id);
+int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, char **ppkg_id);
 
 /**
  * @brief Judges how a detected malware file is handled.

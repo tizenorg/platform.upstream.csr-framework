@@ -22,6 +22,7 @@
 #include "csr/content-screening.h"
 
 #include <new>
+#include <cstring>
 
 #include "client/utils.h"
 #include "client/handle-ext.h"
@@ -494,8 +495,7 @@ int csr_cs_detected_get_severity(csr_cs_detected_h detected,
 }
 
 API
-int csr_cs_detected_get_malware_name(csr_cs_detected_h detected,
-									 const char **pmalware_name)
+int csr_cs_detected_get_malware_name(csr_cs_detected_h detected, char **pmalware_name)
 {
 	EXCEPTION_SAFE_START
 
@@ -504,7 +504,13 @@ int csr_cs_detected_get_malware_name(csr_cs_detected_h detected,
 	else if (pmalware_name == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*pmalware_name = reinterpret_cast<CsDetected *>(detected)->malwareName.c_str();
+	auto malware_name =
+			strdup(reinterpret_cast<CsDetected *>(detected)->malwareName.c_str());
+
+	if (malware_name == nullptr)
+		return CSR_ERROR_OUT_OF_MEMORY;
+
+	*pmalware_name = malware_name;
 
 	return CSR_ERROR_NONE;
 
@@ -512,8 +518,7 @@ int csr_cs_detected_get_malware_name(csr_cs_detected_h detected,
 }
 
 API
-int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected,
-									 const char **pdetailed_url)
+int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, char **pdetailed_url)
 {
 	EXCEPTION_SAFE_START
 
@@ -522,7 +527,13 @@ int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected,
 	else if (pdetailed_url == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*pdetailed_url = reinterpret_cast<CsDetected *>(detected)->detailedUrl.c_str();
+	auto detailed_url = strdup(
+			reinterpret_cast<CsDetected *>(detected)->detailedUrl.c_str());
+
+	if (detailed_url == nullptr)
+		return CSR_ERROR_OUT_OF_MEMORY;
+
+	*pdetailed_url = detailed_url;
 
 	return CSR_ERROR_NONE;
 
@@ -547,7 +558,7 @@ int csr_cs_detected_get_timestamp(csr_cs_detected_h detected, time_t *ptimestamp
 }
 
 API
-int csr_cs_detected_get_file_name(csr_cs_detected_h detected, const char **pfile_name)
+int csr_cs_detected_get_file_name(csr_cs_detected_h detected, char **pfile_name)
 {
 	EXCEPTION_SAFE_START
 
@@ -556,7 +567,13 @@ int csr_cs_detected_get_file_name(csr_cs_detected_h detected, const char **pfile
 	else if (pfile_name == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*pfile_name = reinterpret_cast<CsDetected *>(detected)->targetName.c_str();
+	auto file_name = strdup(
+			reinterpret_cast<CsDetected *>(detected)->targetName.c_str());
+
+	if (file_name == nullptr)
+		return CSR_ERROR_OUT_OF_MEMORY;
+
+	*pfile_name = file_name;
 
 	return CSR_ERROR_NONE;
 
@@ -599,7 +616,7 @@ int csr_cs_detected_is_app(csr_cs_detected_h detected, bool *pis_app)
 }
 
 API
-int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, const char **ppkg_id)
+int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, char **ppkg_id)
 {
 	EXCEPTION_SAFE_START
 
@@ -608,7 +625,13 @@ int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, const char **ppkg_id)
 	else if (ppkg_id == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*ppkg_id = reinterpret_cast<CsDetected *>(detected)->pkgId.c_str();
+	auto pkg_id = strdup(
+			reinterpret_cast<CsDetected *>(detected)->pkgId.c_str());
+
+	if (pkg_id == nullptr)
+		return CSR_ERROR_OUT_OF_MEMORY;
+
+	*ppkg_id = pkg_id;
 
 	return CSR_ERROR_NONE;
 

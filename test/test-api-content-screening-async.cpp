@@ -75,9 +75,9 @@ void on_scanned(void *userdata, const char *file)
 
 void on_detected(void *userdata, csr_cs_detected_h detected)
 {
-	const char *file_name;
-	ASSERT_IF(csr_cs_detected_get_file_name(detected, &file_name), CSR_ERROR_NONE);
-	BOOST_MESSAGE("on_detected. file[" << file_name << "] detected!");
+	Test::ScopedCstr file_name;
+	ASSERT_IF(csr_cs_detected_get_file_name(detected, &file_name.ptr), CSR_ERROR_NONE);
+	BOOST_MESSAGE("on_detected. file[" << file_name.ptr << "] detected!");
 	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
 	ctx->detectedCnt++;
 	ctx->detectedList.push_back(detected);

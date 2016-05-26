@@ -174,13 +174,19 @@ void _assert<int, csr_error_e>(const int &value,
 						  "] expected[" << capi_ec_to_string(expected) << "] " << msg);
 }
 
-void _assert(const char *value, const char *expected, const std::string &filename,
-			 const std::string &funcname, unsigned int line, const std::string &msg)
+template <>
+void _assert<const char *, const char *>(const char * const &value,
+										 const char * const &expected,
+										 const std::string &filename,
+										 const std::string &funcname,
+										 unsigned int line,
+										 const std::string &msg)
 {
 	if (value == nullptr && expected == nullptr)
 		BOOST_REQUIRE(true);
 	else if (value != nullptr && expected != nullptr)
-		_assert(std::string(value), expected, filename, funcname, line, msg);
+		_assert<std::string, const char *>(std::string(value), expected, filename,
+										   funcname, line, msg);
 	else if (value == nullptr && expected != nullptr)
 		BOOST_REQUIRE_MESSAGE(std::string(expected).empty(),
 							  "[" << filename << " > " << funcname << " : " << line <<
@@ -191,11 +197,61 @@ void _assert(const char *value, const char *expected, const std::string &filenam
 							  "] returned[" << value << "] expected[nullptr] " << msg);
 }
 
-void _assert(const char *value, const std::string &expected, const std::string &filename,
-			 const std::string &funcname, unsigned int line, const std::string &msg)
+template <>
+void _assert<char *, const char *>(char * const &value,
+								   const char * const &expected,
+								   const std::string &filename,
+								   const std::string &funcname,
+								   unsigned int line,
+								   const std::string &msg)
 {
-	_assert((value == nullptr) ? std::string() : std::string(value),
+	_assert<const char *, const char *>(value, expected, filename, funcname, line, msg);
+}
+
+template <>
+void _assert<const char *, char *>(const char * const &value,
+								   char * const &expected,
+								   const std::string &filename,
+								   const std::string &funcname,
+								   unsigned int line,
+								   const std::string &msg)
+{
+	_assert<const char *, const char *>(value, expected, filename, funcname, line, msg);
+}
+
+template <>
+void _assert<char *, char *>(char * const &value,
+							 char * const &expected,
+							 const std::string &filename,
+							 const std::string &funcname,
+							 unsigned int line,
+							 const std::string &msg)
+{
+	_assert<const char *, const char *>(value, expected, filename, funcname, line, msg);
+}
+
+template <>
+void _assert<const char *, std::string>(const char * const &value,
+										const std::string &expected,
+										const std::string &filename,
+										const std::string &funcname,
+										unsigned int line,
+										const std::string &msg)
+{
+	_assert<std::string, std::string>(
+			(value == nullptr) ? std::string() : std::string(value),
 			expected, filename, funcname, line, msg);
+}
+
+template <>
+void _assert<char *, std::string>(char * const &value,
+								  const std::string &expected,
+								  const std::string &filename,
+								  const std::string &funcname,
+								  unsigned int line,
+								  const std::string &msg)
+{
+	_assert<const char *, std::string>(value, expected, filename, funcname, line, msg);
 }
 
 void exceptionGuard(const std::function<void()> &f)

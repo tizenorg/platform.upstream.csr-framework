@@ -456,7 +456,7 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares)
 	csr_cs_detected_list_h detected_list;
 	csr_cs_detected_h detected_high, detected_medium;
 	csr_cs_detected_h stored;
-	const char *file_path_actual;
+	Test::ScopedCstr file_path_actual;
 	size_t cnt = 0;
 	size_t idx = 0;
 	size_t compared_cnt = 0;
@@ -478,11 +478,11 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares)
 	for (idx = 0; idx < cnt; idx++) {
 		ASSERT_SUCCESS(csr_cs_dlist_get_detected(detected_list, idx, &stored));
 		CHECK_IS_NOT_NULL(stored);
-		ASSERT_SUCCESS(csr_cs_detected_get_file_name(stored, &file_path_actual));
-		if (strcmp(TEST_FILE_HIGH, file_path_actual) == 0) {
+		ASSERT_SUCCESS(csr_cs_detected_get_file_name(stored, &file_path_actual.ptr));
+		if (strcmp(TEST_FILE_HIGH, file_path_actual.ptr) == 0) {
 			ASSERT_DETECTED_HANDLE(detected_high, stored);
 			compared_cnt++;
-		} else if (strcmp(TEST_FILE_MEDIUM, file_path_actual) == 0) {
+		} else if (strcmp(TEST_FILE_MEDIUM, file_path_actual.ptr) == 0) {
 			ASSERT_DETECTED_HANDLE(detected_medium, stored);
 			compared_cnt++;
 		} else {
@@ -620,7 +620,7 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares)
 	size_t cnt = 0;
 	size_t idx = 0;
 	size_t compared_cnt = 0;
-	const char *file_path_actual;
+	Test::ScopedCstr file_path_actual;
 
 	const char *dirs[1] = {
 		TEST_DIR
@@ -644,11 +644,11 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares)
 	for (idx = 0; idx < cnt; idx++) {
 		ASSERT_SUCCESS(csr_cs_dlist_get_detected(ignored_list, idx, &stored));
 		CHECK_IS_NOT_NULL(stored);
-		ASSERT_SUCCESS(csr_cs_detected_get_file_name(stored, &file_path_actual));
-		if (strcmp(TEST_FILE_HIGH, file_path_actual) == 0) {
+		ASSERT_SUCCESS(csr_cs_detected_get_file_name(stored, &file_path_actual.ptr));
+		if (strcmp(TEST_FILE_HIGH, file_path_actual.ptr) == 0) {
 			ASSERT_DETECTED_HANDLE(detected_high, stored);
 			compared_cnt++;
-		} else if (strcmp(TEST_FILE_MEDIUM, file_path_actual) == 0) {
+		} else if (strcmp(TEST_FILE_MEDIUM, file_path_actual.ptr) == 0) {
 			ASSERT_DETECTED_HANDLE(detected_medium, stored);
 			compared_cnt++;
 		} else {

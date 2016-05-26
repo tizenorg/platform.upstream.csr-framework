@@ -244,25 +244,25 @@ fi
 
 %files devel
 %defattr(-,root,root,-)
-%{_includedir}/csr/content-screening.h
-%{_includedir}/csr/content-screening-types.h
-%{_includedir}/csr/web-protection.h
-%{_includedir}/csr/web-protection-types.h
-%{_includedir}/csr/error.h
-%{_includedir}/csr/engine-manager.h
+%{_includedir}/csr/csr-content-screening.h
+%{_includedir}/csr/csr-content-screening-types.h
+%{_includedir}/csr/csr-web-protection.h
+%{_includedir}/csr/csr-web-protection-types.h
+%{_includedir}/csr/csr-error.h
+%{_includedir}/csr/csr-engine-manager.h
 %{_libdir}/pkgconfig/%{service_name}.pc
 %{_libdir}/lib%{service_name}-client.so
 %{_libdir}/lib%{service_name}-common.so
 
 %files engine-devel
 %defattr(-,root,root,-)
-%{_includedir}/csre/content-screening-engine-info.h
-%{_includedir}/csre/content-screening.h
-%{_includedir}/csre/content-screening-types.h
-%{_includedir}/csre/error.h
-%{_includedir}/csre/web-protection-engine-info.h
-%{_includedir}/csre/web-protection.h
-%{_includedir}/csre/web-protection-types.h
+%{_includedir}/csre/csre-content-screening-engine-info.h
+%{_includedir}/csre/csre-content-screening.h
+%{_includedir}/csre/csre-content-screening-types.h
+%{_includedir}/csre/csre-error.h
+%{_includedir}/csre/csre-web-protection-engine-info.h
+%{_includedir}/csre/csre-web-protection.h
+%{_includedir}/csre/csre-web-protection-types.h
 %{_libdir}/pkgconfig/%{service_name}-engine.pc
 
 %files test

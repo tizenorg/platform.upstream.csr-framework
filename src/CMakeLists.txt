@@ -68,7 +68,8 @@ SET(${TARGET_CSR_SERVER}_SRCS
 
 INCLUDE_DIRECTORIES(
 	framework
-	${PROJECT_SOURCE_DIR}/src/include
+	${PROJECT_SOURCE_DIR}/src/include/csr
+	${PROJECT_SOURCE_DIR}/src/include/csre
 	${${TARGET_CSR_SERVER}_DEP_INCLUDE_DIRS}
 )
 
@@ -109,7 +110,8 @@ SET(${TARGET_CSR_CLIENT}_SRCS
 
 INCLUDE_DIRECTORIES(
 	framework
-	${PROJECT_SOURCE_DIR}/src/include
+	${PROJECT_SOURCE_DIR}/src/include/csr
+	${PROJECT_SOURCE_DIR}/src/include/csre
 	${${TARGET_CSR_CLIENT}_DEP_INCLUDE_DIRS}
 )
 

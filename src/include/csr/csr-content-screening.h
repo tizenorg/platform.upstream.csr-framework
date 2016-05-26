@@ -26,8 +26,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "csr/content-screening-types.h"
-#include "csr/error.h"
+#include <csr-content-screening-types.h>
+#include <csr-error.h>
 
 #ifdef __cplusplus
 extern "C" {

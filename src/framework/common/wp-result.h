@@ -24,7 +24,7 @@
 #include <string>
 
 #include "common/iresult.h"
-#include "csr/web-protection-types.h"
+#include <csr-web-protection-types.h>
 
 namespace Csr {
 

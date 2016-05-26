@@ -28,7 +28,8 @@ SET(${TARGET_CSR_THREADPOOL_TEST}_SRCS
 )
 
 INCLUDE_DIRECTORIES(
-	${PROJECT_SOURCE_DIR}/src/include
+	${PROJECT_SOURCE_DIR}/src/include/csr
+	${PROJECT_SOURCE_DIR}/src/include/csre
 	${PROJECT_SOURCE_DIR}/src/framework
 	${PROJECT_SOURCE_DIR}/test
 	.

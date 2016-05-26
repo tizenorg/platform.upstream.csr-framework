@@ -25,8 +25,8 @@
 #include <vector>
 #include <string>
 
-#include "csre/web-protection-types.h"
-#include "csre/web-protection-engine-info.h"
+#include <csre-web-protection-types.h>
+#include <csre-web-protection-engine-info.h>
 
 namespace Csr {
 

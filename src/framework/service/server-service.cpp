@@ -37,7 +37,7 @@
 #include "service/access-control.h"
 #include "service/core-usage.h"
 
-#include "csr/content-screening-types.h"
+#include <csr-content-screening-types.h>
 
 namespace Csr {
 

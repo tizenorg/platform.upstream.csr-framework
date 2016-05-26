@@ -22,8 +22,8 @@
 #ifndef __CSRE_WEB_PROTECTION_API_H_
 #define __CSRE_WEB_PROTECTION_API_H_
 
-#include "csre/web-protection-types.h"
-#include "csre/error.h"
+#include <csre-web-protection-types.h>
+#include <csre-error.h>
 
 #ifdef __cplusplus
 extern "C" {

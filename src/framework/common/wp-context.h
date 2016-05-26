@@ -25,7 +25,7 @@
 #include <memory>
 
 #include "common/icontext.h"
-#include "csr/web-protection-types.h"
+#include <csr-web-protection-types.h>
 
 namespace Csr {
 

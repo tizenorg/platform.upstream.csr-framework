@@ -25,8 +25,8 @@
 #include <boost/test/results_reporter.hpp>
 #include <colour_log_formatter.h>
 
-#include "csre/content-screening.h"
-#include "csre/web-protection.h"
+#include <csre-content-screening.h>
+#include <csre-web-protection.h>
 
 struct TestConfig {
 	TestConfig()

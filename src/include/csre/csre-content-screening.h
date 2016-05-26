@@ -22,8 +22,8 @@
 #ifndef __CSRE_CONTENT_SCREENING_API_H_
 #define __CSRE_CONTENT_SCREENING_API_H_
 
-#include "csre/content-screening-types.h"
-#include "csre/error.h"
+#include <csre-content-screening-types.h>
+#include <csre-error.h>
 
 #include <stddef.h>
 #include <time.h>

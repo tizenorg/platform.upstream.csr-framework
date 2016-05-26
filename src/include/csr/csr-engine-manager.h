@@ -23,7 +23,7 @@
 #define __CSR_ENGINE_MANAGER_H_
 
 #include <time.h>
-#include "csr/error.h"
+#include <csr-error.h>
 
 #ifdef __cplusplus
 extern "C" {

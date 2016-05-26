@@ -85,8 +85,8 @@ RawBuffer Logic::csPromptData(const std::string &message,
 	Popup popup;
 
 	popup.fillText("Virus detected on data", FORMAT(
-					   "Malware: " << d.malwareName << "\n" <<
-					   "Severity: " << static_cast<int>(d.severity) << "\n" <<
+					   "Malware: " << d.malwareName << "<br>" <<
+					   "Severity: " << static_cast<int>(d.severity) << "<br>" <<
 					   "Do you want to stop processing?" <<
 					   message.c_str()));
 
@@ -109,8 +109,8 @@ RawBuffer Logic::csPromptFile(const std::string &message, const CsDetected &d) c
 	Popup popup;
 
 	popup.fillText("Virus detected", FORMAT(
-					   "File: " << d.targetName << "\n" <<
-					   "Malware: " << d.malwareName << "\n" <<
+					   "File: " << d.targetName << "<br>" <<
+					   "Malware: " << d.malwareName << "<br>" <<
 					   message.c_str()));
 
 	RawBuffer result;
@@ -134,8 +134,8 @@ RawBuffer Logic::csPromptApp(const std::string &message, const CsDetected &d) co
 	Popup popup;
 
 	popup.fillText("Virus detected", FORMAT(
-					   "App: " << d.targetName << "\n" <<
-					   "Malware: " << d.malwareName << "\n" <<
+					   "App: " << d.targetName << "<br>" <<
+					   "Malware: " << d.malwareName << "<br>" <<
 					   message.c_str()));
 
 	RawBuffer result;
@@ -159,8 +159,8 @@ RawBuffer Logic::csNotifyData(const std::string &message, const CsDetected &d) c
 	Popup popup;
 
 	popup.fillText("Virus detected on data", FORMAT(
-					   "Malware: " << d.malwareName << "\n" <<
-					   "Severity: " << static_cast<int>(d.severity) << "\n" <<
+					   "Malware: " << d.malwareName << "<br>" <<
+					   "Severity: " << static_cast<int>(d.severity) << "<br>" <<
 					   "Do you want to stop processing?" <<
 					   message.c_str()));
 
@@ -183,8 +183,8 @@ RawBuffer Logic::csNotifyFile(const std::string &message, const CsDetected &d) c
 	Popup popup;
 
 	popup.fillText("Virus detected", FORMAT(
-					   "File: " << d.targetName << "\n" <<
-					   "Malware: " << d.malwareName << "\n" <<
+					   "File: " << d.targetName << "<br>" <<
+					   "Malware: " << d.malwareName << "<br>" <<
 					   message.c_str()));
 
 	RawBuffer result;
@@ -206,8 +206,8 @@ RawBuffer Logic::csNotifyApp(const std::string &message, const CsDetected &d) co
 	Popup popup;
 
 	popup.fillText("Virus detected", FORMAT(
-					   "App: " << d.targetName << "\n" <<
-					   "Malware: " << d.malwareName << "\n" <<
+					   "App: " << d.targetName << "<br>" <<
+					   "Malware: " << d.malwareName << "<br>" <<
 					   message.c_str()));
 
 	RawBuffer result;
@@ -229,9 +229,9 @@ RawBuffer Logic::wpPrompt(const std::string &message, const UrlItem &item) const
 	Popup popup;
 
 	popup.fillText("Danger URL", FORMAT(
-					   "URL: " << item.url << "\n" <<
+					   "URL: " << item.url << "<br>" <<
 					   "Risky: " << (item.risk == CSR_WP_RISK_HIGH
-									 ? "High" : "Medium") << "\n" <<
+									 ? "High" : "Medium") << "<br>" <<
 					   message.c_str()));
 
 	RawBuffer result;
@@ -253,9 +253,9 @@ RawBuffer Logic::wpNotify(const std::string &message, const UrlItem &item) const
 	Popup popup;
 
 	popup.fillText("Danger URL", FORMAT(
-					   "URL: " << item.url << "\n" <<
+					   "URL: " << item.url << "<br>" <<
 					   "Risky: " << (item.risk == CSR_WP_RISK_HIGH
-									 ? "High" : "Medium") << "\n" <<
+									 ? "High" : "Medium") << "<br>" <<
 					   message.c_str()));
 
 	RawBuffer result;

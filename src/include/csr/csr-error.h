@@ -28,6 +28,12 @@
 extern "C" {
 #endif
 
+
+/**
+ * @addtogroup CAPI_CSR_FRAMEWORK_TYPES_MODULE
+ * @{
+ */
+
 /* define it temporary until this code goes into capi-base-common package */
 #ifndef TIZEN_ERROR_CSR
 #define TIZEN_ERROR_CSR 0x6000 // 0110 0000 0000 0000
@@ -76,6 +82,9 @@ typedef enum {
  */
 int csr_get_error_string(int error_code, char **string);
 
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }

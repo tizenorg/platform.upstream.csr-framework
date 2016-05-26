@@ -27,6 +27,11 @@ extern "C" {
 #endif
 
 /**
+ * @addtogroup CAPI_CSR_FRAMEWORK_TYPES_MODULE
+ * @{
+ */
+
+/**
  * @brief Severity level of a detected malware
  * @since_tizen 3.0
  */
@@ -135,6 +140,10 @@ typedef void (*csr_cs_on_error_cb)(void *user_data, int error_code);
  * @since_tizen 3.0
  */
 typedef void (*csr_cs_on_file_scanned_cb)(void *user_data, const char *file_path);
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }

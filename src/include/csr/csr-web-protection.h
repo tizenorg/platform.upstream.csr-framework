@@ -29,6 +29,12 @@
 extern "C" {
 #endif
 
+
+/**
+ * @addtogroup CAPI_CSR_FRAMEWORK_WP_MODULE
+ * @{
+ */
+
 //==============================================================================
 // Main function related
 //==============================================================================
@@ -230,6 +236,10 @@ int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, char **pdetaile
  */
 int csr_wp_result_get_user_response(csr_wp_check_result_h result, csr_wp_user_response_e *presponse);
 
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }

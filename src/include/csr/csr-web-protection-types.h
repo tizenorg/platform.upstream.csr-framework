@@ -27,6 +27,11 @@ extern "C" {
 #endif
 
 /**
+ * @addtogroup CAPI_CSR_FRAMEWORK_TYPES_MODULE
+ * @{
+ */
+
+/**
  * @brief CSR WP context handle.
  * @since_tizen 3.0
  */
@@ -67,6 +72,10 @@ typedef enum {
 	CSR_WP_RISK_MEDIUM     = 0x03,  /**< Risk Medium. Prompt the user before processing. Ask the user if they want the application to process the url. */
 	CSR_WP_RISK_HIGH       = 0x04   /**< High Risk.Do not process the url and just notify the user */
 } csr_wp_risk_level_e;
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }

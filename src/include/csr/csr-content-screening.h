@@ -17,7 +17,7 @@
  * @file        csr-content-screening.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
- * @brief       Main API header for content screening
+ * @brief
  */
 #ifndef __CSR_CONTENT_SCREENING_API_H_
 #define __CSR_CONTENT_SCREENING_API_H_
@@ -34,11 +34,11 @@ extern "C" {
 #endif
 
 /**
- * @brief Initializes and returns a Malware Screening API handle.
+ * @brief Initializes and returns a Content Screening API handle.
  *
  * @since_tizen 3.0
  *
- * @remarks A Malware Screening API handle (or CSR CS handle) is obtained using the
+ * @remarks A Content Screening API handle (or CSR CS handle) is obtained using the
  *          csr_cs_context_create() function. The handle is required for subsequent
  *          CSR CS API calls. The csr_cs_context_destroy() function releases/closes
  *          the handle. Multiple handles can be obtained using csr_cs_context_create().
@@ -49,8 +49,7 @@ extern "C" {
  *
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     phandle is invalid
- * @retval #CSR_ERROR_PERMISSION_DENIED     Permission denied
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a phandle is invalid
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
@@ -59,7 +58,7 @@ extern "C" {
 int csr_cs_context_create(csr_cs_context_h *phandle);
 
 /**
- * @brief Releases all system resources associated with a Malware Screening API handle.
+ * @brief Releases all system resources associated with a Content Screening API handle.
  *
  * @since_tizen 3.0
  *
@@ -95,7 +94,7 @@ int csr_cs_context_destroy(csr_cs_context_h handle);
  *
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_INVALID_PARAMETER     ask_user is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a ask_user is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_set_ask_user(csr_cs_context_h handle, csr_cs_ask_user_e ask_user);
@@ -125,20 +124,20 @@ int csr_cs_set_ask_user(csr_cs_context_h handle, csr_cs_ask_user_e ask_user);
 int csr_cs_set_popup_message(csr_cs_context_h handle, const char *message);
 
 /**
- * @brief Sets a maxium core usage during scanning.
+ * @brief Sets a maximum core usage during scanning.
  *
  * @since_tizen 3.0
  *
  * @remarks If a core usage is not set, CSR_CS_USE_CORE_DEFAULT will be used.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
- * @param[in] usage     A maxium core usage during scanning.
+ * @param[in] usage     A maximum core usage during scanning.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_INVALID_PARAMETER     usage is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a usage is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_set_core_usage(csr_cs_context_h handle, csr_cs_core_usage_e usage);
@@ -169,6 +168,7 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle);
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
  * @remarks  Scan data synchronously.
+ * @remarks  The @a pdetected will be released when @a handle is destroyed.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  data       A scan target data.
@@ -180,7 +180,7 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle);
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     data or presult is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a data or @a pdetected is invalid
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
@@ -202,6 +202,7 @@ int csr_cs_scan_data(csr_cs_context_h handle,
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
  * @remarks  Scan file synchronously.
+ * @remarks  The @a pdetected will be released when @a handle is destroyed.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  file_path  A path of scan target file.
@@ -212,7 +213,7 @@ int csr_cs_scan_data(csr_cs_context_h handle,
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or presult is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a file_path or @a pdetected is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
  * @retval #CSR_ERROR_REMOVE_FAILED         File remove failed when malware exist and
  *                                          user select to remove by popup. @a pdetected
@@ -238,17 +239,16 @@ int csr_cs_scan_file(csr_cs_context_h handle,
  * @remarks Callback for asynchronous scan function.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
- * @param[in] callback  a callback function for detection of a malware.
+ * @param[in] callback  A callback function for detection of a malware.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_INVALID_PARAMETER     callback is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_set_callback_on_detected(csr_cs_context_h handle,
-									csr_cs_on_detected_cb callback);
+int csr_cs_set_callback_on_detected(csr_cs_context_h handle, csr_cs_on_detected_cb callback);
 
 /**
  * @brief Sets a callback function for scanning completed without an error.
@@ -258,17 +258,16 @@ int csr_cs_set_callback_on_detected(csr_cs_context_h handle,
  * @remarks Callback for asynchronous scan function.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
- * @param[in] callback  a callback function for scanning completed without an error.
+ * @param[in] callback  A callback function for scanning completed without an error.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_INVALID_PARAMETER     callback is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_set_callback_on_completed(csr_cs_context_h handle,
-									 csr_cs_on_completed_cb callback);
+int csr_cs_set_callback_on_completed(csr_cs_context_h handle, csr_cs_on_completed_cb callback);
 
 /**
  * @brief Sets a callback function for scanning cancelled.
@@ -278,17 +277,16 @@ int csr_cs_set_callback_on_completed(csr_cs_context_h handle,
  * @remarks Callback for asynchronous scan function.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
- * @param[in] callback  a callback function for scanning cancelled.
+ * @param[in] callback  A callback function for scanning cancelled.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_INVALID_PARAMETER     callback is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_set_callback_on_cancelled(csr_cs_context_h handle,
-									 csr_cs_on_cancelled_cb callback);
+int csr_cs_set_callback_on_cancelled(csr_cs_context_h handle, csr_cs_on_cancelled_cb callback);
 
 /**
  * @brief Sets a callback function for scanning stopped with an error.
@@ -298,17 +296,16 @@ int csr_cs_set_callback_on_cancelled(csr_cs_context_h handle,
  * @remarks Callback for asynchronous scan function.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
- * @param[in] callback  a callback function for scanning stopped with an error.
+ * @param[in] callback  A callback function for scanning stopped with an error.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_INVALID_PARAMETER     callback is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_set_callback_on_error(csr_cs_context_h handle,
-								 csr_cs_on_error_cb callback);
+int csr_cs_set_callback_on_error(csr_cs_context_h handle, csr_cs_on_error_cb callback);
 
 
 /**
@@ -319,17 +316,16 @@ int csr_cs_set_callback_on_error(csr_cs_context_h handle,
  * @remarks Callback for asynchronous scan function.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
- * @param[in] callback  a callback function for the case that a file scan is completed.
+ * @param[in] callback  A callback function for the case that a file scan is completed.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_INVALID_PARAMETER     callback is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_set_callback_on_file_scanned(csr_cs_context_h handle,
-										csr_cs_on_file_scanned_cb callback);
+int csr_cs_set_callback_on_file_scanned(csr_cs_context_h handle, csr_cs_on_file_scanned_cb callback);
 
 /**
  * @brief Main function for caller to scan files specified by an array of file paths
@@ -353,7 +349,7 @@ int csr_cs_set_callback_on_file_scanned(csr_cs_context_h handle,
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     file_paths or count is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a file_paths is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
@@ -370,7 +366,7 @@ int csr_cs_scan_files_async(csr_cs_context_h handle,
 							void *user_data);
 
 /**
- * @brief Main function for caller to scan a directoy specified by
+ * @brief Main function for caller to scan a directory specified by
  *        directory path for malware.
  *
  * @since_tizen 3.0
@@ -391,7 +387,7 @@ int csr_cs_scan_files_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or presult is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a dir_path is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
@@ -430,7 +426,7 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     dir_paths or count is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a dir_paths is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
@@ -470,7 +466,7 @@ int csr_cs_scan_cancel(csr_cs_context_h handle);
 //==============================================================================
 
 /**
- * @brief extracts the severity of a detected malware from the detected malware handle.
+ * @brief Extracts the severity of a detected malware from the detected malware handle.
  *
  * @since_tizen 3.0
  *
@@ -483,86 +479,88 @@ int csr_cs_scan_cancel(csr_cs_context_h handle);
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    pseverity is invalid.
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a pseverity is invalid.
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_severity(csr_cs_detected_h detected,
-								 csr_cs_severity_level_e *pseverity);
+int csr_cs_detected_get_severity(csr_cs_detected_h detected, csr_cs_severity_level_e *pseverity);
 
 /**
- * @brief extracts the name of a detected malware from the detected malware handle.
+ * @brief Extracts the name of a detected malware from the detected malware handle.
  *
  * @since_tizen 3.0
  *
+ * @remarks  The @a pmalware_name must be released using free().
+ *
  * @param[in]  detected      A detected malware handle.
- * @param[out] malware_name  A pointer of the name of a detected malware. A caller
- *                           should free this string.
+ * @param[out] malware_name  A pointer of the name of a detected malware.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    malware_name is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a pmalware_name is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
 int csr_cs_detected_get_malware_name(csr_cs_detected_h detected, char **pmalware_name);
 
 /**
- * @brief extracts an url that contains detailed information on vendor's web site from the detected malware handle.
+ * @brief Extracts an url that contains detailed information on vendor's web site from the detected malware handle.
  *
  * @since_tizen 3.0
  *
+ * @remarks  The @a pdetailed_url must be released using free().
+ *
  * @param[in]  detected      A detected malware handle.
  * @param[out] detailed_url  A pointer of an url that contains detailed information on vendor's web site.\n
- *                           It can be null if a vendor doesn't provide this information.\n
- *                           A caller should free this string.
+ *                           It can be null if a vendor doesn't provide this information.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    malware_name is invalid.
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a pdetailed_url is invalid.
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
 int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, char **pdetailed_url);
 
 /**
- * @brief extracts the time stamp when a malware is detected from the detected malware handle.
+ * @brief Extracts the time stamp when a malware is detected from the detected malware handle.
  *
  * @since_tizen 3.0
  *
  * @param[in]  detected   A detected malware handle.
- * @param[out] timestamp  A pointer of the time stamp in milli second when a malware is detected. A caller should not free this.
+ * @param[out] timestamp  A pointer of the time stamp in milli second when a malware is detected.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    timestamp is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a ptimestamp is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_timestamp(csr_cs_detected_h detected,
-								  time_t *ptimestamp);
+int csr_cs_detected_get_timestamp(csr_cs_detected_h detected, time_t *ptimestamp);
 
 /**
- * @brief extracts the file name where a malware is detected from the detected malware handle.
+ * @brief Extracts the file name where a malware is detected from the detected malware handle.
  *
  * @since_tizen 3.0
  *
- * @param[in]  detected      A detected malware handle.
- * @param[out] file_name  A pointer of the file name where a malware is detected. A caller should free this string. The file name is Null for csr_cs_scan_data.
+ * @remarks  The @a pfile_name must be released using free().
+ *
+ * @param[in]  detected   A detected malware handle.
+ * @param[out] file_name  A pointer of the file name where a malware is detected. The file name is Null for csr_cs_scan_data.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    file_name is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a pfile_name is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
 int csr_cs_detected_get_file_name(csr_cs_detected_h detected, char **pfile_name);
 
 /**
- * @brief extracts a user reponse of a popup from the detected malware handle.
+ * @brief Extracts a user response of a popup from the detected malware handle.
  *
  * @since_tizen 3.0
  *
@@ -573,14 +571,13 @@ int csr_cs_detected_get_file_name(csr_cs_detected_h detected, char **pfile_name)
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid result handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    presponse is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a presponse is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_user_response(csr_cs_detected_h detected,
-									  csr_cs_user_response_e *presponse);
+int csr_cs_detected_get_user_response(csr_cs_detected_h detected, csr_cs_user_response_e *presponse);
 
 /**
- * @brief check if a malware was detected in an application or in a file.
+ * @brief Checks if a malware was detected in an application or in a file.
  *
  * @since_tizen 3.0
  *
@@ -591,24 +588,26 @@ int csr_cs_detected_get_user_response(csr_cs_detected_h detected,
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid result handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    pis_app is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a pis_app is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
 int csr_cs_detected_is_app(csr_cs_detected_h detected, bool *pis_app);
 
 /**
- * @brief extracts the package id of an application where a malware is detected from detected malware handle.
+ * @brief Extracts the package id of an application where a malware is detected from detected malware handle.
  *
  * @since_tizen 3.0
  *
+ * @remarks  The @a pdetailed_url must be released using free().
+ *
  * @param[in]  detected      A detected malware handle.
- * @param[out] ppkg_id       A pointer of the pakcage id where a malware is detected. A caller should free this string. This is a null when a malware was not detected in an application.
+ * @param[out] ppkg_id       A pointer of the pakcage id where a malware is detected. This is a null when a malware was not detected in an application.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    ppkg_id is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a ppkg_id is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
 int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, char **ppkg_id);
@@ -625,9 +624,9 @@ int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, char **ppkg_id);
  *           detected malware is in an application, the application will be removed.
  *           Otherwise, only the file will be removed. When a client removes a detected
  *           malware with this API, the client must have the privilege to remove it.
- *           When action is #CSR_CS_ACTION_IGNORE, the dectected malware file won't be
+ *           When action is #CSR_CS_ACTION_IGNORE, the detected malware file won't be
  *           removed. And the ignored file will not treated as malicious. When action is
- *           #CSR_CS_ACTION_UNIGNORE, the ignored file will be considered as mailicous
+ *           #CSR_CS_ACTION_UNIGNORE, the ignored file will be considered as malicious
  *           again.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
@@ -639,7 +638,7 @@ int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, char **ppkg_id);
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     detected or action is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a detected or @a action is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     No permission to remove
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File to take action on not found
  * @retval #CSR_ERROR_FILE_CHANGED          File to take action on changed after detection
@@ -648,7 +647,8 @@ int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, char **ppkg_id);
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_judge_detected_malware(csr_cs_context_h handle,
-								  csr_cs_detected_h detected, csr_cs_action_e action);
+								csr_cs_detected_h detected,
+								csr_cs_action_e action);
 
 
 /**
@@ -657,6 +657,8 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle,
  * @since_tizen 3.0
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
+ *
+ * @remarks  The @a pdetected will be released when @a handle is destroyed.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  file_path  A path of a detected malware file.
@@ -668,13 +670,15 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle,
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or action is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a file_path or @a pdetected is invalid
+ * @retval #CSR_ERROR_PERMISSION_DENIED     No permission to remove
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No malware file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
+int csr_cs_get_detected_malware(csr_cs_context_h handle,
+								const char *file_path,
 								csr_cs_detected_h *pdetected);
 
 /**
@@ -683,6 +687,8 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
  * @since_tizen 3.0
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
+ *
+ * @remarks  The @a plist will be released when @a handle is destroyed.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  dir_paths  A directory path where detected malware files exists.
@@ -697,7 +703,8 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or action is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a dir_paths, @a plist, or @a pcount is invalid
+ * @retval #CSR_ERROR_PERMISSION_DENIED     No permission to remove
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No malware file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
@@ -714,6 +721,8 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
+ * @remarks  The @a pdetected will be released when @a handle is destroyed.
+ *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  file_path  A path of a ignored malware file.
  * @param[out] pdetected  A pointer of the detected malware handle. It can be null when
@@ -724,7 +733,8 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or action is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a file_path or @a pdetected is invalid
+ * @retval #CSR_ERROR_PERMISSION_DENIED     No permission to remove
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No ignored file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
@@ -740,6 +750,8 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
+ * @remarks  The @a plist will be released when @a handle is destroyed.
+ *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  dir_paths  A directory path where ignored malware files exists.
  * @param[in]  count      Count of array element of @a dir_paths
@@ -753,8 +765,9 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     file_path or action is invalid
- * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No ingored file
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a dir_paths, @a plist, or @a pcount is invalid
+ * @retval #CSR_ERROR_PERMISSION_DENIED     No permission to remove
+ * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No ignored file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
@@ -779,7 +792,7 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid list
- * @retval #CSR_ERROR_INVALID_PARAMETER    index or pdetected is invalid.
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a index or @a pdetected is invalid.
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
 int csr_cs_dlist_get_detected(csr_cs_detected_list_h list, size_t index,

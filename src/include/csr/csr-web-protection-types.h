@@ -17,7 +17,7 @@
  * @file        csr-web-protection-types.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       Type defining header for web protection
  */
 #ifndef __CSR_WEB_PROTECTION_TYPES_H_
 #define __CSR_WEB_PROTECTION_TYPES_H_
@@ -39,7 +39,7 @@ typedef struct __csr_wp_context_s *csr_wp_context_h;
 typedef struct __csr_wp_check_result_h *csr_wp_check_result_h;
 
 /**
- * @brief the options about prompting a popup to a user.
+ * @brief The options about prompting a popup to a user.
  * @since_tizen 3.0
  */
 typedef enum {
@@ -48,7 +48,7 @@ typedef enum {
 } csr_wp_ask_user_e;
 
 /**
- * @brief the user response for a popup.
+ * @brief The user response for a popup.
  * @since_tizen 3.0
  */
 typedef enum {

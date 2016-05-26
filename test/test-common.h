@@ -107,10 +107,53 @@ void _assert<int, csr_error_e>(const int &value,
 							   unsigned int line,
 							   const std::string &msg);
 
-void _assert(const char *value, const char *expected, const std::string &filename,
-			 const std::string &funcname, unsigned int line, const std::string &msg);
-void _assert(const char *value, const std::string &expected, const std::string &filename,
-			 const std::string &funcname, unsigned int line, const std::string &msg);
+template <>
+void _assert<const char *, const char *>(const char * const &value,
+										 const char * const &expected,
+										 const std::string &filename,
+										 const std::string &funcname,
+										 unsigned int line,
+										 const std::string &msg);
+
+template <>
+void _assert<char *, const char *>(char * const &value,
+								   const char * const &expected,
+								   const std::string &filename,
+								   const std::string &funcname,
+								   unsigned int line,
+								   const std::string &msg);
+
+template <>
+void _assert<const char *, char *>(const char * const &value,
+								   char * const &expected,
+								   const std::string &filename,
+								   const std::string &funcname,
+								   unsigned int line,
+								   const std::string &msg);
+
+template <>
+void _assert<char *, char *>(char * const &value,
+							 char * const &expected,
+							 const std::string &filename,
+							 const std::string &funcname,
+							 unsigned int line,
+							 const std::string &msg);
+
+template <>
+void _assert<const char *, std::string>(const char * const &value,
+										const std::string &expected,
+										const std::string &filename,
+										const std::string &funcname,
+										unsigned int line,
+										const std::string &msg);
+
+template <>
+void _assert<char *, std::string>(char * const &value,
+								  const std::string &expected,
+								  const std::string &filename,
+								  const std::string &funcname,
+								  unsigned int line,
+								  const std::string &msg);
 
 void exceptionGuard(const std::function<void()> &);
 
@@ -122,6 +165,17 @@ bool is_file_exist(const char *file);
 bool install_app(const char *app_path, const char *app_type);
 bool uninstall_app(const char *pkg_id);
 void initialize_db();
+
+struct ScopedCstr {
+	char *ptr;
+
+	ScopedCstr() : ptr(nullptr) {}
+	~ScopedCstr()
+	{
+		if (ptr)
+			free(ptr);
+	}
+};
 
 template <typename T>
 class Context {

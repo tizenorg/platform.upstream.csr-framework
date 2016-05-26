@@ -23,6 +23,7 @@
 
 #include <new>
 #include <utility>
+#include <cstring>
 
 #include "client/utils.h"
 #include "client/handle.h"
@@ -53,7 +54,11 @@ using namespace Csr;
 			return CSR_ERROR_UNKNOWN;                                      \
 		}                                                                  \
 		h->add(Csr::ResultPtr(ret.second));                                \
-		*poutput = ret.second->value.c_str();                              \
+		auto output = strdup(                                              \
+				ret.second->value.c_str());                                \
+		if (output == nullptr)                                             \
+			return CSR_ERROR_OUT_OF_MEMORY;                                \
+		*poutput = output;                                                 \
 		return CSR_ERROR_NONE;                                             \
 	} while (false)
 
@@ -106,7 +111,7 @@ int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *pengine)
 }
 
 API
-int csr_engine_get_vendor(csr_engine_h engine, const char **pvendor)
+int csr_engine_get_vendor(csr_engine_h engine, char **pvendor)
 {
 	EXCEPTION_SAFE_START
 
@@ -116,7 +121,7 @@ int csr_engine_get_vendor(csr_engine_h engine, const char **pvendor)
 }
 
 API
-int csr_engine_get_name(csr_engine_h engine, const char **pname)
+int csr_engine_get_name(csr_engine_h engine, char **pname)
 {
 	EXCEPTION_SAFE_START
 
@@ -126,7 +131,7 @@ int csr_engine_get_name(csr_engine_h engine, const char **pname)
 }
 
 API
-int csr_engine_get_version(csr_engine_h engine, const char **pversion)
+int csr_engine_get_version(csr_engine_h engine, char **pversion)
 {
 	EXCEPTION_SAFE_START
 
@@ -136,7 +141,7 @@ int csr_engine_get_version(csr_engine_h engine, const char **pversion)
 }
 
 API
-int csr_engine_get_data_version(csr_engine_h engine, const char **pversion)
+int csr_engine_get_data_version(csr_engine_h engine, char **pversion)
 {
 	EXCEPTION_SAFE_START
 

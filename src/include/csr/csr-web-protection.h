@@ -195,10 +195,10 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result,
  * @since_tizen 3.0
  *
  * @param[in]  result  A result handle returned by csr_wp_check_url().
- * @param[out] detailed_url  A pointer of an url that contains detailed information about the risk.
+ * @param[out] pdetailed_url A pointer of an url that contains detailed information about the risk.
  *                           If the risk level is CSR_WP_RISK_MEDIUM or CSR_WP_RISK_HIGH,
  *                           this url should be provided by the engine.
- *                           A caller should not free this string.
+ *                           A caller should free this string.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -209,8 +209,7 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result,
  *
  * @see csr_wp_check_url()
  */
-int csr_wp_result_get_detailed_url(csr_wp_check_result_h result,
-								   const char **detailed_url);
+int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, char **pdetailed_url);
 
 /**
  * @brief Extracts a user reponse of a popup from the result handle.

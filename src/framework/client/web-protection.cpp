@@ -149,8 +149,7 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result,
 }
 
 API
-int csr_wp_result_get_detailed_url(csr_wp_check_result_h result,
-								   const char **pdetailed_url)
+int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, char **pdetailed_url)
 {
 	EXCEPTION_SAFE_START
 
@@ -159,7 +158,13 @@ int csr_wp_result_get_detailed_url(csr_wp_check_result_h result,
 	else if (pdetailed_url == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*pdetailed_url = reinterpret_cast<WpResult *>(result)->detailedUrl.c_str();
+	auto detailed_url = strdup(
+			reinterpret_cast<WpResult *>(result)->detailedUrl.c_str());
+
+	if (detailed_url == nullptr)
+		return CSR_ERROR_OUT_OF_MEMORY;
+
+	*pdetailed_url = detailed_url;
 
 	return CSR_ERROR_NONE;
 

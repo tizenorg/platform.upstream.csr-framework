@@ -10,4 +10,4 @@ Description: @PACKAGE_DESCRIPTION@
 Version: @VERSION@
 Requires:
 Libs: -L${libdir} -l@SERVICE_NAME@-client -l@SERVICE_NAME@-common
-Cflags: -I${includedir}
+Cflags: -I${includedir}/csr

@@ -24,7 +24,7 @@
 #include <boost/test/results_reporter.hpp>
 #include <colour_log_formatter.h>
 
-#include "csr/engine-manager.h"
+#include <csr-engine-manager.h>
 
 namespace {
 

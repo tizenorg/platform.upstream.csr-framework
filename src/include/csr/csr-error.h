@@ -14,7 +14,7 @@
  *  limitations under the License
  */
 /*
- * @file        error.h
+ * @file        csr-error.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
  * @brief

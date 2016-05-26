@@ -39,7 +39,8 @@ INCLUDE_DIRECTORIES(
 )
 
 INCLUDE_DIRECTORIES(
-	${PROJECT_SOURCE_DIR}/src/include
+	${PROJECT_SOURCE_DIR}/src/include/csr
+	${PROJECT_SOURCE_DIR}/src/include/csre
 	.
 )
 
@@ -78,7 +79,8 @@ INCLUDE_DIRECTORIES(
 )
 
 INCLUDE_DIRECTORIES(
-	${PROJECT_SOURCE_DIR}/src/include
+	${PROJECT_SOURCE_DIR}/src/include/csr
+	${PROJECT_SOURCE_DIR}/src/include/csre
 	.
 )
 

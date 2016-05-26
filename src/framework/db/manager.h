@@ -31,7 +31,7 @@
 #include "db/row.h"
 #include "common/cs-detected.h"
 
-#include "csr/engine-manager.h"
+#include <csr-engine-manager.h>
 
 namespace Csr {
 namespace Db {

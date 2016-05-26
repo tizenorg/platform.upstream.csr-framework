@@ -31,8 +31,8 @@
 #include "ui/common.h"
 #include "popup.h"
 
-#include "csr/content-screening-types.h"
-#include "csr/web-protection-types.h"
+#include <csr-content-screening-types.h>
+#include <csr-web-protection-types.h>
 
 namespace Csr {
 namespace Ui {

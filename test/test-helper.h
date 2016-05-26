@@ -19,7 +19,7 @@
  * @version     1.0
  * @brief       CSR API test helper
  */
-#include <csr/content-screening.h>
+#include <csr-content-screening.h>
 
 void ASSERT_DETECTED(csr_cs_detected_h detected, const char *name,
 					 csr_cs_severity_level_e severity, const char *detailed_url);

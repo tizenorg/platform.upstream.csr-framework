@@ -10,4 +10,4 @@ Description: @PACKAGE_DESCRIPTION@
 Version: @VERSION@
 Requires:
 Libs: -L${libdir}
-Cflags: -I${includedir}
+Cflags: -I${includedir}/csre

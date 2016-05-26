@@ -21,10 +21,10 @@
  */
 #pragma once
 
-#include "csre/content-screening-types.h"
-#include "csr/content-screening-types.h"
-#include "csre/web-protection-types.h"
-#include "csr/web-protection-types.h"
+#include <csre-content-screening-types.h>
+#include <csr-content-screening-types.h>
+#include <csre-web-protection-types.h>
+#include <csr-web-protection-types.h>
 
 namespace Csr {
 

@@ -31,14 +31,14 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <csr/content-screening.h>
-#include <csr/web-protection.h>
+#include <csr-content-screening.h>
+#include <csr-web-protection.h>
 
-#include <csre/content-screening.h>
-#include <csre/web-protection.h>
+#include <csre-content-screening.h>
+#include <csre-web-protection.h>
 
-#include <csre/content-screening-engine-info.h>
-#include <csre/web-protection-engine-info.h>
+#include <csre-content-screening-engine-info.h>
+#include <csre-web-protection-engine-info.h>
 
 #ifndef __FILENAME__
 #define __FILENAME__ (::strrchr(__FILE__, '/') ? ::strrchr(__FILE__, '/') + 1 : __FILE__)

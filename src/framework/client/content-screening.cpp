@@ -19,7 +19,7 @@
  * @version     1.0
  * @brief       CSR Content Screening APIs
  */
-#include "csr/content-screening.h"
+#include <csr-content-screening.h>
 
 #include <new>
 

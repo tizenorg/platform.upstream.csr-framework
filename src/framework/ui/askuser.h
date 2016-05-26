@@ -28,8 +28,8 @@
 #include "common/dispatcher.h"
 #include "common/cs-detected.h"
 
-#include "csr/content-screening-types.h"
-#include "csr/web-protection-types.h"
+#include <csr-content-screening-types.h>
+#include <csr-web-protection-types.h>
 
 namespace Csr {
 namespace Ui {

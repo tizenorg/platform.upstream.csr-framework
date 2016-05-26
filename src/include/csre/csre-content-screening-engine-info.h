@@ -14,7 +14,7 @@
  *  limitations under the License
  */
 /*
- * @file        content-screening-engine-info.h
+ * @file        csre-content-screening-engine-info.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
  * @brief       Interface for engine management on engine
@@ -23,7 +23,7 @@
 #define __CSRE_CS_ENGINE_INFO_H_
 
 #include <time.h>
-#include "csre/error.h"
+#include <csre-error.h>
 
 #ifdef __cplusplus
 extern "C" {

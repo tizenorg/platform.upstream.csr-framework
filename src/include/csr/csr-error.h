@@ -17,7 +17,7 @@
  * @file        csr-error.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       Error defining header
  */
 #ifndef __CSR_ERROR_H_
 #define __CSR_ERROR_H_
@@ -61,7 +61,7 @@ typedef enum {
 } csr_error_e;
 
 /**
- * @brief get the error string for a given error code.
+ * @brief Gets the error string for a given error code.
  *
  * @since_tizen 3.0
  *

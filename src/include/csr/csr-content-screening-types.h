@@ -92,13 +92,13 @@ typedef struct __csr_cs_context_s *csr_cs_context_h;
  * @brief Detected malware handle.
  * @since_tizen 3.0
  */
-typedef struct __csr_cs_detected_s *csr_cs_detected_h;
+typedef struct __csr_cs_malware_s *csr_cs_malware_h;
 
 /**
  * @brief Detected malware list handle.
  * @since_tizen 3.0
  */
-typedef struct __csr_cs_detected_list_s *csr_cs_detected_list_h;
+typedef struct __csr_cs_malware_list_s *csr_cs_malware_list_h;
 
 /**
  * @brief Engine info handle.
@@ -111,35 +111,35 @@ typedef struct __csr_cs_engine_s *csr_cs_engine_h;
  *        It's only for an asynchronous scan function.
  * @since_tizen 3.0
  */
-typedef void (*csr_cs_on_detected_cb)(void *user_data, csr_cs_detected_h detected);
+typedef void (*csr_cs_detected_cb)(void *user_data, csr_cs_malware_h detected);
 
 /**
  * @brief The callback function called when scanning is finished without an error. \
  *        It's only for an asynchronous scan function.
  * @since_tizen 3.0
  */
-typedef void (*csr_cs_on_completed_cb)(void *user_data);
+typedef void (*csr_cs_completed_cb)(void *user_data);
 
 /**
  * @brief The callback function called when scanning is cancelled without an error. \
  *        It's only for an asynchronous scan function.
  * @since_tizen 3.0
  */
-typedef void (*csr_cs_on_cancelled_cb)(void *user_data);
+typedef void (*csr_cs_cancelled_cb)(void *user_data);
 
 /**
  * @brief The callback function called when scanning is finished with an error. \
  *        It's only for an asynchronous scan function.
  * @since_tizen 3.0
  */
-typedef void (*csr_cs_on_error_cb)(void *user_data, int error_code);
+typedef void (*csr_cs_error_cb)(void *user_data, int error_code);
 
 /**
  * @brief The callback function called when a file scanning is completed. \
  *        It's only for an asynchronous scan function.
  * @since_tizen 3.0
  */
-typedef void (*csr_cs_on_file_scanned_cb)(void *user_data, const char *file_path);
+typedef void (*csr_cs_file_scanned_cb)(void *user_data, const char *file_path);
 
 /**
  * @}

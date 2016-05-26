@@ -246,7 +246,7 @@ BOOST_AUTO_TEST_CASE(get_detailed_url)
 	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_HIGH_URL, &result));
 
 	ASSERT_SUCCESS(csr_wp_result_get_detailed_url(result, &detailed_url.ptr));
-	ASSERT_IF(detailed_url.ptr, RISK_HIGH_DETAILED_URL);
+	ASSERT_IF(detailed_url.ptr, static_cast<const char *>(RISK_HIGH_DETAILED_URL));
 
 	EXCEPTION_GUARD_END
 }

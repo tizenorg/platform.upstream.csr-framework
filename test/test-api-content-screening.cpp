@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(scan_data_normal)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 	unsigned char data[100] = {0, };
 
 	// no malware detected
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 	unsigned char data[100] = {0, };
 	time_t start_time = time(nullptr);
 
@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(scan_data_medium)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 	unsigned char data[100] = {0, };
 	time_t start_time = time(nullptr);
 
@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(scan_data_low)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 	unsigned char data[100] = {0, };
 	time_t start_time = time(nullptr);
 
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(scan_data_negative)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 	unsigned char data[100] = {0, };
 
 	ASSERT_IF(csr_cs_scan_data(nullptr, data, sizeof(data), &detected),
@@ -198,7 +198,7 @@ BOOST_AUTO_TEST_CASE(scan_file_normal)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 
 	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_NORMAL, &detected));
 
@@ -214,7 +214,7 @@ BOOST_AUTO_TEST_CASE(scan_file_high)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 	time_t start_time = time(nullptr);
 
 	Test::touch_file(TEST_FILE_HIGH);
@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE(scan_file_medium)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 	time_t start_time = time(nullptr);
 
 	Test::touch_file(TEST_FILE_MEDIUM);
@@ -256,7 +256,7 @@ BOOST_AUTO_TEST_CASE(scan_file_low)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 	time_t start_time = time(nullptr);
 
 	Test::touch_file(TEST_FILE_LOW);
@@ -277,7 +277,7 @@ BOOST_AUTO_TEST_CASE(scan_file_media_dir)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 	time_t start_time = time(nullptr);
 
 	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
@@ -298,7 +298,7 @@ BOOST_AUTO_TEST_CASE(scan_file_tmp_dir)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 	time_t start_time = time(nullptr);
 
 	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_TMP);
@@ -320,7 +320,7 @@ BOOST_AUTO_TEST_CASE(scan_file_wgt_dir)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 	time_t start_time = time(nullptr);
 
 	Test::uninstall_app(TEST_WGT_PKG_ID);
@@ -345,7 +345,7 @@ BOOST_AUTO_TEST_CASE(scan_file_tpk_dir)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 	time_t start_time = time(nullptr);
 
 	Test::uninstall_app(TEST_TPK_PKG_ID);
@@ -370,7 +370,7 @@ BOOST_AUTO_TEST_CASE(scan_file_invalid_params)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 
 	ASSERT_IF(csr_cs_scan_file(nullptr, TEST_FILE_NORMAL, &detected),
 			  CSR_ERROR_INVALID_HANDLE);
@@ -387,7 +387,7 @@ BOOST_AUTO_TEST_CASE(scan_file_not_existing_file)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 
 	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NO_EXIST, &detected),
 			  CSR_ERROR_FILE_DO_NOT_EXIST);
@@ -401,8 +401,8 @@ BOOST_AUTO_TEST_CASE(get_detected_malware)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
-	csr_cs_detected_h stored;
+	csr_cs_malware_h detected;
+	csr_cs_malware_h stored;
 
 	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_MEDIUM, &detected));
 	CHECK_IS_NOT_NULL(detected);
@@ -421,7 +421,7 @@ BOOST_AUTO_TEST_CASE(get_detected_malware_invalid_param)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h stored;
+	csr_cs_malware_h stored;
 
 	ASSERT_IF(csr_cs_get_detected_malware(nullptr, TEST_FILE_MEDIUM, &stored),
 			  CSR_ERROR_INVALID_HANDLE);
@@ -439,7 +439,7 @@ BOOST_AUTO_TEST_CASE(get_detected_malware_not_existing_file)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h stored;
+	csr_cs_malware_h stored;
 
 	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_NO_EXIST, &stored));
 	CHECK_IS_NULL(stored);
@@ -453,9 +453,9 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_list_h detected_list;
-	csr_cs_detected_h detected_high, detected_medium;
-	csr_cs_detected_h stored;
+	csr_cs_malware_list_h detected_list;
+	csr_cs_malware_h detected_high, detected_medium;
+	csr_cs_malware_h stored;
 	Test::ScopedCstr file_path_actual;
 	size_t cnt = 0;
 	size_t idx = 0;
@@ -476,9 +476,9 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares)
 	CHECK_IS_NOT_NULL(detected_list);
 
 	for (idx = 0; idx < cnt; idx++) {
-		ASSERT_SUCCESS(csr_cs_dlist_get_detected(detected_list, idx, &stored));
+		ASSERT_SUCCESS(csr_cs_malware_list_get_detected(detected_list, idx, &stored));
 		CHECK_IS_NOT_NULL(stored);
-		ASSERT_SUCCESS(csr_cs_detected_get_file_name(stored, &file_path_actual.ptr));
+		ASSERT_SUCCESS(csr_cs_malware_get_file_name(stored, &file_path_actual.ptr));
 		if (strcmp(TEST_FILE_HIGH, file_path_actual.ptr) == 0) {
 			ASSERT_DETECTED_HANDLE(detected_high, stored);
 			compared_cnt++;
@@ -502,7 +502,7 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares_invalid_params)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_list_h detected_list;
+	csr_cs_malware_list_h detected_list;
 	size_t cnt = 0;
 
 	const char *dirs[1] = {
@@ -536,7 +536,7 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares_not_existing_dir)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_list_h detected_list;
+	csr_cs_malware_list_h detected_list;
 	size_t cnt = 0;
 
 	const char *dirs[1] = {
@@ -558,7 +558,7 @@ BOOST_AUTO_TEST_CASE(get_ignored_malware)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected, stored;
+	csr_cs_malware_h detected, stored;
 
 	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_HIGH, &detected));
 	CHECK_IS_NOT_NULL(detected);
@@ -583,7 +583,7 @@ BOOST_AUTO_TEST_CASE(get_ignored_malware_invalid_param)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h stored;
+	csr_cs_malware_h stored;
 
 	ASSERT_IF(csr_cs_get_ignored_malware(nullptr, TEST_FILE_MEDIUM, &stored),
 			  CSR_ERROR_INVALID_HANDLE);
@@ -601,7 +601,7 @@ BOOST_AUTO_TEST_CASE(get_ignored_malware_not_existing_file)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h stored;
+	csr_cs_malware_h stored;
 
 	ASSERT_SUCCESS(csr_cs_get_ignored_malware(context, TEST_FILE_NO_EXIST, &stored));
 	CHECK_IS_NULL(stored);
@@ -615,8 +615,8 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_list_h ignored_list;
-	csr_cs_detected_h detected_high, detected_medium, stored;
+	csr_cs_malware_list_h ignored_list;
+	csr_cs_malware_h detected_high, detected_medium, stored;
 	size_t cnt = 0;
 	size_t idx = 0;
 	size_t compared_cnt = 0;
@@ -642,9 +642,9 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares)
 	CHECK_IS_NOT_NULL(ignored_list);
 
 	for (idx = 0; idx < cnt; idx++) {
-		ASSERT_SUCCESS(csr_cs_dlist_get_detected(ignored_list, idx, &stored));
+		ASSERT_SUCCESS(csr_cs_malware_list_get_detected(ignored_list, idx, &stored));
 		CHECK_IS_NOT_NULL(stored);
-		ASSERT_SUCCESS(csr_cs_detected_get_file_name(stored, &file_path_actual.ptr));
+		ASSERT_SUCCESS(csr_cs_malware_get_file_name(stored, &file_path_actual.ptr));
 		if (strcmp(TEST_FILE_HIGH, file_path_actual.ptr) == 0) {
 			ASSERT_DETECTED_HANDLE(detected_high, stored);
 			compared_cnt++;
@@ -673,7 +673,7 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares_invalid_params)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_list_h ignored_list;
+	csr_cs_malware_list_h ignored_list;
 	size_t cnt = 0;
 
 	const char *dirs[1] = {
@@ -706,7 +706,7 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares_not_existing_dir)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_list_h ignored_list;
+	csr_cs_malware_list_h ignored_list;
 	size_t cnt = 0;
 
 	const char *dirs[1] = {
@@ -728,7 +728,7 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected, stored;
+	csr_cs_malware_h detected, stored;
 
 	// remove earlier test results
 	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
@@ -782,7 +782,7 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_after_changed_file)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 
 	// scan and judge after touch
 	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
@@ -812,7 +812,7 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_ignored_rescan)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected, stored;
+	csr_cs_malware_h detected, stored;
 
 	// remove earlier test results
 	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
@@ -849,7 +849,7 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_remove_file)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected, stored;
+	csr_cs_malware_h detected, stored;
 
 	// remove earlier test results
 	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
@@ -907,7 +907,7 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_remove_wgt)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 
 	// remove old test data
 	Test::uninstall_app(TEST_WGT_PKG_ID);
@@ -929,7 +929,7 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_remove_tpk)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 
 	// remove old test data
 	Test::uninstall_app(TEST_TPK_PKG_ID);
@@ -950,7 +950,7 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_invalid_params)
 
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 
 	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_HIGH, &detected));
 	CHECK_IS_NOT_NULL(detected);

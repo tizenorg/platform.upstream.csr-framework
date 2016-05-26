@@ -59,7 +59,7 @@ struct Callback {
 	}
 
 	std::function<void(void *, const char *)> onScanned;
-	std::function<void(void *, csr_cs_detected_h)> onDetected;
+	std::function<void(void *, csr_cs_malware_h)> onDetected;
 	std::function<void(void *)> onCompleted;
 	std::function<void(void *)> onCancelled;
 	std::function<void(void *, int)> onError;

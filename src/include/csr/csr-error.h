@@ -66,21 +66,6 @@ typedef enum {
 	CSR_ERROR_UNKNOWN               = TIZEN_ERROR_CSR | 0xFF,        /**< The error with unknown reason */
 } csr_error_e;
 
-/**
- * @brief Gets the error string for a given error code.
- *
- * @since_tizen 3.0
- *
- * @param[in]  error_code  An error code.
- * @param[out] string      A pointer of the error string. A caller should not free it.
- *
- * @return #CSR_ERROR_NONE on success, otherwise a negative error value
- *
- * @retval #CSR_ERROR_NONE                 Successful
- * @retval #CSR_ERROR_INVALID_PARAMETER    error_code or error_string is invalid
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
- */
-int csr_get_error_string(int error_code, char **string);
 
 /**
  * @}

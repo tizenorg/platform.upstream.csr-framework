@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE(set_state)
 	// prepare data
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
-	csr_cs_detected_h detected;
+	csr_cs_malware_h detected;
 	unsigned char data[100] = {0, };
 	//const char *files[1] = { TEST_FILE_NORMAL };
 	//const char *dirs[1] = { TEST_DIR };

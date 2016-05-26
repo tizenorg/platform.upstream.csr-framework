@@ -212,7 +212,7 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle)
 
 API
 int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data,
-					 size_t length, csr_cs_detected_h *pdetected)
+					 size_t length, csr_cs_malware_h *pdetected)
 {
 	EXCEPTION_SAFE_START
 
@@ -230,7 +230,7 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data,
 	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
 
-	*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
+	*pdetected = reinterpret_cast<csr_cs_malware_h>(ret.second);
 
 	return ret.first;
 
@@ -239,7 +239,7 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data,
 
 API
 int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
-					 csr_cs_detected_h *pdetected)
+					 csr_cs_malware_h *pdetected)
 {
 	EXCEPTION_SAFE_START
 
@@ -257,7 +257,7 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
 
-	*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
+	*pdetected = reinterpret_cast<csr_cs_malware_h>(ret.second);
 
 	return ret.first;
 
@@ -265,8 +265,7 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 }
 
 API
-int csr_cs_set_callback_on_file_scanned(csr_cs_context_h handle,
-										csr_cs_on_file_scanned_cb callback)
+int csr_cs_set_file_scanned_cb(csr_cs_context_h handle, csr_cs_file_scanned_cb callback)
 {
 	EXCEPTION_SAFE_START
 
@@ -285,8 +284,7 @@ int csr_cs_set_callback_on_file_scanned(csr_cs_context_h handle,
 }
 
 API
-int csr_cs_set_callback_on_detected(csr_cs_context_h handle,
-									csr_cs_on_detected_cb callback)
+int csr_cs_set_detected_cb(csr_cs_context_h handle, csr_cs_detected_cb callback)
 {
 	EXCEPTION_SAFE_START
 
@@ -305,8 +303,7 @@ int csr_cs_set_callback_on_detected(csr_cs_context_h handle,
 }
 
 API
-int csr_cs_set_callback_on_completed(csr_cs_context_h handle,
-									 csr_cs_on_completed_cb callback)
+int csr_cs_set_completed_cb(csr_cs_context_h handle, csr_cs_completed_cb callback)
 {
 	EXCEPTION_SAFE_START
 
@@ -325,8 +322,7 @@ int csr_cs_set_callback_on_completed(csr_cs_context_h handle,
 }
 
 API
-int csr_cs_set_callback_on_cancelled(csr_cs_context_h handle,
-									 csr_cs_on_cancelled_cb callback)
+int csr_cs_set_cancelled_cb(csr_cs_context_h handle, csr_cs_cancelled_cb callback)
 {
 	EXCEPTION_SAFE_START
 
@@ -345,8 +341,7 @@ int csr_cs_set_callback_on_cancelled(csr_cs_context_h handle,
 }
 
 API
-int csr_cs_set_callback_on_error(csr_cs_context_h handle,
-								 csr_cs_on_error_cb callback)
+int csr_cs_set_error_cb(csr_cs_context_h handle, csr_cs_error_cb callback)
 {
 	EXCEPTION_SAFE_START
 
@@ -477,8 +472,7 @@ int csr_cs_scan_cancel(csr_cs_context_h handle)
 }
 
 API
-int csr_cs_detected_get_severity(csr_cs_detected_h detected,
-								 csr_cs_severity_level_e *pseverity)
+int csr_cs_malware_get_severity(csr_cs_malware_h detected, csr_cs_severity_level_e *pseverity)
 {
 	EXCEPTION_SAFE_START
 
@@ -495,7 +489,7 @@ int csr_cs_detected_get_severity(csr_cs_detected_h detected,
 }
 
 API
-int csr_cs_detected_get_malware_name(csr_cs_detected_h detected, char **pmalware_name)
+int csr_cs_malware_get_malware_name(csr_cs_malware_h detected, char **pmalware_name)
 {
 	EXCEPTION_SAFE_START
 
@@ -518,7 +512,7 @@ int csr_cs_detected_get_malware_name(csr_cs_detected_h detected, char **pmalware
 }
 
 API
-int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, char **pdetailed_url)
+int csr_cs_malware_get_detailed_url(csr_cs_malware_h detected, char **pdetailed_url)
 {
 	EXCEPTION_SAFE_START
 
@@ -541,7 +535,7 @@ int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, char **pdetaile
 }
 
 API
-int csr_cs_detected_get_timestamp(csr_cs_detected_h detected, time_t *ptimestamp)
+int csr_cs_malware_get_timestamp(csr_cs_malware_h detected, time_t *ptimestamp)
 {
 	EXCEPTION_SAFE_START
 
@@ -558,7 +552,7 @@ int csr_cs_detected_get_timestamp(csr_cs_detected_h detected, time_t *ptimestamp
 }
 
 API
-int csr_cs_detected_get_file_name(csr_cs_detected_h detected, char **pfile_name)
+int csr_cs_malware_get_file_name(csr_cs_malware_h detected, char **pfile_name)
 {
 	EXCEPTION_SAFE_START
 
@@ -581,7 +575,7 @@ int csr_cs_detected_get_file_name(csr_cs_detected_h detected, char **pfile_name)
 }
 
 API
-int csr_cs_detected_get_user_response(csr_cs_detected_h detected,
+int csr_cs_malware_get_user_response(csr_cs_malware_h detected,
 									  csr_cs_user_response_e *presponse)
 {
 	EXCEPTION_SAFE_START
@@ -599,7 +593,7 @@ int csr_cs_detected_get_user_response(csr_cs_detected_h detected,
 }
 
 API
-int csr_cs_detected_is_app(csr_cs_detected_h detected, bool *pis_app)
+int csr_cs_malware_is_app(csr_cs_malware_h detected, bool *pis_app)
 {
 	EXCEPTION_SAFE_START
 
@@ -616,7 +610,7 @@ int csr_cs_detected_is_app(csr_cs_detected_h detected, bool *pis_app)
 }
 
 API
-int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, char **ppkg_id)
+int csr_cs_malware_get_pkg_id(csr_cs_malware_h detected, char **ppkg_id)
 {
 	EXCEPTION_SAFE_START
 
@@ -640,7 +634,7 @@ int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, char **ppkg_id)
 
 API
 int csr_cs_judge_detected_malware(csr_cs_context_h handle,
-								  csr_cs_detected_h detected, csr_cs_action_e action)
+								  csr_cs_malware_h detected, csr_cs_action_e action)
 {
 	EXCEPTION_SAFE_START
 
@@ -659,7 +653,7 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle,
 
 API
 int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
-								csr_cs_detected_h *pdetected)
+								csr_cs_malware_h *pdetected)
 {
 	EXCEPTION_SAFE_START
 
@@ -675,7 +669,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
 	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
 
-	*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
+	*pdetected = reinterpret_cast<csr_cs_malware_h>(ret.second);
 
 	return ret.first;
 
@@ -685,7 +679,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
 API
 int csr_cs_get_detected_malwares(csr_cs_context_h handle,
 								 const char *dir_paths[], size_t count,
-								 csr_cs_detected_list_h *plist, size_t *pcount)
+								 csr_cs_malware_list_h *plist, size_t *pcount)
 {
 	EXCEPTION_SAFE_START
 
@@ -719,7 +713,7 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
 		while (auto dptr = cptrList.pop())
 			resultListPtr->emplace_back(dptr);
 
-		*plist = reinterpret_cast<csr_cs_detected_list_h>(resultListPtr.get());
+		*plist = reinterpret_cast<csr_cs_malware_list_h>(resultListPtr.get());
 		*pcount = resultListPtr->size();
 
 		hExt->add(std::move(resultListPtr));
@@ -735,7 +729,7 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
 
 API
 int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
-							   csr_cs_detected_h *pdetected)
+							   csr_cs_malware_h *pdetected)
 {
 	EXCEPTION_SAFE_START
 
@@ -751,7 +745,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
 	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
 
-	*pdetected = reinterpret_cast<csr_cs_detected_h>(ret.second);
+	*pdetected = reinterpret_cast<csr_cs_malware_h>(ret.second);
 
 	return ret.first;
 
@@ -761,7 +755,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
 API
 int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
 								const char *dir_paths[], size_t count,
-								csr_cs_detected_list_h *plist, size_t *pcount)
+								csr_cs_malware_list_h *plist, size_t *pcount)
 {
 	EXCEPTION_SAFE_START
 
@@ -795,7 +789,7 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
 		while (auto dptr = cptrList.pop())
 			resultListPtr->emplace_back(dptr);
 
-		*plist = reinterpret_cast<csr_cs_detected_list_h>(resultListPtr.get());
+		*plist = reinterpret_cast<csr_cs_malware_list_h>(resultListPtr.get());
 		*pcount = resultListPtr->size();
 
 		hExt->add(std::move(resultListPtr));
@@ -810,8 +804,8 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
 }
 
 API
-int csr_cs_dlist_get_detected(csr_cs_detected_list_h list, size_t index,
-							  csr_cs_detected_h *pdetected)
+int csr_cs_malware_list_get_detected(csr_cs_malware_list_h list, size_t index,
+							  csr_cs_malware_h *pdetected)
 {
 	EXCEPTION_SAFE_START
 
@@ -825,7 +819,7 @@ int csr_cs_dlist_get_detected(csr_cs_detected_list_h list, size_t index,
 	if (index >= dListPtr->size())
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*pdetected = reinterpret_cast<csr_cs_detected_h>(dListPtr->at(index).get());
+	*pdetected = reinterpret_cast<csr_cs_malware_h>(dListPtr->at(index).get());
 
 	return CSR_ERROR_NONE;
 

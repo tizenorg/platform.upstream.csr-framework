@@ -55,7 +55,7 @@ struct AsyncTestContext {
 	int completedCnt;
 	int cancelledCnt;
 	int errorCnt;
-	std::vector<csr_cs_detected_h> detectedList;
+	std::vector<csr_cs_malware_h> detectedList;
 	int errorCode;
 
 	AsyncTestContext() :
@@ -73,10 +73,10 @@ void on_scanned(void *userdata, const char *file)
 	ctx->scannedCnt++;
 }
 
-void on_detected(void *userdata, csr_cs_detected_h detected)
+void on_detected(void *userdata, csr_cs_malware_h detected)
 {
 	Test::ScopedCstr file_name;
-	ASSERT_IF(csr_cs_detected_get_file_name(detected, &file_name.ptr), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_malware_get_file_name(detected, &file_name.ptr), CSR_ERROR_NONE);
 	BOOST_MESSAGE("on_detected. file[" << file_name.ptr << "] detected!");
 	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
 	ctx->detectedCnt++;
@@ -110,11 +110,11 @@ void on_cancelled(void *userdata)
 
 void set_default_callback(csr_cs_context_h context)
 {
-	ASSERT_IF(csr_cs_set_callback_on_detected(context, on_detected), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_completed(context, on_completed), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_cancelled(context, on_cancelled), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_error(context, on_error), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_set_callback_on_file_scanned(context, on_scanned), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_detected_cb(context, on_detected), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_completed_cb(context, on_completed), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_cancelled_cb(context, on_cancelled), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_error_cb(context, on_error), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_set_file_scanned_cb(context, on_scanned), CSR_ERROR_NONE);
 }
 
 void install_test_files()
@@ -173,16 +173,16 @@ BOOST_AUTO_TEST_CASE(set_callbacks_negative)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 
-	ASSERT_IF(csr_cs_set_callback_on_detected(nullptr, on_detected), CSR_ERROR_INVALID_HANDLE);
-	ASSERT_IF(csr_cs_set_callback_on_detected(context, nullptr), CSR_ERROR_INVALID_PARAMETER);
-	ASSERT_IF(csr_cs_set_callback_on_completed(nullptr, on_completed), CSR_ERROR_INVALID_HANDLE);
-	ASSERT_IF(csr_cs_set_callback_on_completed(context, nullptr), CSR_ERROR_INVALID_PARAMETER);
-	ASSERT_IF(csr_cs_set_callback_on_cancelled(nullptr, on_cancelled), CSR_ERROR_INVALID_HANDLE);
-	ASSERT_IF(csr_cs_set_callback_on_cancelled(context, nullptr), CSR_ERROR_INVALID_PARAMETER);
-	ASSERT_IF(csr_cs_set_callback_on_error(nullptr, on_error), CSR_ERROR_INVALID_HANDLE);
-	ASSERT_IF(csr_cs_set_callback_on_error(context, nullptr), CSR_ERROR_INVALID_PARAMETER);
-	ASSERT_IF(csr_cs_set_callback_on_file_scanned(nullptr, on_scanned), CSR_ERROR_INVALID_HANDLE);
-	ASSERT_IF(csr_cs_set_callback_on_file_scanned(context, nullptr), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_set_detected_cb(nullptr, on_detected), CSR_ERROR_INVALID_HANDLE);
+	ASSERT_IF(csr_cs_set_detected_cb(context, nullptr), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_set_completed_cb(nullptr, on_completed), CSR_ERROR_INVALID_HANDLE);
+	ASSERT_IF(csr_cs_set_completed_cb(context, nullptr), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_set_cancelled_cb(nullptr, on_cancelled), CSR_ERROR_INVALID_HANDLE);
+	ASSERT_IF(csr_cs_set_cancelled_cb(context, nullptr), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_set_error_cb(nullptr, on_error), CSR_ERROR_INVALID_HANDLE);
+	ASSERT_IF(csr_cs_set_error_cb(context, nullptr), CSR_ERROR_INVALID_PARAMETER);
+	ASSERT_IF(csr_cs_set_file_scanned_cb(nullptr, on_scanned), CSR_ERROR_INVALID_HANDLE);
+	ASSERT_IF(csr_cs_set_file_scanned_cb(context, nullptr), CSR_ERROR_INVALID_PARAMETER);
 
 	EXCEPTION_GUARD_END
 }

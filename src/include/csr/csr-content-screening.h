@@ -198,7 +198,7 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle);
 int csr_cs_scan_data(csr_cs_context_h handle,
 					 const unsigned char *data,
 					 size_t length,
-					 csr_cs_detected_h *pdetected);
+					 csr_cs_malware_h *pdetected);
 
 /**
  * @brief Main function for caller to scan a file specified by file path for malware.
@@ -235,7 +235,7 @@ int csr_cs_scan_data(csr_cs_context_h handle,
  */
 int csr_cs_scan_file(csr_cs_context_h handle,
 					 const char *file_path,
-					 csr_cs_detected_h *pdetected);
+					 csr_cs_malware_h *pdetected);
 
 /**
  * @brief Sets a callback function for detection of a malware.
@@ -254,7 +254,7 @@ int csr_cs_scan_file(csr_cs_context_h handle,
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_set_callback_on_detected(csr_cs_context_h handle, csr_cs_on_detected_cb callback);
+int csr_cs_set_detected_cb(csr_cs_context_h handle, csr_cs_detected_cb callback);
 
 /**
  * @brief Sets a callback function for scanning completed without an error.
@@ -273,7 +273,7 @@ int csr_cs_set_callback_on_detected(csr_cs_context_h handle, csr_cs_on_detected_
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_set_callback_on_completed(csr_cs_context_h handle, csr_cs_on_completed_cb callback);
+int csr_cs_set_completed_cb(csr_cs_context_h handle, csr_cs_completed_cb callback);
 
 /**
  * @brief Sets a callback function for scanning cancelled.
@@ -292,7 +292,7 @@ int csr_cs_set_callback_on_completed(csr_cs_context_h handle, csr_cs_on_complete
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_set_callback_on_cancelled(csr_cs_context_h handle, csr_cs_on_cancelled_cb callback);
+int csr_cs_set_cancelled_cb(csr_cs_context_h handle, csr_cs_cancelled_cb callback);
 
 /**
  * @brief Sets a callback function for scanning stopped with an error.
@@ -311,7 +311,7 @@ int csr_cs_set_callback_on_cancelled(csr_cs_context_h handle, csr_cs_on_cancelle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_set_callback_on_error(csr_cs_context_h handle, csr_cs_on_error_cb callback);
+int csr_cs_set_error_cb(csr_cs_context_h handle, csr_cs_error_cb callback);
 
 
 /**
@@ -331,7 +331,7 @@ int csr_cs_set_callback_on_error(csr_cs_context_h handle, csr_cs_on_error_cb cal
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_set_callback_on_file_scanned(csr_cs_context_h handle, csr_cs_on_file_scanned_cb callback);
+int csr_cs_set_file_scanned_cb(csr_cs_context_h handle, csr_cs_file_scanned_cb callback);
 
 /**
  * @brief Main function for caller to scan files specified by an array of file paths
@@ -488,7 +488,7 @@ int csr_cs_scan_cancel(csr_cs_context_h handle);
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a pseverity is invalid.
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_severity(csr_cs_detected_h detected, csr_cs_severity_level_e *pseverity);
+int csr_cs_malware_get_severity(csr_cs_malware_h detected, csr_cs_severity_level_e *pseverity);
 
 /**
  * @brief Extracts the name of a detected malware from the detected malware handle.
@@ -507,7 +507,7 @@ int csr_cs_detected_get_severity(csr_cs_detected_h detected, csr_cs_severity_lev
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a pmalware_name is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_malware_name(csr_cs_detected_h detected, char **pmalware_name);
+int csr_cs_malware_get_malware_name(csr_cs_malware_h detected, char **pmalware_name);
 
 /**
  * @brief Extracts an url that contains detailed information on vendor's web site from the detected malware handle.
@@ -527,7 +527,7 @@ int csr_cs_detected_get_malware_name(csr_cs_detected_h detected, char **pmalware
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a pdetailed_url is invalid.
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, char **pdetailed_url);
+int csr_cs_malware_get_detailed_url(csr_cs_malware_h detected, char **pdetailed_url);
 
 /**
  * @brief Extracts the time stamp when a malware is detected from the detected malware handle.
@@ -544,7 +544,7 @@ int csr_cs_detected_get_detailed_url(csr_cs_detected_h detected, char **pdetaile
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a ptimestamp is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_timestamp(csr_cs_detected_h detected, time_t *ptimestamp);
+int csr_cs_malware_get_timestamp(csr_cs_malware_h detected, time_t *ptimestamp);
 
 /**
  * @brief Extracts the file name where a malware is detected from the detected malware handle.
@@ -563,7 +563,7 @@ int csr_cs_detected_get_timestamp(csr_cs_detected_h detected, time_t *ptimestamp
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a pfile_name is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_file_name(csr_cs_detected_h detected, char **pfile_name);
+int csr_cs_malware_get_file_name(csr_cs_malware_h detected, char **pfile_name);
 
 /**
  * @brief Extracts a user response of a popup from the detected malware handle.
@@ -580,7 +580,7 @@ int csr_cs_detected_get_file_name(csr_cs_detected_h detected, char **pfile_name)
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a presponse is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_user_response(csr_cs_detected_h detected, csr_cs_user_response_e *presponse);
+int csr_cs_malware_get_user_response(csr_cs_malware_h detected, csr_cs_user_response_e *presponse);
 
 /**
  * @brief Checks if a malware was detected in an application or in a file.
@@ -597,7 +597,7 @@ int csr_cs_detected_get_user_response(csr_cs_detected_h detected, csr_cs_user_re
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a pis_app is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_is_app(csr_cs_detected_h detected, bool *pis_app);
+int csr_cs_malware_is_app(csr_cs_malware_h detected, bool *pis_app);
 
 /**
  * @brief Extracts the package id of an application where a malware is detected from detected malware handle.
@@ -616,7 +616,7 @@ int csr_cs_detected_is_app(csr_cs_detected_h detected, bool *pis_app);
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a ppkg_id is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, char **ppkg_id);
+int csr_cs_malware_get_pkg_id(csr_cs_malware_h detected, char **ppkg_id);
 
 /**
  * @brief Judges how a detected malware file is handled.
@@ -653,7 +653,7 @@ int csr_cs_detected_get_pkg_id(csr_cs_detected_h detected, char **ppkg_id);
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_judge_detected_malware(csr_cs_context_h handle,
-								csr_cs_detected_h detected,
+								csr_cs_malware_h detected,
 								csr_cs_action_e action);
 
 
@@ -685,7 +685,7 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle,
  */
 int csr_cs_get_detected_malware(csr_cs_context_h handle,
 								const char *file_path,
-								csr_cs_detected_h *pdetected);
+								csr_cs_malware_h *pdetected);
 
 /**
  * @brief Gets information on a detected malware files specified by directory path.
@@ -718,7 +718,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle,
  */
 int csr_cs_get_detected_malwares(csr_cs_context_h handle,
 								 const char *dir_paths[], size_t count,
-								 csr_cs_detected_list_h *plist, size_t *pcount);
+								 csr_cs_malware_list_h *plist, size_t *pcount);
 
 /**
  * @brief Gets information on a ignored malware file specified by file path.
@@ -747,7 +747,7 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
-							   csr_cs_detected_h *pdetected);
+							   csr_cs_malware_h *pdetected);
 
 /**
  * @brief Gets information on a ignored malware files specified by directory path.
@@ -780,7 +780,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
  */
 int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
 								const char *dir_paths[], size_t count,
-								csr_cs_detected_list_h *plist, size_t *pcount);
+								csr_cs_malware_list_h *plist, size_t *pcount);
 
 /**
  * @brief Extracts the detected malware handle from the detected malware list handle.
@@ -801,8 +801,8 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a index or @a pdetected is invalid.
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_dlist_get_detected(csr_cs_detected_list_h list, size_t index,
-							  csr_cs_detected_h *pdetected);
+int csr_cs_malware_list_get_detected(csr_cs_malware_list_h list, size_t index,
+							  csr_cs_malware_h *pdetected);
 
 /**
  * @}

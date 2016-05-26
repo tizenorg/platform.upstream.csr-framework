@@ -154,7 +154,7 @@ AsyncLogic::Ending AsyncLogic::scanFiles(const StrSet &fileSet)
 			m_results.emplace_back(std::move(resultPtr));
 
 			if (m_cb.onDetected)
-				m_cb.onDetected(m_userdata, reinterpret_cast<csr_cs_detected_h>(ret.second));
+				m_cb.onDetected(m_userdata, reinterpret_cast<csr_cs_malware_h>(ret.second));
 		} else {
 			DEBUG("[Scanned] file[" << file << "]");
 

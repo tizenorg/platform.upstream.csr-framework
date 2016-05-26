@@ -30,6 +30,11 @@ extern "C" {
 #endif
 
 /**
+ * @addtogroup CAPI_CSR_FRAMEWORK_ADMIN_MODULE
+ * @{
+ */
+
+/**
  * @brief Engine handle
  * @since_tizen 3.0
  */
@@ -287,6 +292,10 @@ int csr_engine_get_state(csr_engine_h engine, csr_state_e *pstate);
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid engine information handle
  */
 int csr_engine_destroy(csr_engine_h engine);
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }

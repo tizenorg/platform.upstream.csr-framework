@@ -34,6 +34,12 @@ extern "C" {
 #endif
 
 /**
+ * @addtogroup CAPI_CSR_FRAMEWORK_CS_MODULE
+ * @{
+ */
+
+
+/**
  * @brief Initializes and returns a Content Screengin API handle.
  *
  * @since_tizen 3.0
@@ -797,6 +803,10 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
  */
 int csr_cs_dlist_get_detected(csr_cs_detected_list_h list, size_t index,
 							  csr_cs_detected_h *pdetected);
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }

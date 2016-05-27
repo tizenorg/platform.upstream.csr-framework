@@ -117,15 +117,12 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url,
 				   h->getContext(),
 				   std::string(url));
 
-	if (ret.first != CSR_ERROR_NONE) {
-		ERROR("Error! ret: " << ret.first);
-		return ret.first;
-	}
+	if (ret.second)
+		h->add(ResultPtr(ret.second));
 
-	h->add(ResultPtr(ret.second));
 	*presult = reinterpret_cast<csr_wp_check_result_h>(ret.second);
 
-	return CSR_ERROR_NONE;
+	return ret.first;
 
 	EXCEPTION_SAFE_END
 }

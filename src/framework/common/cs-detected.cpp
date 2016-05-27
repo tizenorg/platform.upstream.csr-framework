@@ -28,7 +28,7 @@
 
 namespace Csr {
 
-CsDetected::CsDetected() :
+CsDetected::CsDetected() noexcept :
 	severity(CSR_CS_SEVERITY_LOW),
 	response(CSR_CS_NO_ASK_USER),
 	isApp(false),
@@ -36,37 +36,38 @@ CsDetected::CsDetected() :
 {
 }
 
-CsDetected::~CsDetected()
+CsDetected::~CsDetected() noexcept
 {
 }
 
 CsDetected::CsDetected(IStream &stream)
 {
 	Deserializer<std::string, std::string, std::string, std::string>::Deserialize(
-		stream, targetName, malwareName, detailedUrl, pkgId);
+		stream, this->targetName, this->malwareName, this->detailedUrl, this->pkgId);
 
 	int intSeverity;
 	int intResponse;
 	int64_t ts64;
 	Deserializer<int, int, bool, int64_t>::Deserialize(
 		stream, intSeverity, intResponse, isApp, ts64);
-	severity = static_cast<csr_cs_severity_level_e>(intSeverity);
-	response = static_cast<csr_cs_user_response_e>(intResponse);
-	ts = static_cast<time_t>(ts64);
+	this->severity = static_cast<csr_cs_severity_level_e>(intSeverity);
+	this->response = static_cast<csr_cs_user_response_e>(intResponse);
+	this->ts = static_cast<time_t>(ts64);
 }
 
 void CsDetected::Serialize(IStream &stream) const
 {
 	Serializer<std::string, std::string, std::string, std::string>::Serialize(
-		stream, targetName, malwareName, detailedUrl, pkgId);
+		stream, this->targetName, this->malwareName, this->detailedUrl, this->pkgId);
 
-	int64_t ts64 = static_cast<int64_t>(ts);
+	auto ts64 = static_cast<int64_t>(this->ts);
 
 	Serializer<int, int, bool, int64_t>::Serialize(
-		stream, static_cast<int>(severity), static_cast<int>(response), isApp, ts64);
+		stream, static_cast<int>(this->severity), static_cast<int>(this->response),
+		this->isApp, ts64);
 }
 
-CsDetected::CsDetected(CsDetected &&other) :
+CsDetected::CsDetected(CsDetected &&other) noexcept :
 	targetName(std::move(other.targetName)),
 	malwareName(std::move(other.malwareName)),
 	detailedUrl(std::move(other.detailedUrl)),
@@ -78,19 +79,19 @@ CsDetected::CsDetected(CsDetected &&other) :
 {
 }
 
-CsDetected &CsDetected::operator=(CsDetected &&other)
+CsDetected &CsDetected::operator=(CsDetected &&other) noexcept
 {
 	if (this == &other)
 		return *this;
 
-	targetName = std::move(other.targetName);
-	malwareName = std::move(other.malwareName);
-	detailedUrl = std::move(other.detailedUrl);
-	pkgId = std::move(other.pkgId);
-	severity = other.severity;
-	response = other.response;
-	isApp = other.isApp;
-	ts = other.ts;
+	this->targetName = std::move(other.targetName);
+	this->malwareName = std::move(other.malwareName);
+	this->detailedUrl = std::move(other.detailedUrl);
+	this->pkgId = std::move(other.pkgId);
+	this->severity = other.severity;
+	this->response = other.response;
+	this->isApp = other.isApp;
+	this->ts = other.ts;
 
 	return *this;
 }

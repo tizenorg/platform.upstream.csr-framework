@@ -25,7 +25,7 @@
 
 namespace Csr {
 
-KvpContainer::~KvpContainer()
+KvpContainer::~KvpContainer() noexcept
 {
 }
 

@@ -26,7 +26,7 @@
 
 namespace Csr {
 
-CsContext::CsContext() :
+CsContext::CsContext() noexcept :
 	IContext(),
 	popupMessage(),
 	askUser(CSR_CS_NOT_ASK_USER),
@@ -35,7 +35,7 @@ CsContext::CsContext() :
 {
 }
 
-CsContext::~CsContext()
+CsContext::~CsContext() noexcept
 {
 }
 
@@ -44,28 +44,28 @@ CsContext::CsContext(IStream &stream)
 	int intAskUser;
 	int intCoreUsage;
 	Deserializer<std::string, int, int, bool>::Deserialize(stream,
-			popupMessage, intAskUser, intCoreUsage, isScanOnCloud);
+			this->popupMessage, intAskUser, intCoreUsage, this->isScanOnCloud);
 
-	askUser = static_cast<csr_cs_ask_user_e>(intAskUser);
-	coreUsage = static_cast<csr_cs_core_usage_e>(intCoreUsage);
+	this->askUser = static_cast<csr_cs_ask_user_e>(intAskUser);
+	this->coreUsage = static_cast<csr_cs_core_usage_e>(intCoreUsage);
 }
 
 void CsContext::Serialize(IStream &stream) const
 {
 	Serializer<std::string, int, int, bool>::Serialize(stream,
-			popupMessage, static_cast<int>(askUser), static_cast<int>(coreUsage),
-			isScanOnCloud);
+			this->popupMessage, static_cast<int>(this->askUser),
+			static_cast<int>(this->coreUsage), this->isScanOnCloud);
 }
 
 void CsContext::set(int key, int value)
 {
 	switch (static_cast<Key>(key)) {
 	case Key::AskUser:
-		askUser = static_cast<csr_cs_ask_user_e>(value);
+		this->askUser = static_cast<csr_cs_ask_user_e>(value);
 		break;
 
 	case Key::CoreUsage:
-		coreUsage = static_cast<csr_cs_core_usage_e>(value);
+		this->coreUsage = static_cast<csr_cs_core_usage_e>(value);
 		break;
 
 	default:
@@ -77,12 +77,11 @@ void CsContext::set(int key, const std::string &value)
 {
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:
-		popupMessage = value;
+		this->popupMessage = value;
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key <<
-				 "] comes in to set as string.");
+		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to set as string.");
 	}
 }
 
@@ -90,12 +89,11 @@ void CsContext::set(int key, const char *value)
 {
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:
-		popupMessage = value;
+		this->popupMessage = value;
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key <<
-				 "] comes in to set as string.");
+		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to set as string.");
 	}
 }
 
@@ -103,7 +101,7 @@ void CsContext::set(int key, bool value)
 {
 	switch (static_cast<Key>(key)) {
 	case Key::ScanOnCloud:
-		isScanOnCloud = value;
+		this->isScanOnCloud = value;
 		break;
 
 	default:
@@ -115,11 +113,11 @@ void CsContext::get(int key, int &value) const
 {
 	switch (static_cast<Key>(key)) {
 	case Key::AskUser:
-		value = static_cast<int>(askUser);
+		value = static_cast<int>(this->askUser);
 		break;
 
 	case Key::CoreUsage:
-		value = static_cast<int>(coreUsage);
+		value = static_cast<int>(this->coreUsage);
 		break;
 
 	default:
@@ -131,12 +129,11 @@ void CsContext::get(int key, std::string &value) const
 {
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:
-		value = popupMessage;
+		value = this->popupMessage;
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key <<
-				 "] comes in to get as string.");
+		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to get as string.");
 	}
 }
 
@@ -147,12 +144,11 @@ void CsContext::get(int key, const char **value) const
 
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:
-		*value = popupMessage.c_str();
+		*value = this->popupMessage.c_str();
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key <<
-				 "] comes in to get as string.");
+		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to get as string.");
 	}
 }
 
@@ -160,7 +156,7 @@ void CsContext::get(int key, bool &value) const
 {
 	switch (static_cast<Key>(key)) {
 	case Key::ScanOnCloud:
-		value = isScanOnCloud;
+		value = this->isScanOnCloud;
 		break;
 
 	default:

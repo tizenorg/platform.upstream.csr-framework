@@ -25,7 +25,6 @@
 
 #include "common/types.h"
 #include "common/em-context.h"
-#include "common/em-result.h"
 #include "service/cs-loader.h"
 #include "service/wp-loader.h"
 #include "service/logic.h"

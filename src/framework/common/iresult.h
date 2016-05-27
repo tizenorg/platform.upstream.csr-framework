@@ -32,7 +32,7 @@ using ResultListPtr = std::unique_ptr<ResultList>;
 
 class IResult : public ISerializable {
 public:
-	virtual ~IResult() {}
+	virtual ~IResult() noexcept {}
 };
 
 }

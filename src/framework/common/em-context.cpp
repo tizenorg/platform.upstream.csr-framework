@@ -25,8 +25,8 @@
 
 namespace Csr {
 
-EmContext::EmContext() {}
-EmContext::~EmContext() {}
+EmContext::EmContext() noexcept {}
+EmContext::~EmContext() noexcept {}
 
 EmContext::EmContext(IStream &stream)
 {

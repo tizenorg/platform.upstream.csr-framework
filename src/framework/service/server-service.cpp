@@ -32,7 +32,6 @@
 #include "common/wp-context.h"
 #include "common/cs-detected.h"
 #include "common/wp-result.h"
-#include "common/em-result.h"
 #include "service/exception.h"
 #include "service/access-control.h"
 #include "service/core-usage.h"
@@ -248,7 +247,7 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 	switch (cid) {
 	case CommandId::EM_GET_NAME: {
 		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, EmString()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, std::string()).pop();
 
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
@@ -258,7 +257,7 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::EM_GET_VENDOR: {
 		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, EmString()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, std::string()).pop();
 
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
@@ -268,7 +267,7 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::EM_GET_VERSION: {
 		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, EmString()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, std::string()).pop();
 
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
@@ -278,7 +277,7 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::EM_GET_DATA_VERSION: {
 		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, EmString()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, std::string()).pop();
 
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);

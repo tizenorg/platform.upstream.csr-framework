@@ -44,7 +44,7 @@ public:
 
 	void dispatchAsync(const Task &task);
 	void stop(void);
-	bool isStopped(void) const;
+	bool isStopped(void) const noexcept;
 	bool hasRunning(void);
 
 	Callback m_cb; // TODO: to refine..

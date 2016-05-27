@@ -34,8 +34,8 @@ struct EmContext : public IContext {
 		EngineId = 0x01 // int
 	};
 
-	EmContext();
-	virtual ~EmContext();
+	EmContext() noexcept;
+	virtual ~EmContext() noexcept;
 
 	EmContext(IStream &);
 	virtual void Serialize(IStream &) const override;

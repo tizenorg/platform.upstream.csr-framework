@@ -50,7 +50,7 @@ void HandleExt::stop()
 	eraseJoinableIf();
 }
 
-bool HandleExt::isStopped() const
+bool HandleExt::isStopped() const noexcept
 {
 	return m_stop.load();
 }

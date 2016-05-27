@@ -23,14 +23,14 @@
 
 namespace Csr {
 
-WpResult::WpResult() :
+WpResult::WpResult() noexcept :
 	riskLevel(CSR_WP_RISK_LOW),
 	detailedUrl(),
 	response(CSR_WP_NO_ASK_USER)
 {
 }
 
-WpResult::~WpResult()
+WpResult::~WpResult() noexcept
 {
 }
 
@@ -39,33 +39,34 @@ WpResult::WpResult(IStream &stream)
 	int intRiskLevel;
 	int intResponse;
 	Deserializer<int, std::string, int>::Deserialize(stream,
-			intRiskLevel, detailedUrl, intResponse);
+			intRiskLevel, this->detailedUrl, intResponse);
 
-	riskLevel = static_cast<csr_wp_risk_level_e>(intRiskLevel);
-	response = static_cast<csr_wp_user_response_e>(intResponse);
+	this->riskLevel = static_cast<csr_wp_risk_level_e>(intRiskLevel);
+	this->response = static_cast<csr_wp_user_response_e>(intResponse);
 }
 
 void WpResult::Serialize(IStream &stream) const
 {
 	Serializer<int, std::string, int>::Serialize(stream,
-			static_cast<int>(riskLevel), detailedUrl, static_cast<int>(response));
+			static_cast<int>(this->riskLevel), this->detailedUrl,
+			static_cast<int>(this->response));
 }
 
-WpResult::WpResult(WpResult &&other) :
+WpResult::WpResult(WpResult &&other) noexcept :
 	riskLevel(other.riskLevel),
 	detailedUrl(std::move(other.detailedUrl)),
 	response(other.response)
 {
 }
 
-WpResult &WpResult::operator=(WpResult &&other)
+WpResult &WpResult::operator=(WpResult &&other) noexcept
 {
 	if (this == &other)
 		return *this;
 
-	detailedUrl = std::move(other.detailedUrl);
-	riskLevel = other.riskLevel;
-	response = other.response;
+	this->detailedUrl = std::move(other.detailedUrl);
+	this->riskLevel = other.riskLevel;
+	this->response = other.response;
 
 	return *this;
 }

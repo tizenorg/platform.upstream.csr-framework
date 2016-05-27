@@ -46,7 +46,6 @@ SET(${TARGET_CSR_COMMON}_SRCS
 	common/wp-context.cpp
 	common/wp-result.cpp
 	common/em-context.cpp
-	common/em-result.cpp
 	common/kvp-container.cpp
 	common/dispatcher.cpp
 	common/mainloop.cpp

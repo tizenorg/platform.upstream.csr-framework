@@ -32,7 +32,7 @@ public:
 	typedef std::function<void(uint32_t event)> Callback;
 
 	Mainloop();
-	virtual ~Mainloop();
+	virtual ~Mainloop() noexcept;
 
 	Mainloop(const Mainloop &) = delete;
 	Mainloop &operator=(const Mainloop &) = delete;

@@ -32,30 +32,30 @@ namespace Csr {
 
 Service::Service()
 {
-	setNewConnectionCallback(nullptr);
-	setCloseConnectionCallback(nullptr);
+	this->setNewConnectionCallback(nullptr);
+	this->setCloseConnectionCallback(nullptr);
 }
 
-Service::~Service()
+Service::~Service() noexcept
 {
 }
 
 void Service::add(const SockId &id)
 {
-	m_sockIds.insert(id);
+	this->m_sockIds.insert(id);
 }
 
 void Service::start(int timeout)
 {
 	INFO("Service start!");
 
-	for (const auto &id : m_sockIds) {
+	for (const auto &id : this->m_sockIds) {
 		auto socket = std::make_shared<Socket>(id);
 
 		DEBUG("Get systemd socket[" << socket->getFd() <<
 			  "] for sock id: " << static_cast<int>(id));
 
-		m_loop.addEventSource(socket->getFd(), EPOLLIN | EPOLLHUP | EPOLLRDHUP,
+		this->m_loop.addEventSource(socket->getFd(), EPOLLIN | EPOLLHUP | EPOLLRDHUP,
 		[this, socket](uint32_t event) {
 			if (event != EPOLLIN)
 				return;
@@ -64,13 +64,13 @@ void Service::start(int timeout)
 		});
 	}
 
-	m_loop.run(timeout);
+	this->m_loop.run(timeout);
 }
 
 void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
 {
 	/* TODO: scoped-lock */
-	m_onNewConnection = [&](const ConnShPtr & connection) {
+	this->m_onNewConnection = [&](const ConnShPtr & connection) {
 		if (!connection)
 			ThrowExc(InternalError, "onNewConnection called but ConnShPtr is nullptr.");
 
@@ -84,19 +84,19 @@ void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
 		    callback(connection);
 		*/
 
-		m_loop.addEventSource(fd, EPOLLIN | EPOLLHUP | EPOLLRDHUP,
+		this->m_loop.addEventSource(fd, EPOLLIN | EPOLLHUP | EPOLLRDHUP,
 		[ &, fd](uint32_t event) {
 			DEBUG("read event comes in to fd[" << fd << "]");
 
-			if (m_connectionRegistry.count(fd) == 0)
+			if (this->m_connectionRegistry.count(fd) == 0)
 				ThrowExc(InternalError, "get event on fd[" << fd <<
 						 "] but no associated connection exist");
 
-			auto &conn = m_connectionRegistry[fd];
+			auto &conn = this->m_connectionRegistry[fd];
 
 			if (event & (EPOLLHUP | EPOLLRDHUP)) {
 				DEBUG("event of epoll hup. close connection on fd[" << fd << "]");
-				m_onCloseConnection(conn);
+				this->m_onCloseConnection(conn);
 				return;
 			}
 
@@ -105,27 +105,27 @@ void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
 			onMessageProcess(conn);
 		});
 
-		m_connectionRegistry[fd] = connection;
+		this->m_connectionRegistry[fd] = connection;
 	};
 }
 
 void Service::setCloseConnectionCallback(const ConnCallback &/*callback*/)
 {
 	/* TODO: scoped-lock */
-	m_onCloseConnection = [&](const ConnShPtr & connection) {
+	this->m_onCloseConnection = [&](const ConnShPtr & connection) {
 		if (!connection)
 			ThrowExc(InternalError, "no connection to close");
 
 		int fd = connection->getFd();
 
-		if (m_connectionRegistry.count(fd) == 0)
+		if (this->m_connectionRegistry.count(fd) == 0)
 			ThrowExc(InternalError, "no connection in registry to remove "
 					 "associated to fd[" << fd << "]");
 
 		INFO("good-bye! close socket fd[" << fd << "]");
 
-		m_loop.removeEventSource(fd);
-		m_connectionRegistry.erase(fd); /* scoped-lock needed? */
+		this->m_loop.removeEventSource(fd);
+		this->m_connectionRegistry.erase(fd); /* scoped-lock needed? */
 
 		/*
 		    // TODO: disable temporarily

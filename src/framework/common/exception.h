@@ -33,9 +33,9 @@ namespace Csr {
 class Exception : public std::exception {
 public:
 	Exception(const char *file, const char *function, unsigned int line,
-			  const std::string &message);
+			  const std::string &message) noexcept;
 	virtual ~Exception() noexcept;
-	virtual const char *what() const noexcept override;
+	virtual const char *what() const noexcept final;
 
 	virtual int error(void) const = 0;
 
@@ -47,7 +47,7 @@ template <int Error = 0, Audit::LogLevel level = Audit::LogLevel::Error>
 class DerivedException : public Exception {
 public:
 	DerivedException(const char *file, const char *function, unsigned int line,
-					 const std::string &message) :
+					 const std::string &message) noexcept :
 		Exception(file, function, line, message)
 	{
 		switch (level) {
@@ -71,7 +71,7 @@ public:
 
 	virtual ~DerivedException() noexcept {}
 
-	virtual int error(void) const
+	virtual int error(void) const noexcept override
 	{
 		return Error;
 	}

@@ -32,14 +32,14 @@ namespace Csr {
 
 class Connection {
 public:
-	explicit Connection(Socket &&socket);
-	virtual ~Connection();
+	explicit Connection(Socket &&socket) noexcept;
+	virtual ~Connection() noexcept;
 
 	Connection(const Connection &) = delete;
 	Connection &operator=(const Connection &) = delete;
 
-	Connection(Connection &&);
-	Connection &operator=(Connection &&);
+	Connection(Connection &&) noexcept;
+	Connection &operator=(Connection &&) noexcept;
 
 	void send(const RawBuffer &) const;
 	RawBuffer receive(void) const;

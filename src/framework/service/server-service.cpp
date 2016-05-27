@@ -108,7 +108,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 	switch (cid) {
 	case CommandId::SCAN_DATA: {
 		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, CsDetected()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		CsContextShPtr cptr;
 		RawBuffer data;
@@ -119,7 +119,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::SCAN_FILE: {
 		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, CsDetected()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		CsContextShPtr cptr;
 		std::string filepath;
@@ -130,7 +130,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::GET_SCANNABLE_FILES: {
 		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, StrSet()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		std::string dir;
 		q.Deserialize(dir);
@@ -160,7 +160,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::GET_DETECTED: {
 		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, CsDetected()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		std::string filepath;
 		q.Deserialize(filepath);
@@ -170,7 +170,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::GET_DETECTED_LIST: {
 		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, std::vector<CsDetected>()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		StrSet dirSet;
 		q.Deserialize(dirSet);
@@ -180,7 +180,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::GET_IGNORED: {
 		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, CsDetected()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		std::string filepath;
 		q.Deserialize(filepath);
@@ -190,7 +190,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::GET_IGNORED_LIST: {
 		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, std::vector<CsDetected>()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		StrSet dirSet;
 		q.Deserialize(dirSet);
@@ -206,7 +206,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 RawBuffer ServerService::processWp(const ConnShPtr &conn, RawBuffer &data)
 {
 	if (!hasPermission(conn))
-		return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, WpResult()).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 	BinaryQueue q;
 	q.push(data);
@@ -243,7 +243,7 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 	switch (cid) {
 	case CommandId::EM_GET_NAME: {
 		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, std::string()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
@@ -253,7 +253,7 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::EM_GET_VENDOR: {
 		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, std::string()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
@@ -263,7 +263,7 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::EM_GET_VERSION: {
 		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, std::string()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
@@ -273,7 +273,7 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::EM_GET_DATA_VERSION: {
 		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, std::string()).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
@@ -283,7 +283,7 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::EM_GET_UPDATED_TIME: {
 		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, -1).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
@@ -293,7 +293,7 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::EM_GET_ACTIVATED: {
 		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, -1).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
@@ -303,7 +303,7 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::EM_GET_STATE: {
 		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED, -1).pop();
+			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
 
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);

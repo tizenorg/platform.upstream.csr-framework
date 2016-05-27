@@ -367,6 +367,15 @@ struct Deserialization {
 			stream.read(sizeof(*value), value);
 		}
 	}
+	static void Deserialize(IStream &stream, std::shared_ptr<uint32_t> &value)
+	{
+		if (stream.empty()) {
+			value.reset();
+		} else {
+			value.reset(new uint32_t);
+			stream.read(sizeof(*value), value.get());
+		}
+	}
 
 	// int32
 	static void Deserialize(IStream &stream, int32_t &value)
@@ -380,6 +389,15 @@ struct Deserialization {
 		} else {
 			value = new int32_t;
 			stream.read(sizeof(*value), value);
+		}
+	}
+	static void Deserialize(IStream &stream, std::shared_ptr<int32_t> &value)
+	{
+		if (stream.empty()) {
+			value.reset();
+		} else {
+			value.reset(new int32_t);
+			stream.read(sizeof(*value), value.get());
 		}
 	}
 
@@ -397,6 +415,15 @@ struct Deserialization {
 			stream.read(sizeof(*value), value);
 		}
 	}
+	static void Deserialize(IStream &stream, std::shared_ptr<uint64_t> &value)
+	{
+		if (stream.empty()) {
+			value.reset();
+		} else {
+			value.reset(new uint64_t);
+			stream.read(sizeof(*value), value.get());
+		}
+	}
 
 	// int64
 	static void Deserialize(IStream &stream, int64_t &value)
@@ -410,6 +437,15 @@ struct Deserialization {
 		} else {
 			value = new int64_t;
 			stream.read(sizeof(*value), value);
+		}
+	}
+	static void Deserialize(IStream &stream, std::shared_ptr<int64_t> &value)
+	{
+		if (stream.empty()) {
+			value.reset();
+		} else {
+			value.reset(new int64_t);
+			stream.read(sizeof(*value), value.get());
 		}
 	}
 
@@ -442,6 +478,7 @@ struct Deserialization {
 		value = static_cast<csr_error_e>(val);
 	}
 
+	// std::string
 	template <typename T, typename R, typename A>
 	static void Deserialize(IStream &stream, std::basic_string<T, R, A> &str)
 	{
@@ -463,6 +500,20 @@ struct Deserialization {
 			std::vector<T> buf(length);
 			stream.read(length * sizeof(T), buf.data());
 			str = new std::basic_string<T, R, A>(buf.data(), buf.data() + length);
+		}
+	}
+
+	template <typename T, typename R, typename A>
+	static void Deserialize(IStream &stream, std::shared_ptr<std::basic_string<T, R, A>> &str)
+	{
+		if (stream.empty()) {
+			str.reset();
+		} else {
+			int length;
+			stream.read(sizeof(length), &length);
+			std::vector<T> buf(length);
+			stream.read(length * sizeof(T), buf.data());
+			str.reset(new std::basic_string<T, R, A>(buf.data(), buf.data() + length));
 		}
 	}
 

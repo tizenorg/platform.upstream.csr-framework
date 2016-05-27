@@ -82,7 +82,7 @@ RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, WpResult()).pop();
+	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }

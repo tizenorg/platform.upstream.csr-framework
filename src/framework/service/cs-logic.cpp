@@ -30,6 +30,7 @@
 #include "service/type-converter.h"
 #include "service/engine-error-converter.h"
 #include "service/core-usage.h"
+#include "service/exception.h"
 #include "ui/askuser.h"
 #include <csr-error.h>
 
@@ -82,10 +83,6 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 	auto d = this->convert(result, std::string());
 
 	return this->handleAskUser(context, d);
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -362,10 +359,6 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 
 	return this->handleAskUser(context, *history);
 
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
-
 	EXCEPTION_GUARD_END
 }
 
@@ -439,10 +432,6 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
 
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
-
 	EXCEPTION_GUARD_END
 }
 
@@ -453,10 +442,6 @@ RawBuffer CsLogic::setDirTimestamp(const std::string &dir, time_t ts)
 	this->m_db.insertLastScanTime(dir, ts, this->m_dataVersion);
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -515,10 +500,6 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
-
 	EXCEPTION_GUARD_END
 }
 
@@ -532,10 +513,6 @@ RawBuffer CsLogic::getDetected(const std::string &filepath)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
 	else
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -557,10 +534,6 @@ RawBuffer CsLogic::getDetectedList(const StrSet &dirSet)
 	else
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
 
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
-
 	EXCEPTION_GUARD_END
 }
 
@@ -575,10 +548,6 @@ RawBuffer CsLogic::getIgnored(const std::string &filepath)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
 	else
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -599,10 +568,6 @@ RawBuffer CsLogic::getIgnoredList(const StrSet &dirSet)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 	else
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }

@@ -98,6 +98,8 @@ ServerService::ServerService() :
 
 RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 {
+	EXCEPTION_GUARD_START
+
 	BinaryQueue q;
 	q.push(data);
 
@@ -107,8 +109,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 
 	switch (cid) {
 	case CommandId::SCAN_DATA: {
-		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
+		hasPermission(conn);
 
 		CsContextShPtr cptr;
 		RawBuffer data;
@@ -118,8 +119,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::SCAN_FILE: {
-		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
+		hasPermission(conn);
 
 		CsContextShPtr cptr;
 		std::string filepath;
@@ -129,8 +129,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::GET_SCANNABLE_FILES: {
-		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
+		hasPermission(conn);
 
 		std::string dir;
 		q.Deserialize(dir);
@@ -139,6 +138,8 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::SET_DIR_TIMESTAMP: {
+		hasPermission(conn);
+
 		std::string dir;
 		int64_t ts64 = 0;
 		q.Deserialize(dir, ts64);
@@ -148,8 +149,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 
 	case CommandId::JUDGE_STATUS: {
 		// judge status needs admin privilege
-		if (!hasPermission(conn, SockId::ADMIN))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
+		hasPermission(conn, SockId::ADMIN);
 
 		std::string filepath;
 		int intAction;
@@ -159,8 +159,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::GET_DETECTED: {
-		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
+		hasPermission(conn);
 
 		std::string filepath;
 		q.Deserialize(filepath);
@@ -169,8 +168,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::GET_DETECTED_LIST: {
-		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
+		hasPermission(conn);
 
 		StrSet dirSet;
 		q.Deserialize(dirSet);
@@ -179,8 +177,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::GET_IGNORED: {
-		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
+		hasPermission(conn);
 
 		std::string filepath;
 		q.Deserialize(filepath);
@@ -189,8 +186,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::GET_IGNORED_LIST: {
-		if (!hasPermission(conn))
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
+		hasPermission(conn);
 
 		StrSet dirSet;
 		q.Deserialize(dirSet);
@@ -201,12 +197,15 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 	default:
 		ThrowExc(InternalError, "CS Command isn't in range");
 	}
+
+	EXCEPTION_GUARD_END
 }
 
 RawBuffer ServerService::processWp(const ConnShPtr &conn, RawBuffer &data)
 {
-	if (!hasPermission(conn))
-		return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
+	EXCEPTION_GUARD_START
+
+	hasPermission(conn);
 
 	BinaryQueue q;
 	q.push(data);
@@ -227,14 +226,18 @@ RawBuffer ServerService::processWp(const ConnShPtr &conn, RawBuffer &data)
 	default:
 		ThrowExc(InternalError, "WP Command isn't in range");
 	}
+
+	EXCEPTION_GUARD_END
 }
 
 RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 {
+	EXCEPTION_GUARD_START
+
+	hasPermission(conn);
+
 	BinaryQueue q;
 	q.push(data);
-
-	bool hasPerm = hasPermission(conn);
 
 	auto cid = extractCommandId(q);
 
@@ -242,9 +245,6 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 
 	switch (cid) {
 	case CommandId::EM_GET_NAME: {
-		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
-
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
@@ -252,9 +252,6 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::EM_GET_VENDOR: {
-		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
-
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
@@ -262,9 +259,6 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::EM_GET_VERSION: {
-		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
-
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
@@ -272,9 +266,6 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::EM_GET_DATA_VERSION: {
-		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
-
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
@@ -282,9 +273,6 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::EM_GET_UPDATED_TIME: {
-		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
-
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
@@ -292,9 +280,6 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::EM_GET_ACTIVATED: {
-		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
-
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
@@ -302,9 +287,6 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::EM_GET_STATE: {
-		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
-
 		EmContextShPtr cptr;
 		q.Deserialize(cptr);
 
@@ -312,9 +294,6 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	case CommandId::EM_SET_STATE: {
-		if (!hasPerm)
-			return BinaryQueue::Serialize(CSR_ERROR_PERMISSION_DENIED).pop();
-
 		EmContextShPtr cptr;
 		int intState;
 		q.Deserialize(cptr, intState);
@@ -325,6 +304,8 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 	default:
 		ThrowExc(InternalError, "ADMIN Command isn't in range");
 	}
+
+	EXCEPTION_GUARD_END
 }
 
 void ServerService::onMessageProcess(const ConnShPtr &connection)

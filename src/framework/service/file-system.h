@@ -38,6 +38,14 @@ using FilePtr = std::unique_ptr<File>;
 
 class File {
 public:
+	enum class Type : int {
+		DIRECTORY,
+		FILE_REMOVABLE,
+		FILE_UNREMOVABLE,
+		PACKAGE_REMOVABLE,
+		PACKAGE_UNREMOVABLE,
+	};
+
 	File() = delete;
 
 	const std::string &getPath() const;
@@ -61,6 +69,7 @@ private:
 	std::string m_path;
 	bool m_inApp;              // in app or not
 	bool m_isDir;
+	Type m_type;
 	std::string m_appPkgId;    // meaningful only if inApp == true
 	std::string m_appUser;     // meaningful only if inApp == true
 	std::string m_appPkgPath;  // meaningful only if inApp == true

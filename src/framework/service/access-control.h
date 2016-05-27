@@ -26,12 +26,13 @@
 
 namespace Csr {
 
-bool hasPermission(const ConnShPtr &conn);
+void hasPermission(const ConnShPtr &conn);
 
 // for commands which has different privilege from
 // socket descriptor map information. Needed privilege and label should be used
 // associated with input sockId.
 // e.g., JUDGE_STATUS dispatched from SockId::CS but it's SockId::ADMIN privileged.
-bool hasPermission(const ConnShPtr &conn, SockId sockId);
+// Throw exception (PermDenied) if it's denied.
+void hasPermission(const ConnShPtr &conn, SockId sockId);
 
 }

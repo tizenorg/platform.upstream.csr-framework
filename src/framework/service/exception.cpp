@@ -14,41 +14,41 @@
  *  limitations under the License
  */
 /*
- * @file        logic.cpp
+ * @file        exception.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       exception guard and custom exceptions which are thrown
+ *              only on server side
  */
-#include "service/logic.h"
+#include "service/exception.h"
 
 #include <exception>
 
 #include "common/audit/logger.h"
-#include "service/exception.h"
+#include "common/binary-queue.h"
 #include <csr-error.h>
 
 namespace Csr {
 
-RawBuffer Logic::exceptionGuard(const std::function<RawBuffer()> &func,
-								const std::function<RawBuffer(int)> &closer)
+RawBuffer exceptionGuard(const std::function<RawBuffer()> &func)
 {
 	try {
 		return func();
 	} catch (const Exception &e) {
 		ERROR("Exception caught. code: " << e.error() << " message: " << e.what());
-		return closer(e.error());
+		return BinaryQueue::Serialize(e.error()).pop();
 	} catch (const std::invalid_argument &e) {
 		ERROR("Invalid argument: " << e.what());
-		return closer(CSR_ERROR_INVALID_PARAMETER);
+		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
 	} catch (const std::bad_alloc &e) {
 		ERROR("memory alloc failed: " << e.what());
-		return closer(CSR_ERROR_OUT_OF_MEMORY);
+		return BinaryQueue::Serialize(CSR_ERROR_OUT_OF_MEMORY).pop();
 	} catch (const std::exception &e) {
 		ERROR("std exception: " << e.what());
-		return closer(CSR_ERROR_UNKNOWN);
+		return BinaryQueue::Serialize(CSR_ERROR_UNKNOWN).pop();
 	} catch (...) {
 		ERROR("Unknown exception occured in logic");
-		return closer(CSR_ERROR_UNKNOWN);
+		return BinaryQueue::Serialize(CSR_ERROR_UNKNOWN).pop();
 	}
 }
 

@@ -27,6 +27,7 @@
 
 #include "common/audit/logger.h"
 #include "service/engine-error-converter.h"
+#include "service/exception.h"
 #include <csr-error.h>
 
 namespace Csr {
@@ -93,10 +94,6 @@ RawBuffer EmLogic::getEngineName(const EmContext &context)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
 
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
-
 	EXCEPTION_GUARD_END
 }
 
@@ -124,10 +121,6 @@ RawBuffer EmLogic::getEngineVendor(const EmContext &context)
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -157,10 +150,6 @@ RawBuffer EmLogic::getEngineVersion(const EmContext &context)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
 
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
-
 	EXCEPTION_GUARD_END
 }
 
@@ -188,10 +177,6 @@ RawBuffer EmLogic::getEngineDataVersion(const EmContext &context)
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -224,10 +209,6 @@ RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, ts64).pop();
 	}
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret, -1).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -273,10 +254,6 @@ RawBuffer EmLogic::getEngineActivated(const EmContext &context)
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, static_cast<int>(activated)).pop();
 
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret, -1).pop();
-
 	EXCEPTION_GUARD_END
 }
 
@@ -293,10 +270,6 @@ RawBuffer EmLogic::getEngineState(const EmContext &context)
 			static_cast<int>(state) == -1 ? static_cast<int>(CSR_DISABLE) :
 											static_cast<int>(state)).pop();
 
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret, -1).pop();
-
 	EXCEPTION_GUARD_END
 }
 
@@ -310,10 +283,6 @@ RawBuffer EmLogic::setEngineState(const EmContext &context, csr_state_e state)
 	this->m_db.setEngineState(context.engineId, state);
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }

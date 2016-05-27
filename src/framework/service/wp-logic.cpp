@@ -26,6 +26,7 @@
 #include "common/audit/logger.h"
 #include "service/type-converter.h"
 #include "service/engine-error-converter.h"
+#include "service/exception.h"
 #include "ui/askuser.h"
 #include <csr-error.h>
 
@@ -83,10 +84,6 @@ RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
 	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, wr).pop();
-
-	EXCEPTION_GUARD_CLOSER(ret)
-
-	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }

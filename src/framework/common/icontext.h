@@ -36,8 +36,8 @@ using ContextShPtr = std::shared_ptr<IContext>;
 
 class IContext : public ISerializable, public KvpContainer {
 public:
-	IContext() {}
-	virtual ~IContext() {}
+	IContext() = default;
+	virtual ~IContext() = default;
 
 	IContext(IContext &&) = delete;
 	IContext &operator=(IContext &&) = delete;

@@ -30,8 +30,8 @@ namespace Csr {
 
 class Dispatcher {
 public:
-	Dispatcher(SockId);
-	virtual ~Dispatcher();
+	Dispatcher(SockId) noexcept;
+	virtual ~Dispatcher() = default;
 
 	Dispatcher(const Dispatcher &) = delete;
 	Dispatcher &operator=(const Dispatcher &) = delete;
@@ -42,9 +42,8 @@ public:
 	Type methodCall(Args &&...args);
 
 private:
-	bool isConnected(void);
+	bool isConnected(void) const noexcept;
 	void connect(void);
-	void disconnect(void);
 
 	SockId m_sockId;
 	ConnShPtr m_connection;

@@ -26,36 +26,29 @@
 
 namespace Csr {
 
-WpContext::WpContext() :
-	popupMessage(),
-	askUser(CSR_WP_NOT_ASK_USER)
-{
-}
-
-WpContext::~WpContext()
+WpContext::WpContext() noexcept : askUser(CSR_WP_NOT_ASK_USER)
 {
 }
 
 WpContext::WpContext(IStream &stream)
 {
 	int intAskUser;
-	Deserializer<std::string, int>::Deserialize(stream,
-			popupMessage, intAskUser);
+	Deserializer<std::string, int>::Deserialize(stream, this->popupMessage, intAskUser);
 
-	askUser = static_cast<csr_wp_ask_user_e>(intAskUser);
+	this->askUser = static_cast<csr_wp_ask_user_e>(intAskUser);
 }
 
 void WpContext::Serialize(IStream &stream) const
 {
-	Serializer<std::string, int>::Serialize(stream, popupMessage,
-											static_cast<int>(askUser));
+	Serializer<std::string, int>::Serialize(stream, this->popupMessage,
+											static_cast<int>(this->askUser));
 }
 
 void WpContext::set(int key, int value)
 {
 	switch (static_cast<Key>(key)) {
 	case Key::AskUser:
-		askUser = static_cast<csr_wp_ask_user_e>(value);
+		this->askUser = static_cast<csr_wp_ask_user_e>(value);
 		break;
 
 	default:
@@ -68,7 +61,7 @@ void WpContext::set(int key, const std::string &value)
 {
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:
-		popupMessage = value;
+		this->popupMessage = value;
 		break;
 
 	default:
@@ -81,7 +74,7 @@ void WpContext::set(int key, const char *value)
 {
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:
-		popupMessage = value;
+		this->popupMessage = value;
 		break;
 
 	default:
@@ -94,7 +87,7 @@ void WpContext::get(int key, int &value) const
 {
 	switch (static_cast<Key>(key)) {
 	case Key::AskUser:
-		value = static_cast<int>(askUser);
+		value = static_cast<int>(this->askUser);
 		break;
 
 	default:
@@ -107,7 +100,7 @@ void WpContext::get(int key, std::string &value) const
 {
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:
-		value = popupMessage;
+		value = this->popupMessage;
 		break;
 
 	default:
@@ -123,7 +116,7 @@ void WpContext::get(int key, const char **value) const
 
 	switch (static_cast<Key>(key)) {
 	case Key::PopupMessage:
-		*value = popupMessage.c_str();
+		*value = this->popupMessage.c_str();
 		break;
 
 	default:

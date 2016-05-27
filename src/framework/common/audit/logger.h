@@ -47,10 +47,7 @@ public:
 					unsigned int line,
 					const std::string &func,
 					const std::string &message);
-	static void setTag(const std::string &tag);
-
-private:
-	static std::string m_tag;
+	static void setTag(const std::string &tag) noexcept;
 };
 
 }

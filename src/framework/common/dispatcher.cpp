@@ -27,27 +27,18 @@
 
 namespace Csr {
 
-Dispatcher::Dispatcher(SockId sockId) : m_sockId(sockId)
+Dispatcher::Dispatcher(SockId sockId) noexcept : m_sockId(sockId)
 {
-}
-
-Dispatcher::~Dispatcher()
-{
-	disconnect();
 }
 
 void Dispatcher::connect()
 {
-	m_connection = std::make_shared<Connection>(Socket::connect(m_sockId));
+	this->m_connection = std::make_shared<Connection>(Socket::connect(this->m_sockId));
 }
 
-void Dispatcher::disconnect()
+bool Dispatcher::isConnected() const noexcept
 {
-}
-
-bool Dispatcher::isConnected()
-{
-	return m_connection ? true : false;
+	return this->m_connection ? true : false;
 }
 
 } // namespace Csr

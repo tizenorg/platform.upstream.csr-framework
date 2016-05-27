@@ -35,7 +35,7 @@ namespace Csr {
 class WpLogic : public Logic {
 public:
 	WpLogic(WpLoader &loader, Db::Manager &db);
-	virtual ~WpLogic();
+	virtual ~WpLogic() = default;
 
 	RawBuffer checkUrl(const WpContext &context, const std::string &url);
 

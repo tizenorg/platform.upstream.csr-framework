@@ -68,18 +68,18 @@ Socket::Socket(SockId sockId) : m_sockId(sockId)
 	this->m_fd = createSystemdSocket(getSockDesc(this->m_sockId).path);
 }
 
-Socket::Socket(Socket &&other) : m_sockId(other.m_sockId), m_fd(other.m_fd)
+Socket::Socket(Socket &&other) noexcept : m_sockId(other.m_sockId), m_fd(other.m_fd)
 {
 	other.m_fd = 0;
 }
 
-Socket &Socket::operator=(Socket &&other)
+Socket &Socket::operator=(Socket &&other) noexcept
 {
 	if (this == &other)
 		return *this;
 
-	m_sockId = other.m_sockId;
-	m_fd = other.m_fd;
+	this->m_sockId = other.m_sockId;
+	this->m_fd = other.m_fd;
 	other.m_fd = 0;
 
 	return *this;
@@ -87,24 +87,24 @@ Socket &Socket::operator=(Socket &&other)
 
 Socket::~Socket()
 {
-	if (m_fd == 0)
+	if (this->m_fd == 0)
 		return;
 
-	INFO("Close socket of fd: " << m_fd);
+	INFO("Close socket of fd: " << this->m_fd);
 	::close(m_fd);
 }
 
 Socket Socket::accept(void) const
 {
-	int fd = ::accept(m_fd, nullptr, nullptr);
+	int fd = ::accept(this->m_fd, nullptr, nullptr);
 
 	if (fd < 0)
-		ThrowExc(SocketError, "socket on fd[" << m_fd << "] accept failed "
+		ThrowExc(SocketError, "socket on fd[" << this->m_fd << "] accept failed "
 				 "with errno: " << errno);
 
 	INFO("Accept client success with fd: " << fd);
 
-	return Socket(m_sockId, fd);
+	return Socket(this->m_sockId, fd);
 }
 
 Socket Socket::connect(SockId sockId)
@@ -136,12 +136,12 @@ Socket Socket::connect(SockId sockId)
 
 SockId Socket::getSockId(void) const noexcept
 {
-	return m_sockId;
+	return this->m_sockId;
 }
 
 int Socket::getFd(void) const noexcept
 {
-	return m_fd;
+	return this->m_fd;
 }
 
 RawBuffer Socket::read(void) const
@@ -149,9 +149,9 @@ RawBuffer Socket::read(void) const
 	size_t total = 0;
 	size_t size = 0;
 
-	DEBUG("Read data from stream on socket fd[" << m_fd << "]");
+	DEBUG("Read data from stream on socket fd[" << this->m_fd << "]");
 
-	auto bytes = ::read(m_fd, &size, sizeof(size));
+	auto bytes = ::read(this->m_fd, &size, sizeof(size));
 	if (bytes < 0)
 		ThrowExc(SocketError, "Socket data size read failed with errno: " << errno);
 
@@ -159,7 +159,7 @@ RawBuffer Socket::read(void) const
 	auto buf = reinterpret_cast<char *>(data.data());
 
 	while (total < size) {
-		bytes = ::read(m_fd, buf + total, size - total);
+		bytes = ::read(this->m_fd, buf + total, size - total);
 
 		if (bytes < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
@@ -174,7 +174,7 @@ RawBuffer Socket::read(void) const
 	data.resize(total);
 
 	DEBUG("Read data of size[" << total
-		  << "] from stream on socket fd[" << m_fd << "] done.");
+		  << "] from stream on socket fd[" << this->m_fd << "] done.");
 
 	return data;
 }
@@ -186,14 +186,14 @@ void Socket::write(const RawBuffer &data) const
 	auto buf = reinterpret_cast<const char *>(data.data());
 	auto size = data.size();
 
-	DEBUG("Write data to stream on socket fd[" << m_fd << "]");
+	DEBUG("Write data to stream on socket fd[" << this->m_fd << "]");
 
-	auto bytes = ::write(m_fd, &size, sizeof(size));
+	auto bytes = ::write(this->m_fd, &size, sizeof(size));
 	if (bytes < 0)
 		ThrowExc(SocketError, "Socket data size write failed with errno: " << errno);
 
 	while (total < size) {
-		bytes = ::write(m_fd, buf + total, size - total);
+		bytes = ::write(this->m_fd, buf + total, size - total);
 
 		if (bytes < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
@@ -206,7 +206,7 @@ void Socket::write(const RawBuffer &data) const
 	}
 
 	DEBUG("Write data of size[" << total <<
-		  "] to stream on socket fd[" << m_fd << "] done.");
+		  "] to stream on socket fd[" << this->m_fd << "] done.");
 }
 
 }

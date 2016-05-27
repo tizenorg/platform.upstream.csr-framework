@@ -25,7 +25,6 @@
 
 #include "common/types.h"
 #include "common/em-context.h"
-#include "common/em-result.h"
 #include "service/cs-loader.h"
 #include "service/wp-loader.h"
 #include "service/logic.h"
@@ -37,7 +36,7 @@ namespace Csr {
 class EmLogic : public Logic {
 public:
 	EmLogic(CsLoader &cs, WpLoader &wp, Db::Manager &db);
-	virtual ~EmLogic();
+	virtual ~EmLogic() = default;
 
 	RawBuffer getEngineName(const EmContext &context);
 	RawBuffer getEngineVendor(const EmContext &context);

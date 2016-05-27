@@ -32,7 +32,7 @@ namespace Audit {
 class DlogLogSink : public LogSink {
 public:
 	void sink(LogLevel level, const std::string &tag,
-			  const std::string &message) override;
+			  const std::string &message) noexcept override;
 };
 
 }

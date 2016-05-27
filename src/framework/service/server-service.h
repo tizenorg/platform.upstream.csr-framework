@@ -38,7 +38,7 @@ namespace Csr {
 class ServerService : public Service {
 public:
 	ServerService();
-	virtual ~ServerService();
+	virtual ~ServerService() = default;
 
 private:
 	virtual void onMessageProcess(const ConnShPtr &) override;

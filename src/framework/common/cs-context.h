@@ -43,8 +43,8 @@ struct CsContext : public IContext {
 		ScanOnCloud  = 0x20, // bool
 	};
 
-	CsContext();
-	virtual ~CsContext();
+	CsContext() noexcept;
+	virtual ~CsContext() = default;
 
 	CsContext(IStream &);
 	virtual void Serialize(IStream &) const override;

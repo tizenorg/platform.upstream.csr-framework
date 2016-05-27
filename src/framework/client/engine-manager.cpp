@@ -29,12 +29,11 @@
 #include "client/handle.h"
 #include "common/command-id.h"
 #include "common/em-context.h"
-#include "common/em-result.h"
 #include "common/audit/logger.h"
 
 using namespace Csr;
 
-#define GETTER_PARAM_CHECK(engine, poutput) \
+#define GETTER_PARAM_CHECK(engine, poutput)        \
 	if (engine == nullptr)                         \
 		return CSR_ERROR_INVALID_HANDLE;           \
 	else if (poutput == nullptr)                   \
@@ -44,18 +43,13 @@ using namespace Csr;
 	do {                                                                   \
 		GETTER_PARAM_CHECK(engine, poutput);                               \
 		auto h = reinterpret_cast<Csr::Client::Handle *>(engine);          \
-		auto ret = h->dispatch<std::pair<int, EmString *>>(                \
+		auto ret = h->dispatch<std::pair<int, std::string>>(               \
 				Csr::CommandId::cid, h->getContext());                     \
 		if (ret.first != CSR_ERROR_NONE) {                                 \
 			ERROR("Error to get string about engine. ret: " << ret.first); \
 			return ret.first;                                              \
-		} else if (ret.second == nullptr) {                                \
-			ERROR("Serialization error. should have value.");              \
-			return CSR_ERROR_UNKNOWN;                                      \
 		}                                                                  \
-		h->add(Csr::ResultPtr(ret.second));                                \
-		auto output = strdup(                                              \
-				ret.second->value.c_str());                                \
+		auto output = strdup(ret.second.c_str());                          \
 		if (output == nullptr)                                             \
 			return CSR_ERROR_OUT_OF_MEMORY;                                \
 		*poutput = output;                                                 \

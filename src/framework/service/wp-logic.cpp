@@ -38,10 +38,6 @@ WpLogic::WpLogic(WpLoader &loader, Db::Manager &db) : m_loader(loader), m_db(db)
 				this->m_dataVersion));
 }
 
-WpLogic::~WpLogic()
-{
-}
-
 RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
 {
 	EXCEPTION_GUARD_START

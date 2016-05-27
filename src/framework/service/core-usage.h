@@ -27,6 +27,8 @@ namespace Csr {
 
 class CpuUsageManager {
 public:
+	CpuUsageManager() = delete;
+
 	static void set(const csr_cs_core_usage_e &cu);
 	static void reset(void);
 

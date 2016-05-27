@@ -39,7 +39,7 @@ namespace Csr {
 class CsLogic : public Logic {
 public:
 	CsLogic(CsLoader &loader, Db::Manager &db);
-	virtual ~CsLogic();
+	virtual ~CsLogic() = default;
 
 	RawBuffer scanData(const CsContext &context, const RawBuffer &data);
 	RawBuffer scanFile(const CsContext &context, const std::string &filepath);

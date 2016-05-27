@@ -59,10 +59,6 @@ CsLogic::CsLogic(CsLoader &loader, Db::Manager &db) : m_loader(loader), m_db(db)
 				this->m_dataVersion));
 }
 
-CsLogic::~CsLogic()
-{
-}
-
 RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 {
 	EXCEPTION_GUARD_START

@@ -582,7 +582,7 @@ RawBuffer CsLogic::getIgnored(const std::string &filepath)
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, CsDetected()).pop();
+	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }

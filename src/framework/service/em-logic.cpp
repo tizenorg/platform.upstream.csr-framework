@@ -95,7 +95,7 @@ RawBuffer EmLogic::getEngineName(const EmContext &context)
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, std::string()).pop();
+	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -127,7 +127,7 @@ RawBuffer EmLogic::getEngineVendor(const EmContext &context)
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, std::string()).pop();
+	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -159,7 +159,7 @@ RawBuffer EmLogic::getEngineVersion(const EmContext &context)
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, std::string()).pop();
+	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -191,7 +191,7 @@ RawBuffer EmLogic::getEngineDataVersion(const EmContext &context)
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, std::string()).pop();
+	return BinaryQueue::Serialize(ret).pop();
 
 	EXCEPTION_GUARD_END
 }

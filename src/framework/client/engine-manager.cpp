@@ -39,21 +39,19 @@ using namespace Csr;
 	else if (poutput == nullptr)                   \
 		return CSR_ERROR_INVALID_PARAMETER
 
-#define STRING_GETTER(engine, cid, poutput)                                \
-	do {                                                                   \
-		GETTER_PARAM_CHECK(engine, poutput);                               \
-		auto h = reinterpret_cast<Csr::Client::Handle *>(engine);          \
-		auto ret = h->dispatch<std::pair<int, std::string>>(               \
-				Csr::CommandId::cid, h->getContext());                     \
-		if (ret.first != CSR_ERROR_NONE) {                                 \
-			ERROR("Error to get string about engine. ret: " << ret.first); \
-			return ret.first;                                              \
-		}                                                                  \
-		auto output = strdup(ret.second.c_str());                          \
-		if (output == nullptr)                                             \
-			return CSR_ERROR_OUT_OF_MEMORY;                                \
-		*poutput = output;                                                 \
-		return CSR_ERROR_NONE;                                             \
+#define STRING_GETTER(engine, cid, poutput)                                   \
+	do {                                                                      \
+		GETTER_PARAM_CHECK(engine, poutput);                                  \
+		auto h = reinterpret_cast<Csr::Client::Handle *>(engine);             \
+		auto ret = h->dispatch<std::pair<int, std::shared_ptr<std::string>>>( \
+				Csr::CommandId::cid, h->getContext());                        \
+		if (ret.first == CSR_ERROR_NONE && ret.second) {                      \
+			auto output = strdup(ret.second->c_str());                        \
+			if (output == nullptr)                                            \
+				return CSR_ERROR_OUT_OF_MEMORY;                               \
+			*poutput = output;                                                \
+		}                                                                     \
+		return ret.first;                                                     \
 	} while (false)
 
 namespace {
@@ -152,16 +150,13 @@ int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *ptime)
 	GETTER_PARAM_CHECK(engine, ptime);
 
 	auto h = reinterpret_cast<Csr::Client::Handle *>(engine);
-	auto ret = h->dispatch<std::pair<int, int64_t>>(
+	auto ret = h->dispatch<std::pair<int, std::shared_ptr<int64_t>>>(
 			Csr::CommandId::EM_GET_UPDATED_TIME, h->getContext());
 
-	if (ret.first != CSR_ERROR_NONE) {
-		ERROR("Error to get updated time. ret: " << ret.first);
-		return ret.first;
-	}
+	if (ret.first == CSR_ERROR_NONE && ret.second)
+		*ptime = static_cast<time_t>(*ret.second);
 
-	*ptime = static_cast<time_t>(ret.second);
-	return CSR_ERROR_NONE;
+	return ret.first;
 
 	EXCEPTION_SAFE_END
 }
@@ -174,16 +169,13 @@ int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *pactivated)
 	GETTER_PARAM_CHECK(engine, pactivated);
 
 	auto h = reinterpret_cast<Csr::Client::Handle *>(engine);
-	auto ret = h->dispatch<std::pair<int, int>>(
+	auto ret = h->dispatch<std::pair<int, std::shared_ptr<int>>>(
 			Csr::CommandId::EM_GET_ACTIVATED, h->getContext());
 
-	if (ret.first != CSR_ERROR_NONE) {
-		ERROR("Error to get activated. ret: " << ret.first);
-		return ret.first;
-	}
+	if (ret.first == CSR_ERROR_NONE && ret.second)
+		*pactivated = static_cast<csr_activated_e>(*ret.second);
 
-	*pactivated = static_cast<csr_activated_e>(ret.second);
-	return CSR_ERROR_NONE;
+	return ret.first;
 
 	EXCEPTION_SAFE_END
 }
@@ -196,16 +188,13 @@ int csr_engine_get_state(csr_engine_h engine, csr_state_e *pstate)
 	GETTER_PARAM_CHECK(engine, pstate);
 
 	auto h = reinterpret_cast<Csr::Client::Handle *>(engine);
-	auto ret = h->dispatch<std::pair<int, int>>(
+	auto ret = h->dispatch<std::pair<int, std::shared_ptr<int>>>(
 			Csr::CommandId::EM_GET_STATE, h->getContext());
 
-	if (ret.first != CSR_ERROR_NONE) {
-		ERROR("Error to get state. ret: " << ret.first);
-		return ret.first;
-	}
+	if (ret.first == CSR_ERROR_NONE && ret.second)
+		*pstate = static_cast<csr_state_e>(*ret.second);
 
-	*pstate = static_cast<csr_state_e>(ret.second);
-	return CSR_ERROR_NONE;
+	return ret.first;
 
 	EXCEPTION_SAFE_END
 }

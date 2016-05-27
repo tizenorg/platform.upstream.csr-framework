@@ -17,21 +17,31 @@
  * @file        exception.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       custom exceptions which are thrown only on server side
+ * @brief       exception guard and custom exceptions which are thrown
+ *              only on server side
  */
 #pragma once
 
+#include <functional>
+
 #include "common/exception.h"
+#include "common/types.h"
+
+#define EXCEPTION_GUARD_START return Csr::exceptionGuard([&]() {
+#define EXCEPTION_GUARD_END   });
 
 namespace Csr {
 
 // exceptions listed here are only thrown in server side.
-using PermDenied         = DerivedException<CSR_ERROR_ENGINE_PERMISSION>;
+using PermDenied         = DerivedException<CSR_ERROR_PERMISSION_DENIED>;
 using DbFailed           = DerivedException<CSR_ERROR_DB>;
 using RemoveFailed       = DerivedException<CSR_ERROR_REMOVE_FAILED>;
 using FileChanged        = DerivedException<CSR_ERROR_FILE_CHANGED>;
 using EngineError        = DerivedException<CSR_ERROR_ENGINE_INTERNAL>;
 using EngineNotActivated = DerivedException<CSR_ERROR_ENGINE_NOT_ACTIVATED>;
 using EngineDisabled     = DerivedException<CSR_ERROR_ENGINE_DISABLED>;
+using EnginePermDenied   = DerivedException<CSR_ERROR_ENGINE_PERMISSION>;
+
+RawBuffer exceptionGuard(const std::function<RawBuffer()> &);
 
 }

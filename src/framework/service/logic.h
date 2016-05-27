@@ -21,20 +21,11 @@
  */
 #pragma once
 
-#include <functional>
-
-#include "common/types.h"
-
-#define EXCEPTION_GUARD_START          return Csr::Logic::exceptionGuard([&]() {
-#define EXCEPTION_GUARD_CLOSER(retArg) }, [](int retArg) {
-#define EXCEPTION_GUARD_END            });
-
 namespace Csr {
 
 class Logic {
 public:
-	static RawBuffer exceptionGuard(const std::function<RawBuffer()> &func,
-									const std::function<RawBuffer(int)> &closer);
+	virtual ~Logic() noexcept {}
 };
 
 }

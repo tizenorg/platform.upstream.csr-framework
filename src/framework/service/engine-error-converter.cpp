@@ -35,7 +35,7 @@ void toException(int ee)
 		throw std::bad_alloc();
 
 	case CSRE_ERROR_PERMISSION_DENIED:
-		ThrowExc(PermDenied, "access denied related to engine");
+		ThrowExc(EnginePermDenied, "access denied related to engine");
 
 	case CSRE_ERROR_FILE_NOT_FOUND:
 		ThrowExc(FileDoNotExist, "file not found.");

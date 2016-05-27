@@ -25,10 +25,6 @@
 
 namespace Csr {
 
-KvpContainer::~KvpContainer()
-{
-}
-
 void KvpContainer::set(int, int)
 {
 	ThrowExc(InternalError, "Not implemented key-value pair interface used!");

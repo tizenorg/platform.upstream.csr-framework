@@ -97,7 +97,7 @@ AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 	// Let's start scan files!
 	auto task = scanFiles(*(retFiles.second));
 
-	int64_t ts64 = static_cast<int64_t>(startTime);
+	auto ts64 = static_cast<int64_t>(startTime);
 
 	auto ret = m_dispatcher->methodCall<int>(
 			CommandId::SET_DIR_TIMESTAMP, dir, ts64);

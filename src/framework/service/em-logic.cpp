@@ -82,9 +82,7 @@ RawBuffer EmLogic::getEngineName(const EmContext &context)
 		std::string value;
 		toException(this->m_cs.getEngineName(c, value));
 
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	} else {
 		WpEngineInfo engineInfo(this->m_wp);
 		auto &c = engineInfo.get();
@@ -92,14 +90,12 @@ RawBuffer EmLogic::getEngineName(const EmContext &context)
 		std::string value;
 		toException(this->m_wp.getEngineName(c, value));
 
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, EmString()).pop();
+	return BinaryQueue::Serialize(ret, std::string()).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -118,9 +114,7 @@ RawBuffer EmLogic::getEngineVendor(const EmContext &context)
 		std::string value;
 		toException(this->m_cs.getEngineVendor(c, value));
 
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	} else {
 		WpEngineInfo engineInfo(this->m_wp);
 		auto &c = engineInfo.get();
@@ -128,14 +122,12 @@ RawBuffer EmLogic::getEngineVendor(const EmContext &context)
 		std::string value;
 		toException(this->m_wp.getEngineVendor(c, value));
 
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, EmString()).pop();
+	return BinaryQueue::Serialize(ret, std::string()).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -154,9 +146,7 @@ RawBuffer EmLogic::getEngineVersion(const EmContext &context)
 		std::string value;
 		toException(this->m_cs.getEngineVersion(c, value));
 
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	} else {
 		WpEngineInfo engineInfo(this->m_wp);
 		auto &c = engineInfo.get();
@@ -164,14 +154,12 @@ RawBuffer EmLogic::getEngineVersion(const EmContext &context)
 		std::string value;
 		toException(this->m_wp.getEngineVersion(c, value));
 
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, EmString()).pop();
+	return BinaryQueue::Serialize(ret, std::string()).pop();
 
 	EXCEPTION_GUARD_END
 }
@@ -190,9 +178,7 @@ RawBuffer EmLogic::getEngineDataVersion(const EmContext &context)
 		std::string value;
 		toException(this->m_cs.getEngineDataVersion(c, value));
 
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	} else {
 		WpEngineInfo engineInfo(this->m_wp);
 		auto &c = engineInfo.get();
@@ -200,14 +186,12 @@ RawBuffer EmLogic::getEngineDataVersion(const EmContext &context)
 		std::string value;
 		toException(this->m_wp.getEngineDataVersion(c, value));
 
-		EmString emString;
-		emString.value = std::move(value);
-		return BinaryQueue::Serialize(CSR_ERROR_NONE, emString).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
 
 	EXCEPTION_GUARD_CLOSER(ret)
 
-	return BinaryQueue::Serialize(ret, EmString()).pop();
+	return BinaryQueue::Serialize(ret, std::string()).pop();
 
 	EXCEPTION_GUARD_END
 }

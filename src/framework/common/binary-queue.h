@@ -33,8 +33,8 @@ namespace Csr {
 
 class BinaryQueue : public IStream {
 public:
-	BinaryQueue();
-	virtual ~BinaryQueue();
+	BinaryQueue() noexcept;
+	virtual ~BinaryQueue() = default;
 
 	BinaryQueue(BinaryQueue &&) = default;
 	BinaryQueue &operator=(BinaryQueue &&) = default;
@@ -59,13 +59,14 @@ private:
 
 	struct Bucket {
 		explicit Bucket(unsigned char *_data, size_t _size);
-		virtual ~Bucket();
+		virtual ~Bucket() noexcept;
 
 		/* extract ''size'' of bytes from bucket to dest and return updated dest */
 		void *extractTo(void *dest, size_t size);
 
 		Bucket(Bucket &&) = default;
 		Bucket &operator=(Bucket &&) = default;
+
 		Bucket(const Bucket &) = delete;
 		Bucket &operator=(const Bucket &) = delete;
 

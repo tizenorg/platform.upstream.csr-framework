@@ -29,7 +29,7 @@ namespace Csr {
 // set/get key-value pairs. Key should be defined in each derived classes
 class KvpContainer {
 public:
-	virtual ~KvpContainer();
+	virtual ~KvpContainer() = default;
 
 	virtual void set(int, int);
 	virtual void set(int, bool);

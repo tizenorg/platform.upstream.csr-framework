@@ -28,7 +28,7 @@ namespace Csr {
 namespace Audit {
 
 void DlogLogSink::sink(LogLevel level, const std::string &tag,
-					   const std::string &message)
+					   const std::string &message) noexcept
 {
 	switch (level) {
 	case LogLevel::Error:

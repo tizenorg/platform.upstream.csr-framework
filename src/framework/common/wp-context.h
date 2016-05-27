@@ -39,8 +39,8 @@ struct WpContext : public IContext {
 		AskUser      = 0x10, // int
 	};
 
-	WpContext();
-	virtual ~WpContext();
+	WpContext() noexcept;
+	virtual ~WpContext() = default;
 
 	WpContext(IStream &);
 	virtual void Serialize(IStream &) const override;

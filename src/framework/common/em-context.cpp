@@ -25,9 +25,6 @@
 
 namespace Csr {
 
-EmContext::EmContext() {}
-EmContext::~EmContext() {}
-
 EmContext::EmContext(IStream &stream)
 {
 	int intEngineId;

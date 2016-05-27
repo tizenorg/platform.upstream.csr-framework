@@ -25,57 +25,55 @@
 
 namespace Csr {
 
-Connection::Connection(Socket &&socket) : m_socket(std::move(socket))
+Connection::Connection(Socket &&socket) noexcept :
+	m_socket(std::move(socket))
 {
 }
 
-Connection::~Connection()
+Connection::Connection(Connection &&other) noexcept :
+	m_socket(std::move(other.m_socket))
 {
 }
 
-Connection::Connection(Connection &&other) : m_socket(std::move(other.m_socket))
-{
-}
-
-Connection &Connection::operator=(Connection &&other)
+Connection &Connection::operator=(Connection &&other) noexcept
 {
 	if (this == &other)
 		return *this;
 
-	m_socket = std::move(other.m_socket);
+	this->m_socket = std::move(other.m_socket);
 	return *this;
 }
 
 void Connection::send(const RawBuffer &buf) const
 {
-	std::lock_guard<std::mutex> lock(m_mSend);
-	m_socket.write(buf);
+	std::lock_guard<std::mutex> lock(this->m_mSend);
+	this->m_socket.write(buf);
 }
 
 RawBuffer Connection::receive() const
 {
-	std::lock_guard<std::mutex> lock(m_mRecv);
-	return m_socket.read();
+	std::lock_guard<std::mutex> lock(this->m_mRecv);
+	return this->m_socket.read();
 }
 
 SockId Connection::getSockId() const noexcept
 {
-	return m_socket.getSockId();
+	return this->m_socket.getSockId();
 }
 
 int Connection::getFd() const noexcept
 {
-	return m_socket.getFd();
+	return this->m_socket.getFd();
 }
 
 const Credential &Connection::getCredential()
 {
-	if (m_cred)
-		return *m_cred;
+	if (this->m_cred)
+		return *this->m_cred;
 
-	m_cred = Credential::get(getFd());
+	this->m_cred = Credential::get(getFd());
 
-	return *m_cred;
+	return *this->m_cred;
 }
 
 }

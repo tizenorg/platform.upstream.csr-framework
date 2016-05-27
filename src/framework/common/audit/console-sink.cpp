@@ -31,7 +31,7 @@ void ConsoleLogSink::sink(
 	const std::string &/*tag*/,
 	const std::string &message)
 {
-	std::cout << message;
+	std::cout << message << std::endl;
 }
 
 }

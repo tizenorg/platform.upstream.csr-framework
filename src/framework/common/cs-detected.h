@@ -33,14 +33,14 @@ class CsDetected;
 using CsDetectedPtr = std::unique_ptr<CsDetected>;
 
 struct CsDetected : public IResult {
-	CsDetected();
-	virtual ~CsDetected();
+	CsDetected() noexcept;
+	virtual ~CsDetected() = default;
 
 	CsDetected(IStream &);
 	virtual void Serialize(IStream &) const override;
 
-	CsDetected(CsDetected &&);
-	CsDetected &operator=(CsDetected &&);
+	CsDetected(CsDetected &&) noexcept;
+	CsDetected &operator=(CsDetected &&) noexcept;
 
 	bool operator>(const CsDetected &other) const noexcept;
 	bool operator<(const CsDetected &other) const noexcept;

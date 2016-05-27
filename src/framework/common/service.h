@@ -36,7 +36,7 @@ using ConnCallback = std::function<void(const ConnShPtr &)>;
 class Service {
 public:
 	Service();
-	virtual ~Service();
+	virtual ~Service() = default;
 
 	Service(const Service &) = delete;
 	Service &operator=(const Service &) = delete;

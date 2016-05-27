@@ -34,7 +34,7 @@ Mainloop::Mainloop() :
 	m_isTimedOut(false),
 	m_pollfd(::epoll_create1(EPOLL_CLOEXEC))
 {
-	if (m_pollfd == -1)
+	if (this->m_pollfd == -1)
 		throw std::system_error(
 			std::error_code(errno, std::generic_category()),
 			"Failed to epoll_create1");
@@ -42,19 +42,18 @@ Mainloop::Mainloop() :
 
 Mainloop::~Mainloop()
 {
-	if (!m_isTimedOut && !m_callbacks.empty())
-		ThrowExc(InternalError, "mainloop registered callbacks should be empty "
-				 "except timed out case");
+	if (!this->m_isTimedOut && !this->m_callbacks.empty())
+		ERROR("mainloop registered callbacks should be empty except timed out case");
 
 	::close(m_pollfd);
 }
 
 void Mainloop::run(int timeout)
 {
-	m_isTimedOut = false;
+	this->m_isTimedOut = false;
 
-	while (!m_isTimedOut) {
-		dispatch(timeout);
+	while (!this->m_isTimedOut) {
+		this->dispatch(timeout);
 	}
 
 	DEBUG("Mainloop run stopped");
@@ -63,7 +62,7 @@ void Mainloop::run(int timeout)
 void Mainloop::addEventSource(int fd, uint32_t event, Callback &&callback)
 {
 	/* TODO: use scoped-lock to thread safe on member variables */
-	if (m_callbacks.count(fd) != 0)
+	if (this->m_callbacks.count(fd) != 0)
 		ThrowExc(InternalError, "event source on fd[" << fd << "] already added!");
 
 	DEBUG("Add event[" << event << "] source on fd[" << fd << "]");
@@ -78,19 +77,19 @@ void Mainloop::addEventSource(int fd, uint32_t event, Callback &&callback)
 			std::error_code(errno, std::generic_category()),
 			"epoll_ctl failed to EPOLL_CTL_ADD.");
 
-	m_callbacks[fd] = std::move(callback);
+	this->m_callbacks[fd] = std::move(callback);
 }
 
 void Mainloop::removeEventSource(int fd)
 {
 	/* TODO: use scoped-lock to thread safe on member variables */
-	if (m_callbacks.count(fd) == 0)
+	if (this->m_callbacks.count(fd) == 0)
 		ThrowExc(InternalError, "event source on fd[" << fd << "] isn't added at all");
 
 	DEBUG("Remove event source on fd[" << fd << "]");
 
 	{
-		m_callbacks.erase(fd);
+		this->m_callbacks.erase(fd);
 
 		if (::epoll_ctl(m_pollfd, EPOLL_CTL_DEL, fd, nullptr) == -1) {
 			if (errno == ENOENT)
@@ -111,7 +110,7 @@ void Mainloop::dispatch(int timeout)
 	DEBUG("Mainloop dispatched with timeout: " << timeout);
 
 	do {
-		nfds = ::epoll_wait(m_pollfd, event, MAX_EPOLL_EVENTS, timeout);
+		nfds = ::epoll_wait(this->m_pollfd, event, MAX_EPOLL_EVENTS, timeout);
 	} while ((nfds == -1) && (errno == EINTR));
 
 	if (nfds < 0)
@@ -121,7 +120,7 @@ void Mainloop::dispatch(int timeout)
 
 	if (nfds == 0) {
 		DEBUG("Mainloop timed out!");
-		m_isTimedOut = true;
+		this->m_isTimedOut = true;
 		return;
 	}
 
@@ -129,7 +128,7 @@ void Mainloop::dispatch(int timeout)
 		/* TODO: use scoped-lock to thread safe on member variables */
 		int fd = event[i].data.fd;
 
-		if (m_callbacks.count(fd) == 0)
+		if (this->m_callbacks.count(fd) == 0)
 			ThrowExc(InternalError, "event in on fd[" << fd <<
 					 "] but associated callback isn't exist!");
 
@@ -140,7 +139,7 @@ void Mainloop::dispatch(int timeout)
 
 		DEBUG("event[" << event[i].events << "] polled on fd[" << fd << "]");
 
-		m_callbacks[fd](event[i].events);
+		this->m_callbacks[fd](event[i].events);
 	}
 }
 

@@ -81,7 +81,7 @@ void Logger::log(LogLevel level,
 	g_backend->sink(level, g_tag, buffer.str());
 }
 
-void Logger::setTag(const std::string &tag)
+void Logger::setTag(const std::string &tag) noexcept
 {
 	g_tag = tag;
 }

@@ -29,14 +29,14 @@
 namespace Csr {
 
 struct WpResult : public IResult {
-	WpResult();
-	virtual ~WpResult();
+	WpResult() noexcept;
+	virtual ~WpResult() = default;
 
 	WpResult(IStream &);
 	virtual void Serialize(IStream &) const override;
 
-	WpResult(WpResult &&);
-	WpResult &operator=(WpResult &&);
+	WpResult(WpResult &&) noexcept;
+	WpResult &operator=(WpResult &&) noexcept;
 
 	csr_wp_risk_level_e riskLevel;
 	std::string detailedUrl;

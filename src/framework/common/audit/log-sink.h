@@ -30,8 +30,8 @@ namespace Audit {
 
 class LogSink {
 public:
-	LogSink() {}
-	virtual ~LogSink() {}
+	LogSink() noexcept {}
+	virtual ~LogSink() noexcept {}
 	virtual void sink(
 		LogLevel level,
 		const std::string &tag,

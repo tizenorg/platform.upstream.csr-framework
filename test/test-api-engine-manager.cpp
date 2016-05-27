@@ -34,12 +34,12 @@ class Engine {
 public:
 	Engine(csr_engine_id_e id)
 	{
-		ASSERT_IF(csr_get_current_engine(id, &m_engine), CSR_ERROR_NONE);
+		ASSERT_SUCCESS(csr_get_current_engine(id, &m_engine));
 	}
 
 	~Engine()
 	{
-		ASSERT_IF(csr_engine_destroy(m_engine), CSR_ERROR_NONE);
+		ASSERT_SUCCESS(csr_engine_destroy(m_engine));
 	}
 
 	csr_engine_h &get(void)
@@ -63,29 +63,29 @@ BOOST_AUTO_TEST_CASE(fields_getters)
 	Engine e(CSR_ENGINE_CS);
 
 	Test::ScopedCstr vendor;
-	ASSERT_IF(csr_engine_get_vendor(e.get(), &vendor.ptr), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("TEST_VENDOR"), vendor.ptr);
+	ASSERT_SUCCESS(csr_engine_get_vendor(e.get(), &vendor.ptr));
+	ASSERT_IF(vendor.ptr, std::string("TEST_VENDOR"));
 
 	Test::ScopedCstr name;
-	ASSERT_IF(csr_engine_get_name(e.get(), &name.ptr), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("TEST_LOCAL_TCS_ENGINE"), name.ptr);
+	ASSERT_SUCCESS(csr_engine_get_name(e.get(), &name.ptr));
+	ASSERT_IF(name.ptr, std::string("TEST_LOCAL_TCS_ENGINE"));
 
 	Test::ScopedCstr version;
-	ASSERT_IF(csr_engine_get_version(e.get(), &version.ptr), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("0.0.1"), version.ptr);
+	ASSERT_SUCCESS(csr_engine_get_version(e.get(), &version.ptr));
+	ASSERT_IF(version.ptr, std::string("0.0.1"));
 
 	Test::ScopedCstr dataVersion;
-	ASSERT_IF(csr_engine_get_version(e.get(), &dataVersion.ptr), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("0.0.1"), dataVersion.ptr);
+	ASSERT_SUCCESS(csr_engine_get_version(e.get(), &dataVersion.ptr));
+	ASSERT_IF(dataVersion.ptr, std::string("0.0.1"));
 
 	csr_activated_e activated;
-	ASSERT_IF(csr_engine_get_activated(e.get(), &activated), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_engine_get_activated(e.get(), &activated));
 	ASSERT_IF(activated, CSR_ACTIVATED);
 
 	csr_state_e state = CSR_ENABLE;
-	ASSERT_IF(csr_engine_set_state(e.get(), state), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), state));
 
-	ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
 	ASSERT_IF(state, CSR_ENABLE);
 
 	EXCEPTION_GUARD_END
@@ -100,8 +100,8 @@ BOOST_AUTO_TEST_CASE(set_state)
 	csr_state_e state = CSR_ENABLE;
 
 	// enable
-	ASSERT_IF(csr_engine_set_state(e.get(), CSR_ENABLE), CSR_ERROR_NONE);
-	ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_ENABLE));
+	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
 	ASSERT_IF(state, CSR_ENABLE);
 
 	// prepare data
@@ -109,40 +109,30 @@ BOOST_AUTO_TEST_CASE(set_state)
 	auto context = c.get();
 	csr_cs_malware_h detected;
 	unsigned char data[100] = {0, };
-	//const char *files[1] = { TEST_FILE_NORMAL };
-	//const char *dirs[1] = { TEST_DIR };
 
 	// check if engine is working well
 	memcpy(data, MALWARE_HIGH_SIGNATURE, strlen(MALWARE_HIGH_SIGNATURE));
-	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_data(context, data, sizeof(data), &detected));
 
 	// disable
-	ASSERT_IF(csr_engine_set_state(e.get(), CSR_DISABLE), CSR_ERROR_NONE);
-	ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_DISABLE));
+	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
 	ASSERT_IF(state, CSR_DISABLE);
 
 	// test operation
-	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected), CSR_ERROR_ENGINE_DISABLED);
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NORMAL, &detected), CSR_ERROR_ENGINE_DISABLED);
-	//ASSERT_IF(csr_cs_scan_files_async(context, files, sizeof(files) / sizeof(const char *), nullptr),
-	//	CSR_ERROR_ENGINE_DISABLED);
-	//ASSERT_IF(csr_cs_scan_dir_async(context, TEST_DIR, nullptr), CSR_ERROR_ENGINE_DISABLED);
-	//ASSERT_IF(csr_cs_scan_dirs_async(context, dirs, sizeof(dirs) / sizeof(const char *), nullptr),
-	//	CSR_ERROR_ENGINE_DISABLED);
+	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected),
+			  CSR_ERROR_ENGINE_DISABLED);
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NORMAL, &detected),
+			  CSR_ERROR_ENGINE_DISABLED);
 
 	// enable
-	ASSERT_IF(csr_engine_set_state(e.get(), CSR_ENABLE), CSR_ERROR_NONE);
-	ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_ENABLE));
+	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
 	ASSERT_IF(state, CSR_ENABLE);
 
 	// test operation
-	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected), CSR_ERROR_NONE);
-	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_NORMAL, &detected), CSR_ERROR_NONE);
-	//ASSERT_IF(csr_cs_scan_files_async(context, files, sizeof(files) / sizeof(const char *), nullptr),
-	//	CSR_ERROR_NONE);
-	//ASSERT_IF(csr_cs_scan_dir_async(context, TEST_DIR, nullptr), CSR_ERROR_NONE);
-	//ASSERT_IF(csr_cs_scan_dirs_async(context, dirs, sizeof(dirs) / sizeof(const char *), nullptr),
-	//	CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_data(context, data, sizeof(data), &detected));
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_NORMAL, &detected));
 
 	EXCEPTION_GUARD_END
 }
@@ -158,29 +148,29 @@ BOOST_AUTO_TEST_CASE(fields_getters)
 	Engine e(CSR_ENGINE_WP);
 
 	Test::ScopedCstr vendor;
-	ASSERT_IF(csr_engine_get_vendor(e.get(), &vendor.ptr), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("TEST_VENDOR"), vendor.ptr);
+	ASSERT_SUCCESS(csr_engine_get_vendor(e.get(), &vendor.ptr));
+	ASSERT_IF(vendor.ptr, std::string("TEST_VENDOR"));
 
 	Test::ScopedCstr name;
-	ASSERT_IF(csr_engine_get_name(e.get(), &name.ptr), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("TEST_LOCAL_TWP_ENGINE"), name.ptr);
+	ASSERT_SUCCESS(csr_engine_get_name(e.get(), &name.ptr));
+	ASSERT_IF(name.ptr, std::string("TEST_LOCAL_TWP_ENGINE"));
 
 	Test::ScopedCstr version;
-	ASSERT_IF(csr_engine_get_version(e.get(), &version.ptr), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("0.0.1"), version.ptr);
+	ASSERT_SUCCESS(csr_engine_get_version(e.get(), &version.ptr));
+	ASSERT_IF(version.ptr, std::string("0.0.1"));
 
 	Test::ScopedCstr dataVersion;
-	ASSERT_IF(csr_engine_get_version(e.get(), &dataVersion.ptr), CSR_ERROR_NONE);
-	ASSERT_IF(std::string("0.0.1"), dataVersion.ptr);
+	ASSERT_SUCCESS(csr_engine_get_version(e.get(), &dataVersion.ptr));
+	ASSERT_IF(dataVersion.ptr, std::string("0.0.1"));
 
 	csr_activated_e activated;
-	ASSERT_IF(csr_engine_get_activated(e.get(), &activated), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_engine_get_activated(e.get(), &activated));
 	ASSERT_IF(activated, CSR_ACTIVATED);
 
 	csr_state_e state = CSR_ENABLE;
-	ASSERT_IF(csr_engine_set_state(e.get(), state), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), state));
 
-	ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
 	ASSERT_IF(state, CSR_ENABLE);
 
 	EXCEPTION_GUARD_END
@@ -195,33 +185,34 @@ BOOST_AUTO_TEST_CASE(set_state)
 	csr_state_e state = CSR_ENABLE;
 
 	// enable
-	ASSERT_IF(csr_engine_set_state(e.get(), CSR_ENABLE), CSR_ERROR_NONE);
-	ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_ENABLE));
+	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
 	ASSERT_IF(state, CSR_ENABLE);
 
-        // prepare data
+	// prepare data
 	auto c = Test::Context<csr_wp_context_h>();
 	auto context = c.get();
 	csr_wp_check_result_h result;
 
-        // check if engine is working well
-	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, &result), CSR_ERROR_NONE);
+	// check if engine is working well
+	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_HIGH_URL, &result));
 
-        // disable
-        ASSERT_IF(csr_engine_set_state(e.get(), CSR_DISABLE), CSR_ERROR_NONE);
-        ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
-        ASSERT_IF(state, CSR_DISABLE);
+	// disable
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_DISABLE));
+	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
+	ASSERT_IF(state, CSR_DISABLE);
 
-        // test operation
-	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, &result), CSR_ERROR_ENGINE_DISABLED);
+	// test operation
+	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, &result),
+			  CSR_ERROR_ENGINE_DISABLED);
 
-        // enable
-        ASSERT_IF(csr_engine_set_state(e.get(), CSR_ENABLE), CSR_ERROR_NONE);
-        ASSERT_IF(csr_engine_get_state(e.get(), &state), CSR_ERROR_NONE);
-        ASSERT_IF(state, CSR_ENABLE);
+	// enable
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_ENABLE));
+	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
+	ASSERT_IF(state, CSR_ENABLE);
 
-        // test operation
-	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, &result), CSR_ERROR_NONE);
+	// test operation
+	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_HIGH_URL, &result));
 
 	EXCEPTION_GUARD_END
 }

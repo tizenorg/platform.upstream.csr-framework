@@ -187,11 +187,11 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 		}
 	}
 
-	if (!fileptr)
-		ThrowExc(InternalError, "fileptr shouldn't be null because no modified since.");
-
 	if (!fileptr->isInApp())
 		ThrowExc(InternalError, "fileptr should be in app.");
+
+	if (!fileptr->isRemovable())
+		ThrowExc(PermDenied, "app[" << fileptr->getAppPkgPath() << "] isn't removable.");
 
 	const auto &pkgPath = fileptr->getAppPkgPath();
 	const auto &pkgId = fileptr->getAppPkgId();
@@ -341,7 +341,7 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 	// if history exist, fileptr can be null because of modified since value
 	// from history.
 	if (history)
-		fileptr = File::create(filepath, static_cast<time_t>(history->ts));
+		fileptr = File::createIfModified(filepath, static_cast<time_t>(history->ts));
 	else
 		fileptr = File::create(filepath);
 
@@ -413,11 +413,13 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 	StrSet fileset;
 
 	while (auto file = visitor->next()) {
-		// app is removed by pkgmgr API so we need not permission to remove it directly
+		if (!file->isRemovable())
+			continue;
+
 		if (file->isInApp()) {
 			DEBUG("Scannable app: " << file->getAppPkgPath());
 			fileset.insert(file->getAppPkgPath());
-		} else if (hasPermToRemove(file->getPath())) {
+		} else {
 			DEBUG("Scannable file: " << file->getPath());
 			fileset.insert(file->getPath());
 		}
@@ -489,10 +491,8 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
 	}
 
-	// TODO: make isModifiedSince member function to File class
-	//       not to regenerate like this.
 	// file create based on fileInAppPath(for app target, it is worst detected)
-	if (File::create(history->fileInAppPath, static_cast<time_t>(history->ts)))
+	if (File::createIfModified(history->fileInAppPath, static_cast<time_t>(history->ts)))
 		ThrowExc(FileChanged, "File[" << history->fileInAppPath << "] modified since "
 				 "db delta inserted. Don't refresh detected history to know that it's "
 				 "changed since the time.");

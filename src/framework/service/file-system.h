@@ -31,8 +31,6 @@
 
 namespace Csr {
 
-bool hasPermToRemove(const std::string &filepath);
-
 class File;
 using FilePtr = std::unique_ptr<File>;
 
@@ -40,27 +38,41 @@ class File {
 public:
 	File() = delete;
 
-	const std::string &getPath() const;
-	bool isInApp() const;
-	bool isDir() const;
-	const std::string &getAppPkgId() const;
-	const std::string &getAppUser() const;
-	const std::string &getAppPkgPath() const;
+	const std::string &getPath() const noexcept;
+	bool isInApp() const noexcept;
+	bool isDir() const noexcept;
+	bool isRemovable() const noexcept;
+	bool isModified() const noexcept;
+	const std::string &getAppPkgId() const noexcept;
+	const std::string &getAppUser() const noexcept;
+	const std::string &getAppPkgPath() const noexcept;
 
 	void remove() const;
 
 	// throws FileNotExist and FileSystemError
 	static FilePtr create(const std::string &fpath, time_t modifiedSince = -1);
+	static FilePtr createIfModified(const std::string &fpath, time_t modifiedSince = -1);
 
 	static bool isInApp(const std::string &path);
 	static std::string getPkgPath(const std::string &path);
 
 private:
-	explicit File(const std::string &fpath, bool isDir);
+	enum class Type : int {
+		Modified  = (1 << 0),
+		Removable = (1 << 1),
+		Package   = (1 << 2),
+		File      = (1 << 3),
+		Directory = (1 << 4),
+	};
+
+	static FilePtr createInternal(const std::string &fpath, time_t modifiedSince,
+								  bool isModifiedOnly);
+	static int getPkgTypes(const std::string &pkgid);
+
+	explicit File(const std::string &fpath, int type);
 
 	std::string m_path;
-	bool m_inApp;              // in app or not
-	bool m_isDir;
+	int m_type;
 	std::string m_appPkgId;    // meaningful only if inApp == true
 	std::string m_appUser;     // meaningful only if inApp == true
 	std::string m_appPkgPath;  // meaningful only if inApp == true

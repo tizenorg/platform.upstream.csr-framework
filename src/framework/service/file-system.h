@@ -41,8 +41,10 @@ public:
 	File() = delete;
 
 	const std::string &getPath() const;
-	bool isInApp() const;
-	bool isDir() const;
+	bool isInApp() const noexcept;
+	bool isDir() const noexcept;
+	bool isRemovable() const noexcept;
+	bool isModified() const noexcept;
 	const std::string &getAppPkgId() const;
 	const std::string &getAppUser() const;
 	const std::string &getAppPkgPath() const;
@@ -56,11 +58,18 @@ public:
 	static std::string getPkgPath(const std::string &path);
 
 private:
+	enum class Type : int {
+		Modified  = 0b00001,
+		Removable = 0b00010,
+		Package   = 0b00100,
+		File      = 0b01000,
+		Directory = 0b10000,
+	};
+
 	explicit File(const std::string &fpath, bool isDir);
 
 	std::string m_path;
-	bool m_inApp;              // in app or not
-	bool m_isDir;
+	int m_type;
 	std::string m_appPkgId;    // meaningful only if inApp == true
 	std::string m_appUser;     // meaningful only if inApp == true
 	std::string m_appPkgPath;  // meaningful only if inApp == true

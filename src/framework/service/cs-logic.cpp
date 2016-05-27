@@ -130,6 +130,9 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 	CsDetectedPtr riskiest;
 
 	while (auto file = visitor->next()) {
+		if (!file->isModified() || !file->isRemovable())
+			continue;
+
 		DEBUG("Scan file by engine: " << file->getPath());
 
 		csre_cs_detected_h result;
@@ -187,11 +190,11 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 		}
 	}
 
-	if (!fileptr)
-		ThrowExc(InternalError, "fileptr shouldn't be null because no modified since.");
-
 	if (!fileptr->isInApp())
 		ThrowExc(InternalError, "fileptr should be in app.");
+
+	if (!fileptr->isRemovable())
+		ThrowExc(PermDenied, "app[" << fileptr->getAppPkgPath() "] isn't removable.");
 
 	const auto &pkgPath = fileptr->getAppPkgPath();
 	const auto &pkgId = fileptr->getAppPkgId();
@@ -347,7 +350,7 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 
 	// non-null fileptr means the file is modified since the last history
 	// OR there's no history at all.
-	if (fileptr) {
+	if (fileptr->isModified()) {
 		if (history)
 			this->m_db.deleteDetectedByNameOnPath(filepath);
 
@@ -413,11 +416,13 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 	StrSet fileset;
 
 	while (auto file = visitor->next()) {
-		// app is removed by pkgmgr API so we need not permission to remove it directly
+		if (!file->isModified() || !file->isRemovable())
+			continue;
+
 		if (file->isInApp()) {
 			DEBUG("Scannable app: " << file->getAppPkgPath());
 			fileset.insert(file->getAppPkgPath());
-		} else if (hasPermToRemove(file->getPath())) {
+		} else {
 			DEBUG("Scannable file: " << file->getPath());
 			fileset.insert(file->getPath());
 		}
@@ -492,7 +497,9 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 	// TODO: make isModifiedSince member function to File class
 	//       not to regenerate like this.
 	// file create based on fileInAppPath(for app target, it is worst detected)
-	if (File::create(history->fileInAppPath, static_cast<time_t>(history->ts)))
+	auto fileInApp =
+			File::create(history->fileInAppPath, static_cast<time_t>(history->ts));
+	if (fileInApp->isModified())
 		ThrowExc(FileChanged, "File[" << history->fileInAppPath << "] modified since "
 				 "db delta inserted. Don't refresh detected history to know that it's "
 				 "changed since the time.");

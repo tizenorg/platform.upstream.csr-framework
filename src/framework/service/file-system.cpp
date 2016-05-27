@@ -58,20 +58,28 @@ std::vector<std::regex> g_regexprs{
 	//makeRegexpr("^(/sdcard/apps/([^/]+)/apps_rw/([^/]+))") // /sdcard/apps/{user}/apps_rw/{pkgid}/
 };
 
-bool isInPackageList(const std::string &pkgid)
+int getPkgTypes(const std::string &pkgid)
 {
-	if (pkgid.empty())
-		return false;
-
-	bool isPackage = false;
 	pkgmgrinfo_pkginfo_h handle;
 	auto ret = ::pkgmgrinfo_pkginfo_get_pkginfo(pkgid.c_str(), &handle);
-	if (ret == PMINFO_R_OK) {
-		isPackage = true;
-		::pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
+	if (ret != PMINFO_R_OK)
+		return 0;
+
+	auto type = static_cast<File::Type>(File::Type::Package);
+
+	bool isRemovable = false;
+	ret = ::pkgmgrinfo_pkginfo_is_removable(handle, &isRemovable);
+	if (ret != PMINFO_R_OK) {
+		ERROR("Failed to pkgmgrinfo_pkginfo_is_removable. ret: " << ret);
+		return type;
 	}
 
-	return isPackage;
+	::pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
+
+	if (isRemovable)
+		type |= File::Type::Removable;
+
+	return type;
 }
 
 } // namespace anonymous
@@ -99,8 +107,11 @@ bool File::isInApp(const std::string &path)
 		else
 			continue;
 
-		if (isInPackageList(pkgId))
+		auto types = getPkgTypes(pkgId);
+		if (types & Type::Package)
 			return true;
+		else
+			break;
 	}
 
 	return false;
@@ -127,15 +138,18 @@ std::string File::getPkgPath(const std::string &path)
 			continue;
 		}
 
-		if (isInPackageList(pkgId))
+		auto types = getPkgTypes(pkgId);
+		if (types & Type::Package)
 			return pkgPath;
+		else
+			break;
 	}
 
 	return path;
 }
 
-File::File(const std::string &fpath, bool isDir) :
-	m_path(fpath), m_inApp(false), m_isDir(isDir)
+File::File(const std::string &fpath, int type) :
+	m_path(fpath), m_inApp(false), m_type(type)
 {
 	std::smatch matched;
 
@@ -154,26 +168,40 @@ File::File(const std::string &fpath, bool isDir) :
 			continue;
 		}
 
-		if (isInPackageList(m_appPkgId)) {
-			m_inApp = true;
-			return;
-		}
+		m_type |= getPkgTypes(m_appPkgId);
+
+		break;
 	}
 }
 
-const std::string &File::getPath() const
+const std::string &File::getPath() const noexcept
 {
 	return m_path;
 }
 
-bool File::isInApp() const
+bool File::isInApp() const noexcept
 {
-	return m_inApp;
+	return m_type & Type::Package;
 }
 
-bool File::isDir() const
+bool File::isDir() const noexcept
 {
-	return m_isDir;
+	return m_type & Type::Directory;
+}
+
+bool File::isModified() const noexcept
+{
+	return m_type & Type::Modified;
+}
+
+bool File::isRemovable() const noexcept
+{
+	return m_type & Type::Removable;
+}
+
+bool File::isModified() const noexcept
+{
+	return m_type & Type::Modified;
 }
 
 const std::string &File::getAppPkgId() const
@@ -206,16 +234,23 @@ void File::remove() const
 FilePtr File::create(const std::string &fpath, time_t modifiedSince)
 {
 	auto statptr = getStat(fpath);
-	if (statptr == nullptr) {
+
+	if (statptr == nullptr)
 		ThrowExc(FileDoNotExist, "file not exist: " << fpath);
-	} else if (!S_ISREG(statptr->st_mode) && !S_ISDIR(statptr->st_mode)) {
+	else if (!S_ISREG(statptr->st_mode) && !S_ISDIR(statptr->st_mode))
 		ThrowExc(FileSystemError, "file type is not reguler or dir: " << fpath);
-	} else if (modifiedSince != -1 && statptr->st_ctime <= modifiedSince) {
-		DEBUG("file[" << fpath << "] isn't changed since[" << modifiedSince << "]");
-		return nullptr;
-	} else {
-		return FilePtr(new File(fpath, S_ISDIR(statptr->st_mode)));
+
+	auto type = static_cast<int>(S_ISREG(statptr->st_mode) ? Type::File : Type::Directory);
+
+	if (hasPermToRemove(fpath))
+		type |= Type::Removable;
+
+	if (modifiedSince == -1 && statptr->st_ctime > modifiedSince) {
+		DEBUG("file[" << fpath << "] is changed since[" << modifiedSince << "]");
+		type |= Type::Modified;
 	}
+
+	return FilePtr(new File(fpath, type));
 }
 
 FsVisitor::DirPtr FsVisitor::openDir(const std::string &dir)
@@ -276,7 +311,7 @@ FilePtr FsVisitor::next()
 			try {
 				auto fileptr = File::create(dir + filepath, m_since);
 
-				if (fileptr)
+				if (fileptr->isModified())
 					return fileptr;
 			} catch (const FileDoNotExist &e) {
 				WARN("file not exist: " << dir << filepath <<

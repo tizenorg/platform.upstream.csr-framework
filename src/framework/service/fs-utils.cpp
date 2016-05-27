@@ -34,11 +34,14 @@ std::unique_ptr<struct stat> getStat(const std::string &target)
 	memset(statptr.get(), 0x00, sizeof(struct stat));
 
 	if (stat(target.c_str(), statptr.get()) != 0) {
-		if (errno == ENOENT) {
+		const int err = errno;
+
+		if (err == ENOENT)
 			WARN("target not exist: " << target);
-		} else {
-			ERROR("stat() failed on target: " << target << " errno: " << errno);
-		}
+		else if (err == EACCES)
+			WARN("no permission to read target: " << target);
+		else
+			ERROR("stat() failed on target: " << target << " errno: " << err);
 
 		return nullptr;
 	}

@@ -27,12 +27,12 @@
 
 namespace Csr {
 
-bool hasPermission(const ConnShPtr &conn)
+void hasPermission(const ConnShPtr &conn)
 {
-	return hasPermission(conn, conn->getSockId());
+	hasPermission(conn, conn->getSockId());
 }
 
-bool hasPermission(const ConnShPtr &conn, SockId sockId)
+void hasPermission(const ConnShPtr &conn, SockId sockId)
 {
 	const auto &cred = conn->getCredential();
 	const auto &sockDesc = getSockDesc(sockId);
@@ -41,7 +41,9 @@ bool hasPermission(const ConnShPtr &conn, SockId sockId)
 	if (ret < 0)
 		ThrowExc(InternalError, "smack_have_access failed.");
 
-	return ret == 1;
+	if (ret != 1)
+		ThrowExc(PermDenied, "Client[" << cred.label << "] doesn't have permission"
+				 " to call API. Checked by smack.");
 }
 
 }

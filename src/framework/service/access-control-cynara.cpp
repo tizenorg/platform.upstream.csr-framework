@@ -87,19 +87,21 @@ Cynara g_cynara;
 
 } // namespace anonymous
 
-bool hasPermission(const ConnShPtr &conn)
+void hasPermission(const ConnShPtr &conn)
 {
-	return hasPermission(conn, conn->getSockId());
+	hasPermission(conn, conn->getSockId());
 }
 
-bool hasPermission(const ConnShPtr &conn, SockId sockId)
+void hasPermission(const ConnShPtr &conn, SockId sockId)
 {
 	const auto &c = conn->getCredential();
 	const auto &d = getSockDesc(sockId);
 
 	g_cynara.initialize();
 
-	return g_cynara.request(c.user, c.client, std::to_string(conn->getFd()), d.privilege);
+	if (!g_cynara.request(c.user, c.client, std::to_string(conn->getFd()), d.privilege))
+		ThrowExc(PermDenied, "Client[" << c.client << "] doesn't have permission"
+				 " to call API. Checked by cynara.");
 }
 
 }

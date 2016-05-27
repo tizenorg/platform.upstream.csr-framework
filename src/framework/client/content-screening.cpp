@@ -405,10 +405,12 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path,
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
-	hExt->dispatchAsync([hExt, user_data, dir_path] {
+	auto dir = std::make_shared<std::string>(Client::getAbsolutePath(dir_path));
+
+	hExt->dispatchAsync([hExt, user_data, dir] {
 		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
-		l.scanDir(Client::getAbsolutePath(dir_path)).second();
+		l.scanDir(*dir).second();
 	});
 
 	return CSR_ERROR_NONE;

@@ -57,9 +57,8 @@ public:
 #define __FILENAME__ (::strrchr(__FILE__, '/') ? ::strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
 
-#define FORMAT(ITEMS)                                                           \
-	(dynamic_cast<std::ostringstream &>(std::ostringstream().seekp(             \
-										0, std::ios_base::cur) << ITEMS)).str()
+#define FORMAT(ITEMS) \
+	(static_cast<std::ostringstream &>(std::ostringstream() << ITEMS)).str()
 
 #define LOG(LEVEL, MESSAGE) Csr::Audit::Logger::log(                   \
 		Csr::Audit::LogLevel::LEVEL, __FILENAME__, __LINE__, __func__, \

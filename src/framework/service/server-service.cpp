@@ -358,16 +358,15 @@ void ServerService::onMessageProcess(const ConnShPtr &connection)
 		ThrowExc(InternalError, "Message from unknown sock id");
 	}
 
-	auto inbuf = connection->receive();
-	auto task = [this, &connection, process](RawBuffer &buffer) {
-		auto outbuf = (*process)(connection, buffer);
+	auto inbufPtr = std::make_shared<RawBuffer>(connection->receive());
+
+	m_workqueue.submit([this, &connection, process, inbufPtr]() {
+		auto outbuf = (*process)(connection, *inbufPtr);
 
 		connection->send(outbuf);
 
 		CpuUsageManager::reset();
-	};
-
-	m_workqueue.submit(std::bind(task, std::move(inbuf)));
+	});
 }
 
 }

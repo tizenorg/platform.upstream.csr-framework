@@ -74,6 +74,25 @@ bool isInPackageList(const std::string &pkgid)
 	return isPackage;
 }
 
+File::Type getType(const std::string &pkgid)
+{
+	pkgmgrinfo_pkginfo_h handle;
+	auto ret = ::pkgmgrinfo_pkginfo_get_pkginfo(pkgid.c_str(), &handle);
+	if (ret != PMINFO_R_OK)
+		return File::Type::DIRECTORY;
+
+	bool isRemovable = false;
+	ret = ::pkgmgrinfo_pkginfo_is_removable(handle, &isRemovable);
+	if (ret != PMINFO_R_OK) {
+		ERROR("Failed to pkgmgrinfo_pkginfo_is_removable. ret: " << ret);
+		isRemovable = false;
+	}
+
+	::pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
+
+	return isRemovable ? File::Type::PACKAGE_REMOVABLE : File::Type::PACKAGE_UNREMOVABLE;
+}
+
 } // namespace anonymous
 
 bool hasPermToRemove(const std::string &filepath)
@@ -134,8 +153,8 @@ std::string File::getPkgPath(const std::string &path)
 	return path;
 }
 
-File::File(const std::string &fpath, bool isDir) :
-	m_path(fpath), m_inApp(false), m_isDir(isDir)
+File::File(const std::string &fpath, Type type) :
+	m_path(fpath), m_inApp(false), m_type(type)
 {
 	std::smatch matched;
 
@@ -154,26 +173,27 @@ File::File(const std::string &fpath, bool isDir) :
 			continue;
 		}
 
-		if (isInPackageList(m_appPkgId)) {
-			m_inApp = true;
-			return;
-		}
+		auto t = getType(m_appPkgId);
+		if (t == PACKAGE_REMOVABLE || t == PACKAGE_UNREMOVABLE)
+			m_type = t;
+
+		break;
 	}
 }
 
-const std::string &File::getPath() const
+const std::string &File::getPath() const noexcept
 {
 	return m_path;
 }
 
-bool File::isInApp() const
+bool File::isInApp() const noexcept
 {
-	return m_inApp;
+	return m_type == Type::PACKAGE_REMOVABLE || m_type == Type::PACKAGE_UNREMOVABLE;
 }
 
-bool File::isDir() const
+bool File::isDir() const noexcept
 {
-	return m_isDir;
+	return m_type == Type::DIRECTORY;
 }
 
 const std::string &File::getAppPkgId() const
@@ -213,9 +233,14 @@ FilePtr File::create(const std::string &fpath, time_t modifiedSince)
 	} else if (modifiedSince != -1 && statptr->st_ctime <= modifiedSince) {
 		DEBUG("file[" << fpath << "] isn't changed since[" << modifiedSince << "]");
 		return nullptr;
-	} else {
-		return FilePtr(new File(fpath, S_ISDIR(statptr->st_mode)));
 	}
+
+	auto type = Type::DIRECTORY;
+
+	if (S_ISREG(statptr->st_mode))
+		type = hasPermToRemove(fpath) ? Type::FILE_REMOVABLE : Type::FILE_UNREMOVABLE;
+
+	return FilePtr(new File(fpath, type));
 }
 
 FsVisitor::DirPtr FsVisitor::openDir(const std::string &dir)

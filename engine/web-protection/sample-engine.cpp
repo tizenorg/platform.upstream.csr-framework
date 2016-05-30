@@ -533,6 +533,7 @@ int csre_wp_get_error_string(int error_code, const char **string)
 
 	case CSRET_WP_ERROR_SIGNATURE_FILE_FORMAT:
 		*string = "CSRET_WP_ERROR_SIGNATURE_FILE_FORMAT";
+		break;
 
 	case CSRET_WP_ERROR_FILE_IO:
 		*string = "CSRET_WP_ERROR_FILE_IO";

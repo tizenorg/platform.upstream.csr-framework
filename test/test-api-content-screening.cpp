@@ -476,7 +476,7 @@ BOOST_AUTO_TEST_CASE(get_detected_malwares)
 	CHECK_IS_NOT_NULL(detected_list);
 
 	for (idx = 0; idx < cnt; idx++) {
-		ASSERT_SUCCESS(csr_cs_malware_list_get_detected(detected_list, idx, &stored));
+		ASSERT_SUCCESS(csr_cs_malware_list_get_malware(detected_list, idx, &stored));
 		CHECK_IS_NOT_NULL(stored);
 		ASSERT_SUCCESS(csr_cs_malware_get_file_name(stored, &file_path_actual.ptr));
 		if (strcmp(TEST_FILE_HIGH, file_path_actual.ptr) == 0) {
@@ -642,7 +642,7 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares)
 	CHECK_IS_NOT_NULL(ignored_list);
 
 	for (idx = 0; idx < cnt; idx++) {
-		ASSERT_SUCCESS(csr_cs_malware_list_get_detected(ignored_list, idx, &stored));
+		ASSERT_SUCCESS(csr_cs_malware_list_get_malware(ignored_list, idx, &stored));
 		CHECK_IS_NOT_NULL(stored);
 		ASSERT_SUCCESS(csr_cs_malware_get_file_name(stored, &file_path_actual.ptr));
 		if (strcmp(TEST_FILE_HIGH, file_path_actual.ptr) == 0) {

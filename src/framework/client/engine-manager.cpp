@@ -83,11 +83,11 @@ bool _isValid(const csr_state_e &state) noexcept
 }
 
 API
-int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *pengine)
+int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *engine)
 {
 	EXCEPTION_SAFE_START
 
-	if (pengine == nullptr || !_isValid(id))
+	if (engine == nullptr || !_isValid(id))
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto handle = new Csr::Client::Handle(SockId::ADMIN, std::make_shared<EmContext>());
@@ -95,7 +95,7 @@ int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *pengine)
 	handle->getContext()->set(static_cast<int>(EmContext::Key::EngineId),
 							  static_cast<int>(id));
 
-	*pengine = reinterpret_cast<csr_engine_h>(handle);
+	*engine = reinterpret_cast<csr_engine_h>(handle);
 
 	return CSR_ERROR_NONE;
 
@@ -103,58 +103,58 @@ int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *pengine)
 }
 
 API
-int csr_engine_get_vendor(csr_engine_h engine, char **pvendor)
+int csr_engine_get_vendor(csr_engine_h engine, char **vendor)
 {
 	EXCEPTION_SAFE_START
 
-	STRING_GETTER(engine, EM_GET_VENDOR, pvendor);
+	STRING_GETTER(engine, EM_GET_VENDOR, vendor);
 
 	EXCEPTION_SAFE_END
 }
 
 API
-int csr_engine_get_name(csr_engine_h engine, char **pname)
+int csr_engine_get_name(csr_engine_h engine, char **name)
 {
 	EXCEPTION_SAFE_START
 
-	STRING_GETTER(engine, EM_GET_NAME, pname);
+	STRING_GETTER(engine, EM_GET_NAME, name);
 
 	EXCEPTION_SAFE_END
 }
 
 API
-int csr_engine_get_version(csr_engine_h engine, char **pversion)
+int csr_engine_get_version(csr_engine_h engine, char **version)
 {
 	EXCEPTION_SAFE_START
 
-	STRING_GETTER(engine, EM_GET_VERSION, pversion);
+	STRING_GETTER(engine, EM_GET_VERSION, version);
 
 	EXCEPTION_SAFE_END
 }
 
 API
-int csr_engine_get_data_version(csr_engine_h engine, char **pversion)
+int csr_engine_get_data_version(csr_engine_h engine, char **version)
 {
 	EXCEPTION_SAFE_START
 
-	STRING_GETTER(engine, EM_GET_DATA_VERSION, pversion);
+	STRING_GETTER(engine, EM_GET_DATA_VERSION, version);
 
 	EXCEPTION_SAFE_END
 }
 
 API
-int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *ptime)
+int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *time)
 {
 	EXCEPTION_SAFE_START
 
-	GETTER_PARAM_CHECK(engine, ptime);
+	GETTER_PARAM_CHECK(engine, time);
 
 	auto h = reinterpret_cast<Csr::Client::Handle *>(engine);
 	auto ret = h->dispatch<std::pair<int, std::shared_ptr<int64_t>>>(
 			Csr::CommandId::EM_GET_UPDATED_TIME, h->getContext());
 
 	if (ret.first == CSR_ERROR_NONE && ret.second)
-		*ptime = static_cast<time_t>(*ret.second);
+		*time = static_cast<time_t>(*ret.second);
 
 	return ret.first;
 
@@ -162,18 +162,18 @@ int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *ptime)
 }
 
 API
-int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *pactivated)
+int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *activated)
 {
 	EXCEPTION_SAFE_START
 
-	GETTER_PARAM_CHECK(engine, pactivated);
+	GETTER_PARAM_CHECK(engine, activated);
 
 	auto h = reinterpret_cast<Csr::Client::Handle *>(engine);
 	auto ret = h->dispatch<std::pair<int, std::shared_ptr<int>>>(
 			Csr::CommandId::EM_GET_ACTIVATED, h->getContext());
 
 	if (ret.first == CSR_ERROR_NONE && ret.second)
-		*pactivated = static_cast<csr_activated_e>(*ret.second);
+		*activated = static_cast<csr_activated_e>(*ret.second);
 
 	return ret.first;
 
@@ -181,18 +181,18 @@ int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *pactivated)
 }
 
 API
-int csr_engine_get_state(csr_engine_h engine, csr_state_e *pstate)
+int csr_engine_get_state(csr_engine_h engine, csr_state_e *state)
 {
 	EXCEPTION_SAFE_START
 
-	GETTER_PARAM_CHECK(engine, pstate);
+	GETTER_PARAM_CHECK(engine, state);
 
 	auto h = reinterpret_cast<Csr::Client::Handle *>(engine);
 	auto ret = h->dispatch<std::pair<int, std::shared_ptr<int>>>(
 			Csr::CommandId::EM_GET_STATE, h->getContext());
 
 	if (ret.first == CSR_ERROR_NONE && ret.second)
-		*pstate = static_cast<csr_state_e>(*ret.second);
+		*state = static_cast<csr_state_e>(*ret.second);
 
 	return ret.first;
 

@@ -36,7 +36,7 @@ void ASSERT_DETECTED(csr_cs_malware_h detected, const char *e_malware_name,
 	Test::ScopedCstr a_malware_name, a_detailed_url;
 
 	ASSERT_SUCCESS(csr_cs_malware_get_severity(detected, &a_severity));
-	ASSERT_SUCCESS(csr_cs_malware_get_malware_name(detected, &a_malware_name.ptr));
+	ASSERT_SUCCESS(csr_cs_malware_get_name(detected, &a_malware_name.ptr));
 	ASSERT_SUCCESS(csr_cs_malware_get_detailed_url(detected, &a_detailed_url.ptr));
 
 	ASSERT_IF(a_severity, e_severity);
@@ -77,7 +77,7 @@ void ASSERT_DETECTED_HANDLE(csr_cs_malware_h expected, csr_cs_malware_h actual)
 	bool e_is_app, a_is_app;
 
 	ASSERT_SUCCESS(csr_cs_malware_get_severity(expected, &e_severity));
-	ASSERT_SUCCESS(csr_cs_malware_get_malware_name(expected, &e_malware_name.ptr));
+	ASSERT_SUCCESS(csr_cs_malware_get_name(expected, &e_malware_name.ptr));
 	ASSERT_SUCCESS(csr_cs_malware_get_detailed_url(expected, &e_detailed_url.ptr));
 	ASSERT_SUCCESS(csr_cs_malware_get_timestamp(expected, &e_timestamp));
 	ASSERT_SUCCESS(csr_cs_malware_get_file_name(expected, &e_file_name.ptr));
@@ -85,7 +85,7 @@ void ASSERT_DETECTED_HANDLE(csr_cs_malware_h expected, csr_cs_malware_h actual)
 	ASSERT_SUCCESS(csr_cs_malware_get_pkg_id(expected, &e_pkg_id.ptr));
 
 	ASSERT_SUCCESS(csr_cs_malware_get_severity(actual, &a_severity));
-	ASSERT_SUCCESS(csr_cs_malware_get_malware_name(actual, &a_malware_name.ptr));
+	ASSERT_SUCCESS(csr_cs_malware_get_name(actual, &a_malware_name.ptr));
 	ASSERT_SUCCESS(csr_cs_malware_get_detailed_url(actual, &a_detailed_url.ptr));
 	ASSERT_SUCCESS(csr_cs_malware_get_timestamp(actual, &a_timestamp));
 	ASSERT_SUCCESS(csr_cs_malware_get_file_name(actual, &a_file_name.ptr));
@@ -114,7 +114,7 @@ void ASSERT_DETECTED_IN_LIST(const std::vector<csr_cs_malware_h> &detectedList,
 		if (strcmp(file_name, a_file_name.ptr) != 0)
 			continue;
 
-		ASSERT_SUCCESS(csr_cs_malware_get_malware_name(d, &a_name.ptr));
+		ASSERT_SUCCESS(csr_cs_malware_get_name(d, &a_name.ptr));
 		ASSERT_SUCCESS(csr_cs_malware_get_severity(d, &a_severity));
 		ASSERT_SUCCESS(csr_cs_malware_get_detailed_url(d, &a_detailed_url.ptr));
 

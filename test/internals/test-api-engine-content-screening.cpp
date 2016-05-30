@@ -368,9 +368,6 @@ BOOST_AUTO_TEST_CASE(get_latest_update_time)
 	ASSERT_IF(csre_cs_engine_get_latest_update_time(handle, &time),
 			  CSRE_ERROR_NONE);
 
-	struct tm t;
-	BOOST_MESSAGE(asctime(gmtime_r(&time, &t)));
-
 	EXCEPTION_GUARD_END
 }
 

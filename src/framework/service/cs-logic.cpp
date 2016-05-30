@@ -234,6 +234,12 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 			if (!worse || *worse < *row)
 				worse = std::move(row);
 
+		if (!worse) {
+			INFO("No detected malware found in db.... Newly detected malware is removed by "
+				 "other client. Handle it as fully clean case.");
+			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+		}
+
 		if (*riskiest < *worse) {
 			INFO("worse case in db is worse than riskiest. on pkg[" << pkgPath << "]");
 			riskiestPath = worse->fileInAppPath;
@@ -261,12 +267,8 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 		}
 	} else if (history && !after && !riskiest) {
 		auto rows = this->m_db.getDetectedByFilepathOnDir(pkgPath);
-		if (rows.empty()) {
-			INFO("worst case is deleted cascadingly and NO new detected and "
-				 "NO worse case. the pkg[" << pkgPath << "] is clean.");
-			this->m_db.deleteDetectedByNameOnPath(pkgPath);
-			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-		} else {
+
+		if (!rows.empty()) {
 			INFO("worst case is deleted cascadingly and NO new detected and "
 				 "worse case exist on pkg[" << pkgPath << "]. insert it to worst.");
 			Db::RowShPtr worse;
@@ -274,13 +276,21 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 				if (!worse || *worse < *row)
 					worse = std::move(row);
 
-			this->m_db.insertWorst(pkgId, pkgPath, worse->fileInAppPath);
+			if (worse) {
+				this->m_db.insertWorst(pkgId, pkgPath, worse->fileInAppPath);
 
-			if (worse->isIgnored)
-				return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+				if (worse->isIgnored)
+					return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-			return this->handleAskUser(context, *worse);
+				return this->handleAskUser(context, *worse);
+			}
 		}
+
+		INFO("worst case is deleted cascadingly and NO new detected and "
+			 "NO worse case. the pkg[" << pkgPath << "] is clean.");
+
+		this->m_db.deleteDetectedByNameOnPath(pkgPath);
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 	} else if (!history && riskiest) {
 		INFO("no history and new detected");
 		this->m_db.insertWorst(pkgId, pkgPath, riskiestPath);

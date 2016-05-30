@@ -378,9 +378,6 @@ BOOST_AUTO_TEST_CASE(get_latest_update_time)
 	ASSERT_IF(h.loader.getEngineLatestUpdateTime(h.context, &time),
 			  CSRE_ERROR_NONE);
 
-	struct tm t;
-	BOOST_MESSAGE(asctime(gmtime_r(&time, &t)));
-
 	EXCEPTION_GUARD_END
 }
 

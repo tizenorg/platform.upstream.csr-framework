@@ -454,7 +454,7 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 }
 
 API
-int csr_cs_scan_cancel(csr_cs_context_h handle)
+int csr_cs_cancel_scanning(csr_cs_context_h handle)
 {
 	EXCEPTION_SAFE_START
 

@@ -621,7 +621,7 @@ BOOST_AUTO_TEST_CASE(scan_cancel_positiive)
 	// Without sleep, sometimes the first run of this TC fails with core dump.
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-	ASSERT_IF(csr_cs_scan_cancel(context), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_cancel_scanning(context), CSR_ERROR_NONE);
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -638,8 +638,8 @@ BOOST_AUTO_TEST_CASE(scan_cancel_negative)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 
-	ASSERT_IF(csr_cs_scan_cancel(nullptr), CSR_ERROR_INVALID_HANDLE);
-	ASSERT_IF(csr_cs_scan_cancel(context), CSR_ERROR_NO_TASK);
+	ASSERT_IF(csr_cs_cancel_scanning(nullptr), CSR_ERROR_INVALID_HANDLE);
+	ASSERT_IF(csr_cs_cancel_scanning(context), CSR_ERROR_NO_TASK);
 
 	EXCEPTION_GUARD_END
 }

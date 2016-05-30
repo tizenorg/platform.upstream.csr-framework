@@ -465,7 +465,7 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_NO_TASK               No task to cancel
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_scan_cancel(csr_cs_context_h handle);
+int csr_cs_cancel_scanning(csr_cs_context_h handle);
 
 //==============================================================================
 // Result related

@@ -2,4 +2,8 @@
 	<request>
 		<domain name="_" />
 	</request>
+	<assign>
+		<filesystem path="@RW_DBSPACE@" label="@SMACK_DOMAIN_NAME@" type="transmutable" />
+		<filesystem path="@SAMPLE_ENGINE_RW_WORKING_DIR@" label="@SMACK_DOMAIN_NAME@" type="transmutable" />
+	</assign>
 </manifest>

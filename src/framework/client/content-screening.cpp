@@ -491,21 +491,21 @@ int csr_cs_malware_get_severity(csr_cs_malware_h malware, csr_cs_severity_level_
 }
 
 API
-int csr_cs_malware_get_malware_name(csr_cs_malware_h malware, char **malware_name)
+int csr_cs_malware_get_name(csr_cs_malware_h malware, char **name)
 {
 	EXCEPTION_SAFE_START
 
 	if (malware == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (malware_name == nullptr)
+	else if (name == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	auto name = strdup(reinterpret_cast<CsDetected *>(malware)->malwareName.c_str());
+	auto _name = strdup(reinterpret_cast<CsDetected *>(malware)->malwareName.c_str());
 
-	if (name == nullptr)
+	if (_name == nullptr)
 		return CSR_ERROR_OUT_OF_MEMORY;
 
-	*malware_name = name;
+	*name = _name;
 
 	return CSR_ERROR_NONE;
 

@@ -17,7 +17,7 @@
  * @file        csr-content-screening.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       Content screening to detect malware in files
  */
 #ifndef __CSR_CONTENT_SCREENING_API_H_
 #define __CSR_CONTENT_SCREENING_API_H_
@@ -46,19 +46,16 @@ extern "C" {
  *
  * @remarks A Content Screening API handle (or CSR CS handle) is obtained using the
  *          csr_cs_context_create() function. The handle is required for subsequent
- *          CSR CS API calls. The csr_cs_context_destroy() function releases/closes
- *          the handle. Multiple handles can be obtained using csr_cs_context_create().
+ *          CSR CS API calls. The @a handle should be released using
+ *          csr_wp_context_destroy(). Multiple handles can be obtained.
  *
  * @param[out] handle A pointer of CSR CS context handle.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                  Successful
+ * @retval #CSR_ERROR_INVALID_HANDLE        @a handle may be null
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     @a handle is invalid
- * @retval #CSR_ERROR_SOCKET                Socket error between client and server
- * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_context_create(csr_cs_context_h *handle);
@@ -75,8 +72,6 @@ int csr_cs_context_create(csr_cs_context_h *handle);
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
- * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_context_destroy(csr_cs_context_h handle);
@@ -113,6 +108,9 @@ int csr_cs_set_ask_user(csr_cs_context_h handle, csr_cs_ask_user_e ask_user);
  * @remarks When a popup is prompted to a user, the message set by this method will be
  *          shown. When a client doesn't set his own popup message, the default message
  *          will be shown in the popup.
+ *
+ * @details Message: "Malware which may harm your device is detected." will be printed
+ *          on popup as a default if it isn't set
  *
  * @param[in] handle  CSR CS context handle returned by csr_cs_context_create().
  * @param[in] message a message in a popup.
@@ -167,7 +165,7 @@ int csr_cs_set_core_usage(csr_cs_context_h handle, csr_cs_core_usage_e usage);
 int csr_cs_set_scan_on_cloud(csr_cs_context_h handle);
 
 /**
- * @brief Main function for caller to scan a data buffer for malware.
+ * @brief Scans a data buffer for malware.
  *
  * @since_tizen 3.0
  * @privlevel partner
@@ -187,6 +185,8 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle);
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a data or @a malware is invalid
+ * @retval #CSR_ERROR_PERMISSION_DENIED     No privilege to call
+ * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
@@ -201,7 +201,7 @@ int csr_cs_scan_data(csr_cs_context_h handle,
 					 csr_cs_malware_h *malware);
 
 /**
- * @brief Main function for caller to scan a file specified by file path for malware.
+ * @brief Scans a file specified by file path for malware.
  *
  * @since_tizen 3.0
  * @privlevel partner
@@ -221,6 +221,8 @@ int csr_cs_scan_data(csr_cs_context_h handle,
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a file_path or @a malware is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
+ * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
+ * @retval #CSR_ERROR_DB                    DB transaction error
  * @retval #CSR_ERROR_REMOVE_FAILED         File remove failed when malware exist and
  *                                          user select to remove by popup. @a malware
  *                                          will be allocated on this error unlike others.
@@ -230,6 +232,7 @@ int csr_cs_scan_data(csr_cs_context_h handle,
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
+ * @retval #CSR_ERROR_ENGINE_PERMISSION     Insufficient permission of engine
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
@@ -334,8 +337,7 @@ int csr_cs_set_error_cb(csr_cs_context_h handle, csr_cs_error_cb callback);
 int csr_cs_set_file_scanned_cb(csr_cs_context_h handle, csr_cs_file_scanned_cb callback);
 
 /**
- * @brief Main function for caller to scan files specified by an array of file paths
- *        for malware.
+ * @brief Scan files specified by an array of file paths for malware.
  *
  * @since_tizen 3.0
  * @privlevel partner
@@ -357,9 +359,12 @@ int csr_cs_set_file_scanned_cb(csr_cs_context_h handle, csr_cs_file_scanned_cb c
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a file_paths is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
+ * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
+ * @retval #CSR_ERROR_ENGINE_PERMISSION     Insufficient permission of engine
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
@@ -372,8 +377,7 @@ int csr_cs_scan_files_async(csr_cs_context_h handle,
 							void *user_data);
 
 /**
- * @brief Main function for caller to scan a directory specified by
- *        directory path for malware.
+ * @brief Scans a directory specified by directory path for malware.
  *
  * @since_tizen 3.0
  * @privlevel partner
@@ -395,9 +399,13 @@ int csr_cs_scan_files_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a dir_path is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
+ * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
+ * @retval #CSR_ERROR_FILE_SYSTEM           File type is invalid. It should be directory
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
+ * @retval #CSR_ERROR_ENGINE_PERMISSION     Insufficient permission of engine
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
@@ -409,8 +417,7 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle,
 						  void *user_data);
 
 /**
- * @brief Main function for caller to scan directories specified by
- *        an array of directory paths for malware.
+ * @brief Scan directories specified by an array of directory paths for malware.
  *
  * @since_tizen 3.0
  * @privlevel partner
@@ -434,9 +441,13 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a dir_paths is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
+ * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
+ * @retval #CSR_ERROR_FILE_SYSTEM           File type is invalid. It should be directory
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
+ * @retval #CSR_ERROR_ENGINE_PERMISSION     Insufficient permission of engine
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
@@ -495,19 +506,19 @@ int csr_cs_malware_get_severity(csr_cs_malware_h malware, csr_cs_severity_level_
  *
  * @since_tizen 3.0
  *
- * @remarks  The @a malware_name must be released using free().
+ * @remarks  The @a name must be released using free().
  *
- * @param[in]  malware       A detected malware handle.
- * @param[out] malware_name  A pointer of the name of a detected malware.
+ * @param[in]  malware  A detected malware handle.
+ * @param[out] name     A pointer of the name of a detected malware.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a malware_name is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a name is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_malware_get_malware_name(csr_cs_malware_h malware, char **malware_name);
+int csr_cs_malware_get_name(csr_cs_malware_h malware, char **name);
 
 /**
  * @brief Extracts an url that contains detailed information on vendor's web site from the detected malware handle.
@@ -607,7 +618,8 @@ int csr_cs_malware_is_app(csr_cs_malware_h malware, bool *is_app);
  * @remarks  The @a pkg_id must be released using free().
  *
  * @param[in]  malware       A detected malware handle.
- * @param[out] pkg_id        A pointer of the pakcage id where a malware is detected. This is a null when a malware was not detected in an application.
+ * @param[out] pkg_id        A pointer of the package id where a malware is detected.
+ *                           It is null when a malware was not detected in an application.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -650,6 +662,7 @@ int csr_cs_malware_get_pkg_id(csr_cs_malware_h malware, char **pkg_id);
  * @retval #CSR_ERROR_FILE_CHANGED          File to take action on changed after detection
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_judge_detected_malware(csr_cs_context_h handle,
@@ -681,6 +694,7 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle,
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No malware file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_get_detected_malware(csr_cs_context_h handle,
@@ -714,6 +728,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle,
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No malware file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_get_detected_malwares(csr_cs_context_h handle,
@@ -744,6 +759,7 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No ignored file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
@@ -776,6 +792,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No ignored file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_get_ignored_malwares(csr_cs_context_h handle,

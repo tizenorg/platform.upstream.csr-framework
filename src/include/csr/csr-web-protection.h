@@ -45,8 +45,8 @@ extern "C" {
  *
  * @remarks A Web Protection API handle (or CSR WP handle) is obtained using the
  *          csr_wp_context_create(). The handle is required for subsequent CSR WP API
- *          calls. The csr_wp_context_destroy() releases/closes the handle. Multiple
- *          handles can be obtained using csr_wp_context_create().
+ *          calls. The @a handle should be released using csr_wp_context_destroy().
+ *          Multiple handles can be obtained.
  *
  * @param[out] handle A pointer of CSR WP context handle.
  *
@@ -117,6 +117,9 @@ int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user);
  *          shown. When a client doesn't set his own popup message, the default message
  *          will be shown in the popup.
  *
+ * @details Message: "Risky URL which may harm your phone is detected." will be printed
+ *          on popup as a default if it isn't set
+ *
  * @param[in] handle   CSR WP context handle returned by csr_wp_context_create().
  * @param[in] message  A message in a popup.
  *
@@ -133,8 +136,7 @@ int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user);
 int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
 
 /**
- * @brief Main function for caller to check URL reputation against the engine vendor's
- *        database.
+ * @brief Checks URL reputation against the engine vendor's database.
  *
  * @since_tizen 3.0
  * @privlevel partner
@@ -154,6 +156,7 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_PERMISSION_DENIED     Permission denied
+ * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a url or @a result is invalid
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason

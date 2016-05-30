@@ -14,30 +14,30 @@
  *  limitations under the License
  */
 /*
- * @file        csre-web-protection-engine-info.h
+ * @file        csre/content-screening-engine-info.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
  * @brief       Interface for engine management on engine
  */
-#ifndef __CSRE_WEB_PROTECTION_ENGINE_INFO_H_
-#define __CSRE_WEB_PROTECTION_ENGINE_INFO_H_
+#ifndef __CSRE_CS_ENGINE_INFO_H_
+#define __CSRE_CS_ENGINE_INFO_H_
 
 #include <time.h>
-#include <csre-error.h>
+#include <csre/error.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct csre_wp_engine_s *csre_wp_engine_h;
+typedef struct __csre_cs_engine_h *csre_cs_engine_h;
 
 /**
  * @brief State of engine activation
  */
 typedef enum {
-	CSRE_WP_NOT_ACTIVATED = 0x01,  /**< Engine is not activated */
-	CSRE_WP_ACTIVATED     = 0x02   /**< Engine is activated */
-} csre_wp_activated_e;
+	CSRE_CS_NOT_ACTIVATED = 0x01,  /**< Engine is not activated */
+	CSRE_CS_ACTIVATED     = 0x02   /**< Engine is activated */
+} csre_cs_activated_e;
 
 /**
  * @brief Gets the handle of a selected engine information.
@@ -55,7 +55,7 @@ typedef enum {
  * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  */
-int csre_wp_engine_get_info(csre_wp_engine_h *engine);
+int csre_cs_engine_get_info(csre_cs_engine_h *engine);
 
 /**
  * @brief Releases all system resources associated with a engine information handle.
@@ -71,7 +71,7 @@ int csre_wp_engine_get_info(csre_wp_engine_h *engine);
  * @retval #CSRE_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN               Error with unknown reason
  */
-int csre_wp_engine_destroy(csre_wp_engine_h engine);
+int csre_cs_engine_destroy(csre_cs_engine_h engine);
 
 /**
  * @brief returns the engine API version.
@@ -87,9 +87,9 @@ int csre_wp_engine_destroy(csre_wp_engine_h engine);
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  * @retval -0x0100~-0xFF00                  Engine defined error
  *
- * @see csre_wp_engine_get_info()
+ * @see csre_cs_get_engine_info()
  */
-int csre_wp_engine_get_api_version(csre_wp_engine_h engine,
+int csre_cs_engine_get_api_version(csre_cs_engine_h engine,
 								   const char **version);
 
 /**
@@ -106,9 +106,9 @@ int csre_wp_engine_get_api_version(csre_wp_engine_h engine,
  * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csre_wp_engine_get_info()
+ * @see csre_cs_get_engine_info()
  */
-int csre_wp_engine_get_vendor(csre_wp_engine_h engine, const char **vendor);
+int csre_cs_engine_get_vendor(csre_cs_engine_h engine, const char **vendor);
 
 /**
  * @brief Extracts an engine name from the engine information handle.
@@ -124,9 +124,9 @@ int csre_wp_engine_get_vendor(csre_wp_engine_h engine, const char **vendor);
  * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csre_wp_engine_get_info()
+ * @see csre_cs_get_engine_info()
  */
-int csre_wp_engine_get_name(csre_wp_engine_h engine, const char **name);
+int csre_cs_engine_get_name(csre_cs_engine_h engine, const char **name);
 
 /**
  * @brief Extracts an engine version from the engine information handle.
@@ -143,9 +143,9 @@ int csre_wp_engine_get_name(csre_wp_engine_h engine, const char **name);
  * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csre_wp_engine_get_info()
+ * @see csre_cs_get_engine_info()
  */
-int csre_wp_engine_get_version(csre_wp_engine_h engine, const char **version);
+int csre_cs_engine_get_version(csre_cs_engine_h engine, const char **version);
 
 /**
  * @brief Extracts an engine's data version from the engine information handle.
@@ -162,9 +162,9 @@ int csre_wp_engine_get_version(csre_wp_engine_h engine, const char **version);
  * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csre_wp_engine_get_info()
+ * @see csre_cs_get_engine_info()
  */
-int csre_wp_engine_get_data_version(csre_wp_engine_h engine,
+int csre_cs_engine_get_data_version(csre_cs_engine_h engine,
 									const char **version);
 
 /**
@@ -182,9 +182,9 @@ int csre_wp_engine_get_data_version(csre_wp_engine_h engine,
  * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csre_wp_get_engine_info()
+ * @see csre_cs_get_engine_info()
  */
-int csre_wp_engine_get_latest_update_time(csre_wp_engine_h engine,
+int csre_cs_engine_get_latest_update_time(csre_cs_engine_h engine,
 		time_t *time);
 
 /**
@@ -201,10 +201,10 @@ int csre_wp_engine_get_latest_update_time(csre_wp_engine_h engine,
  * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  *
- * @see csre_wp_engine_get_info()
+ * @see csre_cs_get_engine_info()
  */
-int csre_wp_engine_get_activated(csre_wp_engine_h engine,
-								 csre_wp_activated_e *pactivated);
+int csre_cs_engine_get_activated(csre_cs_engine_h engine,
+								 csre_cs_activated_e *pactivated);
 
 /**
  * @brief Extracts an vendor logo image from the engine information handle.
@@ -226,9 +226,9 @@ int csre_wp_engine_get_activated(csre_wp_engine_h engine,
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  * @retval -0x0100~-0xFF00                  Engine defined error
  *
- * @see csre_wp_engine_get_info()
+ * @see csre_cs_get_engine_info()
  */
-int csre_wp_engine_get_vendor_logo(csre_wp_engine_h engine,
+int csre_cs_engine_get_vendor_logo(csre_cs_engine_h engine,
 								   unsigned char **vendor_logo_image, unsigned int *image_size);
 
 #ifdef __cplusplus

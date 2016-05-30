@@ -271,13 +271,13 @@ fi
 
 %files engine-devel
 %defattr(-,root,root,-)
-%{_includedir}/csre/csre-content-screening-engine-info.h
-%{_includedir}/csre/csre-content-screening.h
-%{_includedir}/csre/csre-content-screening-types.h
-%{_includedir}/csre/csre-error.h
-%{_includedir}/csre/csre-web-protection-engine-info.h
-%{_includedir}/csre/csre-web-protection.h
-%{_includedir}/csre/csre-web-protection-types.h
+%{_includedir}/csre/content-screening-engine-info.h
+%{_includedir}/csre/content-screening.h
+%{_includedir}/csre/content-screening-types.h
+%{_includedir}/csre/error.h
+%{_includedir}/csre/web-protection-engine-info.h
+%{_includedir}/csre/web-protection.h
+%{_includedir}/csre/web-protection-types.h
 %{_libdir}/pkgconfig/%{service_name}-engine.pc
 
 %files test

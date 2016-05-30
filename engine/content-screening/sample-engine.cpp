@@ -19,8 +19,8 @@
  * @version     1.0
  * @brief
  */
-#include <csre-content-screening.h>
-#include <csre-content-screening-engine-info.h>
+#include <csre/content-screening.h>
+#include <csre/content-screening-engine-info.h>
 
 #include <string>
 #include <vector>

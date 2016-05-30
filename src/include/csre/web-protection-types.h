@@ -14,7 +14,7 @@
  *  limitations under the License
  */
 /*
- * @file        csre-web-protection-types.h
+ * @file        csre/web-protection-types.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
  * @brief

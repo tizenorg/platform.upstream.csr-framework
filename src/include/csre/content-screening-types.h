@@ -14,7 +14,7 @@
  *  limitations under the License
  */
 /*
- * @file        csre-content-screening-types.h
+ * @file        csre/content-screening-types.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
  * @brief       Types for content-screening engine

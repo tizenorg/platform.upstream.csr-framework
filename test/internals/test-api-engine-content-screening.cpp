@@ -19,8 +19,8 @@
  * @version     1.0
  * @brief       CSR Content screening Engine API test
  */
-#include <csre-content-screening.h>
-#include <csre-content-screening-engine-info.h>
+#include <csre/content-screening.h>
+#include <csre/content-screening-engine-info.h>
 
 #include <cstring>
 #include <cstdio>

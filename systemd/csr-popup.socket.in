@@ -7,8 +7,8 @@ Before=@SERVICE_NAME@-popup.service
 ListenStream=/tmp/.@SERVICE_NAME@-popup.socket
 Service=@SERVICE_NAME@-popup.service
 SocketMode=0777
-SmackLabelIPIn=@SERVICE_NAME@
-SmackLabelIPOut=@SERVICE_NAME@
+SmackLabelIPIn=*
+SmackLabelIPOut=@
 
 [Install]
 WantedBy=sockets.target

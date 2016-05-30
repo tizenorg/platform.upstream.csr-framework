@@ -29,8 +29,6 @@ Requires:      lib%{name}-common = %{version}-%{release}
 General purpose content screening and reputation solution. Can scan
 file contents and checking url to prevent malicious items.
 
-%global service_user                 system
-%global service_group                system
 %global service_name                 csr
 %global bin_dir                      %{_bindir}
 %global sbin_dir                     /sbin
@@ -42,6 +40,20 @@ file contents and checking url to prevent malicious items.
 %global sample_engine_rw_working_dir %{rw_data_dir}/%{service_name}/engine
 %global sample_engine_dir            %{ro_data_dir}/%{service_name}/lib
 %global test_dir                     %{rw_data_dir}/%{service_name}-test
+
+%if "%{platform_version}" == "3.0"
+%global service_user                 security_fw
+%global service_group                security_fw
+%global popup_service_env_file_path  /run/tizen-system-env
+%global smack_domain_name            System
+%global popup_unitdir                %{_unitdir_user}
+%else
+%global service_user                 system
+%global service_group                system
+%global smack_domain_name            %{service_name}
+%global popup_service_env_file_path  /run/tizen-mobile-env
+%global popup_unitdir                %{_unitdir}
+%endif
 
 %package -n lib%{name}-common
 Summary: Common library package for %{name}
@@ -116,12 +128,14 @@ test program of csr-framework
     -DCMAKE_INSTALL_PREFIX=%{_prefix} \
     -DSERVICE_USER=%{service_user} \
     -DSERVICE_GROUP=%{service_group} \
+    -DSMACK_DOMAIN_NAME=%{smack_domain_name} \
+    -DPOPUP_SERVICE_ENV_FILE_PATH:PATH=%{popup_service_env_file_path} \
     -DSERVICE_NAME=%{service_name} \
     -DVERSION=%{version} \
     -DINCLUDE_INSTALL_DIR:PATH=%{_includedir} \
     -DBIN_DIR:PATH=%{bin_dir} \
     -DSYSTEMD_UNIT_DIR=%{_unitdir} \
-    -DSYSTEMD_UNIT_USER_DIR=%{_unitdir_user} \
+    -DPOPUP_SYSTEMD_UNIT_DIR=%{popup_unitdir} \
     -DRO_DBSPACE:PATH=%{ro_db_dir} \
     -DRW_DBSPACE:PATH=%{rw_db_dir} \
     -DSAMPLE_ENGINE_RO_RES_DIR:PATH=%{sample_engine_ro_res_dir} \
@@ -141,11 +155,12 @@ make %{?jobs:-j%jobs}
 %make_install
 mkdir -p %{buildroot}%{_unitdir}/multi-user.target.wants
 mkdir -p %{buildroot}%{_unitdir}/sockets.target.wants
+mkdir -p %{buildroot}%{popup_unitdir}/sockets.target.wants
 ln -s ../%{service_name}.service %{buildroot}%{_unitdir}/multi-user.target.wants/%{service_name}.service
 ln -s ../%{service_name}-cs.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}-cs.socket
 ln -s ../%{service_name}-wp.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}-wp.socket
 ln -s ../%{service_name}-admin.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}-admin.socket
-ln -s ../%{service_name}-popup.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}-popup.socket
+ln -s ../%{service_name}-popup.socket %{buildroot}%{popup_unitdir}/sockets.target.wants/%{service_name}-popup.socket
 
 mkdir -p %{buildroot}%{ro_data_dir}/license
 cp LICENSE %{buildroot}%{ro_data_dir}/license/%{name}
@@ -206,15 +221,15 @@ fi
 %{bin_dir}/%{service_name}-popup
 %{_unitdir}/multi-user.target.wants/%{service_name}.service
 %{_unitdir}/%{service_name}.service
-%{_unitdir}/%{service_name}-popup.service
 %{_unitdir}/sockets.target.wants/%{service_name}-cs.socket
 %{_unitdir}/sockets.target.wants/%{service_name}-wp.socket
 %{_unitdir}/sockets.target.wants/%{service_name}-admin.socket
-%{_unitdir}/sockets.target.wants/%{service_name}-popup.socket
 %{_unitdir}/%{service_name}-cs.socket
 %{_unitdir}/%{service_name}-wp.socket
 %{_unitdir}/%{service_name}-admin.socket
-%{_unitdir}/%{service_name}-popup.socket
+%{popup_unitdir}/%{service_name}-popup.socket
+%{popup_unitdir}/sockets.target.wants/%{service_name}-popup.socket
+%{popup_unitdir}/%{service_name}-popup.service
 
 %dir %{ro_data_dir}/%{service_name}
 %dir %attr(-, %{service_user}, %{service_group}) %{rw_data_dir}/%{service_name}

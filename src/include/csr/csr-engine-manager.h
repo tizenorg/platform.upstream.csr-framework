@@ -72,6 +72,8 @@ typedef enum {
  *
  * @since_tizen 3.0
  *
+ * @remarks The @a engine should be released using csr_engine_destroy().
+ *
  * @param[in]  id       Engine identifier to get handle.
  * @param[out] engine   A pointer of the engine information handle.
  *
@@ -83,6 +85,8 @@ typedef enum {
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ *
+ * @see csr_engine_destroy()
  */
 int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *engine);
 
@@ -234,14 +238,16 @@ int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *activated);
 
 /**
  * @brief Enable or disable an engine.
- *        If an engine is disabled, all major operations fail with CSR_ERROR_ENGINE_DISABLED error.
  *
  * @since_tizen 3.0
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
- * @param[in]  engine      The engine information handle.
- * @param[in]  state       The engine state.
+ * @remarks If an engine is disabled, all major operations would be failed with
+ *          #CSR_ERROR_ENGINE_DISABLED error code.
+ *
+ * @param[in]  engine  The engine information handle.
+ * @param[in]  state   The engine state.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *

@@ -115,7 +115,7 @@ int csre_cs_context_create(csre_cs_context_h *phandle);
 int csre_cs_context_destroy(csre_cs_context_h handle);
 
 /**
- * @brief Main function for caller to scan a data buffer for malware.
+ * @brief Scans a data buffer for malware.
  *
  * @param[in]  handle     CSR CS Engine context handle returned by
  *                        csre_cs_context_create().
@@ -143,7 +143,7 @@ int csre_cs_scan_data(csre_cs_context_h handle,
 					  csre_cs_detected_h *pdetected);
 
 /**
- * @brief Main function for caller to scan a file specified by file path for malware.
+ * @brief Scans a file specified by file path for malware.
  *
  * @param[in]  handle     CSR CS Engine context handle returned by
  *                        csre_cs_context_create().
@@ -171,7 +171,7 @@ int csre_cs_scan_file(csre_cs_context_h handle,
 					  csre_cs_detected_h *pdetected);
 
 /**
- * @brief Main function for caller to scan an application specified
+ * @brief Scans an application specified
  *        by an application's root directory for malware.
  *        The detection of a malware is done on the vendor's clould server.
  *
@@ -301,7 +301,7 @@ int csre_cs_detected_get_timestamp(csre_cs_detected_h detected,
 								   time_t *timestamp);
 
 /**
- * @brief Get the error string for a given engine-defined error code.
+ * @brief Gets the error string for a given engine-defined error code.
  *
  * @details The error strings are managed by the engine, therefore a caller should not
  *          free it.

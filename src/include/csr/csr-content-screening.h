@@ -17,7 +17,7 @@
  * @file        csr-content-screening.h
  * @author      Dongsun Lee (ds73.lee@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       Content screening to detect malware in files
  */
 #ifndef __CSR_CONTENT_SCREENING_API_H_
 #define __CSR_CONTENT_SCREENING_API_H_
@@ -44,22 +44,22 @@ extern "C" {
  *
  * @since_tizen 3.0
  *
- * @remarks A Content Screening API handle (or CSR CS handle) is obtained using the
- *          csr_cs_context_create() function. The handle is required for subsequent
- *          CSR CS API calls. The csr_cs_context_destroy() function releases/closes
- *          the handle. Multiple handles can be obtained using csr_cs_context_create().
+ * @remarks The @a handle should be released using csr_cs_context_destroy().
+ * @remarks Multiple handles can be obtained.
+ *
+ * @details A Content Screening API handle (or CSR CS handle) is obtained by this method.
+ *          The handle is required for subsequent CSR CS API calls.
  *
  * @param[out] handle A pointer of CSR CS context handle.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                  Successful
+ * @retval #CSR_ERROR_INVALID_HANDLE        @a handle may be null
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     @a handle is invalid
- * @retval #CSR_ERROR_SOCKET                Socket error between client and server
- * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_context_destroy()
  */
 int csr_cs_context_create(csr_cs_context_h *handle);
 
@@ -75,26 +75,27 @@ int csr_cs_context_create(csr_cs_context_h *handle);
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
- * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_context_create()
  */
 int csr_cs_context_destroy(csr_cs_context_h handle);
 
 /**
- * @brief Sets a popup option in case that a malware is detected.
+ * @brief Sets a popup option for malware detected.
  *
  * @since_tizen 3.0
  *
- * @remarks If #CSR_CS_ASK_USER is set, a popup will be prompted to a user when a malware
- *          is detected(#CSR_CS_SEVERITY_MEDIUM or #CSR_CS_SEVERITY_HIGH). If
- *          #CSR_CS_NOT_ASK_USER is set, no popup will be prompted even when a malware is
- *          detected. The default value of this option is #CSR_CS_ASK_USER. When a user
- *          selects to remove a detected malicious content, the content will be removed
- *          only if the client has the permission to remove the content.
+ * @remarks This option is disabled(#CSR_CS_NOT_ASK_USER) as a default.
+ *
+ * @details If #CSR_CS_ASK_USER is set, a popup will be prompted to a user when a malware
+ *          is detected. If #CSR_CS_NOT_ASK_USER is set which is default value, no popup
+ *          will be prompted even if a malware is detected. User can allow, disallow and
+ *          remove detected malware by popup. Selection can be different between malware's
+ *          severity.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
- * @param[in] ask_user  A popup option in case for a risky URL.
+ * @param[in] ask_user  Popup option to set or unset.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -102,6 +103,9 @@ int csr_cs_context_destroy(csr_cs_context_h handle);
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a ask_user is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_context_create()
+ * @see csr_cs_context_destroy()
  */
 int csr_cs_set_ask_user(csr_cs_context_h handle, csr_cs_ask_user_e ask_user);
 
@@ -110,12 +114,14 @@ int csr_cs_set_ask_user(csr_cs_context_h handle, csr_cs_ask_user_e ask_user);
  *
  * @since_tizen 3.0
  *
- * @remarks When a popup is prompted to a user, the message set by this method will be
- *          shown. When a client doesn't set his own popup message, the default message
- *          will be shown in the popup.
+ * @remarks Meaningful only when ask user option is set by csr_cs_set_ask_user().
+ * @remarks The message will be printed on popup for user.
+ * @remarks Default popup message will be used if it isn't set.
  *
- * @param[in] handle  CSR CS context handle returned by csr_cs_context_create().
- * @param[in] message a message in a popup.
+ * @details Default message is "Malware which may harm your device is detected.".
+ *
+ * @param[in] handle   CSR CS context handle returned by csr_cs_context_create().
+ * @param[in] message  A message to print on a popup.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -126,6 +132,7 @@ int csr_cs_set_ask_user(csr_cs_context_h handle, csr_cs_ask_user_e ask_user);
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  *
  * @see csr_cs_context_create()
+ * @see csr_cs_context_destroy()
  */
 int csr_cs_set_popup_message(csr_cs_context_h handle, const char *message);
 
@@ -134,7 +141,7 @@ int csr_cs_set_popup_message(csr_cs_context_h handle, const char *message);
  *
  * @since_tizen 3.0
  *
- * @remarks If a core usage is not set, CSR_CS_USE_CORE_DEFAULT will be used.
+ * @remarks If a core usage is not set, #CSR_CS_USE_CORE_DEFAULT will be used.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
  * @param[in] usage     A maximum core usage during scanning.
@@ -145,16 +152,19 @@ int csr_cs_set_popup_message(csr_cs_context_h handle, const char *message);
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a usage is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_context_create()
+ * @see csr_cs_context_destroy()
  */
 int csr_cs_set_core_usage(csr_cs_context_h handle, csr_cs_core_usage_e usage);
 
 /**
- * @brief Sets a database which is used in scanning.
+ * @brief Sets a scan on cloud option.
  *
  * @since_tizen 3.0
  *
- * @remarks If a database is not set or an engine does not support "scanning on cloud",
- *          the scanning will be done in a local device.
+ * @remarks If an engine does not support "scanning on cloud", this option is silently
+ *          ignored.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
  *
@@ -163,23 +173,32 @@ int csr_cs_set_core_usage(csr_cs_context_h handle, csr_cs_core_usage_e usage);
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_context_create()
+ * @see csr_cs_context_destroy()
  */
 int csr_cs_set_scan_on_cloud(csr_cs_context_h handle);
 
 /**
- * @brief Main function for caller to scan a data buffer for malware.
+ * @brief Scans a data buffer for malware.
  *
  * @since_tizen 3.0
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
- * @remarks  Scan data synchronously.
- * @remarks  The @a malware will be released when @a handle is destroyed.
+ * @remarks Scan data synchronously.
+ * @remarks The @a malware will be released when @a handle is released using
+ *          csr_cs_context_destroy().
+ *
+ * @details @a malware result of this method is not available for being judged by
+ *          csr_cs_judge_detected_malware() because it's data, not file, so cannot being
+ *          removed or ignored.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  data       A scan target data.
  * @param[in]  length     A size of a scan target data.
- * @param[out] malware    A pointer of the detected malware handle. It can be null when no malware detected.
+ * @param[out] malware    A pointer of the detected malware handle. It can be null when
+ *                        no malware detected.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -187,6 +206,8 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle);
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a data or @a malware is invalid
+ * @retval #CSR_ERROR_PERMISSION_DENIED     No privilege to call
+ * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
@@ -194,25 +215,28 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle);
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_context_create()
+ * @see csr_cs_context_destroy()
  */
-int csr_cs_scan_data(csr_cs_context_h handle,
-					 const unsigned char *data,
-					 size_t length,
+int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data, size_t length,
 					 csr_cs_malware_h *malware);
 
 /**
- * @brief Main function for caller to scan a file specified by file path for malware.
+ * @brief Scans a file specified by file path for malware.
  *
  * @since_tizen 3.0
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
  * @remarks  Scan file synchronously.
- * @remarks  The @a malware will be released when @a handle is destroyed.
+ * @remarks  The @a malware will be released when @a handle is released using
+ *           csr_cs_context_destroy().
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  file_path  A path of scan target file.
- * @param[out] malware    A pointer of the detected malware handle. It can be null when no malware detected.
+ * @param[out] malware    A pointer of the detected malware handle. It can be null when
+ *                        no malware detected.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -221,6 +245,8 @@ int csr_cs_scan_data(csr_cs_context_h handle,
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a file_path or @a malware is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
+ * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
+ * @retval #CSR_ERROR_DB                    DB transaction error
  * @retval #CSR_ERROR_REMOVE_FAILED         File remove failed when malware exist and
  *                                          user select to remove by popup. @a malware
  *                                          will be allocated on this error unlike others.
@@ -230,22 +256,26 @@ int csr_cs_scan_data(csr_cs_context_h handle,
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
+ * @retval #CSR_ERROR_ENGINE_PERMISSION     Insufficient permission of engine
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_context_create()
+ * @see csr_cs_context_destroy()
  */
-int csr_cs_scan_file(csr_cs_context_h handle,
-					 const char *file_path,
+int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 					 csr_cs_malware_h *malware);
 
 /**
- * @brief Sets a callback function for detection of a malware.
+ * @brief Sets a callback function for the case that a file scan is completed.
  *
  * @since_tizen 3.0
  *
- * @remarks Callback for asynchronous scan function.
+ * @remarks Callback for asynchronous scan functions.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
- * @param[in] callback  A callback function for detection of a malware.
+ * @param[in] callback  A callback function for each file or application scanning
+ *                      done without any malware.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -253,6 +283,34 @@ int csr_cs_scan_file(csr_cs_context_h handle,
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_scan_files_async()
+ * @see csr_cs_scan_dir_async()
+ * @see csr_cs_scan_dirs_async()
+ */
+int csr_cs_set_file_scanned_cb(csr_cs_context_h handle, csr_cs_file_scanned_cb callback);
+
+/**
+ * @brief Sets a callback function for detection of a malware.
+ *
+ * @since_tizen 3.0
+ *
+ * @remarks Callback for asynchronous scan functions.
+ *
+ * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
+ * @param[in] callback  A callback function for each file or application scanning done
+ *                      with malware detected.
+ *
+ * @return #CSR_ERROR_NONE on success, otherwise a negative error value
+ *
+ * @retval #CSR_ERROR_NONE                  Successful
+ * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
+ * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_scan_files_async()
+ * @see csr_cs_scan_dir_async()
+ * @see csr_cs_scan_dirs_async()
  */
 int csr_cs_set_detected_cb(csr_cs_context_h handle, csr_cs_detected_cb callback);
 
@@ -261,10 +319,10 @@ int csr_cs_set_detected_cb(csr_cs_context_h handle, csr_cs_detected_cb callback)
  *
  * @since_tizen 3.0
  *
- * @remarks Callback for asynchronous scan function.
+ * @remarks Callback for asynchronous scan functions.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
- * @param[in] callback  A callback function for scanning completed without an error.
+ * @param[in] callback  A callback function for scanning completed successfully.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -272,6 +330,10 @@ int csr_cs_set_detected_cb(csr_cs_context_h handle, csr_cs_detected_cb callback)
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_scan_files_async()
+ * @see csr_cs_scan_dir_async()
+ * @see csr_cs_scan_dirs_async()
  */
 int csr_cs_set_completed_cb(csr_cs_context_h handle, csr_cs_completed_cb callback);
 
@@ -280,7 +342,8 @@ int csr_cs_set_completed_cb(csr_cs_context_h handle, csr_cs_completed_cb callbac
  *
  * @since_tizen 3.0
  *
- * @remarks Callback for asynchronous scan function.
+ * @remarks Callback for asynchronous scan functions.
+ * @remarks Client can cancel asynchronous scanning by csr_cs_cancel_scanning().
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
  * @param[in] callback  A callback function for scanning cancelled.
@@ -291,6 +354,11 @@ int csr_cs_set_completed_cb(csr_cs_context_h handle, csr_cs_completed_cb callbac
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_scan_files_async()
+ * @see csr_cs_scan_dir_async()
+ * @see csr_cs_scan_dirs_async()
+ * @see csr_cs_cancel_scanning()
  */
 int csr_cs_set_cancelled_cb(csr_cs_context_h handle, csr_cs_cancelled_cb callback);
 
@@ -299,7 +367,7 @@ int csr_cs_set_cancelled_cb(csr_cs_context_h handle, csr_cs_cancelled_cb callbac
  *
  * @since_tizen 3.0
  *
- * @remarks Callback for asynchronous scan function.
+ * @remarks Callback for asynchronous scan functions.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
  * @param[in] callback  A callback function for scanning stopped with an error.
@@ -310,45 +378,40 @@ int csr_cs_set_cancelled_cb(csr_cs_context_h handle, csr_cs_cancelled_cb callbac
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_scan_files_async()
+ * @see csr_cs_scan_dir_async()
+ * @see csr_cs_scan_dirs_async()
  */
 int csr_cs_set_error_cb(csr_cs_context_h handle, csr_cs_error_cb callback);
 
-
 /**
- * @brief Sets a callback function for the case that a file scan is completed.
- *
- * @since_tizen 3.0
- *
- * @remarks Callback for asynchronous scan function.
- *
- * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
- * @param[in] callback  A callback function for the case that a file scan is completed.
- *
- * @return #CSR_ERROR_NONE on success, otherwise a negative error value
- *
- * @retval #CSR_ERROR_NONE                  Successful
- * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
- */
-int csr_cs_set_file_scanned_cb(csr_cs_context_h handle, csr_cs_file_scanned_cb callback);
-
-/**
- * @brief Main function for caller to scan files specified by an array of file paths
- *        for malware.
+ * @brief Scan files specified by an array of file paths for malware.
  *
  * @since_tizen 3.0
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
- * @remarks  Asynchronous function. The caller should set callback functions before
- *           calls this.
+ * @remarks Asynchronous function.
+ * @remarks The caller should set callback functions before call this method.
+ * @remarks Detected malware which is provided to the callback will be released when
+ *          @a handle is released using csr_cs_context_destroy().
+ *
+ * @details If scanning of the single file is done without detected malware,
+ *          csr_cs_file_scanned_cb() called and else if malware detected
+ *          csr_cs_detected_cb() called. If scanning is cancelled by
+ *          csr_cs_cancel_scanning(), csr_cs_cancelled_cb() called. If scanning is failed
+ *          with error, csr_cs_error_cb() is called. If scanning is completed without
+ *          error, csr_cs_completed_cb(). Every callbacks are registered by callback
+ *          setter methods to @a handle and if callback is not registered, it will just
+ *          skipped to be called.
  *
  * @param[in]  handle       CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  file_paths   An array of scan target files.
  * @param[in]  count        A number of scan target files.
  * @param[in]  user_data    The pointer of a user data. It can be null.
- *                          It is delivered back to the client when a callback function is called.
+ *                          It is delivered back to the client when a callback function
+ *                          is called.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -357,36 +420,53 @@ int csr_cs_set_file_scanned_cb(csr_cs_context_h handle, csr_cs_file_scanned_cb c
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a file_paths is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
+ * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
+ * @retval #CSR_ERROR_ENGINE_PERMISSION     Insufficient permission of engine
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_set_file_scanned_cb()
+ * @see csr_cs_set_detected_cb()
+ * @see csr_cs_set_completed_cb()
+ * @see csr_cs_set_cancelled_cb()
+ * @see csr_cs_set_error_cb()
+ * @see csr_cs_cancel_scanning()
  */
-int csr_cs_scan_files_async(csr_cs_context_h handle,
-							const char *file_paths[],
-							size_t count,
-							void *user_data);
+int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
+							size_t count, void *user_data);
 
 /**
- * @brief Main function for caller to scan a directory specified by
- *        directory path for malware.
+ * @brief Scans a directory specified by directory path for malware.
  *
  * @since_tizen 3.0
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
- * @remarks  Asynchronous function. The caller should set callback functions before calls
- *           this. All files under target directory which can be accessed by a client are
- *           scanned.
+ * @remarks Asynchronous function.
+ * @remarks The caller should set callback functions before calls this method.
+ * @remarks Detected malware which is provided to the callback will be released when
+ *          @a handle is released using csr_cs_context_destroy().
+ *
+ * @details If scanning of the single file is done without detected malware,
+ *          csr_cs_file_scanned_cb() called and else if malware detected
+ *          csr_cs_detected_cb() called. If scanning is cancelled by
+ *          csr_cs_cancel_scanning(), csr_cs_cancelled_cb() called. If scanning is failed
+ *          with error, csr_cs_error_cb() is called. If scanning is completed without
+ *          error, csr_cs_completed_cb(). Every callbacks are registered by callback
+ *          setter methods to @a handle and if callback is not registered, it will just
+ *          skipped to be called.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  dir_path   A path of scan target directory.
- * @param[in]  user_data  The pointer of a user data. It can be null.\n
- *                        It is delivered back to the client when a callback function is called.
+ * @param[in]  user_data  The pointer of a user data. It can be null. It is used on
+ *                        the callback functions which are registered to @a handle.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -395,37 +475,54 @@ int csr_cs_scan_files_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a dir_path is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
+ * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
+ * @retval #CSR_ERROR_FILE_SYSTEM           File type is invalid. It should be directory
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
+ * @retval #CSR_ERROR_ENGINE_PERMISSION     Insufficient permission of engine
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_set_file_scanned_cb()
+ * @see csr_cs_set_detected_cb()
+ * @see csr_cs_set_completed_cb()
+ * @see csr_cs_set_cancelled_cb()
+ * @see csr_cs_set_error_cb()
+ * @see csr_cs_cancel_scanning()
  */
-int csr_cs_scan_dir_async(csr_cs_context_h handle,
-						  const char *dir_path,
-						  void *user_data);
+int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path, void *user_data);
 
 /**
- * @brief Main function for caller to scan directories specified by
- *        an array of directory paths for malware.
+ * @brief Scan directories specified by an array of directory paths for malware.
  *
  * @since_tizen 3.0
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
- * @remarks  Asynchronous function. The caller should set callback functions before calls
- *           this. All files under target directories which can be accessed by a client
- *           are scanned.
+ * @remarks Asynchronous function.
+ * @remarks The caller should set callback functions before calls this method.
+ * @remarks Detected malware which is provided to the callback will be released when
+ *          @a handle is released using csr_cs_context_destroy().
  *
- * @param[in]  handle       CSR CS context handle returned by csr_cs_context_create().
- * @param[in]  dir_paths    An array of scan target directories.
- * @param[in]  count        A number of scan target directories.
- * @param[in]  user_data    The pointer of a user data. It can be null.
- *                          It is delivered back to the client when a callback
- *                          function is called.
+ * @details If scanning of the single file is done without detected malware,
+ *          csr_cs_file_scanned_cb() called and else if malware detected
+ *          csr_cs_detected_cb() called. If scanning is cancelled by
+ *          csr_cs_cancel_scanning(), csr_cs_cancelled_cb() called. If scanning is failed
+ *          with error, csr_cs_error_cb() is called. If scanning is completed without
+ *          error, csr_cs_completed_cb(). Every callbacks are registered by callback
+ *          setter methods to @a handle and if callback is not registered, it will just
+ *          skipped to be called.
+ *
+ * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
+ * @param[in]  dir_paths  An array of scan target directories.
+ * @param[in]  count      A number of scan target directories.
+ * @param[in]  user_data  The pointer of a user data. It can be null. It is used on
+ *                        the callback functions which are registered to @a handle.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -434,18 +531,27 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a dir_paths is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
+ * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
+ * @retval #CSR_ERROR_FILE_SYSTEM           File type is invalid. It should be directory
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
+ * @retval #CSR_ERROR_ENGINE_PERMISSION     Insufficient permission of engine
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_set_file_scanned_cb()
+ * @see csr_cs_set_detected_cb()
+ * @see csr_cs_set_completed_cb()
+ * @see csr_cs_set_cancelled_cb()
+ * @see csr_cs_set_error_cb()
+ * @see csr_cs_cancel_scanning()
  */
-int csr_cs_scan_dirs_async(csr_cs_context_h handle,
-						   const char *dir_paths[],
-						   size_t count,
+int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[], size_t count,
 						   void *user_data);
 
 
@@ -454,9 +560,9 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle,
  *
  * @since_tizen 3.0
  *
- * @remarks It's only for an asynchronous scan function.
+ * @remarks Only for asynchronous scan functions.
  *
- * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
+ * @param[in] handle  CSR CS context handle returned by csr_cs_context_create().
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -464,61 +570,64 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle,
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_NO_TASK               No task to cancel
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_scan_files_async()
+ * @see csr_cs_scan_dir_async()
+ * @see csr_cs_scan_dirs_async()
  */
 int csr_cs_cancel_scanning(csr_cs_context_h handle);
 
-//==============================================================================
-// Result related
-//==============================================================================
 
 /**
  * @brief Extracts the severity of a detected malware from the detected malware handle.
  *
  * @since_tizen 3.0
  *
- * @param[in]  malware     A detected malware handle returned
- *                         by csr_cs_scan_data(), csr_cs_scan_file() or
- *                         csr_cs_malware_list_get_malware().
- * @param[out] severity    A pointer of the severity of a detected malware.
+ * @param[in]  malware   A detected malware handle returned by csr_cs_scan_data(),
+ *                       csr_cs_scan_file() or csr_cs_malware_list_get_malware().
+ * @param[out] severity  A pointer of the severity of a detected malware.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a severity is invalid.
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a severity is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_malware_get_severity(csr_cs_malware_h malware, csr_cs_severity_level_e *severity);
+int csr_cs_malware_get_severity(csr_cs_malware_h malware,
+								csr_cs_severity_level_e *severity);
 
 /**
  * @brief Extracts the name of a detected malware from the detected malware handle.
  *
  * @since_tizen 3.0
  *
- * @remarks  The @a malware_name must be released using free().
+ * @remarks  The @a name must be released using free().
  *
- * @param[in]  malware       A detected malware handle.
- * @param[out] malware_name  A pointer of the name of a detected malware.
+ * @param[in]  malware  A detected malware handle.
+ * @param[out] name     A pointer of the name of a detected malware.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a malware_name is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a name is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_malware_get_malware_name(csr_cs_malware_h malware, char **malware_name);
+int csr_cs_malware_get_name(csr_cs_malware_h malware, char **name);
 
 /**
- * @brief Extracts an url that contains detailed information on vendor's web site from the detected malware handle.
+ * @brief Extracts an url that contains detailed information on vendor's web site from
+ *        the detected malware handle.
  *
  * @since_tizen 3.0
  *
  * @remarks  The @a detailed_url must be released using free().
  *
  * @param[in]  malware       A detected malware handle.
- * @param[out] detailed_url  A pointer of an url that contains detailed information on vendor's web site.\n
- *                           It can be null if a vendor doesn't provide this information.
+ * @param[out] detailed_url  A pointer of an url that contains detailed information on
+ *                           vendor's web site. It can be null if a vendor doesn't
+ *                           provide this information.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -530,12 +639,14 @@ int csr_cs_malware_get_malware_name(csr_cs_malware_h malware, char **malware_nam
 int csr_cs_malware_get_detailed_url(csr_cs_malware_h malware, char **detailed_url);
 
 /**
- * @brief Extracts the time stamp when a malware is detected from the detected malware handle.
+ * @brief Extracts the time stamp when a malware is detected from the detected malware
+ *        handle.
  *
  * @since_tizen 3.0
  *
  * @param[in]  malware    A detected malware handle.
- * @param[out] timestamp  A pointer of the time stamp in milli second when a malware is detected.
+ * @param[out] timestamp  A pointer of the time stamp in milli second when a malware is
+ *                        detected.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -547,14 +658,16 @@ int csr_cs_malware_get_detailed_url(csr_cs_malware_h malware, char **detailed_ur
 int csr_cs_malware_get_timestamp(csr_cs_malware_h malware, time_t *timestamp);
 
 /**
- * @brief Extracts the file name where a malware is detected from the detected malware handle.
+ * @brief Extracts the file name where a malware is detected from the detected malware
+ *        handle.
  *
  * @since_tizen 3.0
  *
- * @remarks  The @a file_name must be released using free().
+ * @remarks The @a file_name must be released using free().
  *
  * @param[in]  malware    A detected malware handle.
- * @param[out] file_name  A pointer of the file name where a malware is detected. The file name is Null for csr_cs_scan_data.
+ * @param[out] file_name  A pointer of the file name where a malware is detected. The
+ *                        file name is null for csr_cs_scan_data().
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -570,8 +683,8 @@ int csr_cs_malware_get_file_name(csr_cs_malware_h malware, char **file_name);
  *
  * @since_tizen 3.0
  *
- * @param[in]  malware       A detected malware handle.
- * @param[out] response      A pointer of the user response.
+ * @param[in]  malware   A detected malware handle.
+ * @param[out] response  A pointer of the user response.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -580,15 +693,16 @@ int csr_cs_malware_get_file_name(csr_cs_malware_h malware, char **file_name);
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a response is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_cs_malware_get_user_response(csr_cs_malware_h malware, csr_cs_user_response_e *response);
+int csr_cs_malware_get_user_response(csr_cs_malware_h malware,
+									 csr_cs_user_response_e *response);
 
 /**
  * @brief Checks if a malware was detected in an application or in a file.
  *
  * @since_tizen 3.0
  *
- * @param[in]  malware       A detected malware handle.
- * @param[out] is_app        A pointer of a flag indicating the position a malware was detected.
+ * @param[in]  malware  A detected malware handle.
+ * @param[out] is_app   A pointer of a flag indicating the position a malware was detected.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -600,14 +714,16 @@ int csr_cs_malware_get_user_response(csr_cs_malware_h malware, csr_cs_user_respo
 int csr_cs_malware_is_app(csr_cs_malware_h malware, bool *is_app);
 
 /**
- * @brief Extracts the package id of an application where a malware is detected from detected malware handle.
+ * @brief Extracts the package id of an application where a malware is detected from
+ *        detected malware handle.
  *
  * @since_tizen 3.0
  *
  * @remarks  The @a pkg_id must be released using free().
  *
- * @param[in]  malware       A detected malware handle.
- * @param[out] pkg_id        A pointer of the pakcage id where a malware is detected. This is a null when a malware was not detected in an application.
+ * @param[in]  malware  A detected malware handle.
+ * @param[out] pkg_id   A pointer of the package id where a malware is detected.
+ *                      It is null when a malware was not detected in an application.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -625,19 +741,17 @@ int csr_cs_malware_get_pkg_id(csr_cs_malware_h malware, char **pkg_id);
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
- * @remarks  A detected malware may be removed or ignored. When action is
- *           #CSR_CS_ACTION_REMOVE, the detected malware file will be removed. If a
- *           detected malware is in an application, the application will be removed.
- *           Otherwise, only the file will be removed. When a client removes a detected
- *           malware with this API, the client must have the privilege to remove it.
- *           When action is #CSR_CS_ACTION_IGNORE, the detected malware file won't be
- *           removed. And the ignored file will not treated as malicious. When action is
- *           #CSR_CS_ACTION_UNIGNORE, the ignored file will be considered as malicious
- *           again.
+ * @remarks Detected malware can be removed or ignored.
  *
- * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
- * @param[in]  malware    A handle of a detected malware.
- * @param[in]  action     An action to be taken.
+ * @remarks  Detected malware will removed by #CSR_CS_ACTION_REMOVE action. File or
+ *           application which contains malware will be removed.
+ *           Detected malware will ignored by #CSR_CS_ACTION_IGNORE action. File or
+ *           application which contains malware will be ignored and will not be treated
+ *           as malware until this API called with #CSR_CS_ACTION_UNIGNORE action.
+ *
+ * @param[in]  handle   CSR CS context handle returned by csr_cs_context_create().
+ * @param[in]  malware  A handle of a detected malware.
+ * @param[in]  action   An action to be taken.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -650,11 +764,11 @@ int csr_cs_malware_get_pkg_id(csr_cs_malware_h malware, char **pkg_id);
  * @retval #CSR_ERROR_FILE_CHANGED          File to take action on changed after detection
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_judge_detected_malware(csr_cs_context_h handle,
-								csr_cs_malware_h malware,
-								csr_cs_action_e action);
+int csr_cs_judge_detected_malware(csr_cs_context_h handle, csr_cs_malware_h malware,
+								  csr_cs_action_e action);
 
 
 /**
@@ -664,7 +778,8 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle,
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
- * @remarks  The @a malware will be released when @a handle is destroyed.
+ * @remarks The @a malware will be released when @a handle is destroyed.
+ * @remarks @a file_path will be null if it's result of csr_cs_scan_data().
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  file_path  A path of a detected malware file.
@@ -681,10 +796,14 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle,
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No malware file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ *
+ * @see csr_cs_scan_data()
+ * @see csr_cs_scan_file()
+ * @see csr_cs_detected_cb
  */
-int csr_cs_get_detected_malware(csr_cs_context_h handle,
-								const char *file_path,
+int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
 								csr_cs_malware_h *malware);
 
 /**
@@ -714,11 +833,12 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle,
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No malware file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_get_detected_malwares(csr_cs_context_h handle,
-								 const char *dir_paths[], size_t count,
-								 csr_cs_malware_list_h *list, size_t *list_count);
+int csr_cs_get_detected_malwares(csr_cs_context_h handle, const char *dir_paths[],
+								 size_t count, csr_cs_malware_list_h *list,
+								 size_t *list_count);
 
 /**
  * @brief Gets information on a ignored malware file specified by file path.
@@ -744,6 +864,7 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No ignored file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
 int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
@@ -776,23 +897,24 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     No ignored file
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_DB                    DB transaction error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  */
-int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
-								const char *dir_paths[], size_t count,
-								csr_cs_malware_list_h *list, size_t *list_count);
+int csr_cs_get_ignored_malwares(csr_cs_context_h handle, const char *dir_paths[],
+								size_t count, csr_cs_malware_list_h *list,
+								size_t *list_count);
 
 /**
  * @brief Extracts the detected malware handle from the detected malware list handle.
  *
  * @since_tizen 3.0
  *
- * @param[in]  list        A detected malware list handle returned by
- *                         csr_cs_get_detected_malwares() or
- *                         csr_cs_get_ignored_malwares().
- * @param[in]  index       An index of a target detected malware handle to get.
- * @param[out] malware     A pointer of the detected malware handle. It can be null when
- *                         index is invalid.
+ * @param[in]  list     A detected malware list handle returned by
+ *                      csr_cs_get_detected_malwares() or
+ *                      csr_cs_get_ignored_malwares().
+ * @param[in]  index    An index of a target detected malware handle to get.
+ * @param[out] malware  A pointer of the detected malware handle. It can be null when
+ *                      index is invalid.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -802,7 +924,7 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
 int csr_cs_malware_list_get_malware(csr_cs_malware_list_h list, size_t index,
-							  csr_cs_malware_h *malware);
+									csr_cs_malware_h *malware);
 
 /**
  * @}

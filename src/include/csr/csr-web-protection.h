@@ -35,18 +35,16 @@ extern "C" {
  * @{
  */
 
-//==============================================================================
-// Main function related
-//==============================================================================
 /**
  * @brief Initializes and returns a CSR Web Protection API handle.
  *
  * @since_tizen 3.0
  *
- * @remarks A Web Protection API handle (or CSR WP handle) is obtained using the
- *          csr_wp_context_create(). The handle is required for subsequent CSR WP API
- *          calls. The csr_wp_context_destroy() releases/closes the handle. Multiple
- *          handles can be obtained using csr_wp_context_create().
+ * @remarks The @a handle should be released using csr_wp_context_destroy().
+ * @remarks Multiple handles can be obtained.
+ *
+ * @details A Web Protection API handle (or CSR WP handle) is obtained by this method.
+ *          The handle is required for subsequent CSR WP API calls.
  *
  * @param[out] handle A pointer of CSR WP context handle.
  *
@@ -55,9 +53,6 @@ extern "C" {
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a handle is invalid
- * @retval #CSR_ERROR_SOCKET                Socket error between client and server
- * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  *
  * @see csr_wp_context_destroy()
@@ -65,7 +60,7 @@ extern "C" {
 int csr_wp_context_create(csr_wp_context_h *handle);
 
 /**
- * @brief Releases all system resources associated with a CSR Web Protection API handle.
+ * @brief Releases all system resources associated with a Web Protection API handle.
  *
  * @since_tizen 3.0
  *
@@ -85,14 +80,15 @@ int csr_wp_context_create(csr_wp_context_h *handle);
 int csr_wp_context_destroy(csr_wp_context_h handle);
 
 /**
- * @brief Sets a popup option in case for a risky URL.
+ * @brief Sets a popup option for risky URL checked.
  *
  * @since_tizen 3.0
  *
- * @remarks If #CSR_WP_ASK_USER is set, a popup will be prompted to a user when a URL
- *          turns out risky(#CSR_WP_RISK_MEDIUM or #CSR_WP_RISK_HIGH). If
- *          #CSR_WP_NOT_ASK_USER is set, no popup will be prompted even when a URL turns
- *          out risky. The default value of this option is #CSR_WP_ASK_USER.
+ * @remarks This option is disabled(#CSR_WP_NOT_ASK_USER) as a default.
+ *
+ * @details If #CSR_WP_ASK_USER is set, a popup will be prompted to a user when a URL
+ *          turns out risky. If #CSR_WP_NOT_ASK_USER is set, no popup will be prompted
+ *          even when a URL turns out risky.
  *
  * @param[in] handle    CSR WP context handle returned by csr_wp_context_create().
  * @param[in] ask_user  A popup option in case for a risky URL.
@@ -113,12 +109,14 @@ int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user);
  *
  * @since_tizen 3.0
  *
- * @remarks When a popup is prompted to a user, the message set by this method will be
- *          shown. When a client doesn't set his own popup message, the default message
- *          will be shown in the popup.
+ * @remarks Meaningful only when ask user option is set by csr_wp_set_ask_user().
+ * @remarks The message will be printed on popup for user.
+ * @remarks Default popup message will be used if it isn't set.
+ *
+ * @details Default message is "Risky URL which may harm your device is detected".
  *
  * @param[in] handle   CSR WP context handle returned by csr_wp_context_create().
- * @param[in] message  A message in a popup.
+ * @param[in] message  A message to print on a popup.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -133,16 +131,17 @@ int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user);
 int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
 
 /**
- * @brief Main function for caller to check URL reputation against the engine vendor's
- *        database.
+ * @brief Checks URL reputation against the engine vendor's database.
  *
  * @since_tizen 3.0
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.webprotect
  *
- * @remarks Checks whether accessing the URL is risky or not and returns a result handle
- *          with the Risk level for the URL. The system resources associated with the
- *          result handle will be released when csr_wp_context_destroy() is called.
+ * @remarks The @a result will be released when @a handle is released using
+ *          csr_wp_context_destroy().
+ *
+ * @details Checks whether accessing the URL is risky or not and returns a result handle
+ *          with the risk level for the URL.
  *
  * @param[in]  handle   CSR WP context handle returned by csr_wp_context_create().
  * @param[in]  url      URL to check.
@@ -154,6 +153,7 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_PERMISSION_DENIED     Permission denied
+ * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a url or @a result is invalid
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
@@ -170,9 +170,7 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
 int csr_wp_check_url(csr_wp_context_h handle, const char *url,
 					 csr_wp_check_result_h *result);
 
-//==============================================================================
-// Result related
-//==============================================================================
+
 /**
  * @brief Extracts a risk level of the url from the result handle.
  *
@@ -193,16 +191,17 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url,
 int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level_e *level);
 
 /**
- * @brief Extracts an url of vendor's web site that contains detailed information about the risk
- *        from the result handle.
+ * @brief Extracts an url of vendor's web site that contains detailed information about
+ *        the risk from the result handle.
  *
  * @since_tizen 3.0
  *
  * @remarks  The @a detailed_url must be released using free().
  *
  * @param[in]  result        A result handle returned by csr_wp_check_url().
- * @param[out] detailed_url  A pointer of an url that contains detailed information about the risk.
- *                           If the risk level is CSR_WP_RISK_MEDIUM or CSR_WP_RISK_HIGH,
+ * @param[out] detailed_url  A pointer of an url that contains detailed information about
+ *                           the risk.
+ *                           If the risk level is #CSR_WP_RISK_MEDIUM or #CSR_WP_RISK_HIGH,
  *                           this url should be provided by the engine.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
@@ -234,7 +233,8 @@ int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, char **detailed
  * @see csr_wp_check_url()
  * @see #csr_wp_user_response_e
  */
-int csr_wp_result_get_user_response(csr_wp_check_result_h result, csr_wp_user_response_e *response);
+int csr_wp_result_get_user_response(csr_wp_check_result_h result,
+									csr_wp_user_response_e *response);
 
 
 /**

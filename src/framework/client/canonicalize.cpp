@@ -22,8 +22,8 @@
 #include "client/canonicalize.h"
 
 #include <utility>
-#include <cstdlib>
 #include <cerrno>
+#include <unistd.h>
 
 #include "common/exception.h"
 
@@ -32,24 +32,27 @@ namespace Client {
 
 std::string getAbsolutePath(const std::string &path)
 {
-	auto resolved = realpath(path.c_str(), nullptr);
-	if (resolved == nullptr) {
-		int err = errno;
-		if (err == ENOENT)
-			ThrowExc(FileDoNotExist, "File do not exist: " << path);
-		else if (err == EACCES)
-			ThrowExc(FileSystemError, "Perm denied for a component of the "
-					 "path prefix: " << path);
-		else
-			ThrowExc(FileSystemError, "Failed to get resolved path: " << path <<
-					 " errno: " << err);
+	if (path.empty() || path.front() == '/')
+		return path;
+
+	size_t bufsize = 1024;
+	std::vector<char> buf(bufsize, 0);
+
+	char *result = nullptr;
+
+	while ((result = ::getcwd(buf.data(), bufsize)) == nullptr && errno == ERANGE) {
+		bufsize <<= 1;
+		buf.resize(bufsize, 0);
 	}
 
-	std::string resolvedStr(resolved);
+	if (result == nullptr)
+		ThrowExc(FileSystemError, "Failed to getcwd. errno: " << errno);
 
-	free(resolved);
+	std::string apath(buf.data());
+	apath += '/';
+	apath += path;
 
-	return resolvedStr;
+	return apath;
 }
 
 void canonicalizeDirSet(StrSet &dirset)

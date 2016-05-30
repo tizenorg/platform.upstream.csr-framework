@@ -48,13 +48,13 @@ extern "C" {
  *          calls. The csr_wp_context_destroy() releases/closes the handle. Multiple
  *          handles can be obtained using csr_wp_context_create().
  *
- * @param[out] phandle A pointer of CSR WP context handle.
+ * @param[out] handle A pointer of CSR WP context handle.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_INVALID_PARAMETER     @a phandle is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a handle is invalid
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
@@ -62,7 +62,7 @@ extern "C" {
  *
  * @see csr_wp_context_destroy()
  */
-int csr_wp_context_create(csr_wp_context_h *phandle);
+int csr_wp_context_create(csr_wp_context_h *handle);
 
 /**
  * @brief Releases all system resources associated with a CSR Web Protection API handle.
@@ -146,7 +146,7 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
  *
  * @param[in]  handle   CSR WP context handle returned by csr_wp_context_create().
  * @param[in]  url      URL to check.
- * @param[out] presult  A pointer of the result handle with the Risk level for the URL.
+ * @param[out] result   A pointer of the result handle with the Risk level for the URL.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -154,7 +154,7 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_PERMISSION_DENIED     Permission denied
- * @retval #CSR_ERROR_INVALID_PARAMETER     @a url or @a presult is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER     @a url or @a result is invalid
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
@@ -168,7 +168,7 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
  * @see csr_wp_set_popup_message()
  */
 int csr_wp_check_url(csr_wp_context_h handle, const char *url,
-					 csr_wp_check_result_h *presult);
+					 csr_wp_check_result_h *result);
 
 //==============================================================================
 // Result related
@@ -179,18 +179,18 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url,
  * @since_tizen 3.0
  *
  * @param[in]  result  A result handle returned by csr_wp_check_url().
- * @param[out] plevel  A pointer of the risk level for the given URL.
+ * @param[out] level   A pointer of the risk level for the given URL.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid result handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a plevel is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a level is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
  * @see csr_wp_check_url()
  */
-int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level_e *plevel);
+int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level_e *level);
 
 /**
  * @brief Extracts an url of vendor's web site that contains detailed information about the risk
@@ -198,7 +198,7 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level
  *
  * @since_tizen 3.0
  *
- * @remarks  The @a pdetailed_url must be released using free().
+ * @remarks  The @a detailed_url must be released using free().
  *
  * @param[in]  result        A result handle returned by csr_wp_check_url().
  * @param[out] detailed_url  A pointer of an url that contains detailed information about the risk.
@@ -209,12 +209,12 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid result handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a pdetailed_url is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a detailed_url is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
  * @see csr_wp_check_url()
  */
-int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, char **pdetailed_url);
+int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, char **detailed_url);
 
 /**
  * @brief Extracts a user response of a popup from the result handle.
@@ -222,19 +222,19 @@ int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, char **pdetaile
  * @since_tizen 3.0
  *
  * @param[in]  result     A result handle returned by csr_wp_check_url().
- * @param[out] presponse  A pointer of the user response.
+ * @param[out] response   A pointer of the user response.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid result handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a presponse is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a response is invalid
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
  * @see csr_wp_check_url()
  * @see #csr_wp_user_response_e
  */
-int csr_wp_result_get_user_response(csr_wp_check_result_h result, csr_wp_user_response_e *presponse);
+int csr_wp_result_get_user_response(csr_wp_check_result_h result, csr_wp_user_response_e *response);
 
 
 /**

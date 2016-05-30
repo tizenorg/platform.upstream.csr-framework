@@ -73,18 +73,18 @@ typedef enum {
  * @since_tizen 3.0
  *
  * @param[in]  id       Engine identifier to get handle.
- * @param[out] pengine  A pointer of the engine information handle.
+ * @param[out] engine   A pointer of the engine information handle.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a pengine is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a engine is invalid
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST     No engine exists
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  */
-int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *pengine);
+int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *engine);
 
 /**
  * @brief Extracts an vendor name from the engine information handle.
@@ -93,23 +93,23 @@ int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *pengine);
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
- * @remarks  The @a pvendor must be released using free().
+ * @remarks  The @a vendor must be released using free().
  *
  * @param[in]  engine   The engine information handle.
- * @param[out] pvendor  A pointer of the engine's vendor name.
+ * @param[out] vendor   A pointer of the engine's vendor name.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid engine information handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a pvendor is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a vendor is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
  * @see csr_get_current_engine()
  */
-int csr_engine_get_vendor(csr_engine_h engine, char **pvendor);
+int csr_engine_get_vendor(csr_engine_h engine, char **vendor);
 
 /**
  * @brief Extracts an engine name from the engine information handle.
@@ -118,23 +118,23 @@ int csr_engine_get_vendor(csr_engine_h engine, char **pvendor);
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
- * @remarks  The @a pname must be released using free().
+ * @remarks  The @a name must be released using free().
  *
  * @param[in]  engine  The engine information handle.
- * @param[out] pname   A pointer of the engine's name.
+ * @param[out] name    A pointer of the engine's name.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid engine information handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a pname is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a name is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
  * @see csr_get_current_engine()
  */
-int csr_engine_get_name(csr_engine_h engine, char **pname);
+int csr_engine_get_name(csr_engine_h engine, char **name);
 
 /**
  * @brief Extracts an engine version from the engine information handle.
@@ -143,23 +143,23 @@ int csr_engine_get_name(csr_engine_h engine, char **pname);
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
- * @remarks  The @a pname must be released using free().
+ * @remarks  The @a version must be released using free().
  *
  * @param[in]  engine    An engine information handle.
- * @param[out] pversion  A pointer of the engine's version.
+ * @param[out] version   A pointer of the engine's version.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid engine information handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a pversion is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a version is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
  * @see csr_get_current_engine()
  */
-int csr_engine_get_version(csr_engine_h engine, char **pversion);
+int csr_engine_get_version(csr_engine_h engine, char **version);
 
 /**
  * @brief Extracts an engine's data version from the engine information handle.
@@ -168,23 +168,23 @@ int csr_engine_get_version(csr_engine_h engine, char **pversion);
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
- * @remarks  The @a pversion must be released using free().
+ * @remarks  The @a version must be released using free().
  *
  * @param[in]  engine    The engine information handle.
- * @param[out] pversion  A pointer of the data version. It can be null.
+ * @param[out] version   A pointer of the data version. It can be null.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid engine information handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a pversion is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a version is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
  * @see csr_get_current_engine()
  */
-int csr_engine_get_data_version(csr_engine_h engine, char **pversion);
+int csr_engine_get_data_version(csr_engine_h engine, char **version);
 
 /**
  * @brief Extracts the latest update time of an engine from the engine information handle.
@@ -194,20 +194,20 @@ int csr_engine_get_data_version(csr_engine_h engine, char **pversion);
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
  * @param[in]  engine   The engine information handle.
- * @param[out] ptime    A pointer of lasted update time.
+ * @param[out] time     A pointer of lasted update time.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid engine information handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a ptime is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a time is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
  * @see csr_get_current_engine()
  */
-int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *ptime);
+int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *time);
 
 /**
  * @brief Extracts the state of engine activation from the engine information handle.
@@ -217,20 +217,20 @@ int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *ptime);
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
  * @param[in]  engine      The engine information handle.
- * @param[out] pactivated  A pointer of the engine activation state.
+ * @param[out] activated   A pointer of the engine activation state.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid engine information handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a pactivated is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a activated is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
  * @see csr_get_current_engine()
  */
-int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *pactivated);
+int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *activated);
 
 /**
  * @brief Enable or disable an engine.
@@ -264,20 +264,20 @@ int csr_engine_set_state(csr_engine_h engine, csr_state_e state);
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
  * @param[in]  engine      The engine information handle.
- * @param[out] pstate      A pointer of the engine state.
+ * @param[out] state       A pointer of the engine state.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid engine information handle
- * @retval #CSR_ERROR_INVALID_PARAMETER    @a pstate is invalid
+ * @retval #CSR_ERROR_INVALID_PARAMETER    @a state is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
  *
  * @see csr_get_current_engine()
  */
-int csr_engine_get_state(csr_engine_h engine, csr_state_e *pstate);
+int csr_engine_get_state(csr_engine_h engine, csr_state_e *state);
 
 /**
  * @brief Releases all system resources associated with a engine information handle.

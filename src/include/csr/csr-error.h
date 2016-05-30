@@ -49,6 +49,7 @@ typedef enum {
 	CSR_ERROR_INVALID_PARAMETER     = TIZEN_ERROR_INVALID_PARAMETER, /**< Invalid function parameter */
 	CSR_ERROR_OUT_OF_MEMORY         = TIZEN_ERROR_OUT_OF_MEMORY,     /**< Out of memory */
 	CSR_ERROR_PERMISSION_DENIED     = TIZEN_ERROR_PERMISSION_DENIED, /**< Permission denied */
+	CSR_ERROR_NOT_SUPPORTED         = TIZEN_ERROR_NOT_SUPPORTED,     /**< Device needed to run API is not supported */
 	CSR_ERROR_SOCKET                = TIZEN_ERROR_CSR | 0x01,        /**< Socket error between client and server */
 	CSR_ERROR_INVALID_HANDLE        = TIZEN_ERROR_CSR | 0x02,        /**< The given handle is invalid */
 	CSR_ERROR_SERVER                = TIZEN_ERROR_CSR | 0x03,        /**< Server has been failed for some reason */

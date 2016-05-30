@@ -5,7 +5,7 @@ Requires=@SERVICE_NAME@-cs.socket @SERVICE_NAME@-wp.socket @SERVICE_NAME@-admin.
 [Service]
 User=@SERVICE_USER@
 Group=@SERVICE_GROUP@
-SmackProcessLabel=@SERVICE_NAME@
+SmackProcessLabel=@SMACK_DOMAIN_NAME@
 ExecStart=@BIN_DIR@/@SERVICE_NAME@-server
 Sockets=@SERVICE_NAME@-cs.socket
 Sockets=@SERVICE_NAME@-wp.socket

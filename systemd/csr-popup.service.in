@@ -2,10 +2,10 @@
 Description=CSR popup service for user session
 
 [Service]
-User=app
-Group=app
+@DECLARE_POPUP_USER@
+@DECLARE_POPUP_GROUP@
+@DECLARE_POPUP_SMACK_PROCESS_LABEL@
 Type=simple
-SmackProcessLabel=@SERVICE_NAME@
-EnvironmentFile=/run/tizen-mobile-env
+EnvironmentFile=@POPUP_SERVICE_ENV_FILE_PATH@
 ExecStart=@BIN_DIR@/@SERVICE_NAME@-popup
 Sockets=@SERVICE_NAME@-popup.socket

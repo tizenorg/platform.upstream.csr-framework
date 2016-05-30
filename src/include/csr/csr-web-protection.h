@@ -45,8 +45,8 @@ extern "C" {
  *
  * @remarks A Web Protection API handle (or CSR WP handle) is obtained using the
  *          csr_wp_context_create(). The handle is required for subsequent CSR WP API
- *          calls. The csr_wp_context_destroy() releases/closes the handle. Multiple
- *          handles can be obtained using csr_wp_context_create().
+ *          calls. The @a handle should be released using csr_wp_context_destroy().
+ *          Multiple handles can be obtained.
  *
  * @param[out] handle A pointer of CSR WP context handle.
  *
@@ -133,8 +133,7 @@ int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user);
 int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
 
 /**
- * @brief Main function for caller to check URL reputation against the engine vendor's
- *        database.
+ * @brief Checks URL reputation against the engine vendor's database.
  *
  * @since_tizen 3.0
  * @privlevel partner

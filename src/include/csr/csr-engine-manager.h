@@ -72,6 +72,8 @@ typedef enum {
  *
  * @since_tizen 3.0
  *
+ * @remarks The @a engine should be released using csr_engine_destroy().
+ *
  * @param[in]  id       Engine identifier to get handle.
  * @param[out] engine   A pointer of the engine information handle.
  *

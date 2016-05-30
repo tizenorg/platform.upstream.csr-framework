@@ -72,6 +72,8 @@ typedef enum {
  *
  * @since_tizen 3.0
  *
+ * @remarks The @a engine should be released using csr_engine_destroy().
+ *
  * @param[in]  id       Engine identifier to get handle.
  * @param[out] engine   A pointer of the engine information handle.
  *
@@ -83,6 +85,8 @@ typedef enum {
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ *
+ * @see csr_engine_destroy()
  */
 int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *engine);
 

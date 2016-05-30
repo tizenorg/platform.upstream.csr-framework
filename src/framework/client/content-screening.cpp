@@ -109,14 +109,14 @@ private:
 } // end of namespace
 
 API
-int csr_cs_context_create(csr_cs_context_h *phandle)
+int csr_cs_context_create(csr_cs_context_h *handle)
 {
 	EXCEPTION_SAFE_START
 
-	if (phandle == nullptr)
+	if (handle == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
 
-	*phandle = reinterpret_cast<csr_cs_context_h>(
+	*handle = reinterpret_cast<csr_cs_context_h>(
 				   new Client::HandleExt(SockId::CS, ContextShPtr(new CsContext())));
 
 	return CSR_ERROR_NONE;
@@ -212,13 +212,13 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle)
 
 API
 int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data,
-					 size_t length, csr_cs_malware_h *pdetected)
+					 size_t length, csr_cs_malware_h *malware)
 {
 	EXCEPTION_SAFE_START
 
 	if (handle == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (pdetected == nullptr || data == nullptr)
+	else if (malware == nullptr || data == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
@@ -230,7 +230,7 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data,
 	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
 
-	*pdetected = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
 
 	return ret.first;
 
@@ -239,13 +239,13 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data,
 
 API
 int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
-					 csr_cs_malware_h *pdetected)
+					 csr_cs_malware_h *malware)
 {
 	EXCEPTION_SAFE_START
 
 	if (handle == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (pdetected == nullptr || file_path == nullptr || file_path[0] == '\0')
+	else if (malware == nullptr || file_path == nullptr || file_path[0] == '\0')
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
@@ -257,7 +257,7 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
 
-	*pdetected = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
 
 	return ret.first;
 
@@ -474,16 +474,16 @@ int csr_cs_cancel_scanning(csr_cs_context_h handle)
 }
 
 API
-int csr_cs_malware_get_severity(csr_cs_malware_h detected, csr_cs_severity_level_e *pseverity)
+int csr_cs_malware_get_severity(csr_cs_malware_h malware, csr_cs_severity_level_e *severity)
 {
 	EXCEPTION_SAFE_START
 
-	if (detected == nullptr)
+	if (malware == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (pseverity == nullptr)
+	else if (severity == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*pseverity = reinterpret_cast<CsDetected *>(detected)->severity;
+	*severity = reinterpret_cast<CsDetected *>(malware)->severity;
 
 	return CSR_ERROR_NONE;
 
@@ -491,22 +491,21 @@ int csr_cs_malware_get_severity(csr_cs_malware_h detected, csr_cs_severity_level
 }
 
 API
-int csr_cs_malware_get_malware_name(csr_cs_malware_h detected, char **pmalware_name)
+int csr_cs_malware_get_malware_name(csr_cs_malware_h malware, char **malware_name)
 {
 	EXCEPTION_SAFE_START
 
-	if (detected == nullptr)
+	if (malware == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (pmalware_name == nullptr)
+	else if (malware_name == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	auto malware_name =
-			strdup(reinterpret_cast<CsDetected *>(detected)->malwareName.c_str());
+	auto name = strdup(reinterpret_cast<CsDetected *>(malware)->malwareName.c_str());
 
-	if (malware_name == nullptr)
+	if (name == nullptr)
 		return CSR_ERROR_OUT_OF_MEMORY;
 
-	*pmalware_name = malware_name;
+	*malware_name = name;
 
 	return CSR_ERROR_NONE;
 
@@ -514,22 +513,21 @@ int csr_cs_malware_get_malware_name(csr_cs_malware_h detected, char **pmalware_n
 }
 
 API
-int csr_cs_malware_get_detailed_url(csr_cs_malware_h detected, char **pdetailed_url)
+int csr_cs_malware_get_detailed_url(csr_cs_malware_h malware, char **detailed_url)
 {
 	EXCEPTION_SAFE_START
 
-	if (detected == nullptr)
+	if (malware == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (pdetailed_url == nullptr)
+	else if (detailed_url == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	auto detailed_url = strdup(
-			reinterpret_cast<CsDetected *>(detected)->detailedUrl.c_str());
+	auto url = strdup(reinterpret_cast<CsDetected *>(malware)->detailedUrl.c_str());
 
-	if (detailed_url == nullptr)
+	if (url == nullptr)
 		return CSR_ERROR_OUT_OF_MEMORY;
 
-	*pdetailed_url = detailed_url;
+	*detailed_url = url;
 
 	return CSR_ERROR_NONE;
 
@@ -537,16 +535,16 @@ int csr_cs_malware_get_detailed_url(csr_cs_malware_h detected, char **pdetailed_
 }
 
 API
-int csr_cs_malware_get_timestamp(csr_cs_malware_h detected, time_t *ptimestamp)
+int csr_cs_malware_get_timestamp(csr_cs_malware_h malware, time_t *timestamp)
 {
 	EXCEPTION_SAFE_START
 
-	if (detected == nullptr)
+	if (malware == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (ptimestamp == nullptr)
+	else if (timestamp == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*ptimestamp = reinterpret_cast<CsDetected *>(detected)->ts;
+	*timestamp = reinterpret_cast<CsDetected *>(malware)->ts;
 
 	return CSR_ERROR_NONE;
 
@@ -554,22 +552,21 @@ int csr_cs_malware_get_timestamp(csr_cs_malware_h detected, time_t *ptimestamp)
 }
 
 API
-int csr_cs_malware_get_file_name(csr_cs_malware_h detected, char **pfile_name)
+int csr_cs_malware_get_file_name(csr_cs_malware_h malware, char **file_name)
 {
 	EXCEPTION_SAFE_START
 
-	if (detected == nullptr)
+	if (malware == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (pfile_name == nullptr)
+	else if (file_name == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	auto file_name = strdup(
-			reinterpret_cast<CsDetected *>(detected)->targetName.c_str());
+	auto fname = strdup(reinterpret_cast<CsDetected *>(malware)->targetName.c_str());
 
-	if (file_name == nullptr)
+	if (fname == nullptr)
 		return CSR_ERROR_OUT_OF_MEMORY;
 
-	*pfile_name = file_name;
+	*file_name = fname;
 
 	return CSR_ERROR_NONE;
 
@@ -577,17 +574,16 @@ int csr_cs_malware_get_file_name(csr_cs_malware_h detected, char **pfile_name)
 }
 
 API
-int csr_cs_malware_get_user_response(csr_cs_malware_h detected,
-									  csr_cs_user_response_e *presponse)
+int csr_cs_malware_get_user_response(csr_cs_malware_h malware, csr_cs_user_response_e *response)
 {
 	EXCEPTION_SAFE_START
 
-	if (detected == nullptr)
+	if (malware == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (presponse == nullptr)
+	else if (response == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*presponse = reinterpret_cast<CsDetected *>(detected)->response;
+	*response = reinterpret_cast<CsDetected *>(malware)->response;
 
 	return CSR_ERROR_NONE;
 
@@ -595,16 +591,16 @@ int csr_cs_malware_get_user_response(csr_cs_malware_h detected,
 }
 
 API
-int csr_cs_malware_is_app(csr_cs_malware_h detected, bool *pis_app)
+int csr_cs_malware_is_app(csr_cs_malware_h malware, bool *is_app)
 {
 	EXCEPTION_SAFE_START
 
-	if (detected == nullptr)
+	if (malware == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (pis_app == nullptr)
+	else if (is_app == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*pis_app = reinterpret_cast<CsDetected *>(detected)->isApp;
+	*is_app = reinterpret_cast<CsDetected *>(malware)->isApp;
 
 	return CSR_ERROR_NONE;
 
@@ -612,22 +608,22 @@ int csr_cs_malware_is_app(csr_cs_malware_h detected, bool *pis_app)
 }
 
 API
-int csr_cs_malware_get_pkg_id(csr_cs_malware_h detected, char **ppkg_id)
+int csr_cs_malware_get_pkg_id(csr_cs_malware_h malware, char **pkg_id)
 {
 	EXCEPTION_SAFE_START
 
-	if (detected == nullptr)
+	if (malware == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (ppkg_id == nullptr)
+	else if (pkg_id == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	auto pkg_id = strdup(
-			reinterpret_cast<CsDetected *>(detected)->pkgId.c_str());
+	auto pakage_id = strdup(
+			reinterpret_cast<CsDetected *>(malware)->pkgId.c_str());
 
-	if (pkg_id == nullptr)
+	if (pakage_id == nullptr)
 		return CSR_ERROR_OUT_OF_MEMORY;
 
-	*ppkg_id = pkg_id;
+	*pkg_id = pakage_id;
 
 	return CSR_ERROR_NONE;
 
@@ -636,18 +632,18 @@ int csr_cs_malware_get_pkg_id(csr_cs_malware_h detected, char **ppkg_id)
 
 API
 int csr_cs_judge_detected_malware(csr_cs_context_h handle,
-								  csr_cs_malware_h detected, csr_cs_action_e action)
+								  csr_cs_malware_h malware, csr_cs_action_e action)
 {
 	EXCEPTION_SAFE_START
 
 	if (handle == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (detected == nullptr || !_isValid(action))
+	else if (malware == nullptr || !_isValid(action))
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 	return hExt->dispatch<int>(CommandId::JUDGE_STATUS,
-							   reinterpret_cast<CsDetected *>(detected)->targetName,
+							   reinterpret_cast<CsDetected *>(malware)->targetName,
 							   static_cast<int>(action));
 
 	EXCEPTION_SAFE_END
@@ -655,13 +651,13 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle,
 
 API
 int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
-								csr_cs_malware_h *pdetected)
+								csr_cs_malware_h *malware)
 {
 	EXCEPTION_SAFE_START
 
 	if (handle == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (file_path == nullptr || pdetected == nullptr)
+	else if (file_path == nullptr || malware == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
@@ -671,7 +667,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
 	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
 
-	*pdetected = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
 
 	return ret.first;
 
@@ -681,13 +677,13 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
 API
 int csr_cs_get_detected_malwares(csr_cs_context_h handle,
 								 const char *dir_paths[], size_t count,
-								 csr_cs_malware_list_h *plist, size_t *pcount)
+								 csr_cs_malware_list_h *list, size_t *list_count)
 {
 	EXCEPTION_SAFE_START
 
 	if (handle == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (dir_paths == nullptr || count == 0 || plist == nullptr || pcount == nullptr)
+	else if (dir_paths == nullptr || count == 0 || list == nullptr || list_count == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
@@ -715,13 +711,13 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
 		while (auto dptr = cptrList.pop())
 			resultListPtr->emplace_back(dptr);
 
-		*plist = reinterpret_cast<csr_cs_malware_list_h>(resultListPtr.get());
-		*pcount = resultListPtr->size();
+		*list = reinterpret_cast<csr_cs_malware_list_h>(resultListPtr.get());
+		*list_count = resultListPtr->size();
 
 		hExt->add(std::move(resultListPtr));
 	} else {
-		*plist = nullptr;
-		*pcount = 0;
+		*list = nullptr;
+		*list_count = 0;
 	}
 
 	return ret.first;
@@ -731,13 +727,13 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
 
 API
 int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
-							   csr_cs_malware_h *pdetected)
+							   csr_cs_malware_h *malware)
 {
 	EXCEPTION_SAFE_START
 
 	if (handle == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (file_path == nullptr || pdetected == nullptr)
+	else if (file_path == nullptr || malware == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
@@ -747,7 +743,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
 	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
 
-	*pdetected = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
 
 	return ret.first;
 
@@ -757,13 +753,13 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
 API
 int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
 								const char *dir_paths[], size_t count,
-								csr_cs_malware_list_h *plist, size_t *pcount)
+								csr_cs_malware_list_h *list, size_t *list_count)
 {
 	EXCEPTION_SAFE_START
 
 	if (handle == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (dir_paths == nullptr || count == 0 || plist == nullptr || pcount == nullptr)
+	else if (dir_paths == nullptr || count == 0 || list == nullptr || list_count == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
@@ -791,13 +787,13 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
 		while (auto dptr = cptrList.pop())
 			resultListPtr->emplace_back(dptr);
 
-		*plist = reinterpret_cast<csr_cs_malware_list_h>(resultListPtr.get());
-		*pcount = resultListPtr->size();
+		*list = reinterpret_cast<csr_cs_malware_list_h>(resultListPtr.get());
+		*list_count = resultListPtr->size();
 
 		hExt->add(std::move(resultListPtr));
 	} else {
-		*plist = nullptr;
-		*pcount = 0;
+		*list = nullptr;
+		*list_count = 0;
 	}
 
 	return ret.first;
@@ -806,14 +802,14 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
 }
 
 API
-int csr_cs_malware_list_get_detected(csr_cs_malware_list_h list, size_t index,
-							  csr_cs_malware_h *pdetected)
+int csr_cs_malware_list_get_malware(csr_cs_malware_list_h list, size_t index,
+							  csr_cs_malware_h *malware)
 {
 	EXCEPTION_SAFE_START
 
 	if (list == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (pdetected == nullptr)
+	else if (malware == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto dListPtr = reinterpret_cast<ResultList *>(list);
@@ -821,7 +817,7 @@ int csr_cs_malware_list_get_detected(csr_cs_malware_list_h list, size_t index,
 	if (index >= dListPtr->size())
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*pdetected = reinterpret_cast<csr_cs_malware_h>(dListPtr->at(index).get());
+	*malware = reinterpret_cast<csr_cs_malware_h>(dListPtr->at(index).get());
 
 	return CSR_ERROR_NONE;
 

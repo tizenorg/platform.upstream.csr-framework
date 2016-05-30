@@ -34,14 +34,14 @@
 using namespace Csr;
 
 API
-int csr_wp_context_create(csr_wp_context_h *phandle)
+int csr_wp_context_create(csr_wp_context_h *handle)
 {
 	EXCEPTION_SAFE_START
 
-	if (phandle == nullptr)
+	if (handle == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
 
-	*phandle = reinterpret_cast<csr_wp_context_h>(
+	*handle = reinterpret_cast<csr_wp_context_h>(
 				   new Client::Handle(SockId::WP, std::make_shared<WpContext>()));
 
 	return CSR_ERROR_NONE;
@@ -102,13 +102,13 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message)
 
 API
 int csr_wp_check_url(csr_wp_context_h handle, const char *url,
-					 csr_wp_check_result_h *presult)
+					 csr_wp_check_result_h *result)
 {
 	EXCEPTION_SAFE_START
 
 	if (handle == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (presult == nullptr || url == nullptr || url[0] == '\0')
+	else if (result == nullptr || url == nullptr || url[0] == '\0')
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto h = reinterpret_cast<Client::Handle *>(handle);
@@ -120,7 +120,7 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url,
 	if (ret.second)
 		h->add(ResultPtr(ret.second));
 
-	*presult = reinterpret_cast<csr_wp_check_result_h>(ret.second);
+	*result = reinterpret_cast<csr_wp_check_result_h>(ret.second);
 
 	return ret.first;
 
@@ -129,16 +129,16 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url,
 
 API
 int csr_wp_result_get_risk_level(csr_wp_check_result_h result,
-								 csr_wp_risk_level_e *plevel)
+								 csr_wp_risk_level_e *level)
 {
 	EXCEPTION_SAFE_START
 
 	if (result == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (plevel == nullptr)
+	else if (level == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*plevel = reinterpret_cast<WpResult *>(result)->riskLevel;
+	*level = reinterpret_cast<WpResult *>(result)->riskLevel;
 
 	return CSR_ERROR_NONE;
 
@@ -146,22 +146,21 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result,
 }
 
 API
-int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, char **pdetailed_url)
+int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, char **detailed_url)
 {
 	EXCEPTION_SAFE_START
 
 	if (result == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (pdetailed_url == nullptr)
+	else if (detailed_url == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	auto detailed_url = strdup(
-			reinterpret_cast<WpResult *>(result)->detailedUrl.c_str());
+	auto url = strdup(reinterpret_cast<WpResult *>(result)->detailedUrl.c_str());
 
-	if (detailed_url == nullptr)
+	if (url == nullptr)
 		return CSR_ERROR_OUT_OF_MEMORY;
 
-	*pdetailed_url = detailed_url;
+	*detailed_url = url;
 
 	return CSR_ERROR_NONE;
 
@@ -171,16 +170,16 @@ int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, char **pdetaile
 
 API
 int csr_wp_result_get_user_response(csr_wp_check_result_h result,
-									csr_wp_user_response_e *presponse)
+									csr_wp_user_response_e *response)
 {
 	EXCEPTION_SAFE_START
 
 	if (result == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (presponse == nullptr)
+	else if (response == nullptr)
 		return CSR_ERROR_INVALID_PARAMETER;
 
-	*presponse = reinterpret_cast<WpResult *>(result)->response;
+	*response = reinterpret_cast<WpResult *>(result)->response;
 
 	return CSR_ERROR_NONE;
 

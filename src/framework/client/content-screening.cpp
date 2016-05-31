@@ -372,6 +372,11 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
+	if (hExt->hasRunning()) {
+		ERROR("Async scanning already running with this handle.");
+		return CSR_ERROR_INVALID_HANDLE;
+	}
+
 	auto fileSet(std::make_shared<StrSet>());
 
 	for (size_t i = 0; i < count; i++) {
@@ -422,6 +427,11 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path,
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
+	if (hExt->hasRunning()) {
+		ERROR("Async scanning already running with this handle.");
+		return CSR_ERROR_INVALID_HANDLE;
+	}
+
 	auto dir = std::make_shared<std::string>(Client::getAbsolutePath(dir_path));
 
 	hExt->dispatchAsync([hExt, user_data, dir] {
@@ -447,6 +457,11 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
+
+	if (hExt->hasRunning()) {
+		ERROR("Async scanning already running with this handle.");
+		return CSR_ERROR_INVALID_HANDLE;
+	}
 
 	auto dirSet(std::make_shared<StrSet>());
 

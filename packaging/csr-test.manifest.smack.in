@@ -12,9 +12,9 @@
 			<smack request="pkgmgr::db" type="rwx" />
 			<smack request="pkgmgr::svc" type="r" />
 
-			<smack request="csr::api-cs" type="w" />
-			<smack request="csr::api-wp" type="w" />
-			<smack request="csr::api-admin" type="w" />
+			<smack request="csr::csapi" type="w" />
+			<smack request="csr::wpapi" type="w" />
+			<smack request="csr::adminapi" type="w" />
 
 			<smack request="system::media" type="rwxat" />
 			<smack request="system::homedir" type="rwxat" />

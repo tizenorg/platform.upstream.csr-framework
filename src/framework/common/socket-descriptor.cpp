@@ -34,19 +34,19 @@ const std::map<SockId, SocketDescriptor> g_sockDescMap {
 		SockId::CS,
 		SocketDescriptor("/tmp/." SERVICE_NAME "-cs.socket",
 						 "http://tizen.org/privilege/antivirus.scan",
-						 "csr::api-cs")
+						 "csr::csapi")
 	},
 	{
 		SockId::WP,
 		SocketDescriptor("/tmp/." SERVICE_NAME "-wp.socket",
 						 "http://tizen.org/privilege/antivirus.webprotect",
-						 "csr::api-wp")
+						 "csr::wpapi")
 	},
 	{
 		SockId::ADMIN,
 		SocketDescriptor("/tmp/." SERVICE_NAME "-admin.socket",
 						 "http://tizen.org/privilege/antivirus.admin",
-						 "csr::api-admin")
+						 "csr::adminapi")
 	},
 	{
 		SockId::POPUP,

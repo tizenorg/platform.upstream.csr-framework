@@ -82,7 +82,7 @@ AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 		auto ec = retFiles.first;
 		return std::make_pair(Callback::Id::OnError, [this, ec] {
 			if (this->m_cb.onError)
-				this->m_cb.onError(this->m_userdata, ec);
+				this->m_cb.onError(ec, this->m_userdata);
 		});
 	}
 
@@ -143,7 +143,7 @@ AsyncLogic::Ending AsyncLogic::scanFiles(const StrSet &fileSet)
 			auto ec = ret.first;
 			return std::make_pair(Callback::Id::OnError, [this, ec] {
 				if (this->m_cb.onError)
-					this->m_cb.onError(this->m_userdata, ec);
+					this->m_cb.onError(ec, this->m_userdata);
 
 				return;
 			});
@@ -154,12 +154,12 @@ AsyncLogic::Ending AsyncLogic::scanFiles(const StrSet &fileSet)
 			m_results.emplace_back(std::move(resultPtr));
 
 			if (m_cb.onDetected)
-				m_cb.onDetected(m_userdata, reinterpret_cast<csr_cs_malware_h>(ret.second));
+				m_cb.onDetected(reinterpret_cast<csr_cs_malware_h>(ret.second), m_userdata);
 		} else {
 			DEBUG("[Scanned] file[" << file << "]");
 
 			if (m_cb.onScanned)
-				m_cb.onScanned(m_userdata, file.c_str());
+				m_cb.onScanned(file.c_str(), m_userdata);
 		}
 	}
 

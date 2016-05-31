@@ -114,17 +114,17 @@ typedef struct __csr_cs_engine_s *csr_cs_engine_h;
  * @remarks Only for asynchronous scan functions.
  * @remarks Called for each file or application which is not detected malware.
  *
- * @param[in] user_data  A pointer of a user data. It's provided by client
- *                       when calling asyncronous scanning method.
  * @param[in] file_path  A path of the file scanned. It would be package path if it's
  *                       in application.
+ * @param[in] user_data  A pointer of a user data. It's provided by client
+ *                       when calling asyncronous scanning method.
  *
  * @see csr_cs_set_file_scanned_cb()
  * @see csr_cs_scan_files_async()
  * @see csr_cs_scan_dir_async()
  * @see csr_cs_scan_dirs_async()
  */
-typedef void (*csr_cs_file_scanned_cb)(void *user_data, const char *file_path);
+typedef void (*csr_cs_file_scanned_cb)(const char *file_path, void *user_data);
 
 /**
  * @brief Called when each file scanning is done with malware.
@@ -134,16 +134,16 @@ typedef void (*csr_cs_file_scanned_cb)(void *user_data, const char *file_path);
  * @remarks Only for asynchronous scan functions.
  * @remarks Called for each file or application which is detected malware.
  *
+ * @param[in] malware    The detected malware handle.
  * @param[in] user_data  A pointer of a user data. It's provided by client
  *                       when calling asyncronous scanning method.
- * @param[in] malware    The detected malware handle.
  *
  * @see csr_cs_set_detected_cb()
  * @see csr_cs_scan_files_async()
  * @see csr_cs_scan_dir_async()
  * @see csr_cs_scan_dirs_async()
  */
-typedef void (*csr_cs_detected_cb)(void *user_data, csr_cs_malware_h malware);
+typedef void (*csr_cs_detected_cb)(csr_cs_malware_h malware, void *user_data);
 
 /**
  * @brief Called when scanning is finished successfully.
@@ -185,21 +185,31 @@ typedef void (*csr_cs_cancelled_cb)(void *user_data);
 /**
  * @brief Called when scanning is stopped with an error.
  *
+ * @detail The following error codes can be delivered.\n
+ * #CSR_ERROR_FILE_DO_NOT_EXIST,\n
+ * #CSR_ERROR_SOCKET,\n
+ * #CSR_ERROR_SERVER,\n
+ * #CSR_ERROR_ENGINE_NOT_EXIST,\n
+ * #CSR_ERROR_ENGINE_DISABLED,\n
+ * #CSR_ERROR_ENGINE_NOT_ACTIVATED,\n
+ * #CSR_ERROR_ENGINE_PERMISSION,\n
+ * #CSR_ERROR_ENGINE_INTERNAL
+ *
  * @since_tizen 3.0
  *
  * @remarks Only for asynchronous scan functions.
  * @remarks Called only once at the end of scanning when failed with error.
  *
+ * @param[in] error_code  Error code of #csr_error_e defined in csr-error.h
  * @param[in] user_data   A pointer of a user data. It's provided by client
  *                        when calling asynchronous scanning method.
- * @param[in] error_code  Error code of #csr_error_e defined in csr-error.h
  *
  * @see csr_cs_set_error_cb()
  * @see csr_cs_scan_files_async()
  * @see csr_cs_scan_dir_async()
  * @see csr_cs_scan_dirs_async()
  */
-typedef void (*csr_cs_error_cb)(void *user_data, int error_code);
+typedef void (*csr_cs_error_cb)(int error_code, void *user_data);
 
 /**
  * @}

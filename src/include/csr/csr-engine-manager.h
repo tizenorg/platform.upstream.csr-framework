@@ -63,8 +63,8 @@ typedef enum {
  * @since_tizen 3.0
  */
 typedef enum {
-	CSR_ENABLE        = 0x01,  /**< Enable engine */
-	CSR_DISABLE       = 0x02   /**< Disable engine */
+	CSR_STATE_ENABLE        = 0x01,  /**< Enable engine */
+	CSR_STATE_DISABLE       = 0x02   /**< Disable engine */
 } csr_state_e;
 
 /**

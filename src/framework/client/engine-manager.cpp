@@ -71,8 +71,8 @@ bool _isValid(const csr_engine_id_e &id) noexcept
 bool _isValid(const csr_state_e &state) noexcept
 {
 	switch (state) {
-	case CSR_ENABLE:
-	case CSR_DISABLE:
+	case CSR_STATE_ENABLE:
+	case CSR_STATE_DISABLE:
 		return true;
 
 	default:

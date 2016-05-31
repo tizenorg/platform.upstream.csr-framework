@@ -388,15 +388,6 @@ int csr_cs_set_error_cb(csr_cs_context_h handle, csr_cs_error_cb callback);
 /**
  * @brief Scan files specified by an array of file paths for malware.
  *
- * @since_tizen 3.0
- * @privlevel partner
- * @privilege %http://tizen.org/privilege/antivirus.scan
- *
- * @remarks Asynchronous function.
- * @remarks The caller should set callback functions before call this method.
- * @remarks Detected malware which is provided to the callback will be released when
- *          @a handle is released using csr_cs_context_destroy().
- *
  * @details If scanning of the single file is done without detected malware,
  *          csr_cs_file_scanned_cb() called and else if malware detected
  *          csr_cs_detected_cb() called. If scanning is cancelled by
@@ -405,6 +396,15 @@ int csr_cs_set_error_cb(csr_cs_context_h handle, csr_cs_error_cb callback);
  *          error, csr_cs_completed_cb(). Every callbacks are registered by callback
  *          setter methods to @a handle and if callback is not registered, it will just
  *          skipped to be called.
+ *
+ * @since_tizen 3.0
+ * @privlevel partner
+ * @privilege %http://tizen.org/privilege/antivirus.scan
+ *
+ * @remarks Asynchronous function.
+ * @remarks The caller should set callback functions before call this method.
+ * @remarks Detected malware which is provided to the callback will be released when
+ *          @a handle is released using csr_cs_context_destroy().
  *
  * @param[in]  handle       CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  file_paths   An array of scan target files.
@@ -432,6 +432,9 @@ int csr_cs_set_error_cb(csr_cs_context_h handle, csr_cs_error_cb callback);
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  *
+ * @pre It is required to set callbacks, csr_cs_completed_cb, csr_cs_error_cb(),
+ *      csr_cs_cancel_scanning(), csr_cs_detected_cb(), and/or csr_cs_file_scanned_cb().
+ *
  * @see csr_cs_set_file_scanned_cb()
  * @see csr_cs_set_detected_cb()
  * @see csr_cs_set_completed_cb()
@@ -445,15 +448,6 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 /**
  * @brief Scans a directory specified by directory path for malware.
  *
- * @since_tizen 3.0
- * @privlevel partner
- * @privilege %http://tizen.org/privilege/antivirus.scan
- *
- * @remarks Asynchronous function.
- * @remarks The caller should set callback functions before calls this method.
- * @remarks Detected malware which is provided to the callback will be released when
- *          @a handle is released using csr_cs_context_destroy().
- *
  * @details If scanning of the single file is done without detected malware,
  *          csr_cs_file_scanned_cb() called and else if malware detected
  *          csr_cs_detected_cb() called. If scanning is cancelled by
@@ -462,6 +456,15 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
  *          error, csr_cs_completed_cb(). Every callbacks are registered by callback
  *          setter methods to @a handle and if callback is not registered, it will just
  *          skipped to be called.
+ *
+ * @since_tizen 3.0
+ * @privlevel partner
+ * @privilege %http://tizen.org/privilege/antivirus.scan
+ *
+ * @remarks Asynchronous function.
+ * @remarks The caller should set callback functions before calls this method.
+ * @remarks Detected malware which is provided to the callback will be released when
+ *          @a handle is released using csr_cs_context_destroy().
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  dir_path   A path of scan target directory.
@@ -488,6 +491,9 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  *
+ * @pre It is required to set callbacks, csr_cs_completed_cb, csr_cs_error_cb(),
+ *      csr_cs_cancel_scanning(), csr_cs_detected_cb(), and/or csr_cs_file_scanned_cb(). 
+ *
  * @see csr_cs_set_file_scanned_cb()
  * @see csr_cs_set_detected_cb()
  * @see csr_cs_set_completed_cb()
@@ -500,15 +506,6 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path, void *u
 /**
  * @brief Scan directories specified by an array of directory paths for malware.
  *
- * @since_tizen 3.0
- * @privlevel partner
- * @privilege %http://tizen.org/privilege/antivirus.scan
- *
- * @remarks Asynchronous function.
- * @remarks The caller should set callback functions before calls this method.
- * @remarks Detected malware which is provided to the callback will be released when
- *          @a handle is released using csr_cs_context_destroy().
- *
  * @details If scanning of the single file is done without detected malware,
  *          csr_cs_file_scanned_cb() called and else if malware detected
  *          csr_cs_detected_cb() called. If scanning is cancelled by
@@ -517,6 +514,15 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path, void *u
  *          error, csr_cs_completed_cb(). Every callbacks are registered by callback
  *          setter methods to @a handle and if callback is not registered, it will just
  *          skipped to be called.
+ *
+ * @since_tizen 3.0
+ * @privlevel partner
+ * @privilege %http://tizen.org/privilege/antivirus.scan
+ *
+ * @remarks Asynchronous function.
+ * @remarks The caller should set callback functions before calls this method.
+ * @remarks Detected malware which is provided to the callback will be released when
+ *          @a handle is released using csr_cs_context_destroy().
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  dir_paths  An array of scan target directories.
@@ -544,6 +550,9 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path, void *u
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
  * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
  *
+ * @pre It is required to set callbacks, csr_cs_completed_cb, csr_cs_error_cb(),
+ *      csr_cs_cancel_scanning(), csr_cs_detected_cb(), and/or csr_cs_file_scanned_cb().
+ *
  * @see csr_cs_set_file_scanned_cb()
  * @see csr_cs_set_detected_cb()
  * @see csr_cs_set_completed_cb()
@@ -556,7 +565,7 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[], siz
 
 
 /**
- * @brief Cancels a running scanning task.
+ * @brief Cancels a running scanning task, asynchronously.
  *
  * @since_tizen 3.0
  *

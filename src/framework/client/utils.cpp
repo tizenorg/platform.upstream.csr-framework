@@ -51,10 +51,10 @@ int exceptionGuard(const std::function<int()> &func)
 		return CSR_ERROR_OUT_OF_MEMORY;
 	} catch (const std::exception &e) {
 		ERROR("std exception: " << e.what());
-		return CSR_ERROR_UNKNOWN;
+		return CSR_ERROR_SYSTEM;
 	} catch (...) {
 		ERROR("Unknown exception occured!");
-		return CSR_ERROR_UNKNOWN;
+		return CSR_ERROR_SYSTEM;
 	}
 }
 

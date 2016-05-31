@@ -66,8 +66,8 @@ bool isEngineInitialized = false;
 struct Initializer {
 	Initializer()
 	{
-		m_oldCsState = setEngineState(CSR_ENGINE_CS, CSR_ENABLE);
-		m_oldWpState = setEngineState(CSR_ENGINE_WP, CSR_ENABLE);
+		m_oldCsState = setEngineState(CSR_ENGINE_CS, CSR_STATE_ENABLE);
+		m_oldWpState = setEngineState(CSR_ENGINE_WP, CSR_STATE_ENABLE);
 	}
 
 	~Initializer()

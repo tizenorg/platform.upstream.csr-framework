@@ -66,14 +66,14 @@ struct AsyncTestContext {
 		errorCnt(0) {}
 };
 
-void on_scanned(void *userdata, const char *file)
+void on_scanned(const char *file, void *userdata)
 {
 	BOOST_MESSAGE("on_scanned. file[" << file << "] scanned!");
 	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
 	ctx->scannedCnt++;
 }
 
-void on_detected(void *userdata, csr_cs_malware_h detected)
+void on_detected(csr_cs_malware_h detected, void *userdata)
 {
 	Test::ScopedCstr file_name;
 	ASSERT_IF(csr_cs_malware_get_file_name(detected, &file_name.ptr), CSR_ERROR_NONE);
@@ -83,7 +83,7 @@ void on_detected(void *userdata, csr_cs_malware_h detected)
 	ctx->detectedList.push_back(detected);
 }
 
-void on_error(void *userdata, int ec)
+void on_error(int ec, void *userdata)
 {
 	BOOST_MESSAGE("on_error. async request done with error code[" << ec << "]");
 	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);

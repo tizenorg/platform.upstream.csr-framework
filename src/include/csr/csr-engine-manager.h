@@ -63,8 +63,8 @@ typedef enum {
  * @since_tizen 3.0
  */
 typedef enum {
-	CSR_ENABLE        = 0x01,  /**< Enable engine */
-	CSR_DISABLE       = 0x02   /**< Disable engine */
+	CSR_STATE_ENABLE        = 0x01,  /**< Enable engine */
+	CSR_STATE_DISABLE       = 0x02   /**< Disable engine */
 } csr_state_e;
 
 /**
@@ -84,7 +84,7 @@ typedef enum {
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST     No engine exists
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  *
  * @see csr_engine_destroy()
  */
@@ -109,7 +109,7 @@ int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *engine);
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a vendor is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  *
  * @see csr_get_current_engine()
  */
@@ -134,7 +134,7 @@ int csr_engine_get_vendor(csr_engine_h engine, char **vendor);
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a name is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  *
  * @see csr_get_current_engine()
  */
@@ -159,7 +159,7 @@ int csr_engine_get_name(csr_engine_h engine, char **name);
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a version is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  *
  * @see csr_get_current_engine()
  */
@@ -184,7 +184,7 @@ int csr_engine_get_version(csr_engine_h engine, char **version);
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a version is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  *
  * @see csr_get_current_engine()
  */
@@ -207,7 +207,7 @@ int csr_engine_get_data_version(csr_engine_h engine, char **version);
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a time is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  *
  * @see csr_get_current_engine()
  */
@@ -230,7 +230,7 @@ int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *time);
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a activated is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  *
  * @see csr_get_current_engine()
  */
@@ -256,7 +256,7 @@ int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *activated);
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a state is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  *
  * @see csr_get_current_engine()
  */
@@ -279,7 +279,7 @@ int csr_engine_set_state(csr_engine_h engine, csr_state_e state);
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a state is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED    Permission denied
  * @retval #CSR_ERROR_ENGINE_INTERNAL      Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  *
  * @see csr_get_current_engine()
  */

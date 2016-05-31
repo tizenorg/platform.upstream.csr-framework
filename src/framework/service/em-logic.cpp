@@ -49,8 +49,8 @@ bool _isValid(const csr_engine_id_e &id)
 bool _isValid(const csr_state_e &state)
 {
 	switch (state) {
-	case CSR_ENABLE:
-	case CSR_DISABLE:
+	case CSR_STATE_ENABLE:
+	case CSR_STATE_DISABLE:
 		return true;
 
 	default:
@@ -69,7 +69,7 @@ RawBuffer EmLogic::getEngineName(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
 
-	if (this->m_db.getEngineState(context.engineId) != CSR_ENABLE)
+	if (this->m_db.getEngineState(context.engineId) != CSR_STATE_ENABLE)
 		ThrowExc(EngineDisabled, "engine is disabled");
 
 	if (context.engineId == CSR_ENGINE_CS) {
@@ -97,7 +97,7 @@ RawBuffer EmLogic::getEngineVendor(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
 
-	if (this->m_db.getEngineState(context.engineId) != CSR_ENABLE)
+	if (this->m_db.getEngineState(context.engineId) != CSR_STATE_ENABLE)
 		ThrowExc(EngineDisabled, "engine is disabled");
 
 	if (context.engineId == CSR_ENGINE_CS) {
@@ -125,7 +125,7 @@ RawBuffer EmLogic::getEngineVersion(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
 
-	if (this->m_db.getEngineState(context.engineId) != CSR_ENABLE)
+	if (this->m_db.getEngineState(context.engineId) != CSR_STATE_ENABLE)
 		ThrowExc(EngineDisabled, "engine is disabled");
 
 	if (context.engineId == CSR_ENGINE_CS) {
@@ -153,7 +153,7 @@ RawBuffer EmLogic::getEngineDataVersion(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
 
-	if (this->m_db.getEngineState(context.engineId) != CSR_ENABLE)
+	if (this->m_db.getEngineState(context.engineId) != CSR_STATE_ENABLE)
 		ThrowExc(EngineDisabled, "engine is disabled");
 
 	if (context.engineId == CSR_ENGINE_CS) {
@@ -181,7 +181,7 @@ RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
 
-	if (this->m_db.getEngineState(context.engineId) != CSR_ENABLE)
+	if (this->m_db.getEngineState(context.engineId) != CSR_STATE_ENABLE)
 		ThrowExc(EngineDisabled, "engine is disabled");
 
 	if (context.engineId == CSR_ENGINE_CS) {
@@ -213,7 +213,7 @@ RawBuffer EmLogic::getEngineActivated(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
 
-	if (this->m_db.getEngineState(context.engineId) != CSR_ENABLE)
+	if (this->m_db.getEngineState(context.engineId) != CSR_STATE_ENABLE)
 		ThrowExc(EngineDisabled, "engine is disabled");
 
 	csr_activated_e activated = CSR_NOT_ACTIVATED;
@@ -263,7 +263,7 @@ RawBuffer EmLogic::getEngineState(const EmContext &context)
 	auto state = this->m_db.getEngineState(context.engineId);
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE,
-			static_cast<int>(state) == -1 ? static_cast<int>(CSR_DISABLE) :
+			static_cast<int>(state) == -1 ? static_cast<int>(CSR_STATE_DISABLE) :
 											static_cast<int>(state)).pop();
 
 	EXCEPTION_GUARD_END

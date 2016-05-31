@@ -45,10 +45,10 @@ RawBuffer exceptionGuard(const std::function<RawBuffer()> &func)
 		return BinaryQueue::Serialize(CSR_ERROR_OUT_OF_MEMORY).pop();
 	} catch (const std::exception &e) {
 		ERROR("std exception: " << e.what());
-		return BinaryQueue::Serialize(CSR_ERROR_UNKNOWN).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_SYSTEM).pop();
 	} catch (...) {
 		ERROR("Unknown exception occured in logic");
-		return BinaryQueue::Serialize(CSR_ERROR_UNKNOWN).pop();
+		return BinaryQueue::Serialize(CSR_ERROR_SYSTEM).pop();
 	}
 }
 

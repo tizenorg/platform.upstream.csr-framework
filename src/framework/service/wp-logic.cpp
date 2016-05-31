@@ -43,7 +43,7 @@ RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
 {
 	EXCEPTION_GUARD_START
 
-	if (this->m_db.getEngineState(CSR_ENGINE_WP) != CSR_ENABLE)
+	if (this->m_db.getEngineState(CSR_ENGINE_WP) != CSR_STATE_ENABLE)
 		ThrowExc(EngineDisabled, "engine is disabled");
 
 	WpEngineContext engineContext(this->m_loader);

@@ -28,6 +28,9 @@
 #include <typeinfo>
 #include <string>
 #include <cstring>
+#include <cerrno>
+#include <system_error>
+#include <unistd.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -175,6 +178,29 @@ struct ScopedCstr {
 		if (ptr)
 			free(ptr);
 	}
+};
+
+class ScopedChDir {
+public:
+	ScopedChDir(const std::string &dirpath)
+	{
+		if (::getcwd(cdbuf, PATH_MAX + 1) == nullptr)
+			throw std::system_error(errno, std::system_category(), "getcwd failed");
+
+		if (::chdir(dirpath.c_str()) == -1)
+			throw std::system_error(errno, std::system_category(),
+									dirpath + " chdir failed");
+	}
+
+	~ScopedChDir()
+	{
+		if (::chdir(cdbuf) == -1)
+			throw std::system_error(errno, std::system_category(),
+									std::string(cdbuf) + " chdir failed");
+	}
+
+private:
+	char cdbuf[PATH_MAX + 1];
 };
 
 template <typename T>

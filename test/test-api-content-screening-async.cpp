@@ -14,16 +14,17 @@
  *  limitations under the License
  */
 /*
- * @file        test-api-content-screening.cpp
+ * @file        test-api-content-screening-async.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       CSR Content screening API test
+ * @brief       CSR Content screening async API test
  */
 #include <csr-content-screening.h>
 
 #include <condition_variable>
 #include <thread>
 #include <mutex>
+#include <vector>
 #include <boost/test/unit_test.hpp>
 
 #include "test-common.h"
@@ -49,12 +50,14 @@ namespace {
 
 struct AsyncTestContext {
 	std::mutex m;
+	std::mutex m_vec;
 	std::condition_variable cv;
 	int scannedCnt;
 	int detectedCnt;
 	int completedCnt;
 	int cancelledCnt;
 	int errorCnt;
+	std::vector<std::string> scannedList;
 	std::vector<csr_cs_malware_h> detectedList;
 	int errorCode;
 
@@ -70,7 +73,11 @@ void on_scanned(const char *file, void *userdata)
 {
 	BOOST_MESSAGE("on_scanned. file[" << file << "] scanned!");
 	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
+
+	std::lock_guard<std::mutex> l(ctx->m_vec);
+
 	ctx->scannedCnt++;
+	ctx->scannedList.push_back(file);
 }
 
 void on_detected(csr_cs_malware_h detected, void *userdata)
@@ -79,6 +86,9 @@ void on_detected(csr_cs_malware_h detected, void *userdata)
 	ASSERT_IF(csr_cs_malware_get_file_name(detected, &file_name.ptr), CSR_ERROR_NONE);
 	BOOST_MESSAGE("on_detected. file[" << file_name.ptr << "] detected!");
 	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
+
+	std::lock_guard<std::mutex> l(ctx->m_vec);
+
 	ctx->detectedCnt++;
 	ctx->detectedList.push_back(detected);
 }
@@ -87,6 +97,7 @@ void on_error(int ec, void *userdata)
 {
 	BOOST_MESSAGE("on_error. async request done with error code[" << ec << "]");
 	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
+
 	ctx->errorCnt++;
 	ctx->errorCode = ec;
 	ctx->cv.notify_one();
@@ -783,6 +794,84 @@ BOOST_AUTO_TEST_CASE(delta_scan_changed_after_scan)
 		TEST_FAKE_APP_FILE, false, nullptr);
 
 	uninstall_test_apps();
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(canonicalize_files_absolute_path)
+{
+	EXCEPTION_GUARD_START
+
+	Test::initialize_db();
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	install_test_files();
+
+	set_default_callback(context);
+
+	// four files are all same as realpath.
+	const char *files[4] = {
+		TEST_FILE_NORMAL,
+		TEST_DIR "/./test_normal_file",
+		TEST_DIR "/.././././csr-test/test_normal_file",
+		TEST_DIR "/././.././csr-test/test_normal_file"
+	};
+
+	AsyncTestContext testCtx;
+
+	ASSERT_IF(csr_cs_scan_files_async(context, files, sizeof(files) / sizeof(const char *),
+									  &testCtx),
+			  CSR_ERROR_NONE);
+
+	std::unique_lock<std::mutex> l(testCtx.m);
+	testCtx.cv.wait(l);
+	l.unlock();
+
+	ASSERT_CALLBACK(testCtx, 1, 0, 1, 0, 0);
+	ASSERT_IF(testCtx.scannedList.size(), static_cast<std::size_t>(1));
+	ASSERT_IF(testCtx.scannedList.front(), static_cast<const char *>(TEST_FILE_NORMAL));
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(canonicalize_files_relative_path)
+{
+	EXCEPTION_GUARD_START
+
+	Test::initialize_db();
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	install_test_files();
+
+	set_default_callback(context);
+
+	// four files are all same as realpath.
+	const char *files[4] = {
+		"test_normal_file",
+		"./test_normal_file",
+		".././././csr-test/test_normal_file",
+		"././.././csr-test/test_normal_file"
+	};
+
+	AsyncTestContext testCtx;
+
+	Test::ScopedChDir scopedCd(TEST_DIR);
+
+	ASSERT_IF(csr_cs_scan_files_async(context, files, sizeof(files) / sizeof(const char *),
+									  &testCtx),
+			  CSR_ERROR_NONE);
+
+	std::unique_lock<std::mutex> l(testCtx.m);
+	testCtx.cv.wait(l);
+	l.unlock();
+
+	ASSERT_CALLBACK(testCtx, 1, 0, 1, 0, 0);
+	ASSERT_IF(testCtx.scannedList.size(), static_cast<std::size_t>(1));
+	ASSERT_IF(testCtx.scannedList.front(), static_cast<const char *>(TEST_FILE_NORMAL));
 
 	EXCEPTION_GUARD_END
 }

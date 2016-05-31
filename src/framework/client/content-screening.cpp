@@ -381,7 +381,13 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 		fileSet->emplace(Client::getAbsolutePath(file_paths[i]));
 	}
 
-	hExt->dispatchAsync([hExt, user_data, fileSet] {
+	auto ret = hExt->dispatch<std::pair<int, std::shared_ptr<StrSet>>>(
+				   CommandId::GET_CANONICALIZED_FILES, *fileSet);
+
+	if (ret.first != CSR_ERROR_NONE || ret.second == nullptr)
+		return ret.first;
+
+	hExt->dispatchAsync([hExt, user_data, *ret.second] {
 		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
 		l.scanFiles(*fileSet).second();

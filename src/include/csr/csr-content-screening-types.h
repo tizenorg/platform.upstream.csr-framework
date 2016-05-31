@@ -133,6 +133,8 @@ typedef void (*csr_cs_file_scanned_cb)(const char *file_path, void *user_data);
  *
  * @remarks Only for asynchronous scan functions.
  * @remarks Called for each file or application which is detected malware.
+ * @remarks The @a malware will be released when a context is released using
+ *          csr_cs_context_destroy().
  *
  * @param[in] malware    The detected malware handle.
  * @param[in] user_data  A pointer of a user data. It's provided by client

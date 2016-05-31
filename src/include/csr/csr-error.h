@@ -36,7 +36,7 @@ extern "C" {
 
 /* define it temporary until this code goes into capi-base-common package */
 #ifndef TIZEN_ERROR_CSR
-#define TIZEN_ERROR_CSR 0x6000 // 0110 0000 0000 0000
+#define TIZEN_ERROR_CSR -0x01E30000
 #endif
 
 
@@ -50,6 +50,7 @@ typedef enum {
 	CSR_ERROR_OUT_OF_MEMORY         = TIZEN_ERROR_OUT_OF_MEMORY,     /**< Out of memory */
 	CSR_ERROR_PERMISSION_DENIED     = TIZEN_ERROR_PERMISSION_DENIED, /**< Permission denied */
 	CSR_ERROR_NOT_SUPPORTED         = TIZEN_ERROR_NOT_SUPPORTED,     /**< Device needed to run API is not supported */
+	CSR_ERROR_BUSY			= TIZEN_ERROR_RESOURCE_BUSY,     /**< Busy for processing another request */
 	CSR_ERROR_SOCKET                = TIZEN_ERROR_CSR | 0x01,        /**< Socket error between client and server */
 	CSR_ERROR_INVALID_HANDLE        = TIZEN_ERROR_CSR | 0x02,        /**< The given handle is invalid */
 	CSR_ERROR_SERVER                = TIZEN_ERROR_CSR | 0x03,        /**< Server has been failed for some reason */

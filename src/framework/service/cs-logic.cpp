@@ -25,6 +25,8 @@
 #include <algorithm>
 #include <ctime>
 #include <climits>
+#include <cerrno>
+#include <unistd.h>
 
 #include "common/audit/logger.h"
 #include "service/type-converter.h"
@@ -431,6 +433,44 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
+
+	EXCEPTION_GUARD_END
+}
+
+RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
+{
+	EXCEPTION_GUARD_START
+
+	if (this->m_db.getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
+		ThrowExc(EngineDisabled, "engine is disabled");
+
+	StrSet canonicalized;
+
+	for (const auto &path : paths) {
+		auto target = File::getPkgPath(path);
+		auto resolved = ::realpath(target.c_str(), nullptr);
+
+		if (resolved == nullptr) {
+			const int err = errno;
+			if (err == ENOENT)
+				ThrowExc(FileDoNotExist, "File do not exist: " << target);
+			else if (err == EACCES)
+				ThrowExc(PermDenied, "Perm denied to get real path: " << target);
+			else
+				ThrowExc(FileSystemError, "Failed to get real path: " << target <<
+						 " with errno: " << err);
+		}
+
+		std::string resolvedStr(resolved);
+		free(resolved);
+
+		if (canonicalized.find(resolvedStr) == canonicalized.end()) {
+			INFO("Insert to canonicalized list: " << resolvedStr);
+			canonicalized.emplace(std::move(resolvedStr));
+		}
+	}
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE, canonicalized).pop();
 
 	EXCEPTION_GUARD_END
 }

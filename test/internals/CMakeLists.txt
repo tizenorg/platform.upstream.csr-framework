@@ -40,7 +40,6 @@ SET(${TARGET_CSR_INTERNAL_TEST}_SRCS
 	${CSR_FW_SRC_PATH}/service/cs-loader.cpp
 	${CSR_FW_SRC_PATH}/service/wp-loader.cpp
 	${CSR_FW_SRC_PATH}/service/engine-error-converter.cpp
-	${CSR_FW_SRC_PATH}/client/canonicalize.cpp
 	${CSR_FW_SRC_PATH}/ui/popup/package-info.cpp
 
 	test-db.cpp
@@ -50,7 +49,6 @@ SET(${TARGET_CSR_INTERNAL_TEST}_SRCS
 	test-api-engine-web-protection.cpp
 	test-cs-loader.cpp
 	test-wp-loader.cpp
-	test-canonicalize.cpp
 	test-package-info.cpp
 
 	test-main.cpp

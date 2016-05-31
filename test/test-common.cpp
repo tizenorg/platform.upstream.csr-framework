@@ -121,7 +121,7 @@ std::string capi_ec_to_string(csr_error_e ec)
 	ERRORDESCRIBE(CSR_ERROR_ENGINE_DISABLED);
 	ERRORDESCRIBE(CSR_ERROR_ENGINE_NOT_ACTIVATED);
 	ERRORDESCRIBE(CSR_ERROR_ENGINE_INTERNAL);
-	ERRORDESCRIBE(CSR_ERROR_UNKNOWN);
+	ERRORDESCRIBE(CSR_ERROR_SYSTEM);
 	default: return std::string("Undefined capi error code: ")
 						+ std::to_string(static_cast<int>(ec));
 	}

@@ -82,11 +82,11 @@ BOOST_AUTO_TEST_CASE(fields_getters)
 	ASSERT_SUCCESS(csr_engine_get_activated(e.get(), &activated));
 	ASSERT_IF(activated, CSR_ACTIVATED);
 
-	csr_state_e state = CSR_ENABLE;
+	csr_state_e state = CSR_STATE_ENABLE;
 	ASSERT_SUCCESS(csr_engine_set_state(e.get(), state));
 
 	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
-	ASSERT_IF(state, CSR_ENABLE);
+	ASSERT_IF(state, CSR_STATE_ENABLE);
 
 	EXCEPTION_GUARD_END
 }
@@ -97,12 +97,12 @@ BOOST_AUTO_TEST_CASE(set_state)
 
 	Engine e(CSR_ENGINE_CS);
 
-	csr_state_e state = CSR_ENABLE;
+	csr_state_e state = CSR_STATE_ENABLE;
 
 	// enable
-	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_ENABLE));
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_STATE_ENABLE));
 	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
-	ASSERT_IF(state, CSR_ENABLE);
+	ASSERT_IF(state, CSR_STATE_ENABLE);
 
 	// prepare data
 	auto c = Test::Context<csr_cs_context_h>();
@@ -115,9 +115,9 @@ BOOST_AUTO_TEST_CASE(set_state)
 	ASSERT_SUCCESS(csr_cs_scan_data(context, data, sizeof(data), &detected));
 
 	// disable
-	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_DISABLE));
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_STATE_DISABLE));
 	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
-	ASSERT_IF(state, CSR_DISABLE);
+	ASSERT_IF(state, CSR_STATE_DISABLE);
 
 	// test operation
 	ASSERT_IF(csr_cs_scan_data(context, data, sizeof(data), &detected),
@@ -126,9 +126,9 @@ BOOST_AUTO_TEST_CASE(set_state)
 			  CSR_ERROR_ENGINE_DISABLED);
 
 	// enable
-	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_ENABLE));
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_STATE_ENABLE));
 	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
-	ASSERT_IF(state, CSR_ENABLE);
+	ASSERT_IF(state, CSR_STATE_ENABLE);
 
 	// test operation
 	ASSERT_SUCCESS(csr_cs_scan_data(context, data, sizeof(data), &detected));
@@ -167,11 +167,11 @@ BOOST_AUTO_TEST_CASE(fields_getters)
 	ASSERT_SUCCESS(csr_engine_get_activated(e.get(), &activated));
 	ASSERT_IF(activated, CSR_ACTIVATED);
 
-	csr_state_e state = CSR_ENABLE;
+	csr_state_e state = CSR_STATE_ENABLE;
 	ASSERT_SUCCESS(csr_engine_set_state(e.get(), state));
 
 	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
-	ASSERT_IF(state, CSR_ENABLE);
+	ASSERT_IF(state, CSR_STATE_ENABLE);
 
 	EXCEPTION_GUARD_END
 }
@@ -182,12 +182,12 @@ BOOST_AUTO_TEST_CASE(set_state)
 
 	Engine e(CSR_ENGINE_WP);
 
-	csr_state_e state = CSR_ENABLE;
+	csr_state_e state = CSR_STATE_ENABLE;
 
 	// enable
-	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_ENABLE));
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_STATE_ENABLE));
 	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
-	ASSERT_IF(state, CSR_ENABLE);
+	ASSERT_IF(state, CSR_STATE_ENABLE);
 
 	// prepare data
 	auto c = Test::Context<csr_wp_context_h>();
@@ -198,18 +198,18 @@ BOOST_AUTO_TEST_CASE(set_state)
 	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_HIGH_URL, &result));
 
 	// disable
-	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_DISABLE));
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_STATE_DISABLE));
 	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
-	ASSERT_IF(state, CSR_DISABLE);
+	ASSERT_IF(state, CSR_STATE_DISABLE);
 
 	// test operation
 	ASSERT_IF(csr_wp_check_url(context, RISK_HIGH_URL, &result),
 			  CSR_ERROR_ENGINE_DISABLED);
 
 	// enable
-	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_ENABLE));
+	ASSERT_SUCCESS(csr_engine_set_state(e.get(), CSR_STATE_ENABLE));
 	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
-	ASSERT_IF(state, CSR_ENABLE);
+	ASSERT_IF(state, CSR_STATE_ENABLE);
 
 	// test operation
 	ASSERT_SUCCESS(csr_wp_check_url(context, RISK_HIGH_URL, &result));

@@ -57,7 +57,7 @@ extern "C" {
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        @a handle may be null
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_context_destroy()
  */
@@ -75,7 +75,7 @@ int csr_cs_context_create(csr_cs_context_h *handle);
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_context_create()
  */
@@ -102,7 +102,7 @@ int csr_cs_context_destroy(csr_cs_context_h handle);
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a ask_user is invalid
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_context_create()
  * @see csr_cs_context_destroy()
@@ -129,7 +129,7 @@ int csr_cs_set_ask_user(csr_cs_context_h handle, csr_cs_ask_user_e ask_user);
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a message is too long or empty. Max size
  *                                          is 64 bytes.
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_context_create()
  * @see csr_cs_context_destroy()
@@ -151,7 +151,7 @@ int csr_cs_set_popup_message(csr_cs_context_h handle, const char *message);
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a usage is invalid
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_context_create()
  * @see csr_cs_context_destroy()
@@ -172,7 +172,7 @@ int csr_cs_set_core_usage(csr_cs_context_h handle, csr_cs_core_usage_e usage);
  *
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_context_create()
  * @see csr_cs_context_destroy()
@@ -214,7 +214,7 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle);
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_context_create()
  * @see csr_cs_context_destroy()
@@ -258,7 +258,7 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data, size_t 
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_PERMISSION     Insufficient permission of engine
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_context_create()
  * @see csr_cs_context_destroy()
@@ -282,7 +282,7 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_scan_files_async()
  * @see csr_cs_scan_dir_async()
@@ -306,7 +306,7 @@ int csr_cs_set_file_scanned_cb(csr_cs_context_h handle, csr_cs_file_scanned_cb c
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_scan_files_async()
  * @see csr_cs_scan_dir_async()
@@ -329,7 +329,7 @@ int csr_cs_set_detected_cb(csr_cs_context_h handle, csr_cs_detected_cb callback)
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_scan_files_async()
  * @see csr_cs_scan_dir_async()
@@ -353,7 +353,7 @@ int csr_cs_set_completed_cb(csr_cs_context_h handle, csr_cs_completed_cb callbac
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_scan_files_async()
  * @see csr_cs_scan_dir_async()
@@ -377,7 +377,7 @@ int csr_cs_set_cancelled_cb(csr_cs_context_h handle, csr_cs_cancelled_cb callbac
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a callback is invalid
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_scan_files_async()
  * @see csr_cs_scan_dir_async()
@@ -388,15 +388,6 @@ int csr_cs_set_error_cb(csr_cs_context_h handle, csr_cs_error_cb callback);
 /**
  * @brief Scan files specified by an array of file paths for malware.
  *
- * @since_tizen 3.0
- * @privlevel partner
- * @privilege %http://tizen.org/privilege/antivirus.scan
- *
- * @remarks Asynchronous function.
- * @remarks The caller should set callback functions before call this method.
- * @remarks Detected malware which is provided to the callback will be released when
- *          @a handle is released using csr_cs_context_destroy().
- *
  * @details If scanning of the single file is done without detected malware,
  *          csr_cs_file_scanned_cb() called and else if malware detected
  *          csr_cs_detected_cb() called. If scanning is cancelled by
@@ -405,6 +396,15 @@ int csr_cs_set_error_cb(csr_cs_context_h handle, csr_cs_error_cb callback);
  *          error, csr_cs_completed_cb(). Every callbacks are registered by callback
  *          setter methods to @a handle and if callback is not registered, it will just
  *          skipped to be called.
+ *
+ * @since_tizen 3.0
+ * @privlevel partner
+ * @privilege %http://tizen.org/privilege/antivirus.scan
+ *
+ * @remarks Asynchronous function.
+ * @remarks The caller should set callback functions before call this method.
+ * @remarks Detected malware which is provided to the callback will be released when
+ *          @a handle is released using csr_cs_context_destroy().
  *
  * @param[in]  handle       CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  file_paths   An array of scan target files.
@@ -430,7 +430,10 @@ int csr_cs_set_error_cb(csr_cs_context_h handle, csr_cs_error_cb callback);
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
+ *
+ * @pre It is required to set callbacks, csr_cs_completed_cb, csr_cs_error_cb(),
+ *      csr_cs_cancel_scanning(), csr_cs_detected_cb(), and/or csr_cs_file_scanned_cb().
  *
  * @see csr_cs_set_file_scanned_cb()
  * @see csr_cs_set_detected_cb()
@@ -445,15 +448,6 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 /**
  * @brief Scans a directory specified by directory path for malware.
  *
- * @since_tizen 3.0
- * @privlevel partner
- * @privilege %http://tizen.org/privilege/antivirus.scan
- *
- * @remarks Asynchronous function.
- * @remarks The caller should set callback functions before calls this method.
- * @remarks Detected malware which is provided to the callback will be released when
- *          @a handle is released using csr_cs_context_destroy().
- *
  * @details If scanning of the single file is done without detected malware,
  *          csr_cs_file_scanned_cb() called and else if malware detected
  *          csr_cs_detected_cb() called. If scanning is cancelled by
@@ -462,6 +456,15 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
  *          error, csr_cs_completed_cb(). Every callbacks are registered by callback
  *          setter methods to @a handle and if callback is not registered, it will just
  *          skipped to be called.
+ *
+ * @since_tizen 3.0
+ * @privlevel partner
+ * @privilege %http://tizen.org/privilege/antivirus.scan
+ *
+ * @remarks Asynchronous function.
+ * @remarks The caller should set callback functions before calls this method.
+ * @remarks Detected malware which is provided to the callback will be released when
+ *          @a handle is released using csr_cs_context_destroy().
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  dir_path   A path of scan target directory.
@@ -486,7 +489,10 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
+ *
+ * @pre It is required to set callbacks, csr_cs_completed_cb, csr_cs_error_cb(),
+ *      csr_cs_cancel_scanning(), csr_cs_detected_cb(), and/or csr_cs_file_scanned_cb(). 
  *
  * @see csr_cs_set_file_scanned_cb()
  * @see csr_cs_set_detected_cb()
@@ -500,15 +506,6 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path, void *u
 /**
  * @brief Scan directories specified by an array of directory paths for malware.
  *
- * @since_tizen 3.0
- * @privlevel partner
- * @privilege %http://tizen.org/privilege/antivirus.scan
- *
- * @remarks Asynchronous function.
- * @remarks The caller should set callback functions before calls this method.
- * @remarks Detected malware which is provided to the callback will be released when
- *          @a handle is released using csr_cs_context_destroy().
- *
  * @details If scanning of the single file is done without detected malware,
  *          csr_cs_file_scanned_cb() called and else if malware detected
  *          csr_cs_detected_cb() called. If scanning is cancelled by
@@ -517,6 +514,15 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path, void *u
  *          error, csr_cs_completed_cb(). Every callbacks are registered by callback
  *          setter methods to @a handle and if callback is not registered, it will just
  *          skipped to be called.
+ *
+ * @since_tizen 3.0
+ * @privlevel partner
+ * @privilege %http://tizen.org/privilege/antivirus.scan
+ *
+ * @remarks Asynchronous function.
+ * @remarks The caller should set callback functions before calls this method.
+ * @remarks Detected malware which is provided to the callback will be released when
+ *          @a handle is released using csr_cs_context_destroy().
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  dir_paths  An array of scan target directories.
@@ -542,7 +548,10 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path, void *u
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
+ *
+ * @pre It is required to set callbacks, csr_cs_completed_cb, csr_cs_error_cb(),
+ *      csr_cs_cancel_scanning(), csr_cs_detected_cb(), and/or csr_cs_file_scanned_cb().
  *
  * @see csr_cs_set_file_scanned_cb()
  * @see csr_cs_set_detected_cb()
@@ -556,7 +565,7 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[], siz
 
 
 /**
- * @brief Cancels a running scanning task.
+ * @brief Cancels a running scanning task, asynchronously.
  *
  * @since_tizen 3.0
  *
@@ -569,7 +578,7 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[], siz
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_NO_TASK               No task to cancel
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_scan_files_async()
  * @see csr_cs_scan_dir_async()
@@ -592,7 +601,7 @@ int csr_cs_cancel_scanning(csr_cs_context_h handle);
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a severity is invalid
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  */
 int csr_cs_malware_get_severity(csr_cs_malware_h malware,
 								csr_cs_severity_level_e *severity);
@@ -612,7 +621,7 @@ int csr_cs_malware_get_severity(csr_cs_malware_h malware,
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a name is invalid
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  */
 int csr_cs_malware_get_name(csr_cs_malware_h malware, char **name);
 
@@ -634,7 +643,7 @@ int csr_cs_malware_get_name(csr_cs_malware_h malware, char **name);
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a detailed_url is invalid.
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  */
 int csr_cs_malware_get_detailed_url(csr_cs_malware_h malware, char **detailed_url);
 
@@ -653,7 +662,7 @@ int csr_cs_malware_get_detailed_url(csr_cs_malware_h malware, char **detailed_ur
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a timestamp is invalid
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  */
 int csr_cs_malware_get_timestamp(csr_cs_malware_h malware, time_t *timestamp);
 
@@ -674,7 +683,7 @@ int csr_cs_malware_get_timestamp(csr_cs_malware_h malware, time_t *timestamp);
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a file_name is invalid
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  */
 int csr_cs_malware_get_file_name(csr_cs_malware_h malware, char **file_name);
 
@@ -691,7 +700,7 @@ int csr_cs_malware_get_file_name(csr_cs_malware_h malware, char **file_name);
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid result handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a response is invalid
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  */
 int csr_cs_malware_get_user_response(csr_cs_malware_h malware,
 									 csr_cs_user_response_e *response);
@@ -709,7 +718,7 @@ int csr_cs_malware_get_user_response(csr_cs_malware_h malware,
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid result handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a is_app is invalid
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  */
 int csr_cs_malware_is_app(csr_cs_malware_h malware, bool *is_app);
 
@@ -730,7 +739,7 @@ int csr_cs_malware_is_app(csr_cs_malware_h malware, bool *is_app);
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid detected malware handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a pkg_id is invalid
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  */
 int csr_cs_malware_get_pkg_id(csr_cs_malware_h malware, char **pkg_id);
 
@@ -765,7 +774,7 @@ int csr_cs_malware_get_pkg_id(csr_cs_malware_h malware, char **pkg_id);
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_DB                    DB transaction error
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  */
 int csr_cs_judge_detected_malware(csr_cs_context_h handle, csr_cs_malware_h malware,
 								  csr_cs_action_e action);
@@ -797,7 +806,7 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle, csr_cs_malware_h malw
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_DB                    DB transaction error
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_cs_scan_data()
  * @see csr_cs_scan_file()
@@ -834,7 +843,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_DB                    DB transaction error
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  */
 int csr_cs_get_detected_malwares(csr_cs_context_h handle, const char *dir_paths[],
 								 size_t count, csr_cs_malware_list_h *list,
@@ -865,7 +874,7 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle, const char *dir_paths[
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_DB                    DB transaction error
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  */
 int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
 							   csr_cs_malware_h *malware);
@@ -898,7 +907,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_DB                    DB transaction error
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  */
 int csr_cs_get_ignored_malwares(csr_cs_context_h handle, const char *dir_paths[],
 								size_t count, csr_cs_malware_list_h *list,
@@ -921,7 +930,7 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle, const char *dir_paths[]
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid list
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a index or @a malware is invalid.
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  */
 int csr_cs_malware_list_get_malware(csr_cs_malware_list_h list, size_t index,
 									csr_cs_malware_h *malware);

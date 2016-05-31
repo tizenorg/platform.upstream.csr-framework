@@ -58,11 +58,11 @@ struct Callback {
 		return *this;
 	}
 
-	std::function<void(void *, const char *)> onScanned;
-	std::function<void(void *, csr_cs_malware_h)> onDetected;
+	std::function<void(const char *, void *)> onScanned;
+	std::function<void(csr_cs_malware_h, void *)> onDetected;
 	std::function<void(void *)> onCompleted;
 	std::function<void(void *)> onCancelled;
-	std::function<void(void *, int)> onError;
+	std::function<void(int, void *)> onError;
 };
 
 }

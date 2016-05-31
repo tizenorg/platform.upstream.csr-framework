@@ -53,7 +53,7 @@ extern "C" {
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_OUT_OF_MEMORY         Not enough memory
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a handle is invalid
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_wp_context_destroy()
  */
@@ -73,7 +73,7 @@ int csr_wp_context_create(csr_wp_context_h *handle);
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_wp_context_create()
  */
@@ -98,7 +98,7 @@ int csr_wp_context_destroy(csr_wp_context_h handle);
  * @retval #CSR_ERROR_NONE                  Successful
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a ask_user is invalid
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_wp_context_create()
  */
@@ -124,7 +124,7 @@ int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user);
  * @retval #CSR_ERROR_INVALID_HANDLE        Invalid handle
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a message is too long or empty. Max size
  *                                          is 64 bytes.
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_wp_context_create()
  */
@@ -161,7 +161,7 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
  * @retval #CSR_ERROR_ENGINE_INTERNAL       Engine Internal error
- * @retval #CSR_ERROR_UNKNOWN               Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM                System error
  *
  * @see csr_wp_context_create()
  * @see csr_wp_set_ask_user()
@@ -184,7 +184,7 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url,
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid result handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a level is invalid
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  *
  * @see csr_wp_check_url()
  */
@@ -209,7 +209,7 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid result handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a detailed_url is invalid
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  *
  * @see csr_wp_check_url()
  */
@@ -228,7 +228,7 @@ int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, char **detailed
  * @retval #CSR_ERROR_NONE                 Successful
  * @retval #CSR_ERROR_INVALID_HANDLE       Invalid result handle
  * @retval #CSR_ERROR_INVALID_PARAMETER    @a response is invalid
- * @retval #CSR_ERROR_UNKNOWN              Error with unknown reason
+ * @retval #CSR_ERROR_SYSTEM               System error
  *
  * @see csr_wp_check_url()
  * @see #csr_wp_user_response_e

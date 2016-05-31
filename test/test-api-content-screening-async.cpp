@@ -445,7 +445,7 @@ BOOST_AUTO_TEST_CASE(scan_dir_apps)
 
 	AsyncTestContext testCtx;
 
-	ASSERT_IF(csr_cs_scan_dir_async(context, TEST_DIR_APPS, &testCtx), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_dir_async(context, TEST_DIR_APPS, &testCtx));
 
 	std::unique_lock<std::mutex> l(testCtx.m);
 	testCtx.cv.wait(l);
@@ -783,6 +783,41 @@ BOOST_AUTO_TEST_CASE(delta_scan_changed_after_scan)
 		TEST_FAKE_APP_FILE, false, nullptr);
 
 	uninstall_test_apps();
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(multiple_async_dispatch_negative)
+{
+	EXCEPTION_GUARD_START
+
+	Test::initialize_db();
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	install_test_files();
+	install_test_apps();
+
+	set_default_callback(context);
+
+	AsyncTestContext testCtx;
+
+	// first call. it'll running in background asynchronously.
+	ASSERT_SUCCESS(csr_cs_scan_dir_async(context, TEST_DIR_APPS, &testCtx));
+
+	AsyncTestContext testCtx2;
+
+	// second call while first call is running in background. It should blocked because
+	// only one operation can be running asynchronously on one handle.
+	ASSERT_IF(csr_cs_scan_dir_async(context, TEST_DIR_APPS, &testCtx2),
+			  CSR_ERROR_BUSY);
+
+	std::unique_lock<std::mutex> l(testCtx.m);
+	testCtx.cv.wait(l);
+	l.unlock();
+
+	ASSERT_CALLBACK(testCtx, -1, 3, 1, 0, 0);
 
 	EXCEPTION_GUARD_END
 }

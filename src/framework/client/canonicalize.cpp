@@ -55,7 +55,7 @@ std::string getAbsolutePath(const std::string &path)
 	return apath;
 }
 
-void canonicalizeDirSet(StrSet &dirset)
+void eraseSubdirectories(StrSet &dirset)
 {
 	if (dirset.size() < 2)
 		return;

@@ -53,6 +53,7 @@ std::string cidToString(const CommandId &cid)
 	CID_TOSTRING(GET_IGNORED);
 	CID_TOSTRING(GET_IGNORED_LIST);
 	CID_TOSTRING(GET_SCANNABLE_FILES);
+	CID_TOSTRING(CANONICALIZE_PATHS);
 	CID_TOSTRING(SET_DIR_TIMESTAMP);
 	CID_TOSTRING(JUDGE_STATUS);
 
@@ -135,6 +136,15 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		q.Deserialize(dir);
 
 		return m_cslogic.getScannableFiles(dir);
+	}
+
+	case CommandId::CANONICALIZE_PATHS: {
+		hasPermission(conn);
+
+		StrSet paths;
+		q.Deserialize(paths);
+
+		return m_cslogic.canonicalizePaths(paths);
 	}
 
 	case CommandId::SET_DIR_TIMESTAMP: {

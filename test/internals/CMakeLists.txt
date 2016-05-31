@@ -25,6 +25,7 @@ SET(CSR_FW_SRC_PATH ${PROJECT_SOURCE_DIR}/src/framework)
 PKG_CHECK_MODULES(${TARGET_CSR_INTERNAL_TEST}_DEP
 	REQUIRED
 	sqlite3
+	pkgmgr-info
 )
 
 SET(${TARGET_CSR_INTERNAL_TEST}_SRCS
@@ -40,6 +41,7 @@ SET(${TARGET_CSR_INTERNAL_TEST}_SRCS
 	${CSR_FW_SRC_PATH}/service/wp-loader.cpp
 	${CSR_FW_SRC_PATH}/service/engine-error-converter.cpp
 	${CSR_FW_SRC_PATH}/client/canonicalize.cpp
+	${CSR_FW_SRC_PATH}/ui/popup/package-info.cpp
 
 	test-db.cpp
 	test-cpucore.cpp
@@ -49,6 +51,7 @@ SET(${TARGET_CSR_INTERNAL_TEST}_SRCS
 	test-cs-loader.cpp
 	test-wp-loader.cpp
 	test-canonicalize.cpp
+	test-package-info.cpp
 
 	test-main.cpp
 )
@@ -62,6 +65,7 @@ INCLUDE_DIRECTORIES(
 	${PROJECT_SOURCE_DIR}/src/include/csr
 	${PROJECT_SOURCE_DIR}/src/include/csre
 	${CSR_FW_SRC_PATH}
+	${CSR_FW_SRC_PATH}/ui/popup
 	${CSR_TEST_SRC_PATH}
 )
 

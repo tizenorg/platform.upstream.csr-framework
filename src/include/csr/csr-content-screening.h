@@ -23,7 +23,6 @@
 #define __CSR_CONTENT_SCREENING_API_H_
 
 #include <time.h>
-#include <stdbool.h>
 #include <stddef.h>
 
 #include <csr-content-screening-types.h>
@@ -421,6 +420,7 @@ int csr_cs_set_error_cb(csr_cs_context_h handle, csr_cs_error_cb callback);
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a file_paths is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
  * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
+ * @retval #CSR_ERROR_BUSY                  Busy for processing another request
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
@@ -479,6 +479,7 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a dir_path is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
  * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
+ * @retval #CSR_ERROR_BUSY                  Busy for processing another request
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
  * @retval #CSR_ERROR_FILE_SYSTEM           File type is invalid. It should be directory
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
@@ -538,6 +539,7 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path, void *u
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a dir_paths is invalid
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
  * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
+ * @retval #CSR_ERROR_BUSY                  Busy for processing another request
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
  * @retval #CSR_ERROR_FILE_SYSTEM           File type is invalid. It should be directory
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server

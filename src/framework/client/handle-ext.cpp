@@ -116,6 +116,7 @@ void HandleExt::dispatchAsync(const Task &f)
 	// TODO: how to handle exceptions in workers
 	std::thread t([this, f] {
 		DEBUG("client async thread dispatched! tid: " << std::this_thread::get_id());
+		m_stop = false;
 
 		f();
 		done();

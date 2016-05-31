@@ -382,9 +382,26 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 	}
 
 	hExt->dispatchAsync([hExt, user_data, fileSet] {
+		auto ret = hExt->dispatch<std::pair<int, std::shared_ptr<StrSet>>>(
+					CommandId::CANONICALIZE_PATHS, *fileSet);
+
+		INFO("Receive canonicalized paths.");
+
+		if (ret.first != CSR_ERROR_NONE) {
+			// call error_cb with error code: ret.first
+			return;
+		}
+
+		std::shared_ptr<StrSet> canonicalizedFiles;
+
+		if (ret.second == nullptr)
+			canonicalizedFiles = std::make_shared<StrSet>();
+		else
+			canonicalizedFiles = std::move(ret.second);
+
 		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
-		l.scanFiles(*fileSet).second();
+		l.scanFiles(*canonicalizedFiles).second();
 	});
 
 	return CSR_ERROR_NONE;
@@ -440,12 +457,27 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 		dirSet->insert(Client::getAbsolutePath(dir_paths[i]));
 	}
 
-	Client::canonicalizeDirSet(*dirSet);
-
 	hExt->dispatchAsync([hExt, user_data, dirSet] {
+		auto ret = hExt->dispatch<std::pair<int, std::shared_ptr<StrSet>>>(
+					CommandId::CANONICALIZE_PATHS, *dirSet);
+
+		if (ret.first != CSR_ERROR_NONE) {
+			// call error_cb with error code: ret.first
+			return;
+		}
+
+		std::shared_ptr<StrSet> canonicalizedDirs;
+
+		if (ret.second == nullptr)
+			canonicalizedDirs = std::make_shared<StrSet>();
+		else
+			canonicalizedDirs = std::move(ret.second);
+
+		Client::eraseSubdirectories(*canonicalizedDirs);
+
 		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
-		l.scanDirs(*dirSet).second();
+		l.scanDirs(*canonicalizedDirs).second();
 	});
 
 	return CSR_ERROR_NONE;

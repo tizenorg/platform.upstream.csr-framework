@@ -33,7 +33,7 @@ namespace Client {
 std::string getAbsolutePath(const std::string &path);
 
 // input directory set should contains resolved path only
-void canonicalizeDirSet(StrSet &dirset);
+void eraseSubdirectories(StrSet &dirset);
 
 } // namespace Client
 } // namespace Csr

@@ -34,7 +34,8 @@ enum class CommandId : int {
 	GET_IGNORED         = 0x1103,
 	GET_IGNORED_LIST    = 0x1104,
 	GET_SCANNABLE_FILES = 0x1105,
-	SET_DIR_TIMESTAMP   = 0x1106,
+	CANONICALIZE_PATHS  = 0x1106,
+	SET_DIR_TIMESTAMP   = 0x1107,
 	// handle result
 	JUDGE_STATUS        = 0x1201,
 

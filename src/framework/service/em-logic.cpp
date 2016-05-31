@@ -69,9 +69,6 @@ RawBuffer EmLogic::getEngineName(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
 
-	if (this->m_db.getEngineState(context.engineId) != CSR_ENABLE)
-		ThrowExc(EngineDisabled, "engine is disabled");
-
 	if (context.engineId == CSR_ENGINE_CS) {
 		CsEngineInfo engineInfo(this->m_cs);
 		auto &c = engineInfo.get();
@@ -96,9 +93,6 @@ RawBuffer EmLogic::getEngineName(const EmContext &context)
 RawBuffer EmLogic::getEngineVendor(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
-
-	if (this->m_db.getEngineState(context.engineId) != CSR_ENABLE)
-		ThrowExc(EngineDisabled, "engine is disabled");
 
 	if (context.engineId == CSR_ENGINE_CS) {
 		CsEngineInfo engineInfo(this->m_cs);
@@ -125,9 +119,6 @@ RawBuffer EmLogic::getEngineVersion(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
 
-	if (this->m_db.getEngineState(context.engineId) != CSR_ENABLE)
-		ThrowExc(EngineDisabled, "engine is disabled");
-
 	if (context.engineId == CSR_ENGINE_CS) {
 		CsEngineInfo engineInfo(this->m_cs);
 		auto &c = engineInfo.get();
@@ -153,9 +144,6 @@ RawBuffer EmLogic::getEngineDataVersion(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
 
-	if (this->m_db.getEngineState(context.engineId) != CSR_ENABLE)
-		ThrowExc(EngineDisabled, "engine is disabled");
-
 	if (context.engineId == CSR_ENGINE_CS) {
 		CsEngineInfo engineInfo(this->m_cs);
 		auto &c = engineInfo.get();
@@ -180,9 +168,6 @@ RawBuffer EmLogic::getEngineDataVersion(const EmContext &context)
 RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
-
-	if (this->m_db.getEngineState(context.engineId) != CSR_ENABLE)
-		ThrowExc(EngineDisabled, "engine is disabled");
 
 	if (context.engineId == CSR_ENGINE_CS) {
 		CsEngineInfo engineInfo(this->m_cs);
@@ -212,9 +197,6 @@ RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 RawBuffer EmLogic::getEngineActivated(const EmContext &context)
 {
 	EXCEPTION_GUARD_START
-
-	if (this->m_db.getEngineState(context.engineId) != CSR_ENABLE)
-		ThrowExc(EngineDisabled, "engine is disabled");
 
 	csr_activated_e activated = CSR_NOT_ACTIVATED;
 

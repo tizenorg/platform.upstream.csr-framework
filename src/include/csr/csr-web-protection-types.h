@@ -48,8 +48,8 @@ typedef struct __csr_wp_check_result_h *csr_wp_check_result_h;
  * @since_tizen 3.0
  */
 typedef enum {
-	CSR_WP_NOT_ASK_USER = 0x00, /**< Do not ask the user even if a URL turns out risky.*/
-	CSR_WP_ASK_USER     = 0x01  /**< Ask the user when a URL turns out risky */
+	CSR_WP_ASK_USER_NO      = 0x00, /**< Do not ask the user even if a URL turns out risky.*/
+	CSR_WP_ASK_USER_YES     = 0x01  /**< Ask the user when a URL turns out risky */
 } csr_wp_ask_user_e;
 
 /**
@@ -57,9 +57,9 @@ typedef enum {
  * @since_tizen 3.0
  */
 typedef enum {
-	CSR_WP_NO_ASK_USER           = 0x00, /**< There was no popup for asking the user. */
-	CSR_WP_PROCESSING_ALLOWED    = 0x01, /**< A user allowed to process the url. */
-	CSR_WP_PROCESSING_DISALLOWED = 0x02  /**< A user disallowed to process the url. */
+	CSR_WP_USER_RESPONSE_USER_NOT_ASKED        = 0x00, /**< There was no popup for asking the user. */
+	CSR_WP_USER_RESPONSE_PROCESSING_ALLOWED    = 0x01, /**< A user allowed to process the url. */
+	CSR_WP_USER_RESPONSE_PROCESSING_DISALLOWED = 0x02  /**< A user disallowed to process the url. */
 } csr_wp_user_response_e;
 
 /**

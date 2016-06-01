@@ -42,15 +42,15 @@ void printPressed(csr_cs_user_response_e response)
 	bool isValid = true;
 
 	switch (response) {
-	case CSR_CS_REMOVE:
+	case CSR_CS_USER_RESPONSE_REMOVE:
 		std::cout << "############## REMOVE BUTTON PRESSED  #############" << std::endl;
 		break;
 
-	case CSR_CS_PROCESSING_ALLOWED:
+	case CSR_CS_USER_RESPONSE_PROCESSING_ALLOWED:
 		std::cout << "############## ALLOW  BUTTON PRESSED  #############" << std::endl;
 		break;
 
-	case CSR_CS_PROCESSING_DISALLOWED:
+	case CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED:
 		std::cout << "############ DISALLOW BUTTON PRESSED ##############" << std::endl;
 		break;
 
@@ -76,11 +76,11 @@ void printPressed(csr_wp_user_response_e response)
 	bool isValid = true;
 
 	switch (response) {
-	case CSR_WP_PROCESSING_ALLOWED:
+	case CSR_WP_USER_RESPONSE_PROCESSING_ALLOWED:
 		std::cout << "##############  ALLOW BUTTON PRESSED  #############" << std::endl;
 		break;
 
-	case CSR_WP_PROCESSING_DISALLOWED:
+	case CSR_WP_USER_RESPONSE_PROCESSING_DISALLOWED:
 		std::cout << "############ DENY/CONFIRM BUTTON PRESSED ##########" << std::endl;
 		break;
 

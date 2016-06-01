@@ -41,8 +41,8 @@ namespace {
 void setCoreUsage(const csr_cs_core_usage_e &cu)
 {
 	switch (cu) {
-	case CSR_CS_USE_CORE_HALF:
-	case CSR_CS_USE_CORE_SINGLE:
+	case CSR_CS_CORE_USAGE_HALF:
+	case CSR_CS_CORE_USAGE_SINGLE:
 		CpuUsageManager::set(cu);
 		break;
 
@@ -584,8 +584,8 @@ RawBuffer CsLogic::getIgnoredList(const StrSet &dirSet)
 
 RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fileptr)
 {
-	if (c.askUser == CSR_CS_NOT_ASK_USER) {
-		d.response = CSR_CS_NO_ASK_USER;
+	if (c.askUser == CSR_CS_ASK_USER_NO) {
+		d.response = CSR_CS_USER_RESPONSE_USER_NOT_ASKED;
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
 	}
 
@@ -620,7 +620,7 @@ RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fi
 	Ui::AskUser askUser;
 	d.response = askUser.cs(cid, c.popupMessage, d);
 
-	if (d.response == CSR_CS_REMOVE && !d.targetName.empty()) {
+	if (d.response == CSR_CS_USER_RESPONSE_REMOVE && !d.targetName.empty()) {
 		try {
 			FilePtr _fileptr;
 

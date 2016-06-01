@@ -25,7 +25,7 @@ namespace Csr {
 
 WpResult::WpResult() noexcept :
 	riskLevel(CSR_WP_RISK_LOW),
-	response(CSR_WP_NO_ASK_USER)
+	response(CSR_WP_USER_RESPONSE_USER_NOT_ASKED)
 {
 }
 

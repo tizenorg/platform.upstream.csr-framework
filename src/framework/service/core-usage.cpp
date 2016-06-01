@@ -38,16 +38,16 @@ const int TotalCoreNum = ::sysconf(_SC_NPROCESSORS_ONLN);
 void CpuUsageManager::set(const csr_cs_core_usage_e &cu)
 {
 	switch (cu) {
-	case CSR_CS_USE_CORE_HALF:
+	case CSR_CS_CORE_USAGE_HALF:
 		CpuUsageManager::setRunningCores(TotalCoreNum / 2);
 		break;
 
-	case CSR_CS_USE_CORE_SINGLE:
+	case CSR_CS_CORE_USAGE_SINGLE:
 		CpuUsageManager::setRunningCores(CpuUsageManager::MinCoreNum);
 		break;
 
-	case CSR_CS_USE_CORE_DEFAULT:
-	case CSR_CS_USE_CORE_ALL:
+	case CSR_CS_CORE_USAGE_DEFAULT:
+	case CSR_CS_CORE_USAGE_ALL:
 		CpuUsageManager::reset();
 		break;
 

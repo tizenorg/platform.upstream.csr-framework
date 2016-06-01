@@ -41,10 +41,10 @@ namespace {
 bool _isValid(const csr_cs_core_usage_e &value)
 {
 	switch (value) {
-	case CSR_CS_USE_CORE_DEFAULT:
-	case CSR_CS_USE_CORE_ALL:
-	case CSR_CS_USE_CORE_HALF:
-	case CSR_CS_USE_CORE_SINGLE:
+	case CSR_CS_CORE_USAGE_DEFAULT:
+	case CSR_CS_CORE_USAGE_ALL:
+	case CSR_CS_CORE_USAGE_HALF:
+	case CSR_CS_CORE_USAGE_SINGLE:
 		return true;
 
 	default:
@@ -55,8 +55,8 @@ bool _isValid(const csr_cs_core_usage_e &value)
 bool _isValid(const csr_cs_ask_user_e &value)
 {
 	switch (value) {
-	case CSR_CS_NOT_ASK_USER:
-	case CSR_CS_ASK_USER:
+	case CSR_CS_ASK_USER_NO:
+	case CSR_CS_ASK_USER_YES:
 		return true;
 
 	default:

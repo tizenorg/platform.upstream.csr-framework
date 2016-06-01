@@ -53,15 +53,15 @@ BOOST_AUTO_TEST_CASE(set_values_to_context_positive)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 
-	ASSERT_SUCCESS(csr_cs_set_ask_user(context, CSR_CS_NOT_ASK_USER));
-	ASSERT_SUCCESS(csr_cs_set_ask_user(context, CSR_CS_ASK_USER));
+	ASSERT_SUCCESS(csr_cs_set_ask_user(context, CSR_CS_ASK_USER_NO));
+	ASSERT_SUCCESS(csr_cs_set_ask_user(context, CSR_CS_ASK_USER_YES));
 
 	ASSERT_SUCCESS(csr_cs_set_popup_message(context, "Test popup message"));
 
-	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_DEFAULT));
-	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_ALL));
-	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_HALF));
-	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_USE_CORE_SINGLE));
+	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_CORE_USAGE_DEFAULT));
+	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_CORE_USAGE_ALL));
+	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_CORE_USAGE_HALF));
+	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_CORE_USAGE_SINGLE));
 
 	ASSERT_SUCCESS(csr_cs_set_scan_on_cloud(context));
 

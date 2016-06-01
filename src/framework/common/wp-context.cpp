@@ -26,7 +26,7 @@
 
 namespace Csr {
 
-WpContext::WpContext() noexcept : askUser(CSR_WP_NOT_ASK_USER)
+WpContext::WpContext() noexcept : askUser(CSR_WP_ASK_USER_NO)
 {
 }
 

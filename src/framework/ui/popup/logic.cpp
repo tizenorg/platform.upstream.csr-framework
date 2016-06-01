@@ -29,6 +29,7 @@
 #include "common/audit/logger.h"
 #include "common/exception.h"
 #include "ui/common.h"
+
 #include "popup.h"
 
 #include <csr-content-screening-types.h>
@@ -37,238 +38,238 @@
 namespace Csr {
 namespace Ui {
 
-namespace {
-
-std::unordered_map<int, std::function<void()>> g_callbackRegistry;
-
-void evasCbWrapper(void *data, Evas_Object *, void *)
+RawBuffer Logic::csPromptData(const std::string &message, const CsDetected &d) const
 {
-	auto response = reinterpret_cast<int *>(data);
-	g_callbackRegistry[*response]();
-	g_callbackRegistry.clear();
-}
+	std::string risk(d.severity == CSR_CS_SEVERITY_LOW ? "Low" : "Medium");
+	Popup p(1);
 
-void registerCb(Evas_Object *button, int *rp, std::function<void()> &&func)
-{
-	evas_object_smart_callback_add(button, "clicked", evasCbWrapper, rp);
-	g_callbackRegistry[*rp] = std::move(func);
-}
+	p.setMessage(message);
+	p.setTitle("Malware detected");
+	p.setHeader("Malware which is harm your phone is detected.");
+	p.setBody(FORMAT(
+			"- Risk : " << risk << " (" << d.malwareName << ")" <<
+			"<br><br>" << "More information"));
+	p.setFooter("Processing is prohibited to protect your phone.");
 
-void addButton(int response, int *rp, const std::string &buttonPart,
-			   const std::string &buttonText, Popup &popup, RawBuffer &result)
-{
-	*rp = response;
+	p.setText(p.m_buttons[0], "OK");
 
-	auto button = popup.addButton(buttonPart);
-	elm_object_text_set(button, buttonText.c_str());
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED));
 
-	registerCb(button, rp, [rp, &result, &popup]() {
-		DEBUG("Button for response[" << *rp << "] clicked!");
-		result = BinaryQueue::Serialize(rp).pop();
-		popup.stop();
-	});
-}
+	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
 
-} // namespace anonymous
-
-Logic::Logic()
-{
-}
-
-Logic::~Logic()
-{
-}
-
-RawBuffer Logic::csPromptData(const std::string &message,
-							  const CsDetected &d) const
-{
-	Popup popup;
-
-	popup.fillText("Virus detected on data", FORMAT(
-					   "Malware: " << d.malwareName << "<br>" <<
-					   "Severity: " << static_cast<int>(d.severity) << "<br>" <<
-					   "Do you want to stop processing?" <<
-					   message.c_str()));
-
-	RawBuffer result;
-
-	std::unique_ptr<int[]> resps(new int[2]);
-
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_ALLOWED), &resps[0], "button1", "yes",
-			  popup, result);
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED), &resps[1], "button2", "no",
-			  popup, result);
-
-	popup.start();
-
-	return result;
+	p.run();
+	return p.getResult();
 }
 
 RawBuffer Logic::csPromptFile(const std::string &message, const CsDetected &d) const
 {
-	Popup popup;
+	std::string risk(d.severity == CSR_CS_SEVERITY_LOW ? "Low" : "Medium");
 
-	popup.fillText("Virus detected", FORMAT(
-					   "File: " << d.targetName << "<br>" <<
-					   "Malware: " << d.malwareName << "<br>" <<
-					   message.c_str()));
+	Popup p(3);
 
-	RawBuffer result;
+	p.setMessage(message);
+	p.setTitle("Malware detected");
+	p.setHeader("Malware which is harm your phone is detected.");
+	p.setBody(FORMAT(
+			"- File name : " << d.targetName << "<br>" <<
+			"- Path : " << "path" << "<br>" <<
+			"- Risk : " << risk << " (" << d.malwareName << ")" <<
+			"<br><br>" << "More information"));
+	p.setFooter("Tap Delete to delete infected files and"
+		"protect your phone. If you really want to"
+		"process anyway, tap Ignore.");
 
-	std::unique_ptr<int[]> resps(new int[3]);
+	p.setText(p.m_buttons[0], "OK");
+	p.setText(p.m_buttons[1], "Ignore");
+	p.setText(p.m_buttons[2], "Delete");
 
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_REMOVE), &resps[0], "button1", "remove", popup,
-			  result);
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_ALLOWED), &resps[1], "button2", "allow",
-			  popup, result);
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED), &resps[2], "button3", "deny",
-			  popup, result);
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED));
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_ALLOWED));
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_CS_USER_RESPONSE_REMOVE));
 
-	popup.start();
+	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
+	p.callbackRegister(p.m_buttons[1], "clicked", &p.m_types[1]);
+	p.callbackRegister(p.m_buttons[2], "clicked", &p.m_types[2]);
 
-	return result;
+	p.run();
+	return p.getResult();
 }
 
 RawBuffer Logic::csPromptApp(const std::string &message, const CsDetected &d) const
 {
-	Popup popup;
+	std::string risk(d.severity == CSR_CS_SEVERITY_LOW ? "Low" : "Medium");
 
-	popup.fillText("Virus detected", FORMAT(
-					   "App: " << d.targetName << "<br>" <<
-					   "Malware: " << d.malwareName << "<br>" <<
-					   message.c_str()));
+	Popup p(3);
 
-	RawBuffer result;
+	p.setMessage(message);
+	p.setTitle("Malware detected");
+	p.setHeader("Malware which is harm your phone is detected.");
+	p.setBody(FORMAT(
+			"App name : " << d.targetName << "<br>" <<
+			"Version : " << "1.0" << "<br>" <<
+			"Risk : " << risk << " (" << d.malwareName << ")" <<
+			"<br><br>" << "More information"));
+	p.setFooter("Tap Uninstall to uninstall infected"
+		"application and protect your phone."
+		"If you really want to process anyway, tap Ignore.");
 
-	std::unique_ptr<int[]> resps(new int[3]);
+	p.setText(p.m_buttons[0], "OK");
+	p.setText(p.m_buttons[1], "Ignore");
+	p.setText(p.m_buttons[2], "Uninstall");
 
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_REMOVE), &resps[0], "button1", "remove", popup,
-			  result);
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_ALLOWED), &resps[1], "button2", "allow",
-			  popup, result);
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED), &resps[2], "button3", "deny",
-			  popup, result);
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED));
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_ALLOWED));
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_CS_USER_RESPONSE_REMOVE));
 
-	popup.start();
+	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
+	p.callbackRegister(p.m_buttons[1], "clicked", &p.m_types[1]);
+	p.callbackRegister(p.m_buttons[2], "clicked", &p.m_types[2]);
 
-	return result;
+	p.run();
+	return p.getResult();
 }
 
 RawBuffer Logic::csNotifyData(const std::string &message, const CsDetected &d) const
 {
-	Popup popup;
+	Popup p(1);
 
-	popup.fillText("Virus detected on data", FORMAT(
-					   "Malware: " << d.malwareName << "<br>" <<
-					   "Severity: " << static_cast<int>(d.severity) << "<br>" <<
-					   "Do you want to stop processing?" <<
-					   message.c_str()));
+	p.setMessage(message);
+	p.setTitle("Malware detected");
+	p.setHeader("Malware which is harm your phone is detected.");
+	p.setBody(FORMAT(
+			"- Risk : " << "High" << " (" << d.malwareName << ")" <<
+			"<br><br>" << "More information"));
+	p.setFooter("Processing is prohibited to protect your phone.");
 
-	RawBuffer result;
+	p.setText(p.m_buttons[0], "OK");
 
-	std::unique_ptr<int[]> resps(new int[2]);
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED));
 
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_ALLOWED), &resps[0], "button1", "yes",
-			  popup, result);
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED), &resps[1], "button2", "no",
-			  popup, result);
+	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
 
-	popup.start();
-
-	return result;
+	p.run();
+	return p.getResult();
 }
 
 RawBuffer Logic::csNotifyFile(const std::string &message, const CsDetected &d) const
 {
-	Popup popup;
+	Popup p(2);
 
-	popup.fillText("Virus detected", FORMAT(
-					   "File: " << d.targetName << "<br>" <<
-					   "Malware: " << d.malwareName << "<br>" <<
-					   message.c_str()));
+	p.setMessage(message);
+	p.setTitle("Malware detected");
+	p.setHeader("Malware which is harm your phone is detected.");
+	p.setBody(FORMAT(
+			"- File name : " << d.targetName << "<br>" <<
+			"- Path : " << "path" << "<br>" <<
+			"- Risk : " << "High" << " (" << d.malwareName << ")" <<
+			"<br><br>" << "More information"));
+	p.setFooter("Tap Delete to delete infected files and"
+		"protect your phone.");
 
-	RawBuffer result;
+	p.setText(p.m_buttons[0], "OK");
+	p.setText(p.m_buttons[1], "Delete");
 
-	std::unique_ptr<int[]> resps(new int[2]);
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED));
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_CS_USER_RESPONSE_REMOVE));
 
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_REMOVE), &resps[0], "button1", "remove", popup,
-			  result);
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED), &resps[1], "button2", "deny",
-			  popup, result);
+	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
+	p.callbackRegister(p.m_buttons[1], "clicked", &p.m_types[1]);
 
-	popup.start();
-
-	return result;
+	p.run();
+	return p.getResult();
 }
 
 RawBuffer Logic::csNotifyApp(const std::string &message, const CsDetected &d) const
 {
-	Popup popup;
+	Popup p(2);
 
-	popup.fillText("Virus detected", FORMAT(
-					   "App: " << d.targetName << "<br>" <<
-					   "Malware: " << d.malwareName << "<br>" <<
-					   message.c_str()));
+	p.setMessage(message);
+	p.setTitle("Malware detected");
+	p.setHeader("Malware which is harm your phone is detected.");
+	p.setBody(FORMAT(
+			"App name : " << d.targetName << "<br>" <<
+			"Version : " << "1.0" << "<br>" <<
+			"Risk : " << "High" << " (" << d.malwareName << ")" <<
+			"<br><br>" << "More information"));
+	p.setFooter("Tap Uninstall to uninstall infected"
+		"application and protect your phone.");
 
-	RawBuffer result;
+	p.setText(p.m_buttons[0], "OK");
+	p.setText(p.m_buttons[1], "Uninstall");
 
-	std::unique_ptr<int[]> resps(new int[2]);
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED));
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_ALLOWED));
 
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_REMOVE), &resps[0], "button1", "remove", popup,
-			  result);
-	addButton(static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED), &resps[1], "button2", "deny",
-			  popup, result);
+	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
+	p.callbackRegister(p.m_buttons[1], "clicked", &p.m_types[1]);
 
-	popup.start();
-
-	return result;
+	p.run();
+	return p.getResult();
 }
 
 RawBuffer Logic::wpPrompt(const std::string &message, const UrlItem &item) const
 {
-	Popup popup;
+	std::string risk(item.risk == CSR_WP_RISK_LOW ? "Low" : "Medium");
 
-	popup.fillText("Danger URL", FORMAT(
-					   "URL: " << item.url << "<br>" <<
-					   "Risky: " << (item.risk == CSR_WP_RISK_HIGH
-									 ? "High" : "Medium") << "<br>" <<
-					   message.c_str()));
+	Popup p(1);
 
-	RawBuffer result;
+	p.setMessage(message);
+	p.setTitle("Block malicious URL");
+	p.setHeader("This website may harm your phone.");
+	p.setBody(FORMAT(
+			"- URL : " << item.url << "<br>" <<
+			"- Risk : " << risk << "<br><br>" <<
+			"More information"));
+	p.setFooter("Accessing to this URL is prohibited to protect your phone.");
 
-	std::unique_ptr<int[]> resps(new int[2]);
+	p.setText(p.m_buttons[0], "OK");
 
-	addButton(static_cast<int>(CSR_WP_USER_RESPONSE_PROCESSING_ALLOWED), &resps[0], "button1", "allow",
-			  popup, result);
-	addButton(static_cast<int>(CSR_WP_USER_RESPONSE_PROCESSING_DISALLOWED), &resps[1], "button2", "deny",
-			  popup, result);
+	p.m_types.emplace_back(static_cast<int>(CSR_WP_USER_RESPONSE_PROCESSING_DISALLOWED));
 
-	popup.start();
+	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
 
-	return result;
+	p.run();
+	return p.getResult();
 }
 
 RawBuffer Logic::wpNotify(const std::string &message, const UrlItem &item) const
 {
-	Popup popup;
+	Popup p(2);
 
-	popup.fillText("Danger URL", FORMAT(
-					   "URL: " << item.url << "<br>" <<
-					   "Risky: " << (item.risk == CSR_WP_RISK_HIGH
-									 ? "High" : "Medium") << "<br>" <<
-					   message.c_str()));
+	p.setMessage(message);
+	p.setTitle("Block malicious URL");
+	p.setHeader("This website may harm your phone.");
+	p.setBody(FORMAT(
+			"- URL : " << item.url << "<br>" <<
+			"- Risk : " << "High" << "<br><br>" <<
+			"More information"));
+	p.setFooter("If you really want to process anyway, tap View");
 
-	RawBuffer result;
+	p.setText(p.m_buttons[0], "OK");
+	p.setText(p.m_buttons[1], "View");
 
-	std::unique_ptr<int> resp(new int);
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_WP_USER_RESPONSE_PROCESSING_DISALLOWED));
+	p.m_types.emplace_back(
+		static_cast<int>(CSR_WP_USER_RESPONSE_PROCESSING_ALLOWED));
 
-	addButton(static_cast<int>(CSR_WP_USER_RESPONSE_PROCESSING_DISALLOWED), resp.get(), "button1",
-			  "confirm", popup, result);
+	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
+	p.callbackRegister(p.m_buttons[1], "clicked", &p.m_types[1]);
 
-	popup.start();
-
-	return result;
+	p.run();
+	return p.getResult();
 }
-
-}
-}
+} // namespace Ui
+} // namespace Csr

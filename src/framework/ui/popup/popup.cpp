@@ -16,72 +16,102 @@
 /*
  * @file        popup.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
+ * @author      Sangwan Kwon (sangwan.kwon@samsung.com)
  * @version     1.0
  * @brief
  */
 #include "popup.h"
 
-#include <stdexcept>
-
-#include "common/audit/logger.h"
-
 namespace Csr {
 namespace Ui {
 
-Popup::Popup()
+Popup::Popup(int buttonN)
 {
-	Evas_Object *win = elm_win_add(nullptr, "CSR popup", ELM_WIN_NOTIFICATION);
-	elm_win_indicator_opacity_set(win, ELM_WIN_INDICATOR_TRANSLUCENT);
-	elm_win_borderless_set(win, EINA_TRUE);
-	elm_win_alpha_set(win, EINA_TRUE);
+	m_win = elm_win_add(nullptr, "CSR popup", ELM_WIN_NOTIFICATION);
+	elm_win_indicator_opacity_set(m_win, ELM_WIN_INDICATOR_TRANSLUCENT);
+	elm_win_borderless_set(m_win, EINA_TRUE);
+	elm_win_alpha_set(m_win, EINA_TRUE);
 
-	Evas_Object *popup = elm_popup_add(win);
-	evas_object_size_hint_weight_set(popup, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	m_popup = elm_popup_add(m_win);
+	evas_object_size_hint_weight_set(m_popup, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 
-	m_win = win;
-	m_popup = popup;
+	for(int i=1 ; i <= buttonN; i++) {
+		std::string id("button" + std::to_string(i));
+		Evas_Object *button = elm_button_add(m_popup);
+		elm_object_style_set(button, "bottom");
+		elm_object_part_content_set(m_popup, id.c_str(), button);
+		elm_object_text_set(button, "default");
+
+		m_buttons.emplace_back(button);
+	}
 }
 
 Popup::~Popup()
 {
+	for (auto &obj : m_objects)
+		evas_object_del(obj);
 }
 
-void Popup::stop()
+void Popup::setHeader(const std::string &header) noexcept
 {
-	if (m_popup)
-		evas_object_del(m_popup);
-
-	if (m_win)
-		evas_object_del(m_win);
-
-	elm_exit();
+	m_header = header;
 }
 
-void Popup::start()
+void Popup::setBody(const std::string &body) noexcept
 {
-	evas_object_show(m_win);
-	evas_object_show(m_popup);
+	m_body = body;
+}
 
-	DEBUG("Popup UI event loop start!");
+void Popup::setFooter(const std::string &footer) noexcept
+{
+	m_footer = footer;
+}
+
+void Popup::setMessage(const std::string &msg) noexcept
+{
+	m_message = msg;
+}
+
+void Popup::run(void)
+{
+	setText(m_popup, (m_header + "<br>" +
+		m_body + "<br><br>" + m_footer).c_str());
+
+	m_objects.emplace_back(m_popup);
+	m_objects.emplace_back(m_win);
+
+	for (auto &obj : m_objects)
+		evas_object_show(obj);
 
 	elm_run();
 }
 
-void Popup::fillText(const std::string &title, const std::string &content)
+int Popup::response = -1;
+
+RawBuffer Popup::getResult(void)
+{
+	return BinaryQueue::Serialize(response).pop();
+}
+
+void Popup::setTitle(const std::string &title) noexcept
 {
 	elm_object_part_text_set(m_popup, "title,text", title.c_str());
-	elm_object_text_set(m_popup, content.c_str());
 }
 
-Evas_Object *Popup::addButton(const std::string &part)
+void Popup::setText(Evas_Object *obj, const std::string &text) noexcept
 {
-	Evas_Object *button = elm_button_add(m_popup);
-	elm_object_style_set(button, "bottom");
-	elm_object_part_content_set(m_popup, part.c_str(), button);
-	evas_object_show(button);
-
-	return button;
+	elm_object_text_set(obj, text.c_str());
 }
 
+void Popup::callbackRegister(Evas_Object *obj, const char *event, int *type)
+{
+	evas_object_smart_callback_add(obj, event, btnClickedCb, type);
 }
+
+void Popup::btnClickedCb(void *data, Evas_Object *, void *)
+{
+	response = *(reinterpret_cast<int *>(data));
+	elm_exit();
 }
+} // namespace Ui
+} // namespace Csr

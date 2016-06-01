@@ -64,10 +64,9 @@ int main(int argc, char **argv)
 
 		Csr::Ui::PopupService service;
 
-		// timeout when idle for 10 sec. If timeout time is too small and
-		// popup service wakes up repeatedly too quickly, it can be refused
-		// by systemd.
-		service.start(1000 * 10);
+		// If timeout time is too small and popup service wakes up repeatedly too quickyl,
+		// it can be kept out to start by systemd.
+		service.start(POPUP_SERVICE_IDLE_TIMEOUT_TIME);
 
 		return 0;
 	} catch (const std::exception &e) {

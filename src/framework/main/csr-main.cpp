@@ -32,8 +32,7 @@ int main(void)
 
 		INFO("Let's start csr-server service!");
 
-		/* no timeout */
-		service.start(-1);
+		service.start(SERVICE_IDLE_TIMEOUT_TIME);
 
 		return 0;
 	} catch (const std::exception &e) {

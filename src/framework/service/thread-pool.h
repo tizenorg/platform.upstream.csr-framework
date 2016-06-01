@@ -47,7 +47,10 @@ public:
 	void submit(std::function<void()> &&task);
 
 	// get workers size in thread pool
-	size_t size(void);
+	size_t size(void) const;
+
+	// check whether there's running task by worker.
+	bool isTaskRunning(void) const;
 
 private:
 	void add(void);
@@ -55,6 +58,7 @@ private:
 	const size_t m_min;
 	const size_t m_max;
 	std::atomic<bool> m_stop;
+	std::atomic<size_t> m_runningWorkersNum;
 	std::map<std::thread::id, std::thread> m_workers;
 	std::queue<std::function<void()>> m_tasks;
 	std::mutex m_mutex;

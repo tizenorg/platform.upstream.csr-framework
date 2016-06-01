@@ -41,6 +41,9 @@ file contents and checking url to prevent malicious items.
 %global sample_engine_dir            %{ro_data_dir}/%{service_name}/lib
 %global test_dir                     %{rw_data_dir}/%{service_name}-test
 
+%global service_idle_timeout_time       60
+%global popup_service_idle_timeout_time 10
+
 %if "%{platform_version}" == "3.0"
 %global service_user                 security_fw
 %global service_group                security_fw
@@ -138,6 +141,8 @@ test program of csr-framework
     -DPOPUP_SYSTEMD_UNIT_DIR=%{popup_unitdir} \
     -DRO_DBSPACE:PATH=%{ro_db_dir} \
     -DRW_DBSPACE:PATH=%{rw_db_dir} \
+    -DSERVICE_IDLE_TIMEOUT_TIME=%{service_idle_timeout_time} \
+    -DPOPUP_SERVICE_IDLE_TIMEOUT_TIME=%{popup_service_idle_timeout_time} \
     -DSAMPLE_ENGINE_RO_RES_DIR:PATH=%{sample_engine_ro_res_dir} \
     -DSAMPLE_ENGINE_RW_WORKING_DIR:PATH=%{sample_engine_rw_working_dir} \
     -DSAMPLE_ENGINE_DIR:PATH=%{sample_engine_dir} \
@@ -153,10 +158,8 @@ make %{?jobs:-j%jobs}
 
 %install
 %make_install
-mkdir -p %{buildroot}%{_unitdir}/multi-user.target.wants
 mkdir -p %{buildroot}%{_unitdir}/sockets.target.wants
 mkdir -p %{buildroot}%{popup_unitdir}/sockets.target.wants
-ln -s ../%{service_name}.service %{buildroot}%{_unitdir}/multi-user.target.wants/%{service_name}.service
 ln -s ../%{service_name}-cs.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}-cs.socket
 ln -s ../%{service_name}-wp.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}-wp.socket
 ln -s ../%{service_name}-admin.socket %{buildroot}%{_unitdir}/sockets.target.wants/%{service_name}-admin.socket
@@ -219,7 +222,6 @@ fi
 %{ro_data_dir}/license/%{name}.BSL-1.0
 %{bin_dir}/%{service_name}-server
 %{bin_dir}/%{service_name}-popup
-%{_unitdir}/multi-user.target.wants/%{service_name}.service
 %{_unitdir}/%{service_name}.service
 %{_unitdir}/sockets.target.wants/%{service_name}-cs.socket
 %{_unitdir}/sockets.target.wants/%{service_name}-wp.socket

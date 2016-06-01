@@ -10,6 +10,3 @@ ExecStart=@BIN_DIR@/@SERVICE_NAME@-server
 Sockets=@SERVICE_NAME@-cs.socket
 Sockets=@SERVICE_NAME@-wp.socket
 Sockets=@SERVICE_NAME@-admin.socket
-
-[Install]
-WantedBy=multi-user.target

@@ -39,10 +39,14 @@ public:
 	Mainloop(Mainloop &&) = delete;
 	Mainloop &operator=(Mainloop &&) = delete;
 
+	// timeout unit: seconds
+	// if timeout is negative value, no timeout on idle.
 	void run(int timeout);
 
 	void addEventSource(int fd, uint32_t event, Callback &&callback);
 	void removeEventSource(int fd);
+
+	void setIdleChecker(std::function<bool()> &&idleChecker);
 
 private:
 	void dispatch(int timeout);
@@ -51,6 +55,8 @@ private:
 	int m_pollfd;
 	std::mutex m_mutex;
 	std::unordered_map<int, Callback> m_callbacks;
+
+	std::function<bool()> m_isIdle;
 
 	constexpr static size_t MAX_EPOLL_EVENTS = 32;
 };

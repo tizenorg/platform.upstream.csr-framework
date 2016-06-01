@@ -71,7 +71,7 @@ int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user)
 
 	if (handle == nullptr)
 		return CSR_ERROR_INVALID_HANDLE;
-	else if (ask_user != CSR_WP_NOT_ASK_USER && ask_user != CSR_WP_ASK_USER)
+	else if (ask_user != CSR_WP_ASK_USER_NO && ask_user != CSR_WP_ASK_USER_YES)
 		return CSR_ERROR_INVALID_PARAMETER;
 
 	reinterpret_cast<Client::Handle *>(handle)->getContext()->set(

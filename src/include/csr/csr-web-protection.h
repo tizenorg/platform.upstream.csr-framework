@@ -82,13 +82,13 @@ int csr_wp_context_destroy(csr_wp_context_h handle);
 /**
  * @brief Sets a popup option for risky URL checked.
  *
- * @details If #CSR_WP_ASK_USER is set, a popup will be prompted to a user when a URL
- *          turns out risky. If #CSR_WP_NOT_ASK_USER is set, no popup will be prompted
+ * @details If #CSR_WP_ASK_USER_YES is set, a popup will be prompted to a user when a URL
+ *          turns out risky. If #CSR_WP_ASK_USER_NO is set, no popup will be prompted
  *          even when a URL turns out risky.
  *
  * @since_tizen 3.0
  *
- * @remarks This option is disabled(#CSR_WP_NOT_ASK_USER) as a default.
+ * @remarks This option is disabled(#CSR_WP_ASK_USER_NO) as a default.
  *
  * @param[in] handle    CSR WP context handle returned by csr_wp_context_create().
  * @param[in] ask_user  A popup option in case for a risky URL.

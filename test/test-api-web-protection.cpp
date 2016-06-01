@@ -65,8 +65,8 @@ BOOST_AUTO_TEST_CASE(set_ask_user)
 	auto c = Test::Context<csr_wp_context_h>();
 	auto context = c.get();
 
-	ASSERT_SUCCESS(csr_wp_set_ask_user(context, CSR_WP_ASK_USER));
-	ASSERT_SUCCESS(csr_wp_set_ask_user(context, CSR_WP_NOT_ASK_USER));
+	ASSERT_SUCCESS(csr_wp_set_ask_user(context, CSR_WP_ASK_USER_YES));
+	ASSERT_SUCCESS(csr_wp_set_ask_user(context, CSR_WP_ASK_USER_NO));
 
 	EXCEPTION_GUARD_END
 }
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(set_ask_user_invalid_param)
 	auto c = Test::Context<csr_wp_context_h>();
 	auto context = c.get();
 
-	ASSERT_IF(csr_wp_set_ask_user(nullptr, CSR_WP_ASK_USER), CSR_ERROR_INVALID_HANDLE);
+	ASSERT_IF(csr_wp_set_ask_user(nullptr, CSR_WP_ASK_USER_YES), CSR_ERROR_INVALID_HANDLE);
 
 	ASSERT_IF(csr_wp_set_ask_user(context, static_cast<csr_wp_ask_user_e>(-1)),
 			CSR_ERROR_INVALID_PARAMETER);
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(check_url_high)
 
 	CHECK_IS_NOT_NULL(result);
 
-	ASSERT_RESULT(result, RISK_HIGH_RISK, RISK_HIGH_DETAILED_URL, CSR_WP_NO_ASK_USER);
+	ASSERT_RESULT(result, RISK_HIGH_RISK, RISK_HIGH_DETAILED_URL, CSR_WP_USER_RESPONSE_USER_NOT_ASKED);
 
 	EXCEPTION_GUARD_END
 }
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(check_url_medium)
 
 	CHECK_IS_NOT_NULL(result);
 
-	ASSERT_RESULT(result, RISK_MEDIUM_RISK, RISK_MEDIUM_DETAILED_URL, CSR_WP_NO_ASK_USER);
+	ASSERT_RESULT(result, RISK_MEDIUM_RISK, RISK_MEDIUM_DETAILED_URL, CSR_WP_USER_RESPONSE_USER_NOT_ASKED);
 
 	EXCEPTION_GUARD_END
 }
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(check_url_low)
 
 	CHECK_IS_NOT_NULL(result);
 
-	ASSERT_RESULT(result, RISK_LOW_RISK, RISK_LOW_DETAILED_URL, CSR_WP_NO_ASK_USER);
+	ASSERT_RESULT(result, RISK_LOW_RISK, RISK_LOW_DETAILED_URL, CSR_WP_USER_RESPONSE_USER_NOT_ASKED);
 
 	EXCEPTION_GUARD_END
 }
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(check_url_unverified)
 	CHECK_IS_NOT_NULL(result);
 
 	ASSERT_RESULT(result, RISK_UNVERIFIED_RISK, RISK_UNVERIFIED_DETAILED_URL,
-				  CSR_WP_NO_ASK_USER);
+				  CSR_WP_USER_RESPONSE_USER_NOT_ASKED);
 
 	EXCEPTION_GUARD_END
 }

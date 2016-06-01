@@ -87,8 +87,8 @@ RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
 csr_wp_user_response_e WpLogic::getUserResponse(const WpContext &c, const std::string &url,
 		const WpResult &wr)
 {
-	if (c.askUser == CSR_WP_NOT_ASK_USER)
-		return CSR_WP_NO_ASK_USER;
+	if (c.askUser == CSR_WP_ASK_USER_NO)
+		return CSR_WP_USER_RESPONSE_USER_NOT_ASKED;
 
 	Ui::CommandId cid;
 

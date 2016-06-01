@@ -46,8 +46,8 @@ typedef enum {
  * @since_tizen 3.0
  */
 typedef enum {
-	CSR_CS_NOT_ASK_USER = 0x00, /**< Do not ask the user even if malicious contents were found.*/
-	CSR_CS_ASK_USER     = 0x01  /**< Ask the user when malicious contents were found. */
+	CSR_CS_ASK_USER_NO      = 0x00, /**< Do not ask the user even if malicious contents were found.*/
+	CSR_CS_ASK_USER_YES     = 0x01  /**< Ask the user when malicious contents were found. */
 } csr_cs_ask_user_e;
 
 /**
@@ -55,10 +55,10 @@ typedef enum {
  * @since_tizen 3.0
  */
 typedef enum {
-	CSR_CS_NO_ASK_USER            = 0x00, /**< No response from user. */
-	CSR_CS_REMOVE                 = 0x01, /**< A user decided to remove a detected malicious content and it was removed. */
-	CSR_CS_PROCESSING_ALLOWED     = 0x02, /**< A user decided to process a detected malware. */
-	CSR_CS_PROCESSING_DISALLOWED  = 0x03, /**< A user decided not to process a detected malware. */
+	CSR_CS_USER_RESPONSE_USER_NOT_ASKED         = 0x00, /**< No response from user. */
+	CSR_CS_USER_RESPONSE_REMOVE                 = 0x01, /**< A user decided to remove a detected malicious content and it was removed. */
+	CSR_CS_USER_RESPONSE_PROCESSING_ALLOWED     = 0x02, /**< A user decided to process a detected malware. */
+	CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED  = 0x03, /**< A user decided not to process a detected malware. */
 } csr_cs_user_response_e;
 
 /**
@@ -66,9 +66,9 @@ typedef enum {
  * @since_tizen 3.0
  */
 typedef enum {
-	CSR_CS_ACTION_REMOVE   = 0x00,  /* Remove the detected malware file. */
-	CSR_CS_ACTION_IGNORE   = 0x01,  /* Ignore the detected malware file. */
-	CSR_CS_ACTION_UNIGNORE = 0x02   /* Unignore the previously ignored file. */
+	CSR_CS_ACTION_REMOVE   = 0x00,  /**< Remove the detected malware file. */
+	CSR_CS_ACTION_IGNORE   = 0x01,  /**< Ignore the detected malware file. */
+	CSR_CS_ACTION_UNIGNORE = 0x02   /**< Unignore the previously ignored file. */
 } csr_cs_action_e;
 
 /**
@@ -76,10 +76,10 @@ typedef enum {
  * @since_tizen 3.0
  */
 typedef enum {
-	CSR_CS_USE_CORE_DEFAULT = 0x00,  /* Use default setting value. */
-	CSR_CS_USE_CORE_ALL     = 0x01,  /* Use all cores during scanning. */
-	CSR_CS_USE_CORE_HALF    = 0x02,  /* Use half cores during scanning. */
-	CSR_CS_USE_CORE_SINGLE  = 0x03   /* Use a single core during scanning. */
+	CSR_CS_CORE_USAGE_DEFAULT = 0x00,  /**< Use default setting value. */
+	CSR_CS_CORE_USAGE_ALL     = 0x01,  /**< Use all cores during scanning. */
+	CSR_CS_CORE_USAGE_HALF    = 0x02,  /**< Use half cores during scanning. */
+	CSR_CS_CORE_USAGE_SINGLE  = 0x03   /**< Use a single core during scanning. */
 } csr_cs_core_usage_e;
 
 /**

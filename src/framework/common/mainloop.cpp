@@ -110,7 +110,8 @@ void Mainloop::dispatch(int timeout)
 	DEBUG("Mainloop dispatched with timeout: " << timeout);
 
 	do {
-		nfds = ::epoll_wait(this->m_pollfd, event, MAX_EPOLL_EVENTS, timeout);
+		nfds = ::epoll_wait(this->m_pollfd, event, MAX_EPOLL_EVENTS,
+							((timeout < 0) ? -1 : (timeout * 1000)));
 	} while ((nfds == -1) && (errno == EINTR));
 
 	if (nfds < 0)
@@ -120,7 +121,15 @@ void Mainloop::dispatch(int timeout)
 
 	if (nfds == 0) {
 		DEBUG("Mainloop timed out!");
-		this->m_isTimedOut = true;
+		if (this->m_isIdle && !this->m_isIdle()) {
+			INFO("Mainloop timed out but there's running task on upper layer. "
+				 "Re-dispatch.");
+			this->m_isTimedOut = false;
+		} else {
+			INFO("Mainloop timed out! stop the loop!");
+			this->m_isTimedOut = true;
+		}
+
 		return;
 	}
 
@@ -141,6 +150,11 @@ void Mainloop::dispatch(int timeout)
 
 		this->m_callbacks[fd](event[i].events);
 	}
+}
+
+void Mainloop::setIdleChecker(std::function<bool()> &&idleChecker)
+{
+	this->m_isIdle = std::move(idleChecker);
 }
 
 }

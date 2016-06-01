@@ -34,6 +34,14 @@ Service::Service()
 {
 	this->setNewConnectionCallback(nullptr);
 	this->setCloseConnectionCallback(nullptr);
+
+	// set default idle checker which returns always true
+	this->m_loop.setIdleChecker([]() { return true; });
+}
+
+void Service::setIdleChecker(std::function<bool()> &&idleChecker)
+{
+	this->m_loop.setIdleChecker(std::move(idleChecker));
 }
 
 void Service::add(const SockId &id)

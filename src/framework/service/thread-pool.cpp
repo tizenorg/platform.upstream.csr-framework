@@ -36,15 +36,16 @@ namespace Csr {
 ThreadPool::ThreadPool(size_t min, size_t max) :
 	m_min(min),
 	m_max(max),
-	m_stop(false)
+	m_stop(false),
+	m_runningWorkersNum(0)
 {
-	if (m_min > m_max)
+	if (this->m_min > this->m_max)
 		throw std::invalid_argument("thread pool MIN shouldn't be bigger than MAX");
 
-	for (size_t i = 0; i < m_min; i++)
-		add();
+	for (size_t i = 0; i < this->m_min; i++)
+		this->add();
 
-	DEBUG("Thread pool initialized with [" << m_workers.size() << "] threads");
+	DEBUG("Thread pool initialized with [" << this->m_workers.size() << "] threads");
 }
 
 void ThreadPool::add(void)
@@ -53,53 +54,64 @@ void ThreadPool::add(void)
 		DEBUG("Thread[" << std::this_thread::get_id() << "] start in pool");
 
 		while (true) {
-			std::unique_lock<std::mutex> lock(m_mutex);
-			m_cv.wait(lock, [this]() {
-				return m_workers.size() > m_min || m_stop || !m_tasks.empty();
+			std::unique_lock<std::mutex> lock(this->m_mutex);
+			this->m_cv.wait(lock, [this]() {
+				return this->m_workers.size() > this->m_min ||
+					   this->m_stop ||
+					   !this->m_tasks.empty();
 			});
 
-			if (m_stop && m_tasks.empty()) {
+			if (this->m_stop && this->m_tasks.empty()) {
 				DEBUG("Thread pool stop requested. "
 					  "thread[" << std::this_thread::get_id() << "] returning.");
 				break;
 			}
 
-			if (m_workers.size() > m_min && m_tasks.empty()) {
+			if (this->m_workers.size() > this->m_min && this->m_tasks.empty()) {
 				DEBUG("Terminate idle thread[" << std::this_thread::get_id() << "]");
 
-				// move thread itself to me and erase dummy in m_workers
-				std::thread::id currentId = std::this_thread::get_id();
-				m_workers[currentId].detach();
-				m_workers.erase(currentId);
+				// move thread itself to me and erase dummy in this->m_workers
+				auto currentId = std::this_thread::get_id();
+				this->m_workers[currentId].detach();
+				this->m_workers.erase(currentId);
 				break;
 			}
 
-			auto task = std::move(m_tasks.front());
-			m_tasks.pop();
+			auto task = std::move(this->m_tasks.front());
+			this->m_tasks.pop();
 
 			lock.unlock();
 
 			INFO("Start task on thread[" << std::this_thread::get_id() << "]");
 
+			++this->m_runningWorkersNum;
+
 			task();
+
+			--this->m_runningWorkersNum;
 		}
 	});
 
-	m_workers[t.get_id()] = std::move(t);
+	this->m_workers[t.get_id()] = std::move(t);
 }
 
-size_t ThreadPool::size()
+size_t ThreadPool::size() const
 {
-	return m_workers.size();
+	return this->m_workers.size();
+}
+
+bool ThreadPool::isTaskRunning() const
+{
+	return this->m_runningWorkersNum != 0;
 }
 
 ThreadPool::~ThreadPool()
 {
-	m_stop = true;
+	this->m_stop = true;
 
-	m_cv.notify_all();
+	this->m_cv.notify_all();
 
-	for (auto &worker : m_workers) {
+	for (auto &worker : this->m_workers) {
 		if (worker.second.joinable())
 			worker.second.join();
 	}
@@ -107,19 +119,19 @@ ThreadPool::~ThreadPool()
 
 void ThreadPool::submit(std::function<void()> &&task)
 {
-	if (!m_tasks.empty() && m_workers.size() < m_max) {
+	if (!this->m_tasks.empty() && this->m_workers.size() < this->m_max) {
 		DEBUG("more workers needed. let's add.");
-		add();
+		this->add();
 	}
 
 	__BEGIN_CRITICAL__
 
-	if (!m_stop)
-		m_tasks.emplace(std::move(task));
+	if (!this->m_stop)
+		this->m_tasks.emplace(std::move(task));
 
 	__END_CRITICAL__
 
-	m_cv.notify_one();
+	this->m_cv.notify_one();
 }
 
 }

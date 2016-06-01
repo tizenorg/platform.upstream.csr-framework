@@ -50,6 +50,9 @@ public:
 	virtual void setNewConnectionCallback(const ConnCallback &) final;
 	virtual void setCloseConnectionCallback(const ConnCallback &) final;
 
+protected:
+	void setIdleChecker(std::function<bool()> &&idleChecker);
+
 private:
 	virtual void onMessageProcess(const ConnShPtr &) = 0;
 

@@ -197,6 +197,9 @@ int csr_engine_get_data_version(csr_engine_h engine, char **version);
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
+ * @remarks  The memory allocation for @a time is not done within this method,
+ *           so a caller must provide a valid pointer and manage the memory by itself.
+ *
  * @param[in]  engine   The engine information handle.
  * @param[out] time     A pointer of lasted update time.
  *

@@ -34,6 +34,14 @@ SET(${TARGET_CSR_POPUP}_SRCS
 	main.cpp
 	logic.cpp
 	popup.cpp
+	popup-wp-prompt.cpp
+	popup-wp-notify.cpp
+	popup-cs-prompt-app.cpp
+	popup-cs-notify-app.cpp
+	popup-cs-prompt-file.cpp
+	popup-cs-notify-file.cpp
+	popup-cs-prompt-data.cpp
+	popup-cs-notify-data.cpp
 	popup-service.cpp
 	${PROJECT_SOURCE_DIR}/src/framework/ui/common.cpp
 )

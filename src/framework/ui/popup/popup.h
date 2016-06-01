@@ -16,6 +16,7 @@
 /*
  * @file        popup.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
+ * @author      Sangwan Kwon (sangwan.kwon@samsung.com)
  * @version     1.0
  * @brief
  */
@@ -23,28 +24,70 @@
 
 #include <Elementary.h>
 #include <string>
+#include <vector>
+#include <memory>
+
+#include <csr-content-screening-types.h>
+#include <csr-web-protection-types.h>
+
+#include "common/audit/logger.h"
+#include "common/binary-queue.h"
 
 namespace Csr {
 namespace Ui {
 
+/*
+ * --------------------
+ * |      title       |
+ * --------------------
+ * | content(header)  |
+ * | content(body)    |
+ * | content(footer)  |
+ * --------------------
+ * |     button(N)    |
+ * --------------------
+ */
+
 class Popup {
 public:
-	Popup();
+	Popup(int buttonN);
 	virtual ~Popup();
 
-	/* fill text on popup */
-	void fillText(const std::string &title, const std::string &content);
+	void run(void);
+	RawBuffer getResult(void);
+	void setMessage(const std::string &msg) noexcept;
 
-	/* add button to popup on given part of */
-	Evas_Object *addButton(const std::string &part);
+	Popup(const Popup &) = delete;
+	Popup &operator=(const Popup &) = delete;
+	Popup(Popup &&) = delete;
+	Popup &operator=(Popup &&) = delete;
 
-	void start(void);
-	void stop(void);
+protected:
+	void setTitle(const std::string &title) noexcept;
+	void setHeader(const std::string &header) noexcept;
+	void setBody(const std::string &body) noexcept;
+	void setFooter(const std::string &footer) noexcept;
+	void setText(Evas_Object *obj, const std::string &text) noexcept;
+
+	void callbackRegister(Evas_Object *obj, const char *event, int *type);
+	static void btnClickedCb(void *data, Evas_Object *, void *);
+
+	std::vector<Evas_Object *> m_objects;
+	std::vector<Evas_Object *> m_buttons;
+	std::vector<int> m_types;
 
 private:
+	virtual void setLayout() = 0;
+
 	Evas_Object *m_win;
 	Evas_Object *m_popup;
-};
+	std::string m_title;
+	std::string m_header;
+	std::string m_body;
+	std::string m_footer;
+	std::string m_message;
 
-}
-}
+	static int response;
+};
+} // namespace Ui
+} // namespace Csr

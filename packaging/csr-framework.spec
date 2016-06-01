@@ -36,9 +36,9 @@ file contents and checking url to prevent malicious items.
 %global rw_data_dir                  /opt/share
 %global ro_db_dir                    %{ro_data_dir}/%{service_name}/dbspace
 %global rw_db_dir                    %{rw_data_dir}/%{service_name}/dbspace
-%global sample_engine_ro_res_dir     %{ro_data_dir}/%{service_name}/engine_res
-%global sample_engine_rw_working_dir %{rw_data_dir}/%{service_name}/engine_data
-%global sample_engine_dir            %{ro_data_dir}/%{service_name}/engine
+%global engine_ro_res_dir            %{ro_data_dir}/%{service_name}/engine_res
+%global engine_rw_working_dir        %{rw_data_dir}/%{service_name}/engine_data
+%global engine_dir                   %{ro_data_dir}/%{service_name}/engine
 %global test_dir                     %{rw_data_dir}/%{service_name}-test
 
 %global service_idle_timeout_time       60
@@ -143,9 +143,9 @@ test program of csr-framework
     -DRW_DBSPACE:PATH=%{rw_db_dir} \
     -DSERVICE_IDLE_TIMEOUT_TIME=%{service_idle_timeout_time} \
     -DPOPUP_SERVICE_IDLE_TIMEOUT_TIME=%{popup_service_idle_timeout_time} \
-    -DSAMPLE_ENGINE_RO_RES_DIR:PATH=%{sample_engine_ro_res_dir} \
-    -DSAMPLE_ENGINE_RW_WORKING_DIR:PATH=%{sample_engine_rw_working_dir} \
-    -DSAMPLE_ENGINE_DIR:PATH=%{sample_engine_dir} \
+    -DENGINE_RO_RES_DIR:PATH=%{engine_ro_res_dir} \
+    -DENGINE_RW_WORKING_DIR:PATH=%{engine_rw_working_dir} \
+    -DENGINE_DIR:PATH=%{engine_dir} \
     -DTEST_TARGET=%{test_target} \
     -DTEST_DIR:PATH=%{test_dir} \
 %if "%{platform_version}" == "3.0"
@@ -173,10 +173,13 @@ cp LICENSE %{buildroot}%{ro_data_dir}/license/lib%{name}-common
 cp LICENSE %{buildroot}%{ro_data_dir}/license/%{name}-test
 cp LICENSE.BSL-1.0 %{buildroot}%{ro_data_dir}/license/%{name}-test.BSL-1.0
 
-mkdir -p %{buildroot}%{ro_db_dir}
 mkdir -p %{buildroot}%{rw_db_dir}
-mkdir -p %{buildroot}%{sample_engine_ro_res_dir}
+mkdir -p %{buildroot}%{ro_db_dir}
 cp data/scripts/*.sql %{buildroot}%{ro_db_dir}
+
+mkdir -p %{buildroot}%{engine_dir}
+mkdir -p %{buildroot}%{engine_ro_res_dir}
+mkdir -p %{buildroot}%{engine_rw_working_dir}
 
 %post
 systemctl daemon-reload
@@ -239,13 +242,9 @@ fi
 %dir %attr(-, %{service_user}, %{service_group}) %{rw_db_dir}
 %attr(444, %{service_user}, %{service_group}) %{ro_db_dir}/*.sql
 
-# sample engine related files
-%dir %{sample_engine_dir}
-%dir %{sample_engine_ro_res_dir}
-%dir %attr(775, %{service_user}, %{service_group}) %{sample_engine_rw_working_dir}
-%{sample_engine_dir}/lib%{service_name}-cs-engine.so
-%{sample_engine_dir}/lib%{service_name}-wp-engine.so
-%attr(-, %{service_user}, %{service_group}) %{sample_engine_rw_working_dir}/*
+%dir %{engine_dir}
+%dir %{engine_ro_res_dir}
+%dir %attr(775, %{service_user}, %{service_group}) %{engine_rw_working_dir}
 
 %files -n lib%{name}-common
 %defattr(-,root,root,-)
@@ -292,6 +291,12 @@ fi
 %attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-internal-test
 %attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-popup-test
 %attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-threadpool-test
+
 # test resources
 %dir %attr(-, %{service_user}, %{service_group}) %{test_dir}
 %attr(-, %{service_user}, %{service_group}) %{test_dir}/*
+
+# sample engine related files
+%{engine_dir}/lib%{service_name}-cs-engine.so
+%{engine_dir}/lib%{service_name}-wp-engine.so
+%attr(-, %{service_user}, %{service_group}) %{engine_rw_working_dir}/*

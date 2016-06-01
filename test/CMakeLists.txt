@@ -16,6 +16,10 @@
 # @author      Kyungwook Tak (k.tak@samsung.com)
 # @brief       build test program of csr-framework
 #
+####################### sample engine #########################
+ADD_SUBDIRECTORY(engine)
+###############################################################
+
 FIND_PACKAGE(Threads REQUIRED)
 ADD_DEFINITIONS("-DBOOST_TEST_DYN_LINK")
 ADD_DEFINITIONS("-DTEST_TARGET=\"${TEST_TARGET}\"")

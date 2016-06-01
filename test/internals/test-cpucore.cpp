@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(single)
 {
 	EXCEPTION_GUARD_START
 
-	coreNumTest(CSR_CS_USE_CORE_SINGLE, Csr::CpuUsageManager::MinCoreNum);
+	coreNumTest(CSR_CS_CORE_USAGE_SINGLE, Csr::CpuUsageManager::MinCoreNum);
 
 	EXCEPTION_GUARD_END
 }
@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(half)
 
 	int total = ::getRunningCores();
 
-	coreNumTest(CSR_CS_USE_CORE_HALF, total / 2);
+	coreNumTest(CSR_CS_CORE_USAGE_HALF, total / 2);
 
 	EXCEPTION_GUARD_END
 }
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE(default_)
 
 	int total = ::getRunningCores();
 
-	coreNumTest(CSR_CS_USE_CORE_DEFAULT, total);
+	coreNumTest(CSR_CS_CORE_USAGE_DEFAULT, total);
 
 	EXCEPTION_GUARD_END
 }
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(all)
 
 	int total = ::getRunningCores();
 
-	coreNumTest(CSR_CS_USE_CORE_ALL, total);
+	coreNumTest(CSR_CS_CORE_USAGE_ALL, total);
 
 	EXCEPTION_GUARD_END
 }

@@ -30,7 +30,7 @@ namespace Csr {
 
 CsDetected::CsDetected() noexcept :
 	severity(CSR_CS_SEVERITY_LOW),
-	response(CSR_CS_NO_ASK_USER),
+	response(CSR_CS_USER_RESPONSE_USER_NOT_ASKED),
 	isApp(false),
 	ts(0)
 {

@@ -27,8 +27,8 @@
 namespace Csr {
 
 CsContext::CsContext() noexcept :
-	askUser(CSR_CS_NOT_ASK_USER),
-	coreUsage(CSR_CS_USE_CORE_DEFAULT),
+	askUser(CSR_CS_ASK_USER_NO),
+	coreUsage(CSR_CS_CORE_USAGE_DEFAULT),
 	isScanOnCloud(false)
 {
 }

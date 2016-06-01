@@ -83,15 +83,15 @@ int csr_cs_context_destroy(csr_cs_context_h handle);
 /**
  * @brief Sets a popup option for malware detected.
  *
- * @details If #CSR_CS_ASK_USER is set, a popup will be prompted to a user when a malware
- *          is detected. If #CSR_CS_NOT_ASK_USER is set which is default value, no popup
+ * @details If #CSR_CS_ASK_USER_YES is set, a popup will be prompted to a user when a malware
+ *          is detected. If #CSR_CS_ASK_USER_NO is set which is default value, no popup
  *          will be prompted even if a malware is detected. User can allow, disallow and
  *          remove detected malware by popup. Selection can be different between malware's
  *          severity.
  *
  * @since_tizen 3.0
  *
- * @remarks This option is disabled(#CSR_CS_NOT_ASK_USER) as a default.
+ * @remarks This option is disabled(#CSR_CS_ASK_USER_NO) as a default.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
  * @param[in] ask_user  Popup option to set or unset.
@@ -140,7 +140,7 @@ int csr_cs_set_popup_message(csr_cs_context_h handle, const char *message);
  *
  * @since_tizen 3.0
  *
- * @remarks If a core usage is not set, #CSR_CS_USE_CORE_DEFAULT will be used.
+ * @remarks If a core usage is not set, #CSR_CS_CORE_USAGE_DEFAULT will be used.
  *
  * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
  * @param[in] usage     A maximum core usage during scanning.
@@ -162,10 +162,12 @@ int csr_cs_set_core_usage(csr_cs_context_h handle, csr_cs_core_usage_e usage);
  *
  * @since_tizen 3.0
  *
+ * @remarks Scan on cloud option is turned off as a default.
  * @remarks If an engine does not support "scanning on cloud", this option is silently
  *          ignored.
  *
- * @param[in] handle    CSR CS context handle returned by csr_cs_context_create().
+ * @param[in]  handle       CSR CS context handle returned by csr_cs_context_create().
+ * @param[int] is_on_cloud  Flag to turn on(#true) or off(#false) of scan on cloud option.
  *
  * @return #CSR_ERROR_NONE on success, otherwise a negative error value
  *
@@ -176,7 +178,7 @@ int csr_cs_set_core_usage(csr_cs_context_h handle, csr_cs_core_usage_e usage);
  * @see csr_cs_context_create()
  * @see csr_cs_context_destroy()
  */
-int csr_cs_set_scan_on_cloud(csr_cs_context_h handle);
+int csr_cs_set_scan_on_cloud(csr_cs_context_h handle, bool is_on_cloud);
 
 /**
  * @brief Scans a data buffer for malware.
@@ -919,6 +921,9 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle, const char *dir_paths[]
  * @brief Extracts the detected malware handle from the detected malware list handle.
  *
  * @since_tizen 3.0
+ *
+ * @remarks The @a malware will be released when a context is released using
+ *          csr_cs_context_destroy().
  *
  * @param[in]  list     A detected malware list handle returned by
  *                      csr_cs_get_detected_malwares() or

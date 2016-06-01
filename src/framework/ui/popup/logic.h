@@ -32,8 +32,8 @@ namespace Ui {
 
 class Logic {
 public:
-	Logic();
-	virtual ~Logic();
+	Logic() = default;
+	virtual ~Logic() = default;
 
 	RawBuffer csPromptData(const std::string &, const CsDetected &) const;
 	RawBuffer csPromptApp(const std::string &, const CsDetected &) const;
@@ -46,5 +46,5 @@ public:
 	RawBuffer wpNotify(const std::string &, const UrlItem &) const;
 };
 
-}
-}
+} // namespace Ui
+} // namespace Csr

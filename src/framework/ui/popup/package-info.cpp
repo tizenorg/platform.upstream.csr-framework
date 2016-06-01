@@ -16,6 +16,7 @@
 /*
  * @file        package-info.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
+ * @author      Sangwan Kwon (sangwan.kwon@samsung.com)
  * @version     1.0
  * @brief       Package info getter for displaying detail of package on popup.
  */
@@ -43,14 +44,48 @@ std::string PackageInfo::getIconPath(void)
 	char *icon = nullptr;
 	auto ret = ::pkgmgrinfo_pkginfo_get_icon(this->m_handle, &icon);
 	if (ret != PMINFO_R_OK)
-		ThrowExc(InternalError, "Failed to get icon with pkginfo. ret: " << ret);
+		ThrowExc(InternalError,
+			"Failed to get icon with pkginfo. ret: " << ret);
 
 	if (icon == nullptr)
 		ThrowExc(InternalError,
-				 "pkgmgrinfo_pkginfo_get_icon success but null returned on icon path.");
+			"pkgmgrinfo_pkginfo_get_icon success"
+			", but null returned on icon path.");
 
 	return std::string(icon);
 }
 
+std::string PackageInfo::getVersion(void)
+{
+	char *version = nullptr;
+	auto ret = ::pkgmgrinfo_pkginfo_get_version(this->m_handle, &version);
+	if (ret != PMINFO_R_OK)
+		ThrowExc(InternalError,
+			"Failed to get version with pkginfo. ret: " << ret);
+
+	if (version == nullptr)
+		ThrowExc(InternalError,
+			"pkgmgrinfo_pkginfo_get_version success"
+			", but null returned on icon path.");
+
+	return std::string(version);
 }
+
+std::string PackageInfo::getLabel(void)
+{
+	char *label = nullptr;
+	auto ret = ::pkgmgrinfo_pkginfo_get_label(this->m_handle, &label);
+	if (ret != PMINFO_R_OK)
+		ThrowExc(InternalError,
+			"Failed to get label with pkginfo. ret: " << ret);
+
+	if (label == nullptr)
+		ThrowExc(InternalError,
+			"pkgmgrinfo_pkginfo_get_label success"
+			", but null returned on icon path.");
+
+	return std::string(label);
 }
+
+} // namespace Ui
+} // namespace Csr

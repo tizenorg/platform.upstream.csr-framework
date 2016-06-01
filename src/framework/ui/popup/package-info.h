@@ -16,6 +16,7 @@
 /*
  * @file        package-info.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
+ * @author      Sangwan Kwon (sangwan.kwon@samsung.com)
  * @version     1.0
  * @brief       Package info getter for displaying detail of package on popup.
  */
@@ -39,12 +40,12 @@ public:
 	PackageInfo &operator=(PackageInfo &&) = delete;
 
 	std::string getIconPath(void);
+	std::string getVersion(void);
+	std::string getLabel(void);
 
 private:
 	pkgmgrinfo_pkginfo_h m_handle;
-
 };
-
 
 } // namespace Ui
 } // namespace Csr

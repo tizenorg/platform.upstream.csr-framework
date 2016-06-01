@@ -36,9 +36,9 @@ file contents and checking url to prevent malicious items.
 %global rw_data_dir                  /opt/share
 %global ro_db_dir                    %{ro_data_dir}/%{service_name}/dbspace
 %global rw_db_dir                    %{rw_data_dir}/%{service_name}/dbspace
-%global sample_engine_ro_res_dir     %{ro_data_dir}/%{service_name}/engine
-%global sample_engine_rw_working_dir %{rw_data_dir}/%{service_name}/engine
-%global sample_engine_dir            %{ro_data_dir}/%{service_name}/lib
+%global sample_engine_ro_res_dir     %{ro_data_dir}/%{service_name}/engine_res
+%global sample_engine_rw_working_dir %{rw_data_dir}/%{service_name}/engine_data
+%global sample_engine_dir            %{ro_data_dir}/%{service_name}/engine
 %global test_dir                     %{rw_data_dir}/%{service_name}-test
 
 %global service_idle_timeout_time       60

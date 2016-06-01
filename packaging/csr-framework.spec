@@ -36,8 +36,7 @@ file contents and checking url to prevent malicious items.
 %global rw_data_dir                  /opt/share
 %global ro_db_dir                    %{ro_data_dir}/%{service_name}/dbspace
 %global rw_db_dir                    %{rw_data_dir}/%{service_name}/dbspace
-%global engine_ro_res_dir            %{ro_data_dir}/%{service_name}/engine_res
-%global engine_rw_working_dir        %{rw_data_dir}/%{service_name}/engine_data
+%global engine_rw_working_dir        %{rw_data_dir}/%{service_name}/engine
 %global engine_dir                   %{ro_data_dir}/%{service_name}/engine
 %global test_dir                     %{rw_data_dir}/%{service_name}-test
 
@@ -143,7 +142,6 @@ test program of csr-framework
     -DRW_DBSPACE:PATH=%{rw_db_dir} \
     -DSERVICE_IDLE_TIMEOUT_TIME=%{service_idle_timeout_time} \
     -DPOPUP_SERVICE_IDLE_TIMEOUT_TIME=%{popup_service_idle_timeout_time} \
-    -DENGINE_RO_RES_DIR:PATH=%{engine_ro_res_dir} \
     -DENGINE_RW_WORKING_DIR:PATH=%{engine_rw_working_dir} \
     -DENGINE_DIR:PATH=%{engine_dir} \
     -DTEST_TARGET=%{test_target} \
@@ -178,7 +176,6 @@ mkdir -p %{buildroot}%{ro_db_dir}
 cp data/scripts/*.sql %{buildroot}%{ro_db_dir}
 
 mkdir -p %{buildroot}%{engine_dir}
-mkdir -p %{buildroot}%{engine_ro_res_dir}
 mkdir -p %{buildroot}%{engine_rw_working_dir}
 
 %post
@@ -243,7 +240,6 @@ fi
 %attr(444, %{service_user}, %{service_group}) %{ro_db_dir}/*.sql
 
 %dir %{engine_dir}
-%dir %{engine_ro_res_dir}
 %dir %attr(775, %{service_user}, %{service_group}) %{engine_rw_working_dir}
 
 %files -n lib%{name}-common

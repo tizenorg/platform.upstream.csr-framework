@@ -91,7 +91,7 @@ template <>
 struct Handle<csre_wp_context_h> {
 	Handle() :
 		loader(ENGINE_DIR "/libcsr-wp-engine.so",
-			   ENGINE_RO_RES_DIR,
+			   ENGINE_DIR,
 			   ENGINE_RW_WORKING_DIR)
 	{
 		ASSERT_IF(loader.contextCreate(context), CSRE_ERROR_NONE);
@@ -110,7 +110,7 @@ template <>
 struct Handle<csre_wp_engine_h> {
 	Handle() :
 		loader(ENGINE_DIR "/libcsr-wp-engine.so",
-			   ENGINE_RO_RES_DIR,
+			   ENGINE_DIR,
 			   ENGINE_RW_WORKING_DIR)
 	{
 		ASSERT_IF(loader.getEngineInfo(context), CSRE_ERROR_NONE);

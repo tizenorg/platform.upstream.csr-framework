@@ -16,6 +16,7 @@
 /*
  * @file        test-package-info.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
+ * @author      Sangwan Kwon (sangwan.kwon@samsung.com)
  * @version     1.0
  * @brief       Package info class test
  */
@@ -54,6 +55,62 @@ BOOST_AUTO_TEST_CASE(get_icon_tpk)
 	Ui::PackageInfo info(TEST_TPK_PKG_ID);
 
 	BOOST_MESSAGE(info.getIconPath());
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_version_wgt)
+{
+	EXCEPTION_GUARD_START
+
+	Test::uninstall_app(TEST_WGT_PKG_ID);
+	ASSERT_INSTALL_APP(TEST_WGT_PATH, TEST_WGT_TYPE);
+
+	Ui::PackageInfo info(TEST_WGT_PKG_ID);
+
+	BOOST_MESSAGE(info.getVersion());
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_version_tpk)
+{
+	EXCEPTION_GUARD_START
+
+	Test::uninstall_app(TEST_TPK_PKG_ID);
+	ASSERT_INSTALL_APP(TEST_TPK_PATH, TEST_TPK_TYPE);
+
+	Ui::PackageInfo info(TEST_TPK_PKG_ID);
+
+	BOOST_MESSAGE(info.getVersion());
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_label_wgt)
+{
+	EXCEPTION_GUARD_START
+
+	Test::uninstall_app(TEST_WGT_PKG_ID);
+	ASSERT_INSTALL_APP(TEST_WGT_PATH, TEST_WGT_TYPE);
+
+	Ui::PackageInfo info(TEST_WGT_PKG_ID);
+
+	BOOST_MESSAGE(info.getLabel());
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_label_tpk)
+{
+	EXCEPTION_GUARD_START
+
+	Test::uninstall_app(TEST_TPK_PKG_ID);
+	ASSERT_INSTALL_APP(TEST_TPK_PATH, TEST_TPK_TYPE);
+
+	Ui::PackageInfo info(TEST_TPK_PKG_ID);
+
+	BOOST_MESSAGE(info.getLabel());
 
 	EXCEPTION_GUARD_END
 }

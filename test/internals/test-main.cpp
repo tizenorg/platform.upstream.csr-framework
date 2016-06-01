@@ -45,13 +45,13 @@ struct Initializer {
 	{
 		if (!isEngineInitialized) {
 			int ret = csre_cs_global_initialize(
-						  SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
+						  ENGINE_RO_RES_DIR, ENGINE_RW_WORKING_DIR);
 
 			if (ret != CSRE_ERROR_NONE)
 				throw std::logic_error("Failed to init content screening engine.");
 
 			ret = csre_wp_global_initialize(
-					  SAMPLE_ENGINE_RO_RES_DIR, SAMPLE_ENGINE_RW_WORKING_DIR);
+					  ENGINE_RO_RES_DIR, ENGINE_RW_WORKING_DIR);
 
 			if (ret != CSRE_ERROR_NONE)
 				throw std::logic_error("Failed to init web protection engine.");

@@ -194,7 +194,7 @@ int csr_cs_set_core_usage(csr_cs_context_h handle, csr_cs_core_usage_e usage)
 }
 
 API
-int csr_cs_set_scan_on_cloud(csr_cs_context_h handle, bool is_on_cloud)
+int csr_cs_set_scan_on_cloud(csr_cs_context_h handle, bool scan_on_cloud)
 {
 	EXCEPTION_SAFE_START
 
@@ -202,7 +202,7 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle, bool is_on_cloud)
 		return CSR_ERROR_INVALID_HANDLE;
 
 	reinterpret_cast<Client::HandleExt *>(handle)->getContext()->set(
-		static_cast<int>(CsContext::Key::ScanOnCloud), is_on_cloud);
+		static_cast<int>(CsContext::Key::ScanOnCloud), scan_on_cloud);
 
 	return CSR_ERROR_NONE;
 

@@ -80,7 +80,7 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 	CsEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
-	csre_cs_detected_h result;
+	csre_cs_detected_h result = nullptr;
 
 	auto timestamp = ::time(nullptr);
 
@@ -106,7 +106,7 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 
 	auto timestamp = ::time(nullptr);
 
-	csre_cs_detected_h result;
+	csre_cs_detected_h result = nullptr;
 	toException(this->m_loader->scanAppOnCloud(c, pkgPath, &result));
 
 	if (!result)
@@ -139,7 +139,7 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 
 		auto timestamp = ::time(nullptr);
 
-		csre_cs_detected_h result;
+		csre_cs_detected_h result = nullptr;
 		toException(this->m_loader->scanFile(c, file->getPath(), &result));
 
 		if (!result) {
@@ -324,7 +324,7 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 
 	auto timestamp = ::time(nullptr);
 
-	csre_cs_detected_h result;
+	csre_cs_detected_h result = nullptr;
 	toException(this->m_loader->scanFile(c, filepath, &result));
 
 	// detected handle is null if it's safe

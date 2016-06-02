@@ -72,16 +72,16 @@ RawBuffer EmLogic::getEngineName(const EmContext &context)
 	EXCEPTION_GUARD_START
 
 	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(this->m_cs);
-		auto &c = engineInfo.get();
+		CsEngineContext engineContext(this->m_cs);
+		auto &c = engineContext.get();
 
 		std::string value;
 		toException(this->m_cs->getEngineName(c, value));
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	} else {
-		WpEngineInfo engineInfo(this->m_wp);
-		auto &c = engineInfo.get();
+		WpEngineContext engineContext(this->m_wp);
+		auto &c = engineContext.get();
 
 		std::string value;
 		toException(this->m_wp->getEngineName(c, value));
@@ -97,16 +97,16 @@ RawBuffer EmLogic::getEngineVendor(const EmContext &context)
 	EXCEPTION_GUARD_START
 
 	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(this->m_cs);
-		auto &c = engineInfo.get();
+		CsEngineContext engineContext(this->m_cs);
+		auto &c = engineContext.get();
 
 		std::string value;
 		toException(this->m_cs->getEngineVendor(c, value));
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	} else {
-		WpEngineInfo engineInfo(this->m_wp);
-		auto &c = engineInfo.get();
+		WpEngineContext engineContext(this->m_wp);
+		auto &c = engineContext.get();
 
 		std::string value;
 		toException(this->m_wp->getEngineVendor(c, value));
@@ -122,16 +122,16 @@ RawBuffer EmLogic::getEngineVersion(const EmContext &context)
 	EXCEPTION_GUARD_START
 
 	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(this->m_cs);
-		auto &c = engineInfo.get();
+		CsEngineContext engineContext(this->m_cs);
+		auto &c = engineContext.get();
 
 		std::string value;
 		toException(this->m_cs->getEngineVersion(c, value));
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	} else {
-		WpEngineInfo engineInfo(this->m_wp);
-		auto &c = engineInfo.get();
+		WpEngineContext engineContext(this->m_wp);
+		auto &c = engineContext.get();
 
 		std::string value;
 		toException(this->m_wp->getEngineVersion(c, value));
@@ -147,16 +147,16 @@ RawBuffer EmLogic::getEngineDataVersion(const EmContext &context)
 	EXCEPTION_GUARD_START
 
 	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(this->m_cs);
-		auto &c = engineInfo.get();
+		CsEngineContext engineContext(this->m_cs);
+		auto &c = engineContext.get();
 
 		std::string value;
 		toException(this->m_cs->getEngineDataVersion(c, value));
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	} else {
-		WpEngineInfo engineInfo(this->m_wp);
-		auto &c = engineInfo.get();
+		WpEngineContext engineContext(this->m_wp);
+		auto &c = engineContext.get();
 
 		std::string value;
 		toException(this->m_wp->getEngineDataVersion(c, value));
@@ -172,8 +172,8 @@ RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 	EXCEPTION_GUARD_START
 
 	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(this->m_cs);
-		auto &c = engineInfo.get();
+		CsEngineContext engineContext(this->m_cs);
+		auto &c = engineContext.get();
 
 		time_t value;
 		toException(this->m_cs->getEngineLatestUpdateTime(c, &value));
@@ -182,8 +182,8 @@ RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, ts64).pop();
 	} else {
-		WpEngineInfo engineInfo(this->m_wp);
-		auto &c = engineInfo.get();
+		WpEngineContext engineContext(this->m_wp);
+		auto &c = engineContext.get();
 
 		time_t value;
 		toException(this->m_wp->getEngineLatestUpdateTime(c, &value));
@@ -203,8 +203,8 @@ RawBuffer EmLogic::getEngineActivated(const EmContext &context)
 	csr_activated_e activated = CSR_NOT_ACTIVATED;
 
 	if (context.engineId == CSR_ENGINE_CS) {
-		CsEngineInfo engineInfo(this->m_cs);
-		auto &c = engineInfo.get();
+		CsEngineContext engineContext(this->m_cs);
+		auto &c = engineContext.get();
 
 		csre_cs_activated_e value;
 		toException(this->m_cs->getEngineActivated(c, &value));
@@ -217,8 +217,8 @@ RawBuffer EmLogic::getEngineActivated(const EmContext &context)
 			ThrowExc(EngineError, "Invalid returned activated val: " <<
 					 static_cast<int>(value));
 	} else {
-		WpEngineInfo engineInfo(this->m_wp);
-		auto &c = engineInfo.get();
+		WpEngineContext engineContext(this->m_wp);
+		auto &c = engineContext.get();
 
 		csre_wp_activated_e value;
 		toException(this->m_wp->getEngineActivated(c, &value));

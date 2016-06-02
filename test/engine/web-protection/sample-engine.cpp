@@ -56,10 +56,6 @@ struct csret_wp_risky_url_s {
 	csret_wp_risky_url_s() : risk_level(CSRE_WP_RISK_UNVERIFIED) {}
 };
 
-struct csret_wp_context_s {
-	std::list<csret_wp_risky_url_s> detected_list;
-};
-
 struct csret_wp_engine_s {
 	std::string vendorName;
 	std::string engineName;
@@ -68,6 +64,11 @@ struct csret_wp_engine_s {
 	std::string dataVersion;
 	RawBuffer logoImage;
 	time_t latestUpdate;
+};
+
+struct csret_wp_context_s {
+	std::list<csret_wp_risky_url_s> detected_list;
+	csret_wp_engine_s *engine;
 };
 
 enum csret_wp_internal_error_e {
@@ -188,8 +189,11 @@ int csret_wp_read_binary(const std::string &path, RawBuffer &buffer)
 	return CSRE_ERROR_NONE;
 }
 
-csret_wp_engine_s *csret_wp_init_engine()
+int csret_wp_init_engine(csret_wp_engine_s **pengine)
 {
+	if (pengine == nullptr)
+		return CSRE_ERROR_INVALID_PARAMETER;
+
 	auto ptr = new csret_wp_engine_s;
 
 	ptr->vendorName = VENDOR_NAME;
@@ -203,7 +207,7 @@ csret_wp_engine_s *csret_wp_init_engine()
 
 	if (ret != CSRE_ERROR_NONE) {
 		delete ptr;
-		return nullptr;
+		return ret;
 	}
 
 	struct stat attrib;
@@ -212,7 +216,9 @@ csret_wp_engine_s *csret_wp_init_engine()
 
 	ptr->latestUpdate = attrib.st_mtime;
 
-	return ptr;
+	*pengine = ptr;
+
+	return CSRE_ERROR_NONE;
 }
 
 
@@ -255,7 +261,16 @@ int csre_wp_context_create(csre_wp_context_h *phandle)
 	if (g_risky_urls.empty())
 		return CSRE_ERROR_INVALID_HANDLE; // not yet initialized
 
-	auto context = new csret_wp_context_s;
+	csret_wp_engine_s *engine = nullptr;
+	auto ret = csret_wp_init_engine(&engine);
+	if (ret != CSRE_ERROR_NONE)
+		return ret;
+
+	auto context = new (std::nothrow) csret_wp_context_s;
+	if (context == nullptr)
+		return CSRE_ERROR_OUT_OF_MEMORY;
+
+	context->engine = engine;
 
 	*phandle = reinterpret_cast<csre_wp_context_h>(context);
 
@@ -269,6 +284,9 @@ int csre_wp_context_destroy(csre_wp_context_h handle)
 
 	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
+
+	if (context->engine != nullptr)
+		delete context->engine;
 
 	delete context;
 
@@ -352,38 +370,15 @@ int csre_wp_result_get_detailed_url(csre_wp_check_result_h result,
 // Engine information related
 //==============================================================================
 API
-int csre_wp_engine_get_info(csre_wp_engine_h *pengine)
+int csre_wp_engine_get_vendor(csre_wp_context_h context, const char **vendor)
 {
-	if (pengine == nullptr)
-		return CSRE_ERROR_INVALID_PARAMETER;
-
-	auto ptr = csret_wp_init_engine();
-	*pengine = reinterpret_cast<csre_wp_engine_h>(ptr);
-
-	return CSRE_ERROR_NONE;
-}
-
-API
-int csre_wp_engine_destroy(csre_wp_engine_h engine)
-{
-	if (engine == nullptr)
-		return CSRE_ERROR_INVALID_PARAMETER;
-
-	delete reinterpret_cast<csret_wp_engine_s *>(engine);
-
-	return CSRE_ERROR_NONE;
-}
-
-API
-int csre_wp_engine_get_vendor(csre_wp_engine_h engine, const char **vendor)
-{
-	auto eng = reinterpret_cast<csret_wp_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (vendor == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_wp_context_s *>(context)->engine;
 
 	*vendor = eng->vendorName.c_str();
 
@@ -391,15 +386,15 @@ int csre_wp_engine_get_vendor(csre_wp_engine_h engine, const char **vendor)
 }
 
 API
-int csre_wp_engine_get_name(csre_wp_engine_h engine, const char **name)
+int csre_wp_engine_get_name(csre_wp_context_h context, const char **name)
 {
-	auto eng = reinterpret_cast<csret_wp_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (name == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_wp_context_s *>(context)->engine;
 
 	*name = eng->engineName.c_str();
 
@@ -407,17 +402,17 @@ int csre_wp_engine_get_name(csre_wp_engine_h engine, const char **name)
 }
 
 API
-int csre_wp_engine_get_vendor_logo(csre_wp_engine_h engine,
+int csre_wp_engine_get_vendor_logo(csre_wp_context_h context,
 								   unsigned char **vendor_logo_image,
 								   unsigned int *image_size)
 {
-	auto eng = reinterpret_cast<csret_wp_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (vendor_logo_image == nullptr || image_size == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_wp_context_s *>(context)->engine;
 
 	auto s = eng->logoImage.size();
 
@@ -431,15 +426,15 @@ int csre_wp_engine_get_vendor_logo(csre_wp_engine_h engine,
 }
 
 API
-int csre_wp_engine_get_version(csre_wp_engine_h engine, const char **version)
+int csre_wp_engine_get_version(csre_wp_context_h context, const char **version)
 {
-	auto eng = reinterpret_cast<csret_wp_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (version == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_wp_context_s *>(context)->engine;
 
 	*version = eng->engineVersion.c_str();
 
@@ -447,16 +442,15 @@ int csre_wp_engine_get_version(csre_wp_engine_h engine, const char **version)
 }
 
 API
-int csre_wp_engine_get_data_version(csre_wp_engine_h engine,
-									const char **version)
+int csre_wp_engine_get_data_version(csre_wp_context_h context, const char **version)
 {
-	auto eng = reinterpret_cast<csret_wp_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (version == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_wp_context_s *>(context)->engine;
 
 	*version = eng->dataVersion.c_str();
 
@@ -465,15 +459,15 @@ int csre_wp_engine_get_data_version(csre_wp_engine_h engine,
 
 
 API
-int csre_wp_engine_get_latest_update_time(csre_wp_engine_h engine, time_t *time)
+int csre_wp_engine_get_latest_update_time(csre_wp_context_h context, time_t *time)
 {
-	auto eng = reinterpret_cast<csret_wp_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (time == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_wp_context_s *>(context)->engine;
 
 	*time = eng->latestUpdate;
 	return CSRE_ERROR_NONE;
@@ -481,13 +475,10 @@ int csre_wp_engine_get_latest_update_time(csre_wp_engine_h engine, time_t *time)
 
 
 API
-int csre_wp_engine_get_activated(csre_wp_engine_h engine,
+int csre_wp_engine_get_activated(csre_wp_context_h context,
 								 csre_wp_activated_e *pactivated)
 {
-	auto eng = reinterpret_cast<csret_wp_engine_s *>(engine);
-
-	if (eng == nullptr)
-		return CSRE_ERROR_INVALID_HANDLE;
+	(void) context;
 
 	if (pactivated == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
@@ -501,16 +492,15 @@ int csre_wp_engine_get_activated(csre_wp_engine_h engine,
 }
 
 API
-int csre_wp_engine_get_api_version(csre_wp_engine_h engine,
-								   const char **version)
+int csre_wp_engine_get_api_version(csre_wp_context_h context, const char **version)
 {
-	auto eng = reinterpret_cast<csret_wp_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (version == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_wp_context_s *>(context)->engine;
 
 	*version = eng->apiVersion.c_str();
 

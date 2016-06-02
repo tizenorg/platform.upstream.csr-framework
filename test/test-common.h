@@ -40,9 +40,6 @@
 #include <csre-content-screening.h>
 #include <csre-web-protection.h>
 
-#include <csre-content-screening-engine-info.h>
-#include <csre-web-protection-engine-info.h>
-
 #ifndef __FILENAME__
 #define __FILENAME__ (::strrchr(__FILE__, '/') ? ::strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
@@ -320,52 +317,6 @@ public:
 
 private:
 	csre_wp_context_h m_context;
-};
-
-template <>
-class Context<csre_cs_engine_h> {
-public:
-	Context() : m_context(nullptr)
-	{
-		ASSERT_IF(csre_cs_engine_get_info(&m_context), CSRE_ERROR_NONE);
-		BOOST_REQUIRE(m_context != nullptr);
-	}
-
-	virtual ~Context()
-	{
-		ASSERT_IF(csre_cs_engine_destroy(m_context), CSRE_ERROR_NONE);
-	}
-
-	csre_cs_engine_h get(void) const
-	{
-		return m_context;
-	}
-
-private:
-	csre_cs_engine_h m_context;
-};
-
-template <>
-class Context<csre_wp_engine_h> {
-public:
-	Context() : m_context(nullptr)
-	{
-		ASSERT_IF(csre_wp_engine_get_info(&m_context), CSRE_ERROR_NONE);
-		BOOST_REQUIRE(m_context != nullptr);
-	}
-
-	virtual ~Context()
-	{
-		ASSERT_IF(csre_wp_engine_destroy(m_context), CSRE_ERROR_NONE);
-	}
-
-	csre_wp_engine_h get(void) const
-	{
-		return m_context;
-	}
-
-private:
-	csre_wp_engine_h m_context;
 };
 
 } // namespace Test

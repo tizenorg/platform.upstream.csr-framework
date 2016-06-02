@@ -35,10 +35,6 @@
  *     <td> @ref CAPI_CSR_FRAMEWORK_ADMIN_MODULE</td>
  *     <td> Provides APIs managing underlying anti malware engines.</td>
  *   </tr>
- *   <tr>
- *     <td> @ref CAPI_CSR_FRAMEWORK_TYPES_MODULE</td>
- *     <td> Defines data types used in these APIs and provides utility methods handling them.</td>
- *   </tr>
  * </table>
  *
  * The CSR (Content Screening & Reputation) framework is an anti malware framework. It provides Content Screening Service and Web Protection Service to protect a device and an user

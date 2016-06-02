@@ -22,6 +22,8 @@
  *
  * @section CAPI_CSR_FRAMEWORK_CS_MODULE_HEADER Required Header
  * \#include <csr-content-screening.h>
+ * \#include <csr-content-screening-types.h>
+ * \#include <csr-error.h>
  *
  * @section CAPI_CSR_FRAMEWORK_CS_MODULE_OVERVIEW Overview
  * It provides APIs scanning contents for data, files, and directories to detect malwares. Actual scanning is performed by underlying anti malware engines which will be provided by a device manufacturer.

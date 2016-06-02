@@ -30,7 +30,7 @@ extern "C" {
 
 
 /**
- * @addtogroup CAPI_CSR_FRAMEWORK_TYPES_MODULE
+ * @addtogroup CAPI_CSR_FRAMEWORK_CS_MODULE
  * @{
  */
 

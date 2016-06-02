@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup CAPI_CSR_FRAMEWORK_TYPES_MODULE
+ * @addtogroup CAPI_CSR_FRAMEWORK_WP_MODULE
  * @{
  */
 

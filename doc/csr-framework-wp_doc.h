@@ -22,6 +22,7 @@
  *
  * @section CAPI_CSR_FRAMEWORK_WP_MODULE_HEADER Required Header
  * \#include <csr-web-protection.h>
+ * \#include <csr-web-protection-types.h>
  *
  * @section CAPI_CSR_FRAMEWORK_WP_MODULE_OVERVIEW Overview
  * It provides provides APIs checking URL reputation to see if the URL is risky or not. Actual operation is performed by an underlying anti malware engine which will be provided by a device manufacturer.

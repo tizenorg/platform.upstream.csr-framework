@@ -105,16 +105,6 @@ int CsLoader::getMalwareName(csre_cs_detected_h d, std::string &value)
 	});
 }
 
-int CsLoader::getDetailedUrl(csre_cs_detected_h d, std::string &value)
-{
-	if (d == nullptr)
-		throw std::invalid_argument("cs loader get detailed url");
-
-	return getValueCstr(value, [&](const char **cvalue) {
-		return this->m_pc.fpGetDetailedUrl(d, cvalue);
-	});
-}
-
 int CsLoader::getErrorString(int ec, std::string &value)
 {
 	return getValueCstr(value, [&](const char **cvalue) {
@@ -215,8 +205,8 @@ int CsLoader::getEngineVendorLogo(csre_cs_engine_h e,
 	return retval;
 }
 
-void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
-					const std::string &rwWorkingDir)
+void CsLoader::init(const std::string &enginePath, const std::string &detailedUrlBase,
+					const std::string &roResDir, const std::string &rwWorkingDir)
 {
 	if (enginePath.empty() || roResDir.empty() || rwWorkingDir.empty())
 		ThrowExc(InternalError, "empty string comes in to loader init");
@@ -249,8 +239,6 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 							   "csre_cs_detected_get_severity"));
 	this->m_pc.fpGetMalwareName = reinterpret_cast<FpGetMalwareName>(dlsym(handle,
 								  "csre_cs_detected_get_malware_name"));
-	this->m_pc.fpGetDetailedUrl = reinterpret_cast<FpGetDetailedUrl>(dlsym(handle,
-								  "csre_cs_detected_get_detailed_url"));
 	this->m_pc.fpGetErrorString = reinterpret_cast <FpGetErrorString>(dlsym(handle,
 								  "csre_cs_get_error_string"));
 	this->m_pc.fpGetEngineInfo = reinterpret_cast<FpGetEngineInfo>(dlsym(handle,
@@ -282,7 +270,6 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 			this->m_pc.fpScanAppOnCloud == nullptr ||
 			this->m_pc.fpGetSeverity == nullptr ||
 			this->m_pc.fpGetMalwareName == nullptr ||
-			this->m_pc.fpGetDetailedUrl == nullptr ||
 			this->m_pc.fpGetErrorString == nullptr ||
 			this->m_pc.fpGetEngineInfo == nullptr ||
 			this->m_pc.fpGetEngineApiVersion == nullptr ||
@@ -306,10 +293,12 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 		this->m_pc.dlhandle = nullptr;
 		toException(ret);
 	}
+
+	this->m_detailedUrlBase = detailedUrlBase;
 }
 
-void CsLoader::reset(const std::string &enginePath, const std::string &roResDir,
-					 const std::string &rwWorkingDir)
+void CsLoader::reset(const std::string &enginePath, const std::string &detailedUrlBase,
+					 const std::string &roResDir, const std::string &rwWorkingDir)
 {
 	// ignore return value
 	this->m_pc.fpGlobalDeinit();
@@ -319,13 +308,13 @@ void CsLoader::reset(const std::string &enginePath, const std::string &roResDir,
 		this->m_pc.dlhandle = nullptr;
 	}
 
-	this->init(enginePath, roResDir, rwWorkingDir);
+	this->init(enginePath, detailedUrlBase, roResDir, rwWorkingDir);
 }
 
-CsLoader::CsLoader(const std::string &enginePath, const std::string &roResDir,
-				   const std::string &rwWorkingDir)
+CsLoader::CsLoader(const std::string &enginePath, const std::string &detailedUrlBase,
+				   const std::string &roResDir, const std::string &rwWorkingDir)
 {
-	this->init(enginePath, roResDir, rwWorkingDir);
+	this->init(enginePath, detailedUrlBase, roResDir, rwWorkingDir);
 }
 
 CsLoader::~CsLoader()

@@ -54,7 +54,6 @@ struct csret_cs_malware_s {
 	csre_cs_severity_level_e severity;
 	csre_cs_threat_type_e threat_type;
 	std::string name;
-	std::string detailed_url;
 	std::string signature;
 };
 
@@ -117,13 +116,11 @@ int csret_cs_read_virus_signatures(const std::string &path)
 	// name=test_malware // this starts a description of a new malware
 	// severity=HIGH  // LOW/MEDIUM/HIGH
 	// threat_type=MALWARE  // MALWARE/RISKY/GENERIC
-	// detailed_url=http://high.malware.com
 	// signature=X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
 	//
 	// name=test_risk
 	// severity=MEDIUM
 	// threat_type=RISKY
-	// detailed_url=http://medium.malware.com
 	// signature=RISKY_MALWARE
 	std::ifstream f(path.c_str());
 
@@ -172,13 +169,6 @@ int csret_cs_read_virus_signatures(const std::string &path)
 			else
 				node.threat_type = CSRE_CS_THREAT_GENERIC;
 
-			continue;
-		}
-
-		value = csret_cs_extract_value(line, "detailed_url=");
-
-		if (!value.empty()) {
-			node.detailed_url = std::move(value);
 			continue;
 		}
 
@@ -291,7 +281,6 @@ int csret_cs_detect_malware(csret_cs_context_s *context, const RawBuffer &data,
 		detected.malware.severity = item.severity;
 		detected.malware.threat_type = item.threat_type;
 		detected.malware.name = item.name;
-		detected.malware.detailed_url = item.detailed_url;
 		detected.timestamp = csret_cs_get_timestamp();
 
 		context->detected_list.push_back(detected);
@@ -520,21 +509,6 @@ int csre_cs_detected_get_malware_name(csre_cs_detected_h detected,
 
 	auto pdetected = reinterpret_cast<csret_cs_detected_s *>(detected);
 	*malware_name = pdetected->malware.name.c_str();
-	return CSRE_ERROR_NONE;
-}
-
-API
-int csre_cs_detected_get_detailed_url(csre_cs_detected_h detected,
-									  const char **detailed_url)
-{
-	if (detected == nullptr)
-		return CSRE_ERROR_INVALID_HANDLE;
-
-	if (detailed_url == nullptr)
-		return CSRE_ERROR_INVALID_PARAMETER;
-
-	auto pdetected = reinterpret_cast<csret_cs_detected_s *>(detected);
-	*detailed_url = pdetected->malware.detailed_url.c_str();
 	return CSRE_ERROR_NONE;
 }
 

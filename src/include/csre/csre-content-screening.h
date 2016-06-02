@@ -263,25 +263,6 @@ int csre_cs_detected_get_malware_name(csre_cs_detected_h detected,
 									  const char **name);
 
 /**
- * @brief Extracts an url of the vendor's web site that contains detailed information
- *      about the detected malware from the detected malware handle.
- *
- * @param[in]  detected      A detected malware handle.
- * @param[out] detailed_url  A pointer of an url that contains detailed information on
- *                           vendor's web site. A caller should not free this string.
- *
- * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
- *
- * @retval #CSRE_ERROR_NONE                 Successful
- * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid detected malware handle
- * @retval #CSRE_ERROR_INVALID_PARAMETER    malware_name is invalid.
- * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
- * @retval -0x0100~-0xFF00                  Engine defined error
- */
-int csre_cs_detected_get_detailed_url(csre_cs_detected_h detected,
-									  const char **detailed_url);
-
-/**
  * @brief Gets the error string for a given engine-defined error code.
  *
  * @details The error strings are managed by the engine, therefore a caller should not

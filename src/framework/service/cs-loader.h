@@ -32,12 +32,12 @@ namespace Csr {
 
 class CsLoader {
 public:
-	CsLoader(const std::string &enginePath, const std::string &roResDir,
-			 const std::string &rwWorkingDir);
+	CsLoader(const std::string &enginePath, const std::string &detailedUrlBase,
+			 const std::string &roResDir, const std::string &rwWorkingDir);
 	virtual ~CsLoader();
 
-	void reset(const std::string &enginePath, const std::string &roResDir,
-			   const std::string &rwWorkingDir);
+	void reset(const std::string &enginePath, const std::string &detailedUrlBase,
+			   const std::string &roResDir, const std::string &rwWorkingDir);
 
 	int contextCreate(csre_cs_context_h &);
 	int contextDestroy(csre_cs_context_h);
@@ -77,7 +77,6 @@ private:
 									csre_cs_detected_h *);
 	using FpGetSeverity = int(*)(csre_cs_detected_h, csre_cs_severity_level_e *);
 	using FpGetMalwareName = int(*)(csre_cs_detected_h, const char **);
-	using FpGetDetailedUrl = int(*)(csre_cs_detected_h, const char **);
 	using FpGetErrorString = int(*)(int, const char **);
 	using FpGetEngineInfo = int(*)(csre_cs_engine_h *);
 	using FpDestroyEngine = int(*)(csre_cs_engine_h);
@@ -103,7 +102,6 @@ private:
 		FpScanAppOnCloud fpScanAppOnCloud;
 		FpGetSeverity fpGetSeverity;
 		FpGetMalwareName fpGetMalwareName;
-		FpGetDetailedUrl fpGetDetailedUrl;
 		FpGetErrorString fpGetErrorString;
 		FpGetEngineInfo fpGetEngineInfo;
 		FpDestroyEngine fpDestroyEngine;
@@ -117,7 +115,8 @@ private:
 		FpGetEngineVendorLogo fpGetEngineVendorLogo;
 	};
 
-	void init(const std::string &, const std::string &, const std::string &);
+	void init(const std::string &, const std::string &, const std::string &,
+			  const std::string &);
 
 	PluginContext m_pc;
 };

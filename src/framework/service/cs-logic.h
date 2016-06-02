@@ -21,6 +21,7 @@
  */
 #pragma once
 
+#include <memory>
 #include <string>
 #include <ctime>
 
@@ -38,7 +39,8 @@ namespace Csr {
 
 class CsLogic : public Logic {
 public:
-	CsLogic(CsLoader &loader, Db::Manager &db);
+	CsLogic(const std::shared_ptr<CsLoader> &loader,
+			const std::shared_ptr<Db::Manager> &db);
 	virtual ~CsLogic() = default;
 
 	RawBuffer scanData(const CsContext &context, const RawBuffer &data);
@@ -67,8 +69,8 @@ private:
 	RawBuffer handleAskUser(const CsContext &c, CsDetected &d,
 							FilePtr &&fileptr = nullptr);
 
-	CsLoader &m_loader;
-	Db::Manager &m_db;
+	std::shared_ptr<CsLoader> m_loader;
+	std::shared_ptr<Db::Manager> m_db;
 
 	std::string m_dataVersion;
 };

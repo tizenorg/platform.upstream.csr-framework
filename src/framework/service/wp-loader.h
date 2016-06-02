@@ -21,23 +21,23 @@
  */
 #pragma once
 
-#include <ctime>
+#include <memory>
 #include <vector>
 #include <string>
+#include <ctime>
 
 #include <csre-web-protection-types.h>
 #include <csre-web-protection-engine-info.h>
 
+#include "service/iloader.h"
+
 namespace Csr {
 
-class WpLoader {
+class WpLoader : public ILoader {
 public:
 	WpLoader(const std::string &enginePath, const std::string &roResDir,
 			 const std::string &rwWorkingDir);
 	virtual ~WpLoader();
-
-	void reset(const std::string &enginePath, const std::string &roResDir,
-			   const std::string &rwWorkingDir);
 
 	int contextCreate(csre_wp_context_h &);
 	int contextDestroy(csre_wp_context_h);
@@ -102,30 +102,31 @@ private:
 		FpGetEngineVendorLogo fpGetEngineVendorLogo;
 	};
 
-	void init(const std::string &, const std::string &, const std::string &);
+	virtual void init(const std::string &, const std::string &, const std::string &) override;
+	virtual void deinit(void) override;
 
 	PluginContext m_pc;
 };
 
 class WpEngineContext {
 public:
-	WpEngineContext(WpLoader &);
+	WpEngineContext(const std::shared_ptr<WpLoader> &);
 	~WpEngineContext();
 	csre_wp_context_h &get(void);
 
 private:
-	WpLoader &m_loader;
+	std::shared_ptr<WpLoader> m_loader;
 	csre_wp_context_h m_context;
 };
 
 class WpEngineInfo {
 public:
-	WpEngineInfo(WpLoader &);
+	WpEngineInfo(const std::shared_ptr<WpLoader> &);
 	~WpEngineInfo();
 	csre_wp_engine_h &get(void);
 
 private:
-	WpLoader &m_loader;
+	std::shared_ptr<WpLoader> m_loader;
 	csre_wp_engine_h m_info;
 };
 

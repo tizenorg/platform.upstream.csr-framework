@@ -194,6 +194,8 @@ void WpLoader::init(const std::string &enginePath, const std::string &roResDir,
 	if (enginePath.empty() || roResDir.empty() || rwWorkingDir.empty())
 		ThrowExc(InternalError, "empty string comes in to loader init");
 
+	INFO("Load WP-Engine plugin start. engine path: " << enginePath);
+
 	void *handle = dlopen(enginePath.c_str(), RTLD_LAZY);
 
 	if (handle == nullptr)
@@ -223,7 +225,7 @@ void WpLoader::init(const std::string &enginePath, const std::string &roResDir,
 	this->m_pc.fpDestroyEngine = reinterpret_cast<FpDestroyEngine>(dlsym(handle,
 								 "csre_wp_engine_destroy"));
 	this->m_pc.fpGetEngineApiVersion = reinterpret_cast<FpGetEngineApiVersion>(dlsym(
-										   handle, "csre_wp_engine_get_api_version"));
+									   handle, "csre_wp_engine_get_api_version"));
 	this->m_pc.fpGetEngineVendor = reinterpret_cast<FpGetEngineVendor>(dlsym(handle,
 								   "csre_wp_engine_get_vendor"));
 	this->m_pc.fpGetEngineName = reinterpret_cast<FpGetEngineName>(dlsym(handle,
@@ -231,25 +233,31 @@ void WpLoader::init(const std::string &enginePath, const std::string &roResDir,
 	this->m_pc.fpGetEngineVersion = reinterpret_cast<FpGetEngineVersion>(dlsym(handle,
 									"csre_wp_engine_get_version"));
 	this->m_pc.fpGetEngineDataVersion = reinterpret_cast<FpGetEngineDataVersion>(dlsym(
-											handle, "csre_wp_engine_get_data_version"));
+										handle, "csre_wp_engine_get_data_version"));
 	this->m_pc.fpGetEngineLatestUpdateTime =
 		reinterpret_cast<FpGetEngineLatestUpdateTime>(dlsym(handle,
 				"csre_wp_engine_get_latest_update_time"));
-	this->m_pc.fpGetEngineActivated = reinterpret_cast<FpGetEngineActivated>(dlsym(handle,
-									  "csre_wp_engine_get_activated"));
+	this->m_pc.fpGetEngineActivated = reinterpret_cast<FpGetEngineActivated>(dlsym(
+									  handle, "csre_wp_engine_get_activated"));
 	this->m_pc.fpGetEngineVendorLogo = reinterpret_cast<FpGetEngineVendorLogo>(dlsym(
-										   handle, "csre_wp_engine_get_vendor_logo"));
+									   handle, "csre_wp_engine_get_vendor_logo"));
 
 	if (this->m_pc.fpGlobalInit == nullptr || this->m_pc.fpGlobalDeinit == nullptr ||
-			this->m_pc.fpContextCreate == nullptr || this->m_pc.fpContextDestroy == nullptr ||
+			this->m_pc.fpContextCreate == nullptr ||
+			this->m_pc.fpContextDestroy == nullptr ||
 			this->m_pc.fpCheckUrl == nullptr || this->m_pc.fpGetRiskLevel == nullptr ||
-			this->m_pc.fpGetDetailedUrl == nullptr || this->m_pc.fpGetErrorString == nullptr ||
-			this->m_pc.fpGetEngineInfo == nullptr || this->m_pc.fpDestroyEngine == nullptr ||
-			this->m_pc.fpGetEngineApiVersion == nullptr || this->m_pc.fpGetEngineVendor == nullptr ||
-			this->m_pc.fpGetEngineName == nullptr || this->m_pc.fpGetEngineVersion == nullptr ||
+			this->m_pc.fpGetDetailedUrl == nullptr ||
+			this->m_pc.fpGetErrorString == nullptr ||
+			this->m_pc.fpGetEngineInfo == nullptr ||
+			this->m_pc.fpDestroyEngine == nullptr ||
+			this->m_pc.fpGetEngineApiVersion == nullptr ||
+			this->m_pc.fpGetEngineVendor == nullptr ||
+			this->m_pc.fpGetEngineName == nullptr ||
+			this->m_pc.fpGetEngineVersion == nullptr ||
 			this->m_pc.fpGetEngineDataVersion == nullptr ||
 			this->m_pc.fpGetEngineLatestUpdateTime == nullptr ||
-			this->m_pc.fpGetEngineActivated == nullptr || this->m_pc.fpGetEngineVendorLogo == nullptr) {
+			this->m_pc.fpGetEngineActivated == nullptr ||
+			this->m_pc.fpGetEngineVendorLogo == nullptr) {
 		dlclose(this->m_pc.dlhandle);
 		this->m_pc.dlhandle = nullptr;
 		ThrowExc(EngineError, "Failed to load funcs from engine library. "
@@ -265,13 +273,7 @@ void WpLoader::init(const std::string &enginePath, const std::string &roResDir,
 	}
 }
 
-WpLoader::WpLoader(const std::string &enginePath, const std::string &roResDir,
-				   const std::string &rwWorkingDir)
-{
-	this->init(enginePath, roResDir, rwWorkingDir);
-}
-
-WpLoader::~WpLoader()
+void WpLoader::deinit()
 {
 	// ignore return value
 	this->m_pc.fpGlobalDeinit();
@@ -282,15 +284,30 @@ WpLoader::~WpLoader()
 	}
 }
 
-WpEngineContext::WpEngineContext(WpLoader &loader) :
+WpLoader::WpLoader(const std::string &enginePath, const std::string &roResDir,
+				   const std::string &rwWorkingDir)
+{
+	this->init(enginePath, roResDir, rwWorkingDir);
+}
+
+WpLoader::~WpLoader()
+{
+	this->deinit();
+}
+
+
+WpEngineContext::WpEngineContext(const std::shared_ptr<WpLoader> &loader) :
 	m_loader(loader), m_context(nullptr)
 {
-	toException(this->m_loader.contextCreate(this->m_context));
+	if (!this->m_loader)
+		ThrowExc(EngineNotExist, "null loader means engine not exist!");
+
+	toException(this->m_loader->contextCreate(this->m_context));
 }
 
 WpEngineContext::~WpEngineContext()
 {
-	toException(this->m_loader.contextDestroy(this->m_context));
+	toException(this->m_loader->contextDestroy(this->m_context));
 }
 
 csre_wp_context_h &WpEngineContext::get(void)
@@ -298,15 +315,19 @@ csre_wp_context_h &WpEngineContext::get(void)
 	return this->m_context;
 }
 
-WpEngineInfo::WpEngineInfo(WpLoader &loader) :
+
+WpEngineInfo::WpEngineInfo(const std::shared_ptr<WpLoader> &loader) :
 	m_loader(loader), m_info(nullptr)
 {
-	toException(this->m_loader.getEngineInfo(this->m_info));
+	if (!this->m_loader)
+		ThrowExc(EngineNotExist, "null loader means engine not exist!");
+
+	toException(this->m_loader->getEngineInfo(this->m_info));
 }
 
 WpEngineInfo::~WpEngineInfo()
 {
-	toException(this->m_loader.destroyEngine(this->m_info));
+	toException(this->m_loader->destroyEngine(this->m_info));
 }
 
 csre_wp_engine_h &WpEngineInfo::get(void)

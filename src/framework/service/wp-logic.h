@@ -21,6 +21,7 @@
  */
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "common/types.h"
@@ -34,7 +35,8 @@ namespace Csr {
 
 class WpLogic : public Logic {
 public:
-	WpLogic(WpLoader &loader, Db::Manager &db);
+	WpLogic(const std::shared_ptr<WpLoader> &loader,
+			const std::shared_ptr<Db::Manager> &db);
 	virtual ~WpLogic() = default;
 
 	RawBuffer checkUrl(const WpContext &context, const std::string &url);
@@ -46,8 +48,8 @@ private:
 			const std::string &url,
 			const WpResult &result);
 
-	WpLoader &m_loader;
-	Db::Manager &m_db;
+	std::shared_ptr<WpLoader> m_loader;
+	std::shared_ptr<Db::Manager> m_db;
 
 	std::string m_dataVersion;
 };

@@ -21,31 +21,30 @@
  */
 #pragma once
 
-#include <ctime>
+#include <memory>
 #include <vector>
 #include <string>
+#include <ctime>
 
 #include <csre-content-screening-types.h>
 #include <csre-content-screening-engine-info.h>
 
+#include "service/iloader.h"
+
 namespace Csr {
 
-class CsLoader {
+class CsLoader : public ILoader {
 public:
 	CsLoader(const std::string &enginePath, const std::string &roResDir,
 			 const std::string &rwWorkingDir);
 	virtual ~CsLoader();
-
-	void reset(const std::string &enginePath, const std::string &roResDir,
-			   const std::string &rwWorkingDir);
 
 	int contextCreate(csre_cs_context_h &);
 	int contextDestroy(csre_cs_context_h);
 	int scanData(csre_cs_context_h, const std::vector<unsigned char> &,
 				 csre_cs_detected_h *);
 	int scanFile(csre_cs_context_h, const std::string &, csre_cs_detected_h *);
-	int scanAppOnCloud(csre_cs_context_h, const std::string &,
-					   csre_cs_detected_h *);
+	int scanAppOnCloud(csre_cs_context_h, const std::string &, csre_cs_detected_h *);
 
 	int getSeverity(csre_cs_detected_h, csre_cs_severity_level_e *);
 	int getMalwareName(csre_cs_detected_h, std::string &);
@@ -73,8 +72,7 @@ private:
 							  csre_cs_detected_h *);
 	using FpScanFile = int(*)(csre_cs_context_h, const char *,
 							  csre_cs_detected_h *);
-	using FpScanAppOnCloud = int(*)(csre_cs_context_h, const char *,
-									csre_cs_detected_h *);
+	using FpScanAppOnCloud = int(*)(csre_cs_context_h, const char *, csre_cs_detected_h *);
 	using FpGetSeverity = int(*)(csre_cs_detected_h, csre_cs_severity_level_e *);
 	using FpGetMalwareName = int(*)(csre_cs_detected_h, const char **);
 	using FpGetDetailedUrl = int(*)(csre_cs_detected_h, const char **);
@@ -117,30 +115,31 @@ private:
 		FpGetEngineVendorLogo fpGetEngineVendorLogo;
 	};
 
-	void init(const std::string &, const std::string &, const std::string &);
+	virtual void init(const std::string &, const std::string &, const std::string &) override;
+	virtual void deinit(void) override;
 
 	PluginContext m_pc;
 };
 
 class CsEngineContext {
 public:
-	CsEngineContext(CsLoader &);
+	CsEngineContext(const std::shared_ptr<CsLoader> &);
 	~CsEngineContext();
 	csre_cs_context_h &get(void);
 
 private:
-	CsLoader &m_loader;
+	std::shared_ptr<CsLoader> m_loader;
 	csre_cs_context_h m_context;
 };
 
 class CsEngineInfo {
 public:
-	CsEngineInfo(CsLoader &);
+	CsEngineInfo(const std::shared_ptr<CsLoader> &);
 	~CsEngineInfo();
 	csre_cs_engine_h &get(void);
 
 private:
-	CsLoader &m_loader;
+	std::shared_ptr<CsLoader> m_loader;
 	csre_cs_engine_h m_info;
 };
 

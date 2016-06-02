@@ -32,25 +32,32 @@
 
 namespace Csr {
 
-WpLogic::WpLogic(WpLoader &loader, Db::Manager &db) : m_loader(loader), m_db(db)
+WpLogic::WpLogic(const std::shared_ptr<WpLoader> &loader,
+				 const std::shared_ptr<Db::Manager> &db) :
+	m_loader(loader), m_db(db)
 {
-	WpEngineInfo wpEngineInfo(this->m_loader);
-	toException(this->m_loader.getEngineDataVersion(wpEngineInfo.get(),
-				this->m_dataVersion));
+	if (!this->m_db)
+		ThrowExc(DbFailed, "DB init failed.");
+
+	if (this->m_loader) {
+		WpEngineInfo wpEngineInfo(this->m_loader);
+		toException(this->m_loader->getEngineDataVersion(wpEngineInfo.get(),
+					this->m_dataVersion));
+	}
 }
 
 RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
 {
 	EXCEPTION_GUARD_START
 
-	if (this->m_db.getEngineState(CSR_ENGINE_WP) != CSR_STATE_ENABLE)
+	if (this->m_db->getEngineState(CSR_ENGINE_WP) != CSR_STATE_ENABLE)
 		ThrowExc(EngineDisabled, "engine is disabled");
 
 	WpEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
 	csre_wp_check_result_h result;
-	toException(this->m_loader.checkUrl(c, url.c_str(), &result));
+	toException(this->m_loader->checkUrl(c, url.c_str(), &result));
 
 	auto wr = convert(result);
 
@@ -112,8 +119,8 @@ WpResult WpLogic::convert(csre_wp_check_result_h &r)
 	WpResult wr;
 	csre_wp_risk_level_e elevel;
 
-	toException(this->m_loader.getDetailedUrl(r, wr.detailedUrl));
-	toException(this->m_loader.getRiskLevel(r, &elevel));
+	toException(this->m_loader->getDetailedUrl(r, wr.detailedUrl));
+	toException(this->m_loader->getRiskLevel(r, &elevel));
 	wr.riskLevel = Csr::convert(elevel);
 
 	return wr;

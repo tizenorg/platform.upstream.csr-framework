@@ -49,13 +49,13 @@ private:
 
 	ThreadPool m_workqueue;
 
-	std::unique_ptr<CsLoader> m_cs;
-	std::unique_ptr<WpLoader> m_wp;
-	std::unique_ptr<Db::Manager> m_db;
+	std::shared_ptr<CsLoader> m_cs;
+	std::shared_ptr<WpLoader> m_wp;
+	std::shared_ptr<Db::Manager> m_db;
 
-	CsLogic m_cslogic;
-	WpLogic m_wplogic;
-	EmLogic m_emlogic;
+	std::unique_ptr<CsLogic> m_cslogic;
+	std::unique_ptr<WpLogic> m_wplogic;
+	std::unique_ptr<EmLogic> m_emlogic;
 
 };
 

@@ -258,7 +258,7 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 	this->m_pc.fpDestroyEngine = reinterpret_cast<FpDestroyEngine>(dlsym(handle,
 								 "csre_cs_engine_destroy"));
 	this->m_pc.fpGetEngineApiVersion = reinterpret_cast<FpGetEngineApiVersion>(dlsym(
-										   handle, "csre_cs_engine_get_api_version"));
+									   handle, "csre_cs_engine_get_api_version"));
 	this->m_pc.fpGetEngineVendor = reinterpret_cast<FpGetEngineVendor>(dlsym(handle,
 								   "csre_cs_engine_get_vendor"));
 	this->m_pc.fpGetEngineName = reinterpret_cast<FpGetEngineName>(dlsym(handle,
@@ -266,14 +266,14 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 	this->m_pc.fpGetEngineVersion = reinterpret_cast<FpGetEngineVersion>(dlsym(handle,
 									"csre_cs_engine_get_version"));
 	this->m_pc.fpGetEngineDataVersion = reinterpret_cast<FpGetEngineDataVersion>(dlsym(
-											handle, "csre_cs_engine_get_data_version"));
+										handle, "csre_cs_engine_get_data_version"));
 	this->m_pc.fpGetEngineLatestUpdateTime =
 		reinterpret_cast<FpGetEngineLatestUpdateTime>(dlsym(handle,
 				"csre_cs_engine_get_latest_update_time"));
-	this->m_pc.fpGetEngineActivated = reinterpret_cast<FpGetEngineActivated>(dlsym(handle,
-									  "csre_cs_engine_get_activated"));
+	this->m_pc.fpGetEngineActivated = reinterpret_cast<FpGetEngineActivated>(dlsym(
+									  handle, "csre_cs_engine_get_activated"));
 	this->m_pc.fpGetEngineVendorLogo = reinterpret_cast<FpGetEngineVendorLogo>(dlsym(
-										   handle, "csre_cs_engine_get_vendor_logo"));
+									   handle, "csre_cs_engine_get_vendor_logo"));
 
 	if (this->m_pc.fpGlobalInit == nullptr || this->m_pc.fpGlobalDeinit == nullptr ||
 			this->m_pc.fpContextCreate == nullptr ||
@@ -308,8 +308,7 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 	}
 }
 
-void CsLoader::reset(const std::string &enginePath, const std::string &roResDir,
-					 const std::string &rwWorkingDir)
+void CsLoader::deinit()
 {
 	// ignore return value
 	this->m_pc.fpGlobalDeinit();
@@ -318,8 +317,6 @@ void CsLoader::reset(const std::string &enginePath, const std::string &roResDir,
 		dlclose(this->m_pc.dlhandle);
 		this->m_pc.dlhandle = nullptr;
 	}
-
-	this->init(enginePath, roResDir, rwWorkingDir);
 }
 
 CsLoader::CsLoader(const std::string &enginePath, const std::string &roResDir,
@@ -330,23 +327,22 @@ CsLoader::CsLoader(const std::string &enginePath, const std::string &roResDir,
 
 CsLoader::~CsLoader()
 {
-	// ignore return value
-	this->m_pc.fpGlobalDeinit();
-
-	if (this->m_pc.dlhandle) {
-		dlclose(this->m_pc.dlhandle);
-		this->m_pc.dlhandle = nullptr;
-	}
+	this->deinit();
 }
 
-CsEngineContext::CsEngineContext(CsLoader &loader) : m_loader(loader), m_context(nullptr)
+
+CsEngineContext::CsEngineContext(const std::shared_ptr<CsLoader> &loader) :
+	m_loader(loader), m_context(nullptr)
 {
-	toException(this->m_loader.contextCreate(this->m_context));
+	if (!this->m_loader)
+		ThrowExc(EngineNotExist, "null loader means engine not exist!");
+
+	toException(this->m_loader->contextCreate(this->m_context));
 }
 
 CsEngineContext::~CsEngineContext()
 {
-	toException(this->m_loader.contextDestroy(this->m_context));
+	toException(this->m_loader->contextDestroy(this->m_context));
 }
 
 csre_cs_context_h &CsEngineContext::get(void)
@@ -354,14 +350,19 @@ csre_cs_context_h &CsEngineContext::get(void)
 	return this->m_context;
 }
 
-CsEngineInfo::CsEngineInfo(CsLoader &loader) : m_loader(loader), m_info(nullptr)
+
+CsEngineInfo::CsEngineInfo(const std::shared_ptr<CsLoader> &loader) :
+	m_loader(loader), m_info(nullptr)
 {
-	toException(this->m_loader.getEngineInfo(this->m_info));
+	if (!this->m_loader)
+		ThrowExc(EngineNotExist, "null loader means engine not exist!");
+
+	toException(this->m_loader->getEngineInfo(this->m_info));
 }
 
 CsEngineInfo::~CsEngineInfo()
 {
-	toException(this->m_loader.destroyEngine(this->m_info));
+	toException(this->m_loader->destroyEngine(this->m_info));
 }
 
 csre_cs_engine_h &CsEngineInfo::get(void)

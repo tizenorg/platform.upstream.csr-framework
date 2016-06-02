@@ -119,21 +119,11 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(API_ENGINE_WEB_PROTECTION_ENGINE_INFO)
 
-BOOST_AUTO_TEST_CASE(get_engine_info)
-{
-	EXCEPTION_GUARD_START
-
-	auto c = Test::Context<csre_wp_engine_h>();
-	(void) c;
-
-	EXCEPTION_GUARD_END
-}
-
 BOOST_AUTO_TEST_CASE(get_vendor)
 {
 	EXCEPTION_GUARD_START
 
-	auto c = Test::Context<csre_wp_engine_h>();
+	auto c = Test::Context<csre_wp_context_h>();
 	auto handle = c.get();
 
 	const char *vendor = nullptr;
@@ -146,7 +136,7 @@ BOOST_AUTO_TEST_CASE(get_vendor_logo)
 {
 	EXCEPTION_GUARD_START
 
-	auto c = Test::Context<csre_wp_engine_h>();
+	auto c = Test::Context<csre_wp_context_h>();
 	auto handle = c.get();
 
 	unsigned char *vendor_logo_image = nullptr;
@@ -161,7 +151,7 @@ BOOST_AUTO_TEST_CASE(get_version)
 {
 	EXCEPTION_GUARD_START
 
-	auto c = Test::Context<csre_wp_engine_h>();
+	auto c = Test::Context<csre_wp_context_h>();
 	auto handle = c.get();
 
 	const char *version = nullptr;
@@ -175,7 +165,7 @@ BOOST_AUTO_TEST_CASE(get_data_version)
 {
 	EXCEPTION_GUARD_START
 
-	auto c = Test::Context<csre_wp_engine_h>();
+	auto c = Test::Context<csre_wp_context_h>();
 	auto handle = c.get();
 
 	const char *version = nullptr;
@@ -189,7 +179,7 @@ BOOST_AUTO_TEST_CASE(get_latest_update_time)
 {
 	EXCEPTION_GUARD_START
 
-	auto c = Test::Context<csre_wp_engine_h>();
+	auto c = Test::Context<csre_wp_context_h>();
 	auto handle = c.get();
 
 	time_t time = 0;
@@ -203,7 +193,7 @@ BOOST_AUTO_TEST_CASE(get_engine_activated)
 {
 	EXCEPTION_GUARD_START
 
-	auto c = Test::Context<csre_wp_engine_h>();
+	auto c = Test::Context<csre_wp_context_h>();
 	auto handle = c.get();
 
 	csre_wp_activated_e activated;
@@ -216,7 +206,7 @@ BOOST_AUTO_TEST_CASE(get_api_version)
 {
 	EXCEPTION_GUARD_START
 
-	auto c = Test::Context<csre_wp_engine_h>();
+	auto c = Test::Context<csre_wp_context_h>();
 	auto handle = c.get();
 
 	const char *version = nullptr;

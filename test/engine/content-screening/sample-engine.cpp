@@ -63,11 +63,6 @@ struct csret_cs_detected_s {
 	time_t timestamp;
 };
 
-struct csret_cs_context_s {
-	int scan_on_data;
-	std::list<csret_cs_detected_s> detected_list;
-};
-
 struct csret_cs_engine_s {
 	std::string vendorName;
 	std::string engineName;
@@ -76,6 +71,12 @@ struct csret_cs_engine_s {
 	std::string dataVersion;
 	RawBuffer logoImage;
 	time_t latestUpdate;
+};
+
+struct csret_cs_context_s {
+	int scan_on_data;
+	std::list<csret_cs_detected_s> detected_list;
+	csret_cs_engine_s *engine;
 };
 
 enum csret_cs_internal_error_e {
@@ -225,8 +226,11 @@ time_t csret_cs_get_timestamp()
 	return tv.tv_sec;
 }
 
-csret_cs_engine_s *csret_cs_init_engine()
+int csret_cs_init_engine(csret_cs_engine_s **pengine)
 {
+	if (pengine == nullptr)
+		return CSRE_ERROR_INVALID_PARAMETER;
+
 	auto ptr = new csret_cs_engine_s;
 
 	ptr->vendorName = VENDOR_NAME;
@@ -235,12 +239,11 @@ csret_cs_engine_s *csret_cs_init_engine()
 	ptr->engineVersion = ENGINE_VERSION;
 	ptr->dataVersion = ENGINE_VERSION;
 
-	int ret = csret_cs_read_binary(g_resdir + "/" PRIVATE_LOGO_FILE,
-								   ptr->logoImage);
+	int ret = csret_cs_read_binary(g_resdir + "/" PRIVATE_LOGO_FILE, ptr->logoImage);
 
 	if (ret != CSRE_ERROR_NONE) {
 		delete ptr;
-		return nullptr;
+		return ret;
 	}
 
 	struct stat attrib;
@@ -249,7 +252,9 @@ csret_cs_engine_s *csret_cs_init_engine()
 
 	ptr->latestUpdate = attrib.st_mtime;
 
-	return ptr;
+	*pengine = ptr;
+
+	return CSRE_ERROR_NONE;
 }
 
 int csret_cs_compare_data(const RawBuffer &data, const std::string &needle)
@@ -309,8 +314,7 @@ int csret_cs_detect_malware(csret_cs_context_s *context, const RawBuffer &data,
 // Main function related
 //==============================================================================
 API
-int csre_cs_global_initialize(const char *ro_res_dir,
-							  const char *rw_working_dir)
+int csre_cs_global_initialize(const char *ro_res_dir, const char *rw_working_dir)
 {
 	if (ro_res_dir == nullptr || rw_working_dir == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
@@ -338,7 +342,16 @@ int csre_cs_context_create(csre_cs_context_h *phandle)
 	if (g_virus_sig.empty())
 		return CSRE_ERROR_INVALID_HANDLE; // not yet initialized
 
-	auto context = new csret_cs_context_s;
+	csret_cs_engine_s *engine = nullptr;
+	auto ret = csret_cs_init_engine(&engine);
+	if (ret != CSRE_ERROR_NONE)
+		return ret;
+
+	auto context = new (std::nothrow) csret_cs_context_s;
+	if (context == nullptr)
+		return CSRE_ERROR_OUT_OF_MEMORY;
+
+	context->engine = engine;
 
 	*phandle = reinterpret_cast<csre_cs_context_h>(context);
 
@@ -352,6 +365,9 @@ int csre_cs_context_destroy(csre_cs_context_h handle)
 
 	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
+
+	if (context->engine != nullptr)
+		delete context->engine;
 
 	delete context;
 
@@ -542,38 +558,15 @@ int csre_cs_detected_get_detailed_url(csre_cs_detected_h detected,
 // Engine information related
 //==============================================================================
 API
-int csre_cs_engine_get_info(csre_cs_engine_h *pengine)
+int csre_cs_engine_get_vendor(csre_cs_context_h context, const char **vendor)
 {
-	if (pengine == nullptr)
-		return CSRE_ERROR_INVALID_PARAMETER;
-
-	auto ptr = csret_cs_init_engine();
-	*pengine = reinterpret_cast<csre_cs_engine_h>(ptr);
-
-	return CSRE_ERROR_NONE;
-}
-
-API
-int csre_cs_engine_destroy(csre_cs_engine_h engine)
-{
-	if (engine == nullptr)
-		return CSRE_ERROR_INVALID_PARAMETER;
-
-	delete reinterpret_cast<csret_cs_engine_s *>(engine);
-
-	return CSRE_ERROR_NONE;
-}
-
-API
-int csre_cs_engine_get_vendor(csre_cs_engine_h engine, const char **vendor)
-{
-	auto eng = reinterpret_cast<csret_cs_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (vendor == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_cs_context_s *>(context)->engine;
 
 	*vendor = eng->vendorName.c_str();
 
@@ -581,15 +574,15 @@ int csre_cs_engine_get_vendor(csre_cs_engine_h engine, const char **vendor)
 }
 
 API
-int csre_cs_engine_get_name(csre_cs_engine_h engine, const char **name)
+int csre_cs_engine_get_name(csre_cs_context_h context, const char **name)
 {
-	auto eng = reinterpret_cast<csret_cs_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (name == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_cs_context_s *>(context)->engine;
 
 	*name = eng->engineName.c_str();
 
@@ -597,17 +590,17 @@ int csre_cs_engine_get_name(csre_cs_engine_h engine, const char **name)
 }
 
 API
-int csre_cs_engine_get_vendor_logo(csre_cs_engine_h engine,
+int csre_cs_engine_get_vendor_logo(csre_cs_context_h context,
 								   unsigned char **logo_image,
 								   unsigned int *image_size)
 {
-	auto eng = reinterpret_cast<csret_cs_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (logo_image == nullptr || image_size == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_cs_context_s *>(context)->engine;
 
 	auto s = eng->logoImage.size();
 
@@ -621,15 +614,15 @@ int csre_cs_engine_get_vendor_logo(csre_cs_engine_h engine,
 }
 
 API
-int csre_cs_engine_get_version(csre_cs_engine_h engine, const char **version)
+int csre_cs_engine_get_version(csre_cs_context_h context, const char **version)
 {
-	auto eng = reinterpret_cast<csret_cs_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (version == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_cs_context_s *>(context)->engine;
 
 	*version = eng->engineVersion.c_str();
 
@@ -637,16 +630,15 @@ int csre_cs_engine_get_version(csre_cs_engine_h engine, const char **version)
 }
 
 API
-int csre_cs_engine_get_data_version(csre_cs_engine_h engine,
-									const char **version)
+int csre_cs_engine_get_data_version(csre_cs_context_h context, const char **version)
 {
-	auto eng = reinterpret_cast<csret_cs_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (version == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_cs_context_s *>(context)->engine;
 
 	*version = eng->dataVersion.c_str();
 
@@ -654,15 +646,15 @@ int csre_cs_engine_get_data_version(csre_cs_engine_h engine,
 }
 
 API
-int csre_cs_engine_get_latest_update_time(csre_cs_engine_h engine, time_t *time)
+int csre_cs_engine_get_latest_update_time(csre_cs_context_h context, time_t *time)
 {
-	auto eng = reinterpret_cast<csret_cs_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (time == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_cs_context_s *>(context)->engine;
 
 	*time = eng->latestUpdate;
 
@@ -670,13 +662,10 @@ int csre_cs_engine_get_latest_update_time(csre_cs_engine_h engine, time_t *time)
 }
 
 API
-int csre_cs_engine_get_activated(csre_cs_engine_h engine,
+int csre_cs_engine_get_activated(csre_cs_context_h context,
 								 csre_cs_activated_e *pactivated)
 {
-	auto eng = reinterpret_cast<csret_cs_engine_s *>(engine);
-
-	if (eng == nullptr)
-		return CSRE_ERROR_INVALID_HANDLE;
+	(void) context;
 
 	if (pactivated == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
@@ -690,16 +679,15 @@ int csre_cs_engine_get_activated(csre_cs_engine_h engine,
 }
 
 API
-int csre_cs_engine_get_api_version(csre_cs_engine_h engine,
-								   const char **version)
+int csre_cs_engine_get_api_version(csre_cs_context_h context, const char **version)
 {
-	auto eng = reinterpret_cast<csret_cs_engine_s *>(engine);
-
-	if (eng == nullptr)
+	if (context == nullptr)
 		return CSRE_ERROR_INVALID_HANDLE;
 
 	if (version == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
+
+	auto eng = reinterpret_cast<csret_cs_context_s *>(context)->engine;
 
 	*version = eng->apiVersion.c_str();
 

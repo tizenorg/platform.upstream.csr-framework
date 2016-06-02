@@ -62,8 +62,8 @@ CsLogic::CsLogic(const std::shared_ptr<CsLoader> &loader,
 		ThrowExc(DbFailed, "Failed to init db");
 
 	if (this->m_loader) {
-		CsEngineInfo csEngineInfo(this->m_loader);
-		toException(this->m_loader->getEngineDataVersion(csEngineInfo.get(),
+		CsEngineContext csEngineContext(this->m_loader);
+		toException(this->m_loader->getEngineDataVersion(csEngineContext.get(),
 					this->m_dataVersion));
 	}
 }

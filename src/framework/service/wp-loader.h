@@ -46,16 +46,14 @@ public:
 	int getRiskLevel(csre_wp_check_result_h, csre_wp_risk_level_e *);
 	int getDetailedUrl(csre_wp_check_result_h, std::string &);
 	int getErrorString(int, std::string &);
-	int getEngineInfo(csre_wp_engine_h &);
-	int destroyEngine(csre_wp_engine_h);
-	int getEngineApiVersion(csre_wp_engine_h, std::string &);
-	int getEngineVendor(csre_wp_engine_h, std::string &);
-	int getEngineName(csre_wp_engine_h, std::string &);
-	int getEngineVersion(csre_wp_engine_h, std::string &);
-	int getEngineDataVersion(csre_wp_engine_h, std::string &);
-	int getEngineLatestUpdateTime(csre_wp_engine_h, time_t *);
-	int getEngineActivated(csre_wp_engine_h, csre_wp_activated_e *);
-	int getEngineVendorLogo(csre_wp_engine_h, std::vector<unsigned char> &);
+	int getEngineApiVersion(csre_wp_context_h, std::string &);
+	int getEngineVendor(csre_wp_context_h, std::string &);
+	int getEngineName(csre_wp_context_h, std::string &);
+	int getEngineVersion(csre_wp_context_h, std::string &);
+	int getEngineDataVersion(csre_wp_context_h, std::string &);
+	int getEngineLatestUpdateTime(csre_wp_context_h, time_t *);
+	int getEngineActivated(csre_wp_context_h, csre_wp_activated_e *);
+	int getEngineVendorLogo(csre_wp_context_h, std::vector<unsigned char> &);
 
 private:
 	using FpGlobalInit = int(*)(const char *, const char *);
@@ -67,16 +65,14 @@ private:
 	using FpGetRiskLevel = int(*)(csre_wp_check_result_h, csre_wp_risk_level_e *);
 	using FPGetDetailedUrl = int(*)(csre_wp_check_result_h, const char **);
 	using FpGetErrorString = int(*)(int, const char **);
-	using FpGetEngineInfo = int(*)(csre_wp_engine_h *);
-	using FpDestroyEngine = int(*)(csre_wp_engine_h);
-	using FpGetEngineApiVersion = int(*)(csre_wp_engine_h, const char **);
-	using FpGetEngineVendor = int(*)(csre_wp_engine_h, const char **);
-	using FpGetEngineName = int(*)(csre_wp_engine_h, const char **);
-	using FpGetEngineVersion = int(*)(csre_wp_engine_h, const char **);
-	using FpGetEngineDataVersion = int(*)(csre_wp_engine_h, const char **);
-	using FpGetEngineLatestUpdateTime = int(*)(csre_wp_engine_h, time_t *);
-	using FpGetEngineActivated = int(*)(csre_wp_engine_h, csre_wp_activated_e *);
-	using FpGetEngineVendorLogo = int(*)(csre_wp_engine_h, unsigned char **,
+	using FpGetEngineApiVersion = int(*)(csre_wp_context_h, const char **);
+	using FpGetEngineVendor = int(*)(csre_wp_context_h, const char **);
+	using FpGetEngineName = int(*)(csre_wp_context_h, const char **);
+	using FpGetEngineVersion = int(*)(csre_wp_context_h, const char **);
+	using FpGetEngineDataVersion = int(*)(csre_wp_context_h, const char **);
+	using FpGetEngineLatestUpdateTime = int(*)(csre_wp_context_h, time_t *);
+	using FpGetEngineActivated = int(*)(csre_wp_context_h, csre_wp_activated_e *);
+	using FpGetEngineVendorLogo = int(*)(csre_wp_context_h, unsigned char **,
 										 unsigned int *);
 
 	struct PluginContext {
@@ -90,8 +86,6 @@ private:
 		FpGetRiskLevel fpGetRiskLevel;
 		FPGetDetailedUrl fpGetDetailedUrl;
 		FpGetErrorString fpGetErrorString;
-		FpGetEngineInfo fpGetEngineInfo;
-		FpDestroyEngine fpDestroyEngine;
 		FpGetEngineApiVersion fpGetEngineApiVersion;
 		FpGetEngineVendor fpGetEngineVendor;
 		FpGetEngineName fpGetEngineName;
@@ -117,17 +111,6 @@ public:
 private:
 	std::shared_ptr<WpLoader> m_loader;
 	csre_wp_context_h m_context;
-};
-
-class WpEngineInfo {
-public:
-	WpEngineInfo(const std::shared_ptr<WpLoader> &);
-	~WpEngineInfo();
-	csre_wp_engine_h &get(void);
-
-private:
-	std::shared_ptr<WpLoader> m_loader;
-	csre_wp_engine_h m_info;
 };
 
 }

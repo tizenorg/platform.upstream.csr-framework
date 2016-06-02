@@ -43,6 +43,8 @@ public:
 	std::string getVersion(void);
 	std::string getLabel(void);
 
+	static const std::string UNKNOWN;
+
 private:
 	pkgmgrinfo_pkginfo_h m_handle;
 };

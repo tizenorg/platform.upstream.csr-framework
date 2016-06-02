@@ -19,6 +19,9 @@
  * @version    1.0
  */
 #define BOOST_TEST_MODULE CSR_API_TEST
+
+#include <iostream>
+
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include <boost/test/results_reporter.hpp>
@@ -32,13 +35,21 @@ csr_state_e setEngineState(csr_engine_id_e id, csr_state_e state)
 {
 	csr_engine_h handle;
 	auto ret = csr_get_current_engine(id, &handle);
-	if (ret != CSR_ERROR_NONE)
+	if (ret == CSR_ERROR_ENGINE_NOT_EXIST) {
+		std::cerr << "Engine not exist! engine id: " << static_cast<int>(id) << std::endl;
+		return CSR_STATE_DISABLE;
+	} else if (ret != CSR_ERROR_NONE) {
 		throw std::logic_error("Failed to csr_get_current_engine.");
+	}
 
 	csr_state_e current;
 	ret = csr_engine_get_state(handle, &current);
-	if (ret != CSR_ERROR_NONE)
+	if (ret == CSR_ERROR_ENGINE_NOT_EXIST) {
+		std::cerr << "Engine not exist! engine id: " << static_cast<int>(id) << std::endl;
+		return CSR_STATE_DISABLE;
+	} else if (ret != CSR_ERROR_NONE) {
 		throw std::logic_error("Failed to csr_get_state.");
+	}
 
 	if (current == state)
 		return current;

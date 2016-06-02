@@ -84,14 +84,30 @@ inline CommandId extractCommandId(BinaryQueue &q)
 
 ServerService::ServerService() :
 	Service(),
-	m_workqueue(2, 10),
-	m_cs(new CsLoader(CS_ENGINE_PATH, ENGINE_DIR, ENGINE_RW_WORKING_DIR)),
-	m_wp(new WpLoader(WP_ENGINE_PATH, ENGINE_DIR, ENGINE_RW_WORKING_DIR)),
-	m_db(new Db::Manager(RW_DBSPACE "/.csr.db", RO_DBSPACE)),
-	m_cslogic(*m_cs, *m_db),
-	m_wplogic(*m_wp, *m_db),
-	m_emlogic(*m_cs, *m_wp, *m_db)
+	m_workqueue(2, 10)
 {
+	this->m_db = std::make_shared<Db::Manager>(RW_DBSPACE "/.csr.db", RO_DBSPACE);
+
+	try {
+		this->m_cs = std::make_shared<CsLoader>(CS_ENGINE_PATH, ENGINE_DIR,
+												ENGINE_RW_WORKING_DIR);
+	} catch (const Exception &e) {
+		ERROR("Excetpion in content screening loader: " << e.what() <<
+			  " error: " << e.error() << " treat it as ENGINE_NOT_EXIST.");
+	}
+
+	try {
+		this->m_wp = std::make_shared<WpLoader>(WP_ENGINE_PATH, ENGINE_DIR,
+												ENGINE_RW_WORKING_DIR);
+	} catch (const Exception &e) {
+		ERROR("Exception in web protection loader: " << e.what() <<
+			  " error: " << e.error() << " treat it as ENGINE_NOT_EXIST.");
+	}
+
+	this->m_cslogic.reset(new CsLogic(this->m_cs, this->m_db));
+	this->m_wplogic.reset(new WpLogic(this->m_wp, this->m_db));
+	this->m_emlogic.reset(new EmLogic(this->m_cs, this->m_wp, this->m_db));
+
 	this->add(SockId::CS);
 	this->add(SockId::WP);
 	this->add(SockId::ADMIN);
@@ -103,6 +119,11 @@ ServerService::ServerService() :
 RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 {
 	EXCEPTION_GUARD_START
+
+	// need not to try resetting engine because the engine is pre-loaded (RO) and it
+	// cannot be fixed in dynamically except platform-development time.
+	if (!this->m_cs)
+		ThrowExc(EngineNotExist, "Content screening engine is not exist!");
 
 	BinaryQueue q;
 	q.push(data);
@@ -119,7 +140,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		RawBuffer data;
 		q.Deserialize(cptr, data);
 
-		return m_cslogic.scanData(*cptr, data);
+		return this->m_cslogic->scanData(*cptr, data);
 	}
 
 	case CommandId::SCAN_FILE: {
@@ -129,7 +150,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		std::string filepath;
 		q.Deserialize(cptr, filepath);
 
-		return m_cslogic.scanFile(*cptr, filepath);
+		return this->m_cslogic->scanFile(*cptr, filepath);
 	}
 
 	case CommandId::GET_SCANNABLE_FILES: {
@@ -138,7 +159,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		std::string dir;
 		q.Deserialize(dir);
 
-		return m_cslogic.getScannableFiles(dir);
+		return this->m_cslogic->getScannableFiles(dir);
 	}
 
 	case CommandId::CANONICALIZE_PATHS: {
@@ -147,7 +168,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		StrSet paths;
 		q.Deserialize(paths);
 
-		return m_cslogic.canonicalizePaths(paths);
+		return this->m_cslogic->canonicalizePaths(paths);
 	}
 
 	case CommandId::SET_DIR_TIMESTAMP: {
@@ -157,7 +178,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		int64_t ts64 = 0;
 		q.Deserialize(dir, ts64);
 
-		return m_cslogic.setDirTimestamp(dir, static_cast<time_t>(ts64));
+		return this->m_cslogic->setDirTimestamp(dir, static_cast<time_t>(ts64));
 	}
 
 	case CommandId::JUDGE_STATUS: {
@@ -168,7 +189,8 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		int intAction;
 		q.Deserialize(filepath, intAction);
 
-		return m_cslogic.judgeStatus(filepath, static_cast<csr_cs_action_e>(intAction));
+		return this->m_cslogic->judgeStatus(filepath,
+											static_cast<csr_cs_action_e>(intAction));
 	}
 
 	case CommandId::GET_DETECTED: {
@@ -177,7 +199,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		std::string filepath;
 		q.Deserialize(filepath);
 
-		return m_cslogic.getDetected(filepath);
+		return this->m_cslogic->getDetected(filepath);
 	}
 
 	case CommandId::GET_DETECTED_LIST: {
@@ -186,7 +208,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		StrSet dirSet;
 		q.Deserialize(dirSet);
 
-		return m_cslogic.getDetectedList(dirSet);
+		return this->m_cslogic->getDetectedList(dirSet);
 	}
 
 	case CommandId::GET_IGNORED: {
@@ -195,7 +217,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		std::string filepath;
 		q.Deserialize(filepath);
 
-		return m_cslogic.getIgnored(filepath);
+		return this->m_cslogic->getIgnored(filepath);
 	}
 
 	case CommandId::GET_IGNORED_LIST: {
@@ -204,7 +226,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		StrSet dirSet;
 		q.Deserialize(dirSet);
 
-		return m_cslogic.getIgnoredList(dirSet);
+		return this->m_cslogic->getIgnoredList(dirSet);
 	}
 
 	default:
@@ -217,6 +239,9 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 RawBuffer ServerService::processWp(const ConnShPtr &conn, RawBuffer &data)
 {
 	EXCEPTION_GUARD_START
+
+	if (!this->m_wp)
+		ThrowExc(EngineNotExist, "Web protection engine is not exist!");
 
 	hasPermission(conn);
 
@@ -233,7 +258,7 @@ RawBuffer ServerService::processWp(const ConnShPtr &conn, RawBuffer &data)
 		std::string url;
 		q.Deserialize(cptr, url);
 
-		return m_wplogic.checkUrl(*cptr, url);
+		return this->m_wplogic->checkUrl(*cptr, url);
 	}
 
 	default:
@@ -247,71 +272,68 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 {
 	EXCEPTION_GUARD_START
 
-	hasPermission(conn);
-
 	BinaryQueue q;
 	q.push(data);
 
 	auto cid = extractCommandId(q);
 
+	EmContextShPtr cptr;
+	q.Deserialize(cptr);
+
+	if (!cptr)
+		ThrowExc(SocketError, "engine context for processAdmin should be exist!");
+
+	switch (cptr->engineId) {
+	case CSR_ENGINE_CS:
+		if (!this->m_cs)
+			ThrowExc(EngineNotExist, "Content screening engine is not exist!");
+		break;
+	case CSR_ENGINE_WP:
+		if (!this->m_wp)
+			ThrowExc(EngineNotExist, "Web protection engine is not exist!");
+		break;
+	default:
+		throw std::invalid_argument("context engine Id is invalid for processAdmin!");
+	}
+
+	hasPermission(conn);
+
 	INFO("Admin request process. command id: " << cidToString(cid));
 
 	switch (cid) {
 	case CommandId::EM_GET_NAME: {
-		EmContextShPtr cptr;
-		q.Deserialize(cptr);
-
-		return m_emlogic.getEngineName(*cptr);
+		return this->m_emlogic->getEngineName(*cptr);
 	}
 
 	case CommandId::EM_GET_VENDOR: {
-		EmContextShPtr cptr;
-		q.Deserialize(cptr);
-
-		return m_emlogic.getEngineVendor(*cptr);
+		return this->m_emlogic->getEngineVendor(*cptr);
 	}
 
 	case CommandId::EM_GET_VERSION: {
-		EmContextShPtr cptr;
-		q.Deserialize(cptr);
-
-		return m_emlogic.getEngineVersion(*cptr);
+		return this->m_emlogic->getEngineVersion(*cptr);
 	}
 
 	case CommandId::EM_GET_DATA_VERSION: {
-		EmContextShPtr cptr;
-		q.Deserialize(cptr);
-
-		return m_emlogic.getEngineDataVersion(*cptr);
+		return this->m_emlogic->getEngineDataVersion(*cptr);
 	}
 
 	case CommandId::EM_GET_UPDATED_TIME: {
-		EmContextShPtr cptr;
-		q.Deserialize(cptr);
-
-		return m_emlogic.getEngineUpdatedTime(*cptr);
+		return this->m_emlogic->getEngineUpdatedTime(*cptr);
 	}
 
 	case CommandId::EM_GET_ACTIVATED: {
-		EmContextShPtr cptr;
-		q.Deserialize(cptr);
-
-		return m_emlogic.getEngineActivated(*cptr);
+		return this->m_emlogic->getEngineActivated(*cptr);
 	}
 
 	case CommandId::EM_GET_STATE: {
-		EmContextShPtr cptr;
-		q.Deserialize(cptr);
-
-		return m_emlogic.getEngineState(*cptr);
+		return this->m_emlogic->getEngineState(*cptr);
 	}
 
 	case CommandId::EM_SET_STATE: {
-		EmContextShPtr cptr;
 		int intState;
-		q.Deserialize(cptr, intState);
+		q.Deserialize(intState);
 
-		return m_emlogic.setEngineState(*cptr, static_cast<csr_state_e>(intState));
+		return this->m_emlogic->setEngineState(*cptr, static_cast<csr_state_e>(intState));
 	}
 
 	default:
@@ -354,7 +376,7 @@ void ServerService::onMessageProcess(const ConnShPtr &connection)
 
 	auto inbufPtr = std::make_shared<RawBuffer>(connection->receive());
 
-	m_workqueue.submit([this, &connection, process, inbufPtr]() {
+	this->m_workqueue.submit([this, &connection, process, inbufPtr]() {
 		auto outbuf = (*process)(connection, *inbufPtr);
 
 		connection->send(outbuf);

@@ -35,7 +35,8 @@ namespace Csr {
 
 class EmLogic : public Logic {
 public:
-	EmLogic(CsLoader &cs, WpLoader &wp, Db::Manager &db);
+	EmLogic(const std::shared_ptr<CsLoader> &cs, const std::shared_ptr<WpLoader> &wp,
+			const std::shared_ptr<Db::Manager> &db);
 	virtual ~EmLogic() = default;
 
 	RawBuffer getEngineName(const EmContext &context);
@@ -48,9 +49,9 @@ public:
 	RawBuffer setEngineState(const EmContext &context, csr_state_e state);
 
 private:
-	CsLoader &m_cs;
-	WpLoader &m_wp;
-	Db::Manager &m_db;
+	std::shared_ptr<CsLoader> m_cs;
+	std::shared_ptr<WpLoader> m_wp;
+	std::shared_ptr<Db::Manager> m_db;
 };
 
 }

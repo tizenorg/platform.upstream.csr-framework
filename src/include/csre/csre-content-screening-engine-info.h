@@ -29,8 +29,6 @@
 extern "C" {
 #endif
 
-typedef struct __csre_cs_engine_h *csre_cs_engine_h;
-
 /**
  * @brief State of engine activation
  */
@@ -40,179 +38,127 @@ typedef enum {
 } csre_cs_activated_e;
 
 /**
- * @brief Gets the handle of a selected engine information.
- *
- * @param[in]  id       Engine identifier to get handle.
- * @param[out] pengine  A pointer of the engine information handle.
- *
- * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
- *
- * @retval #CSRE_ERROR_NONE                 Successful
- * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid handle
- * @retval #CSRE_ERROR_INVALID_PARAMETER    pengine is invalid
- * @retval #CSRE_ERROR_ENGINE_NOT_SELECTED  No engine selected
- * @retval #CSRE_ERROR_ENGINE_NOT_ACTIVATED Engine is not activated
- * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
- * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
- */
-int csre_cs_engine_get_info(csre_cs_engine_h *engine);
-
-/**
- * @brief Releases all system resources associated with a engine information handle.
- *
- * @param[in]  engine      The engine information handle.
- *
- * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
- *
- * @retval #CSRE_ERROR_NONE                  Successful
- * @retval #CSRE_ERROR_INVALID_HANDLE        Invalid handle
- * @retval #CSRE_ERROR_SOCKET                Socket error between client and server
- * @retval #CSRE_ERROR_SERVER                Server has been failed for some reason
- * @retval #CSRE_ERROR_ENGINE_INTERNAL       Engine Internal error
- * @retval #CSRE_ERROR_UNKNOWN               Error with unknown reason
- */
-int csre_cs_engine_destroy(csre_cs_engine_h engine);
-
-/**
  * @brief returns the engine API version.
  *
- * @param[in]  engine   The engine information handle.
+ * @param[in]  context  CSR CS context handle.
  * @param[out] version  A pointer of the API version string. A caller should not free it.
  *
  * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSRE_ERROR_NONE                 Successful
- * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid engine information handle
+ * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid context handle
  * @retval #CSRE_ERROR_INVALID_PARAMETER    api_ver is invalid
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  * @retval -0x0100~-0xFF00                  Engine defined error
- *
- * @see csre_cs_get_engine_info()
  */
-int csre_cs_engine_get_api_version(csre_cs_engine_h engine,
-								   const char **version);
+int csre_cs_engine_get_api_version(csre_cs_context_h context, const char **version);
 
 /**
- * @brief Extracts an vendor name from the engine information handle.
+ * @brief Extracts an vendor name from CSR CS context handle.
  *
- * @param[in]  engine  The engine information handle.
+ * @param[in]  context CSR CS context handle.
  * @param[out] vendor  A pointer of the engine's vendor name. A caller should not free it.
  *
  * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSRE_ERROR_NONE                 Successful
- * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid engine information handle
- * @retval #CSRE_ERROR_INVALID_PARAMETER    engine_vendor is invalid
+ * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid context handle
+ * @retval #CSRE_ERROR_INVALID_PARAMETER    @a vendor is invalid
  * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
- *
- * @see csre_cs_get_engine_info()
  */
-int csre_cs_engine_get_vendor(csre_cs_engine_h engine, const char **vendor);
+int csre_cs_engine_get_vendor(csre_cs_context_h context, const char **vendor);
 
 /**
- * @brief Extracts an engine name from the engine information handle.
+ * @brief Extracts an engine name from CSR CS context handle.
  *
- * @param[in]  engine  The engine information handle.
+ * @param[in]  context CSR CS context handle.
  * @param[out] name    A pointer of the engine's name. A caller should not free it.
  *
  * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSRE_ERROR_NONE                 Successful
- * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid engine information handle
- * @retval #CSRE_ERROR_INVALID_PARAMETER    engine_name is invalid
+ * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid context handle
+ * @retval #CSRE_ERROR_INVALID_PARAMETER    @a name is invalid
  * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
- *
- * @see csre_cs_get_engine_info()
  */
-int csre_cs_engine_get_name(csre_cs_engine_h engine, const char **name);
+int csre_cs_engine_get_name(csre_cs_context_h context, const char **name);
 
 /**
- * @brief Extracts an engine version from the engine information handle.
+ * @brief Extracts an engine version from CSR CS context handle.
  *
- * @param[in]  engine   An engine information handle.
+ * @param[in]  context  CSR CS context handle.
  * @param[out] version  A pointer of the engine's version. A caller should not free it.
  *
  * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSRE_ERROR_NONE                 Successful
- * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid engine information handle
- * @retval #CSRE_ERROR_INVALID_PARAMETER    engine_version is invalid
+ * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid context handle
+ * @retval #CSRE_ERROR_INVALID_PARAMETER    @a version is invalid
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
- *
- * @see csre_cs_get_engine_info()
  */
-int csre_cs_engine_get_version(csre_cs_engine_h engine, const char **version);
+int csre_cs_engine_get_version(csre_cs_context_h context, const char **version);
 
 /**
- * @brief Extracts an engine's data version from the engine information handle.
+ * @brief Extracts an engine's data version from CSR CS context handle.
  *
- * @param[in]  engine   The engine information handle.
+ * @param[in]  context  CSR CS context handle.
  * @param[out] version  A pointer of the data version. It can be null. A caller should not free it.
  *
  * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSRE_ERROR_NONE                 Successful
- * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid engine information handle
- * @retval #CSRE_ERROR_INVALID_PARAMETER    engine_version is invalid
+ * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid context handle
+ * @retval #CSRE_ERROR_INVALID_PARAMETER    @a version is invalid
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
- *
- * @see csre_cs_get_engine_info()
  */
-int csre_cs_engine_get_data_version(csre_cs_engine_h engine,
-									const char **version);
+int csre_cs_engine_get_data_version(csre_cs_context_h context, const char **version);
 
 /**
- * @brief Extracts the latest update time of an engine from the engine information handle.
+ * @brief Extracts the latest update time of an engine from CSR CS context handle.
  *
- * @param[in]  engine   The engine information handle.
+ * @param[in]  context  CSR CS context handle.
  * @param[out] time     A pointer of lasted update time.
  *
  * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSRE_ERROR_NONE                 Successful
- * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid engine information handle
+ * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid context handle
  * @retval #CSRE_ERROR_INVALID_PARAMETER    time is invalid
- * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
- *
- * @see csre_cs_get_engine_info()
  */
-int csre_cs_engine_get_latest_update_time(csre_cs_engine_h engine,
-		time_t *time);
+int csre_cs_engine_get_latest_update_time(csre_cs_context_h context, time_t *time);
 
 /**
- * @brief Extracts the state of engine activation from the engine information handle.
+ * @brief Extracts the state of engine activation from CSR CS context handle.
  *
- * @param[in]  engine      The engine information handle.
+ * @param[in]  context     CSR CS context handle.
  * @param[out] pactivated  A pointer of the engine state.
  *
  * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSRE_ERROR_NONE                 Successful
- * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid engine information handle
- * @retval #CSRE_ERROR_INVALID_PARAMETER    pactivated is invalid
+ * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid context handle
+ * @retval #CSRE_ERROR_INVALID_PARAMETER    @a pactivated is invalid
  * @retval #CSRE_ERROR_ENGINE_INTERNAL      Engine Internal error
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
- *
- * @see csre_cs_get_engine_info()
  */
-int csre_cs_engine_get_activated(csre_cs_engine_h engine,
+int csre_cs_engine_get_activated(csre_cs_context_h context,
 								 csre_cs_activated_e *pactivated);
 
 /**
- * @brief Extracts an vendor logo image from the engine information handle.
+ * @brief Extracts an vendor logo image from CSR CS context handle.
  *
  * @details If log image is provided, the vendor logo is shown in a popup. The format
  *          of the logo image should be jpeg, gif, bmp or png.
  *
- * @param[in]  engine             The engine information handle.
+ * @param[in]  context            CSR CS context handle.
  * @param[out] vendor_logo_image  A pointer of the vendor logo image. A caller should not
  *                                free it.
  * @param[out] image_size         Size of log image.
@@ -220,16 +166,15 @@ int csre_cs_engine_get_activated(csre_cs_engine_h engine,
  * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
  *
  * @retval #CSRE_ERROR_NONE                 Successful
- * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid engine information handle
- * @retval #CSRE_ERROR_INVALID_PARAMETER    vendor_logo_imgage or image_size is invalid
+ * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid context handle
+ * @retval #CSRE_ERROR_INVALID_PARAMETER    @a vendor_logo_imgage or @a image_size is invalid
  * @retval #CSRE_ERROR_NO_DATA              No vendor logo image
  * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
  * @retval -0x0100~-0xFF00                  Engine defined error
- *
- * @see csre_cs_get_engine_info()
  */
-int csre_cs_engine_get_vendor_logo(csre_cs_engine_h engine,
-								   unsigned char **vendor_logo_image, unsigned int *image_size);
+int csre_cs_engine_get_vendor_logo(csre_cs_context_h context,
+								   unsigned char **vendor_logo_image,
+								   unsigned int *image_size);
 
 #ifdef __cplusplus
 }

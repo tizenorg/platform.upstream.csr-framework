@@ -122,92 +122,82 @@ int CsLoader::getErrorString(int ec, std::string &value)
 	});
 }
 
-int CsLoader::getEngineInfo(csre_cs_engine_h &e)
+int CsLoader::getEngineApiVersion(csre_cs_context_h c, std::string &value)
 {
-	return this->m_pc.fpGetEngineInfo(&e);
-}
-
-int CsLoader::destroyEngine(csre_cs_engine_h e)
-{
-	return this->m_pc.fpDestroyEngine(e);
-}
-
-int CsLoader::getEngineApiVersion(csre_cs_engine_h e, std::string &value)
-{
-	if (e == nullptr)
+	if (c == nullptr)
 		throw std::invalid_argument("cs loader get error string");
 
 	return getValueCstr(value, [&](const char **cvalue) {
-		return this->m_pc.fpGetEngineApiVersion(e, cvalue);
+		return this->m_pc.fpGetEngineApiVersion(c, cvalue);
 	});
 }
 
-int CsLoader::getEngineVendor(csre_cs_engine_h e, std::string &value)
+int CsLoader::getEngineVendor(csre_cs_context_h c, std::string &value)
 {
-	if (e == nullptr)
+	if (c == nullptr)
 		throw std::invalid_argument("cs loader get engine vendor");
 
 	return getValueCstr(value, [&](const char **cvalue) {
-		return this->m_pc.fpGetEngineVendor(e, cvalue);
+		return this->m_pc.fpGetEngineVendor(c, cvalue);
 	});
 }
 
-int CsLoader::getEngineName(csre_cs_engine_h e, std::string &value)
+int CsLoader::getEngineName(csre_cs_context_h c, std::string &value)
 {
-	if (e == nullptr)
+	if (c == nullptr)
 		throw std::invalid_argument("cs loader get engine name");
 
 	return getValueCstr(value, [&](const char **cvalue) {
-		return this->m_pc.fpGetEngineName(e, cvalue);
+		return this->m_pc.fpGetEngineName(c, cvalue);
 	});
 }
 
-int CsLoader::getEngineVersion(csre_cs_engine_h e, std::string &value)
+int CsLoader::getEngineVersion(csre_cs_context_h c, std::string &value)
 {
-	if (e == nullptr)
+	if (c == nullptr)
 		throw std::invalid_argument("cs loader get engine version");
 
 	return getValueCstr(value, [&](const char **cvalue) {
-		return this->m_pc.fpGetEngineVersion(e, cvalue);
+		return this->m_pc.fpGetEngineVersion(c, cvalue);
 	});
 }
 
-int CsLoader::getEngineDataVersion(csre_cs_engine_h e, std::string &value)
+int CsLoader::getEngineDataVersion(csre_cs_context_h c, std::string &value)
 {
-	if (e == nullptr)
+	if (c == nullptr)
 		throw std::invalid_argument("cs loader get engine version");
 
 	return getValueCstr(value, [&](const char **cvalue) {
-		return this->m_pc.fpGetEngineDataVersion(e, cvalue);
+		return this->m_pc.fpGetEngineDataVersion(c, cvalue);
 	});
 }
 
-int CsLoader::getEngineLatestUpdateTime(csre_cs_engine_h e, time_t *ptime)
+int CsLoader::getEngineLatestUpdateTime(csre_cs_context_h c, time_t *ptime)
 {
-	if (e == nullptr || ptime == nullptr)
+	if (c == nullptr || ptime == nullptr)
 		throw std::invalid_argument("cs loader get latest update time");
 
-	return this->m_pc.fpGetEngineLatestUpdateTime(e, ptime);
+	return this->m_pc.fpGetEngineLatestUpdateTime(c, ptime);
 }
 
-int CsLoader::getEngineActivated(csre_cs_engine_h e,
+int CsLoader::getEngineActivated(csre_cs_context_h c,
 								 csre_cs_activated_e *pactivated)
 {
-	if (e == nullptr || pactivated == nullptr)
+	if (c == nullptr || pactivated == nullptr)
 		throw std::invalid_argument("cs loader get engine activated");
 
-	return this->m_pc.fpGetEngineActivated(e, pactivated);
+	return this->m_pc.fpGetEngineActivated(c, pactivated);
 }
 
-int CsLoader::getEngineVendorLogo(csre_cs_engine_h e,
+int CsLoader::getEngineVendorLogo(csre_cs_context_h c,
 								  std::vector<unsigned char> &value)
 {
-	if (e == nullptr)
+	if (c == nullptr)
 		throw std::invalid_argument("cs loader get engine vendor logo");
 
 	unsigned char *cvalue = nullptr;
 	unsigned int size = 0;
-	auto retval = this->m_pc.fpGetEngineVendorLogo(e, &cvalue, &size);
+	auto retval = this->m_pc.fpGetEngineVendorLogo(c, &cvalue, &size);
 
 	if (retval == CSRE_ERROR_NONE && cvalue != nullptr && size != 0)
 		value.assign(cvalue, cvalue + size);
@@ -253,10 +243,6 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 								  "csre_cs_detected_get_detailed_url"));
 	this->m_pc.fpGetErrorString = reinterpret_cast <FpGetErrorString>(dlsym(handle,
 								  "csre_cs_get_error_string"));
-	this->m_pc.fpGetEngineInfo = reinterpret_cast<FpGetEngineInfo>(dlsym(handle,
-								 "csre_cs_engine_get_info"));
-	this->m_pc.fpDestroyEngine = reinterpret_cast<FpDestroyEngine>(dlsym(handle,
-								 "csre_cs_engine_destroy"));
 	this->m_pc.fpGetEngineApiVersion = reinterpret_cast<FpGetEngineApiVersion>(dlsym(
 									   handle, "csre_cs_engine_get_api_version"));
 	this->m_pc.fpGetEngineVendor = reinterpret_cast<FpGetEngineVendor>(dlsym(handle,
@@ -284,7 +270,6 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 			this->m_pc.fpGetMalwareName == nullptr ||
 			this->m_pc.fpGetDetailedUrl == nullptr ||
 			this->m_pc.fpGetErrorString == nullptr ||
-			this->m_pc.fpGetEngineInfo == nullptr ||
 			this->m_pc.fpGetEngineApiVersion == nullptr ||
 			this->m_pc.fpGetEngineVendor == nullptr ||
 			this->m_pc.fpGetEngineName == nullptr ||
@@ -348,26 +333,6 @@ CsEngineContext::~CsEngineContext()
 csre_cs_context_h &CsEngineContext::get(void)
 {
 	return this->m_context;
-}
-
-
-CsEngineInfo::CsEngineInfo(const std::shared_ptr<CsLoader> &loader) :
-	m_loader(loader), m_info(nullptr)
-{
-	if (!this->m_loader)
-		ThrowExc(EngineNotExist, "null loader means engine not exist!");
-
-	toException(this->m_loader->getEngineInfo(this->m_info));
-}
-
-CsEngineInfo::~CsEngineInfo()
-{
-	toException(this->m_loader->destroyEngine(this->m_info));
-}
-
-csre_cs_engine_h &CsEngineInfo::get(void)
-{
-	return this->m_info;
 }
 
 }

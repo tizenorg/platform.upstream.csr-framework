@@ -38,6 +38,23 @@
 namespace Csr {
 namespace Ui {
 
+namespace {
+void split(const std::string &s, std::string &fileName, std::string &extraPath)
+{
+	std::string delimiter = "/";
+	std::string token = s.substr(0, s.find(delimiter));
+
+	size_t last = 0;
+	size_t next = 0;
+
+	while ((next = s.find(delimiter, last)) != std::string::npos)
+		last = next + 1;
+
+	fileName = s.substr(last);
+	extraPath = s.substr(0, last-1);
+}
+} // namespace anonymous
+
 RawBuffer Logic::csPromptData(const std::string &message, const CsDetected &d) const
 {
 	std::string risk(d.severity == CSR_CS_SEVERITY_LOW ? "Low" : "Medium");
@@ -65,6 +82,8 @@ RawBuffer Logic::csPromptData(const std::string &message, const CsDetected &d) c
 RawBuffer Logic::csPromptFile(const std::string &message, const CsDetected &d) const
 {
 	std::string risk(d.severity == CSR_CS_SEVERITY_LOW ? "Low" : "Medium");
+	std::string fileName, extraPath;
+	split(d.targetName, fileName, extraPath);
 
 	Popup p(3);
 
@@ -72,8 +91,8 @@ RawBuffer Logic::csPromptFile(const std::string &message, const CsDetected &d) c
 	p.setTitle("Malware detected");
 	p.setHeader("Malware which is harm your phone is detected.");
 	p.setBody(FORMAT(
-			"- File name : " << d.targetName << "<br>" <<
-			"- Path : " << "path" << "<br>" <<
+			"- File name : " << fileName << "<br>" <<
+			"- Path : " << extraPath << "<br>" <<
 			"- Risk : " << risk << " (" << d.malwareName << ")" <<
 			"<br><br>" << "More information"));
 	p.setFooter("Tap Delete to delete infected files and"
@@ -162,13 +181,15 @@ RawBuffer Logic::csNotifyData(const std::string &message, const CsDetected &d) c
 RawBuffer Logic::csNotifyFile(const std::string &message, const CsDetected &d) const
 {
 	Popup p(2);
+	std::string fileName, extraPath;
+	split(d.targetName, fileName, extraPath);
 
 	p.setMessage(message);
 	p.setTitle("Malware detected");
 	p.setHeader("Malware which is harm your phone is detected.");
 	p.setBody(FORMAT(
-			"- File name : " << d.targetName << "<br>" <<
-			"- Path : " << "path" << "<br>" <<
+			"- File name : " << fileName << "<br>" <<
+			"- Path : " << extraPath << "<br>" <<
 			"- Risk : " << "High" << " (" << d.malwareName << ")" <<
 			"<br><br>" << "More information"));
 	p.setFooter("Tap Delete to delete infected files and"

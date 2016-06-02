@@ -35,15 +35,44 @@ Popup::Popup(int buttonN)
 	m_popup = elm_popup_add(m_win);
 	evas_object_size_hint_weight_set(m_popup, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 
+	m_box = elm_box_add(m_popup);
+
+	m_header = elm_label_add(m_box);
+	evas_object_size_hint_align_set(m_header, EVAS_HINT_FILL, 0);
+	elm_box_pack_end(m_box, m_header);
+	evas_object_show(m_header);
+
+	m_body = elm_label_add(m_box);
+	evas_object_size_hint_align_set(m_body, EVAS_HINT_FILL, 0);
+	elm_box_pack_end(m_box, m_body);
+	evas_object_show(m_body);
+
+	m_hypertext = elm_label_add(m_box);
+	elm_object_text_set(m_hypertext,"<color=#0000FFFF>"
+		"    More information</color>");
+	evas_object_size_hint_align_set(m_hypertext, EVAS_HINT_FILL, 0);
+	elm_box_pack_end(m_box, m_hypertext);
+	evas_object_show(m_hypertext);
+
+	m_footer = elm_label_add(m_box);
+	evas_object_size_hint_align_set(m_footer, EVAS_HINT_FILL, 0);
+	elm_box_pack_end(m_box, m_footer);
+	evas_object_show(m_footer);
+
+	elm_object_content_set(m_popup, m_box);
+
 	for(int i=1 ; i <= buttonN; i++) {
 		std::string id("button" + std::to_string(i));
 		Evas_Object *button = elm_button_add(m_popup);
 		elm_object_style_set(button, "bottom");
 		elm_object_part_content_set(m_popup, id.c_str(), button);
-		elm_object_text_set(button, "default");
+		evas_object_show(button);
 
 		m_buttons.emplace_back(button);
 	}
+
+	evas_object_show(m_popup);
+	evas_object_show(m_win);
 }
 
 Popup::~Popup()
@@ -54,17 +83,17 @@ Popup::~Popup()
 
 void Popup::setHeader(const std::string &header) noexcept
 {
-	m_header = header;
+	setText(m_header, header);
 }
 
 void Popup::setBody(const std::string &body) noexcept
 {
-	m_body = body;
+	setText(m_body, body);
 }
 
 void Popup::setFooter(const std::string &footer) noexcept
 {
-	m_footer = footer;
+	setText(m_footer, "<br>" + footer);
 }
 
 void Popup::setMessage(const std::string &msg) noexcept
@@ -74,14 +103,17 @@ void Popup::setMessage(const std::string &msg) noexcept
 
 void Popup::run(void)
 {
-	setText(m_popup, (m_header + "<br>" +
-		m_body + "<br><br>" + m_footer).c_str());
+	m_objects.emplace_back(m_header);
+	m_objects.emplace_back(m_body);
+	m_objects.emplace_back(m_hypertext);
+	m_objects.emplace_back(m_footer);
+	m_objects.emplace_back(m_box);
+
+	for (auto &btn : m_buttons)
+		m_objects.emplace_back(btn);
 
 	m_objects.emplace_back(m_popup);
 	m_objects.emplace_back(m_win);
-
-	for (auto &obj : m_objects)
-		evas_object_show(obj);
 
 	elm_run();
 }

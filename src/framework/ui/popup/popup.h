@@ -78,11 +78,14 @@ public:
 private:
 	Evas_Object *m_win;
 	Evas_Object *m_popup;
-	std::string m_title;
-	std::string m_header;
-	std::string m_body;
-	std::string m_footer;
+	Evas_Object *m_box;
+	Evas_Object *m_header;
+	Evas_Object *m_body;
+	Evas_Object *m_hypertext;
+	Evas_Object *m_footer;
+
 	std::string m_message;
+	std::string m_hypertextUrl;
 
 	static int response;
 };

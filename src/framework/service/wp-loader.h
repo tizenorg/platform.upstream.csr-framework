@@ -99,6 +99,8 @@ private:
 	virtual void init(const std::string &, const std::string &, const std::string &) override;
 	virtual void deinit(void) override;
 
+	void checkEngineActivated(csre_wp_context_h);
+
 	PluginContext m_pc;
 };
 

@@ -31,8 +31,7 @@ namespace Csr {
 
 namespace {
 
-int getValueCstr(std::string &value,
-				 const std::function<int(const char **)> &getfunc)
+int getValueCstr(std::string &value, const std::function<int(const char **)> &getfunc)
 {
 	const char *cvalue = nullptr;
 	auto retval = getfunc(&cvalue);
@@ -44,6 +43,19 @@ int getValueCstr(std::string &value,
 }
 
 } // namespace anonymous
+
+void CsLoader::checkEngineActivated(csre_cs_context_h c)
+{
+	csre_cs_activated_e a = CSRE_CS_NOT_ACTIVATED;
+
+	int ret = this->getEngineActivated(c, &a);
+
+	if (ret != CSRE_ERROR_NONE)
+		toException(ret);
+
+	if (a == CSRE_CS_NOT_ACTIVATED)
+		ThrowExc(EngineNotActivated, "engine is not activated yet");
+}
 
 int CsLoader::contextCreate(csre_cs_context_h &c)
 {
@@ -65,6 +77,8 @@ int CsLoader::scanData(csre_cs_context_h c,
 	if (c == nullptr || data.empty() || pdetected == nullptr)
 		throw std::invalid_argument("cs loader scan data");
 
+	this->checkEngineActivated(c);
+
 	return this->m_pc.fpScanData(c, data.data(), data.size(), pdetected);
 }
 
@@ -74,6 +88,8 @@ int CsLoader::scanFile(csre_cs_context_h c, const std::string &filepath,
 	if (c == nullptr || filepath.empty() || pdetected == nullptr)
 		throw std::invalid_argument("cs loader scan file");
 
+	this->checkEngineActivated(c);
+
 	return this->m_pc.fpScanFile(c, filepath.c_str(), pdetected);
 }
 
@@ -82,6 +98,8 @@ int CsLoader::scanAppOnCloud(csre_cs_context_h c, const std::string &appdir,
 {
 	if (c == nullptr || appdir.empty() || pdetected == nullptr)
 		throw std::invalid_argument("cs loader scan app on cloud");
+
+	this->checkEngineActivated(c);
 
 	return this->m_pc.fpScanAppOnCloud(c, appdir.c_str(), pdetected);
 }
@@ -180,17 +198,22 @@ int CsLoader::getEngineLatestUpdateTime(csre_cs_context_h c, time_t *ptime)
 	return this->m_pc.fpGetEngineLatestUpdateTime(c, ptime);
 }
 
-int CsLoader::getEngineActivated(csre_cs_context_h c,
-								 csre_cs_activated_e *pactivated)
+int CsLoader::getEngineActivated(csre_cs_context_h c, csre_cs_activated_e *pactivated)
 {
 	if (c == nullptr || pactivated == nullptr)
 		throw std::invalid_argument("cs loader get engine activated");
 
-	return this->m_pc.fpGetEngineActivated(c, pactivated);
+	auto ret = this->m_pc.fpGetEngineActivated(c, pactivated);
+
+	if (ret == CSRE_ERROR_ENGINE_NOT_ACTIVATED) {
+		*pactivated = CSRE_CS_NOT_ACTIVATED;
+		return CSRE_ERROR_NONE;
+	} else {
+		return ret;
+	}
 }
 
-int CsLoader::getEngineVendorLogo(csre_cs_context_h c,
-								  std::vector<unsigned char> &value)
+int CsLoader::getEngineVendorLogo(csre_cs_context_h c, std::vector<unsigned char> &value)
 {
 	if (c == nullptr)
 		throw std::invalid_argument("cs loader get engine vendor logo");

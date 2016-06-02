@@ -31,8 +31,7 @@ namespace Csr {
 
 namespace {
 
-int getValueCstr(std::string &value,
-				 const std::function<int(const char **)> &getfunc)
+int getValueCstr(std::string &value, const std::function<int(const char **)> &getfunc)
 {
 	const char *cvalue = nullptr;
 	auto retval = getfunc(&cvalue);
@@ -44,6 +43,19 @@ int getValueCstr(std::string &value,
 }
 
 } // namespace anonymous
+
+void WpLoader::checkEngineActivated(csre_wp_context_h c)
+{
+	csre_wp_activated_e a = CSRE_WP_NOT_ACTIVATED;
+
+	int ret = this->getEngineActivated(c, &a);
+
+	if (ret != CSRE_ERROR_NONE)
+		toException(ret);
+
+	if (a == CSRE_WP_NOT_ACTIVATED)
+		ThrowExc(EngineNotActivated, "engine is not activated yet");
+}
 
 int WpLoader::contextCreate(csre_wp_context_h &c)
 {
@@ -63,6 +75,8 @@ int WpLoader::checkUrl(csre_wp_context_h c, const std::string &url,
 {
 	if (c == nullptr || url.empty() || presult == nullptr)
 		throw std::invalid_argument("wp loader check url error");
+
+	this->checkEngineActivated(c);
 
 	return this->m_pc.fpCheckUrl(c, (const char *)url.c_str(), presult);
 }
@@ -158,11 +172,17 @@ int WpLoader::getEngineActivated(csre_wp_context_h c,
 	if (c == nullptr || pactivated == nullptr)
 		throw std::invalid_argument("wp loader get engine activated");
 
-	return this->m_pc.fpGetEngineActivated(c, pactivated);
+	auto ret = this->m_pc.fpGetEngineActivated(c, pactivated);
+
+	if (ret == CSRE_ERROR_ENGINE_NOT_ACTIVATED) {
+		*pactivated = CSRE_WP_NOT_ACTIVATED;
+		return CSRE_ERROR_NONE;
+	} else {
+		return ret;
+	}
 }
 
-int WpLoader::getEngineVendorLogo(csre_wp_context_h c,
-								  std::vector<unsigned char> &value)
+int WpLoader::getEngineVendorLogo(csre_wp_context_h c, std::vector<unsigned char> &value)
 {
 	if (c == nullptr)
 		throw std::invalid_argument("wp loader get engine vendor logo");

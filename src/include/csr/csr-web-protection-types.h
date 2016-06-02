@@ -32,12 +32,14 @@ extern "C" {
  */
 
 /**
+ * @partner
  * @brief CSR WP context handle.
  * @since_tizen 3.0
  */
 typedef struct __csr_wp_context_s *csr_wp_context_h;
 
 /**
+ * @partner
  * @brief CSR WP scan result handle.
  * @since_tizen 3.0
  */

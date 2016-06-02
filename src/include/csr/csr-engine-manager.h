@@ -35,6 +35,7 @@ extern "C" {
  */
 
 /**
+ * @platform
  * @brief Engine handle
  * @since_tizen 3.0
  */
@@ -68,6 +69,7 @@ typedef enum {
 } csr_state_e;
 
 /**
+ * @platform
  * @brief Gets the handle of a current engine information.
  *
  * @since_tizen 3.0
@@ -91,6 +93,7 @@ typedef enum {
 int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *engine);
 
 /**
+ * @platform
  * @brief Extracts an vendor name from the engine information handle.
  *
  * @since_tizen 3.0
@@ -116,6 +119,7 @@ int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *engine);
 int csr_engine_get_vendor(csr_engine_h engine, char **vendor);
 
 /**
+ * @platform
  * @brief Extracts an engine name from the engine information handle.
  *
  * @since_tizen 3.0
@@ -141,6 +145,7 @@ int csr_engine_get_vendor(csr_engine_h engine, char **vendor);
 int csr_engine_get_name(csr_engine_h engine, char **name);
 
 /**
+ * @platform
  * @brief Extracts an engine version from the engine information handle.
  *
  * @since_tizen 3.0
@@ -166,6 +171,7 @@ int csr_engine_get_name(csr_engine_h engine, char **name);
 int csr_engine_get_version(csr_engine_h engine, char **version);
 
 /**
+ * @platform
  * @brief Extracts an engine's data version from the engine information handle.
  *
  * @since_tizen 3.0
@@ -191,6 +197,7 @@ int csr_engine_get_version(csr_engine_h engine, char **version);
 int csr_engine_get_data_version(csr_engine_h engine, char **version);
 
 /**
+ * @platform
  * @brief Extracts the latest update time of an engine from the engine information handle.
  *
  * @since_tizen 3.0
@@ -214,6 +221,7 @@ int csr_engine_get_data_version(csr_engine_h engine, char **version);
 int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *time);
 
 /**
+ * @platform
  * @brief Extracts the state of engine activation from the engine information handle.
  *
  * @since_tizen 3.0
@@ -237,6 +245,7 @@ int csr_engine_get_latest_update_time(csr_engine_h engine, time_t *time);
 int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *activated);
 
 /**
+ * @platform
  * @brief Enable or disable an engine.
  *
  * @since_tizen 3.0
@@ -263,6 +272,7 @@ int csr_engine_get_activated(csr_engine_h engine, csr_activated_e *activated);
 int csr_engine_set_state(csr_engine_h engine, csr_state_e state);
 
 /**
+ * @platform
  * @brief Gets the engine state.
  *
  * @since_tizen 3.0
@@ -286,6 +296,7 @@ int csr_engine_set_state(csr_engine_h engine, csr_state_e state);
 int csr_engine_get_state(csr_engine_h engine, csr_state_e *state);
 
 /**
+ * @platform
  * @brief Releases all system resources associated with a engine information handle.
  *
  * @since_tizen 3.0

@@ -39,6 +39,7 @@ extern "C" {
 
 
 /**
+ * @partner
  * @brief Initializes and returns a Content Screening API handle.
  *
  * @details A Content Screening API handle (or CSR CS handle) is obtained by this method.
@@ -63,6 +64,7 @@ extern "C" {
 int csr_cs_context_create(csr_cs_context_h *handle);
 
 /**
+ * @partner
  * @brief Releases all system resources associated with a Content Screening API handle.
  *
  * @since_tizen 3.0
@@ -81,6 +83,7 @@ int csr_cs_context_create(csr_cs_context_h *handle);
 int csr_cs_context_destroy(csr_cs_context_h handle);
 
 /**
+ * @partner
  * @brief Sets a popup option for malware detected.
  *
  * @details If #CSR_CS_ASK_USER_YES is set, a popup will be prompted to a user when a malware
@@ -109,6 +112,7 @@ int csr_cs_context_destroy(csr_cs_context_h handle);
 int csr_cs_set_ask_user(csr_cs_context_h handle, csr_cs_ask_user_e ask_user);
 
 /**
+ * @partner
  * @brief Sets a popup message of a client in case that a malware is detected.
  *
  * @details Default message is "Malware which may harm your device is detected.".
@@ -136,6 +140,7 @@ int csr_cs_set_ask_user(csr_cs_context_h handle, csr_cs_ask_user_e ask_user);
 int csr_cs_set_popup_message(csr_cs_context_h handle, const char *message);
 
 /**
+ * @partner
  * @brief Sets a maximum core usage during scanning.
  *
  * @since_tizen 3.0
@@ -158,6 +163,7 @@ int csr_cs_set_popup_message(csr_cs_context_h handle, const char *message);
 int csr_cs_set_core_usage(csr_cs_context_h handle, csr_cs_core_usage_e usage);
 
 /**
+ * @partner
  * @brief Sets a scan on cloud option.
  *
  * @since_tizen 3.0
@@ -181,6 +187,7 @@ int csr_cs_set_core_usage(csr_cs_context_h handle, csr_cs_core_usage_e usage);
 int csr_cs_set_scan_on_cloud(csr_cs_context_h handle, bool scan_on_cloud);
 
 /**
+ * @partner
  * @brief Scans a data buffer for malware.
  *
  * @details @a malware result of this method is not available for being judged by
@@ -194,6 +201,8 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle, bool scan_on_cloud);
  * @remarks Scan data synchronously.
  * @remarks The @a malware will be released when @a handle is released using
  *          csr_cs_context_destroy().
+ * @remarks If multiple malwares exists in @a data,
+ *          the malware with the highest severity will be returned.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  data       A scan target data.
@@ -224,6 +233,7 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data, size_t 
 					 csr_cs_malware_h *malware);
 
 /**
+ * @partner
  * @brief Scans a file specified by file path for malware.
  *
  * @since_tizen 3.0
@@ -233,6 +243,8 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data, size_t 
  * @remarks  Scan file synchronously.
  * @remarks  The @a malware will be released when @a handle is released using
  *           csr_cs_context_destroy().
+ * @remarks  If multiple malwares exists in a file,
+ *           the malware with the highest severity will be returned.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  file_path  A path of scan target file.
@@ -268,6 +280,7 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 					 csr_cs_malware_h *malware);
 
 /**
+ * @partner
  * @brief Sets a callback function for the case that a file scan is completed.
  *
  * @since_tizen 3.0
@@ -292,6 +305,7 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 int csr_cs_set_file_scanned_cb(csr_cs_context_h handle, csr_cs_file_scanned_cb callback);
 
 /**
+ * @partner
  * @brief Sets a callback function for detection of a malware.
  *
  * @since_tizen 3.0
@@ -316,6 +330,7 @@ int csr_cs_set_file_scanned_cb(csr_cs_context_h handle, csr_cs_file_scanned_cb c
 int csr_cs_set_detected_cb(csr_cs_context_h handle, csr_cs_detected_cb callback);
 
 /**
+ * @partner
  * @brief Sets a callback function for scanning completed without an error.
  *
  * @since_tizen 3.0
@@ -339,6 +354,7 @@ int csr_cs_set_detected_cb(csr_cs_context_h handle, csr_cs_detected_cb callback)
 int csr_cs_set_completed_cb(csr_cs_context_h handle, csr_cs_completed_cb callback);
 
 /**
+ * @partner
  * @brief Sets a callback function for scanning cancelled.
  *
  * @since_tizen 3.0
@@ -364,6 +380,7 @@ int csr_cs_set_completed_cb(csr_cs_context_h handle, csr_cs_completed_cb callbac
 int csr_cs_set_cancelled_cb(csr_cs_context_h handle, csr_cs_cancelled_cb callback);
 
 /**
+ * @partner
  * @brief Sets a callback function for scanning stopped with an error.
  *
  * @since_tizen 3.0
@@ -387,6 +404,7 @@ int csr_cs_set_cancelled_cb(csr_cs_context_h handle, csr_cs_cancelled_cb callbac
 int csr_cs_set_error_cb(csr_cs_context_h handle, csr_cs_error_cb callback);
 
 /**
+ * @partner
  * @brief Scan files specified by an array of file paths for malware.
  *
  * @details If scanning of the single file is done without detected malware,
@@ -406,6 +424,8 @@ int csr_cs_set_error_cb(csr_cs_context_h handle, csr_cs_error_cb callback);
  * @remarks The caller should set callback functions before call this method.
  * @remarks Detected malware which is provided to the callback will be released when
  *          @a handle is released using csr_cs_context_destroy().
+ * @remarks If multiple malwares exists in a file, the malware with the highest
+ *          severity will be returned for the file via csr_cs_set_detected_cb().
  *
  * @param[in]  handle       CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  file_paths   An array of scan target files.
@@ -448,6 +468,7 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 							size_t count, void *user_data);
 
 /**
+ * @partner
  * @brief Scans a directory specified by directory path for malware.
  *
  * @details If scanning of the single file is done without detected malware,
@@ -467,6 +488,8 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
  * @remarks The caller should set callback functions before calls this method.
  * @remarks Detected malware which is provided to the callback will be released when
  *          @a handle is released using csr_cs_context_destroy().
+ * @remarks If multiple malwares exists in a file, the malware with the highest
+ *          severity will be returned for the file via csr_cs_set_detected_cb().
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  dir_path   A path of scan target directory.
@@ -507,6 +530,7 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path, void *user_data);
 
 /**
+ * @partner
  * @brief Scan directories specified by an array of directory paths for malware.
  *
  * @details If scanning of the single file is done without detected malware,
@@ -526,6 +550,8 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path, void *u
  * @remarks The caller should set callback functions before calls this method.
  * @remarks Detected malware which is provided to the callback will be released when
  *          @a handle is released using csr_cs_context_destroy().
+ * @remarks If multiple malwares exists in a file, the malware with the highest
+ *          severity will be returned for the file via csr_cs_set_detected_cb().
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  dir_paths  An array of scan target directories.
@@ -569,6 +595,7 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[], siz
 
 
 /**
+ * @partner
  * @brief Cancels a running scanning task, asynchronously.
  *
  * @since_tizen 3.0
@@ -592,6 +619,7 @@ int csr_cs_cancel_scanning(csr_cs_context_h handle);
 
 
 /**
+ * @partner
  * @brief Extracts the severity of a detected malware from the detected malware handle.
  *
  * @since_tizen 3.0
@@ -611,6 +639,7 @@ int csr_cs_malware_get_severity(csr_cs_malware_h malware,
 								csr_cs_severity_level_e *severity);
 
 /**
+ * @partner
  * @brief Extracts the name of a detected malware from the detected malware handle.
  *
  * @since_tizen 3.0
@@ -630,6 +659,7 @@ int csr_cs_malware_get_severity(csr_cs_malware_h malware,
 int csr_cs_malware_get_name(csr_cs_malware_h malware, char **name);
 
 /**
+ * @partner
  * @brief Extracts an url that contains detailed information on vendor's web site from
  *        the detected malware handle.
  *
@@ -652,6 +682,7 @@ int csr_cs_malware_get_name(csr_cs_malware_h malware, char **name);
 int csr_cs_malware_get_detailed_url(csr_cs_malware_h malware, char **detailed_url);
 
 /**
+ * @partner
  * @brief Extracts the time stamp when a malware is detected from the detected malware
  *        handle.
  *
@@ -671,6 +702,7 @@ int csr_cs_malware_get_detailed_url(csr_cs_malware_h malware, char **detailed_ur
 int csr_cs_malware_get_timestamp(csr_cs_malware_h malware, time_t *timestamp);
 
 /**
+ * @partner
  * @brief Extracts the file name where a malware is detected from the detected malware
  *        handle.
  *
@@ -692,6 +724,7 @@ int csr_cs_malware_get_timestamp(csr_cs_malware_h malware, time_t *timestamp);
 int csr_cs_malware_get_file_name(csr_cs_malware_h malware, char **file_name);
 
 /**
+ * @partner
  * @brief Extracts a user response of a popup from the detected malware handle.
  *
  * @since_tizen 3.0
@@ -710,6 +743,7 @@ int csr_cs_malware_get_user_response(csr_cs_malware_h malware,
 									 csr_cs_user_response_e *response);
 
 /**
+ * @partner
  * @brief Checks if a malware was detected in an application or in a file.
  *
  * @since_tizen 3.0
@@ -727,6 +761,7 @@ int csr_cs_malware_get_user_response(csr_cs_malware_h malware,
 int csr_cs_malware_is_app(csr_cs_malware_h malware, bool *is_app);
 
 /**
+ * @partner
  * @brief Extracts the package id of an application where a malware is detected from
  *        detected malware handle.
  *
@@ -748,6 +783,7 @@ int csr_cs_malware_is_app(csr_cs_malware_h malware, bool *is_app);
 int csr_cs_malware_get_pkg_id(csr_cs_malware_h malware, char **pkg_id);
 
 /**
+ * @platform
  * @brief Judges how a detected malware file is handled.
  *
  * @details  Detected malware will removed by #CSR_CS_ACTION_REMOVE action. File or
@@ -785,6 +821,7 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle, csr_cs_malware_h malw
 
 
 /**
+ * @partner
  * @brief Gets information on a detected malware file specified by file path.
  *
  * @since_tizen 3.0
@@ -820,6 +857,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
 								csr_cs_malware_h *malware);
 
 /**
+ * @partner
  * @brief Gets information on a detected malware files specified by directory path.
  *
  * @since_tizen 3.0
@@ -854,6 +892,7 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle, const char *dir_paths[
 								 size_t *list_count);
 
 /**
+ * @partner
  * @brief Gets information on a ignored malware file specified by file path.
  *
  * @since_tizen 3.0
@@ -884,6 +923,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
 							   csr_cs_malware_h *malware);
 
 /**
+ * @partner
  * @brief Gets information on a ignored malware files specified by directory path.
  *
  * @since_tizen 3.0
@@ -918,6 +958,7 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle, const char *dir_paths[]
 								size_t *list_count);
 
 /**
+ * @partner
  * @brief Extracts the detected malware handle from the detected malware list handle.
  *
  * @since_tizen 3.0

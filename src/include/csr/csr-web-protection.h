@@ -36,6 +36,7 @@ extern "C" {
  */
 
 /**
+ * @partner
  * @brief Initializes and returns a CSR Web Protection API handle.
  *
  * @details A Web Protection API handle (or CSR WP handle) is obtained by this method.
@@ -60,6 +61,7 @@ extern "C" {
 int csr_wp_context_create(csr_wp_context_h *handle);
 
 /**
+ * @partner
  * @brief Releases all system resources associated with a Web Protection API handle.
  *
  * @since_tizen 3.0
@@ -80,6 +82,7 @@ int csr_wp_context_create(csr_wp_context_h *handle);
 int csr_wp_context_destroy(csr_wp_context_h handle);
 
 /**
+ * @partner
  * @brief Sets a popup option for risky URL checked.
  *
  * @details If #CSR_WP_ASK_USER_YES is set, a popup will be prompted to a user when a URL
@@ -105,6 +108,7 @@ int csr_wp_context_destroy(csr_wp_context_h handle);
 int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user);
 
 /**
+ * @partner
  * @brief Sets a popup message of a client in case for a risky URL.
  *
  * @details Default message is "Risky URL which may harm your device is detected".
@@ -131,6 +135,7 @@ int csr_wp_set_ask_user(csr_wp_context_h handle, csr_wp_ask_user_e ask_user);
 int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
 
 /**
+ * @partner
  * @brief Checks URL reputation against the engine vendor's database.
  *
  * @details Checks whether accessing the URL is risky or not and returns a result handle
@@ -172,6 +177,7 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url,
 
 
 /**
+ * @partner
  * @brief Extracts a risk level of the url from the result handle.
  *
  * @since_tizen 3.0
@@ -191,6 +197,7 @@ int csr_wp_check_url(csr_wp_context_h handle, const char *url,
 int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level_e *level);
 
 /**
+ * @partner
  * @brief Extracts an url of vendor's web site that contains detailed information about
  *        the risk from the result handle.
  *
@@ -216,6 +223,7 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level
 int csr_wp_result_get_detailed_url(csr_wp_check_result_h result, char **detailed_url);
 
 /**
+ * @partner
  * @brief Extracts a user response of a popup from the result handle.
  *
  * @since_tizen 3.0

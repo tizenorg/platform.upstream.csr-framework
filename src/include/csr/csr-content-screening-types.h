@@ -83,30 +83,35 @@ typedef enum {
 } csr_cs_core_usage_e;
 
 /**
+ * @partner
  * @brief Context handle of content screening APIs.
  * @since_tizen 3.0
  */
 typedef struct __csr_cs_context_s *csr_cs_context_h;
 
 /**
+ * @partner
  * @brief Detected malware handle.
  * @since_tizen 3.0
  */
 typedef struct __csr_cs_malware_s *csr_cs_malware_h;
 
 /**
+ * @partner
  * @brief Detected malware list handle.
  * @since_tizen 3.0
  */
 typedef struct __csr_cs_malware_list_s *csr_cs_malware_list_h;
 
 /**
+ * @partner
  * @brief Engine info handle.
  * @since_tizen 3.0
  */
 typedef struct __csr_cs_engine_s *csr_cs_engine_h;
 
 /**
+ * @partner
  * @brief Called when each file scanning is done without malware.
  *
  * @since_tizen 3.0
@@ -127,6 +132,7 @@ typedef struct __csr_cs_engine_s *csr_cs_engine_h;
 typedef void (*csr_cs_file_scanned_cb)(const char *file_path, void *user_data);
 
 /**
+ * @partner
  * @brief Called when each file scanning is done with malware.
  *
  * @since_tizen 3.0
@@ -148,6 +154,7 @@ typedef void (*csr_cs_file_scanned_cb)(const char *file_path, void *user_data);
 typedef void (*csr_cs_detected_cb)(csr_cs_malware_h malware, void *user_data);
 
 /**
+ * @partner
  * @brief Called when scanning is finished successfully.
  *
  * @since_tizen 3.0
@@ -166,6 +173,7 @@ typedef void (*csr_cs_detected_cb)(csr_cs_malware_h malware, void *user_data);
 typedef void (*csr_cs_completed_cb)(void *user_data);
 
 /**
+ * @partner
  * @brief Called when scanning is cancelled by csr_cs_cancel_scanning().
  *
  * @since_tizen 3.0
@@ -185,6 +193,7 @@ typedef void (*csr_cs_completed_cb)(void *user_data);
 typedef void (*csr_cs_cancelled_cb)(void *user_data);
 
 /**
+ * @partner
  * @brief Called when scanning is stopped with an error.
  *
  * @details The following error codes can be delivered.\n

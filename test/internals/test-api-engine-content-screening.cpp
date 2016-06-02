@@ -43,8 +43,7 @@ namespace {
 inline void checkDetected(csre_cs_detected_h detected,
 						  csre_cs_severity_level_e expected_severity,
 						  const char *expected_malware_name,
-						  const char *expected_detailed_url,
-						  long expected_timestamp)
+						  const char *expected_detailed_url)
 {
 	EXCEPTION_GUARD_START
 
@@ -81,15 +80,6 @@ inline void checkDetected(csre_cs_detected_h detected,
 			"detailed_url isn't expected value. "
 			"val: " << detailed_url << " expected: " << expected_detailed_url);
 	}
-
-	long timestamp;
-	ASSERT_IF(csre_cs_detected_get_timestamp(detected, &timestamp),
-			  CSRE_ERROR_NONE);
-
-	if (expected_timestamp != 0)
-		BOOST_REQUIRE_MESSAGE(timestamp == expected_timestamp,
-							  "timestamp isn't expected value. "
-							  "val: " << timestamp << " expected: " << expected_timestamp);
 
 	EXCEPTION_GUARD_END
 }
@@ -149,11 +139,8 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 
 	CHECK_IS_NOT_NULL(detected);
 
-	checkDetected(detected,
-				  CSRE_CS_SEVERITY_HIGH,
-				  "test_malware",
-				  "http://high.malware.com",
-				  0);
+	checkDetected(detected, CSRE_CS_SEVERITY_HIGH, "test_malware",
+				  "http://high.malware.com");
 
 	EXCEPTION_GUARD_END
 }
@@ -176,11 +163,7 @@ BOOST_AUTO_TEST_CASE(scan_data_medium)
 
 	CHECK_IS_NOT_NULL(detected);
 
-	checkDetected(detected,
-				  CSRE_CS_SEVERITY_MEDIUM,
-				  "test_risk",
-				  nullptr,
-				  0);
+	checkDetected(detected, CSRE_CS_SEVERITY_MEDIUM, "test_risk", nullptr);
 
 	EXCEPTION_GUARD_END
 }
@@ -214,11 +197,8 @@ BOOST_AUTO_TEST_CASE(scan_file_malware)
 
 	CHECK_IS_NOT_NULL(detected);
 
-	checkDetected(detected,
-				  CSRE_CS_SEVERITY_HIGH,
-				  "test_malware",
-				  "http://high.malware.com",
-				  0);
+	checkDetected(detected, CSRE_CS_SEVERITY_HIGH, "test_malware",
+				  "http://high.malware.com");
 
 	EXCEPTION_GUARD_END
 }
@@ -236,11 +216,8 @@ BOOST_AUTO_TEST_CASE(scan_file_risky)
 
 	CHECK_IS_NOT_NULL(detected);
 
-	checkDetected(detected,
-				  CSRE_CS_SEVERITY_MEDIUM,
-				  "test_risk",
-				  "http://medium.malware.com",
-				  0);
+	checkDetected(detected, CSRE_CS_SEVERITY_MEDIUM, "test_risk",
+				  "http://medium.malware.com");
 
 	EXCEPTION_GUARD_END
 }
@@ -258,11 +235,8 @@ BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 
 	CHECK_IS_NOT_NULL(detected);
 
-	checkDetected(detected,
-				  CSRE_CS_SEVERITY_HIGH,
-				  "test_malware",
-				  "http://high.malware.com",
-				  0);
+	checkDetected(detected, CSRE_CS_SEVERITY_HIGH, "test_malware",
+				  "http://high.malware.com");
 
 	EXCEPTION_GUARD_END
 }

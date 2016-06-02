@@ -23,7 +23,6 @@
 
 #include <utility>
 #include <algorithm>
-#include <ctime>
 #include <climits>
 #include <cerrno>
 #include <unistd.h>
@@ -76,13 +75,15 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 
 	csre_cs_detected_h result;
 
+	auto timestamp = ::time(nullptr);
+
 	toException(this->m_loader.scanData(c, data, &result));
 
 	// detected handle is null if it's safe
 	if (result == nullptr)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-	auto d = this->convert(result, std::string());
+	auto d = this->convert(result, std::string(), timestamp);
 
 	return this->handleAskUser(context, d);
 
@@ -96,13 +97,15 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 	CsEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
+	auto timestamp = ::time(nullptr);
+
 	csre_cs_detected_h result;
 	toException(this->m_loader.scanAppOnCloud(c, pkgPath, &result));
 
 	if (!result)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-	auto detected = this->convert(result, pkgPath);
+	auto detected = this->convert(result, pkgPath, timestamp);
 	detected.isApp = true;
 	detected.pkgId = pkgId;
 
@@ -127,6 +130,8 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 	while (auto file = visitor->next()) {
 		DEBUG("Scan file by engine: " << file->getPath());
 
+		auto timestamp = ::time(nullptr);
+
 		csre_cs_detected_h result;
 		toException(this->m_loader.scanFile(c, file->getPath(), &result));
 
@@ -139,7 +144,7 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 
 		INFO("New malware detected on file: " << file->getPath());
 
-		auto candidate = this->convert(result, pkgPath);
+		auto candidate = this->convert(result, pkgPath, timestamp);
 		candidate.isApp = true;
 		candidate.pkgId = pkgId;
 
@@ -310,6 +315,8 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 	CsEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
+	auto timestamp = ::time(nullptr);
+
 	csre_cs_detected_h result;
 	toException(this->m_loader.scanFile(c, filepath, &result));
 
@@ -317,7 +324,7 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 	if (result == nullptr)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-	auto d = this->convert(result, filepath);
+	auto d = this->convert(result, filepath, timestamp);
 
 	this->m_db.insertName(d.targetName);
 	this->m_db.insertDetected(d, d.targetName, this->m_dataVersion);
@@ -682,7 +689,8 @@ RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fi
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
 }
 
-CsDetected CsLogic::convert(csre_cs_detected_h &result, const std::string &targetName)
+CsDetected CsLogic::convert(csre_cs_detected_h &result, const std::string &targetName,
+							time_t timestamp)
 {
 	DEBUG("convert engine result handle to CsDetected start");
 
@@ -695,8 +703,8 @@ CsDetected CsLogic::convert(csre_cs_detected_h &result, const std::string &targe
 	toException(this->m_loader.getSeverity(result, &eseverity));
 	toException(this->m_loader.getMalwareName(result, d.malwareName));
 	toException(this->m_loader.getDetailedUrl(result, d.detailedUrl));
-	toException(this->m_loader.getTimestamp(result, &d.ts));
 
+	d.ts = timestamp;
 	d.severity = Csr::convert(eseverity);
 
 	return d;

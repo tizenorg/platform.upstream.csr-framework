@@ -50,7 +50,6 @@ public:
 	int getSeverity(csre_cs_detected_h, csre_cs_severity_level_e *);
 	int getMalwareName(csre_cs_detected_h, std::string &);
 	int getDetailedUrl(csre_cs_detected_h, std::string &);
-	int getTimestamp(csre_cs_detected_h, time_t *);
 
 	int getErrorString(int, std::string &);
 
@@ -79,7 +78,6 @@ private:
 	using FpGetSeverity = int(*)(csre_cs_detected_h, csre_cs_severity_level_e *);
 	using FpGetMalwareName = int(*)(csre_cs_detected_h, const char **);
 	using FpGetDetailedUrl = int(*)(csre_cs_detected_h, const char **);
-	using FpGetTimestamp = int(*)(csre_cs_detected_h, time_t *);
 	using FpGetErrorString = int(*)(int, const char **);
 	using FpGetEngineInfo = int(*)(csre_cs_engine_h *);
 	using FpDestroyEngine = int(*)(csre_cs_engine_h);
@@ -106,7 +104,6 @@ private:
 		FpGetSeverity fpGetSeverity;
 		FpGetMalwareName fpGetMalwareName;
 		FpGetDetailedUrl fpGetDetailedUrl;
-		FpGetTimestamp fpGetTimestamp;
 		FpGetErrorString fpGetErrorString;
 		FpGetEngineInfo fpGetEngineInfo;
 		FpDestroyEngine fpDestroyEngine;

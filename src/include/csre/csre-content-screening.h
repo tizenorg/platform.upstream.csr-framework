@@ -282,25 +282,6 @@ int csre_cs_detected_get_detailed_url(csre_cs_detected_h detected,
 									  const char **detailed_url);
 
 /**
- * @brief Extracts the time stamp when a malware is detected from the detected malware
- *        handle.
- *
- * @param[in]  detected   A detected malware handle.
- * @param[out] timestamp  A pointer of the time stamp in millisecond when a malware is
- *                        detected. A caller should not free it.
- *
- * @return #CSRE_ERROR_NONE on success, otherwise a negative error value
- *
- * @retval #CSRE_ERROR_NONE                 Successful
- * @retval #CSRE_ERROR_INVALID_HANDLE       Invalid detected malware handle
- * @retval #CSRE_ERROR_INVALID_PARAMETER    timestamp is invalid
- * @retval #CSRE_ERROR_UNKNOWN              Error with unknown reason
- * @retval -0x0100~-0xFF00                  Engine defined error
- */
-int csre_cs_detected_get_timestamp(csre_cs_detected_h detected,
-								   time_t *timestamp);
-
-/**
  * @brief Gets the error string for a given engine-defined error code.
  *
  * @details The error strings are managed by the engine, therefore a caller should not

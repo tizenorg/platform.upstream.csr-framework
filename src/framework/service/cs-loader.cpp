@@ -115,14 +115,6 @@ int CsLoader::getDetailedUrl(csre_cs_detected_h d, std::string &value)
 	});
 }
 
-int CsLoader::getTimestamp(csre_cs_detected_h d, time_t *timestamp)
-{
-	if (d == nullptr || timestamp == nullptr)
-		throw std::invalid_argument("cs loader get time stamp");
-
-	return this->m_pc.fpGetTimestamp(d, timestamp);
-}
-
 int CsLoader::getErrorString(int ec, std::string &value)
 {
 	return getValueCstr(value, [&](const char **cvalue) {
@@ -259,8 +251,6 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 								  "csre_cs_detected_get_malware_name"));
 	this->m_pc.fpGetDetailedUrl = reinterpret_cast<FpGetDetailedUrl>(dlsym(handle,
 								  "csre_cs_detected_get_detailed_url"));
-	this->m_pc.fpGetTimestamp = reinterpret_cast<FpGetTimestamp>(dlsym(handle,
-								"csre_cs_detected_get_timestamp"));
 	this->m_pc.fpGetErrorString = reinterpret_cast <FpGetErrorString>(dlsym(handle,
 								  "csre_cs_get_error_string"));
 	this->m_pc.fpGetEngineInfo = reinterpret_cast<FpGetEngineInfo>(dlsym(handle,
@@ -293,7 +283,6 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 			this->m_pc.fpGetSeverity == nullptr ||
 			this->m_pc.fpGetMalwareName == nullptr ||
 			this->m_pc.fpGetDetailedUrl == nullptr ||
-			this->m_pc.fpGetTimestamp == nullptr ||
 			this->m_pc.fpGetErrorString == nullptr ||
 			this->m_pc.fpGetEngineInfo == nullptr ||
 			this->m_pc.fpGetEngineApiVersion == nullptr ||

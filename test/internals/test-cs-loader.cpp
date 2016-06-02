@@ -44,8 +44,7 @@ inline void checkDetected(Csr::CsLoader &loader,
 						  csre_cs_detected_h detected,
 						  csre_cs_severity_level_e expected_severity,
 						  const char *expected_malware_name,
-						  const char *expected_detailed_url,
-						  time_t expected_timestamp)
+						  const char *expected_detailed_url)
 {
 	EXCEPTION_GUARD_START
 
@@ -66,12 +65,6 @@ inline void checkDetected(Csr::CsLoader &loader,
 
 	if (expected_detailed_url != nullptr)
 		ASSERT_IF(detailed_url, expected_detailed_url);
-
-	time_t timestamp;
-	ASSERT_IF(loader.getTimestamp(detected, &timestamp), CSRE_ERROR_NONE);
-
-	if (expected_timestamp != 0)
-		ASSERT_IF(timestamp, expected_timestamp);
 
 	EXCEPTION_GUARD_END
 }
@@ -182,8 +175,7 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 				  detected,
 				  CSRE_CS_SEVERITY_HIGH,
 				  "test_malware",
-				  "http://high.malware.com",
-				  0);
+				  "http://high.malware.com");
 
 	EXCEPTION_GUARD_END
 }
@@ -206,8 +198,7 @@ BOOST_AUTO_TEST_CASE(scan_data_medium)
 				  detected,
 				  CSRE_CS_SEVERITY_MEDIUM,
 				  "test_risk",
-				  nullptr,
-				  0);
+				  nullptr);
 
 	EXCEPTION_GUARD_END
 }
@@ -243,8 +234,7 @@ BOOST_AUTO_TEST_CASE(scan_file_malware)
 				  detected,
 				  CSRE_CS_SEVERITY_HIGH,
 				  "test_malware",
-				  "http://high.malware.com",
-				  0);
+				  "http://high.malware.com");
 
 	EXCEPTION_GUARD_END
 }
@@ -265,8 +255,7 @@ BOOST_AUTO_TEST_CASE(scan_file_risky)
 				  detected,
 				  CSRE_CS_SEVERITY_MEDIUM,
 				  "test_risk",
-				  "http://medium.malware.com",
-				  0);
+				  "http://medium.malware.com");
 
 	EXCEPTION_GUARD_END
 }
@@ -287,8 +276,7 @@ BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 				  detected,
 				  CSRE_CS_SEVERITY_HIGH,
 				  "test_malware",
-				  "http://high.malware.com",
-				  0);
+				  "http://high.malware.com");
 
 	EXCEPTION_GUARD_END
 }

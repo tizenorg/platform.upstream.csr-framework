@@ -538,21 +538,6 @@ int csre_cs_detected_get_detailed_url(csre_cs_detected_h detected,
 	return CSRE_ERROR_NONE;
 }
 
-API
-int csre_cs_detected_get_timestamp(csre_cs_detected_h detected,
-								   time_t *timestamp)
-{
-	if (detected == nullptr)
-		return CSRE_ERROR_INVALID_HANDLE;
-
-	if (timestamp == nullptr)
-		return CSRE_ERROR_INVALID_PARAMETER;
-
-	auto pdetected = reinterpret_cast<csret_cs_detected_s *>(detected);
-	*timestamp = pdetected->timestamp;
-	return CSRE_ERROR_NONE;
-}
-
 //==============================================================================
 // Engine information related
 //==============================================================================

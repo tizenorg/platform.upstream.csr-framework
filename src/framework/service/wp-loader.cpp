@@ -94,93 +94,82 @@ int WpLoader::getErrorString(int ec, std::string &value)
 	});
 }
 
-
-int WpLoader::getEngineInfo(csre_wp_engine_h &e)
+int WpLoader::getEngineApiVersion(csre_wp_context_h c, std::string &value)
 {
-	return this->m_pc.fpGetEngineInfo(&e);
-}
-
-int WpLoader::destroyEngine(csre_wp_engine_h e)
-{
-	return this->m_pc.fpDestroyEngine(e);
-}
-
-int WpLoader::getEngineApiVersion(csre_wp_engine_h e, std::string &value)
-{
-	if (e == nullptr)
+	if (c == nullptr)
 		throw std::invalid_argument("wp loader get error string");
 
 	return getValueCstr(value, [&](const char **cvalue) {
-		return this->m_pc.fpGetEngineApiVersion(e, cvalue);
+		return this->m_pc.fpGetEngineApiVersion(c, cvalue);
 	});
 }
 
-int WpLoader::getEngineVendor(csre_wp_engine_h e, std::string &value)
+int WpLoader::getEngineVendor(csre_wp_context_h c, std::string &value)
 {
-	if (e == nullptr)
+	if (c == nullptr)
 		throw std::invalid_argument("wp loader get engine vendor");
 
 	return getValueCstr(value, [&](const char **cvalue) {
-		return this->m_pc.fpGetEngineVendor(e, cvalue);
+		return this->m_pc.fpGetEngineVendor(c, cvalue);
 	});
 }
 
-int WpLoader::getEngineName(csre_wp_engine_h e, std::string &value)
+int WpLoader::getEngineName(csre_wp_context_h c, std::string &value)
 {
-	if (e == nullptr)
+	if (c == nullptr)
 		throw std::invalid_argument("wp loader get engine name");
 
 	return getValueCstr(value, [&](const char **cvalue) {
-		return this->m_pc.fpGetEngineName(e, cvalue);
+		return this->m_pc.fpGetEngineName(c, cvalue);
 	});
 }
 
-int WpLoader::getEngineVersion(csre_wp_engine_h e, std::string &value)
+int WpLoader::getEngineVersion(csre_wp_context_h c, std::string &value)
 {
-	if (e == nullptr)
+	if (c == nullptr)
 		throw std::invalid_argument("wp loader get engine version");
 
 	return getValueCstr(value, [&](const char **cvalue) {
-		return this->m_pc.fpGetEngineVersion(e, cvalue);
+		return this->m_pc.fpGetEngineVersion(c, cvalue);
 	});
 }
 
-int WpLoader::getEngineDataVersion(csre_wp_engine_h e, std::string &value)
+int WpLoader::getEngineDataVersion(csre_wp_context_h c, std::string &value)
 {
-	if (e == nullptr)
+	if (c == nullptr)
 		throw std::invalid_argument("wp loader get engine version");
 
 	return getValueCstr(value, [&](const char **cvalue) {
-		return this->m_pc.fpGetEngineDataVersion(e, cvalue);
+		return this->m_pc.fpGetEngineDataVersion(c, cvalue);
 	});
 }
 
-int WpLoader::getEngineLatestUpdateTime(csre_wp_engine_h e, time_t *ptime)
+int WpLoader::getEngineLatestUpdateTime(csre_wp_context_h c, time_t *ptime)
 {
-	if (e == nullptr || ptime == nullptr)
+	if (c == nullptr || ptime == nullptr)
 		throw std::invalid_argument("wp loader get latest update time");
 
-	return this->m_pc.fpGetEngineLatestUpdateTime(e, ptime);
+	return this->m_pc.fpGetEngineLatestUpdateTime(c, ptime);
 }
 
-int WpLoader::getEngineActivated(csre_wp_engine_h e,
+int WpLoader::getEngineActivated(csre_wp_context_h c,
 								 csre_wp_activated_e *pactivated)
 {
-	if (e == nullptr || pactivated == nullptr)
+	if (c == nullptr || pactivated == nullptr)
 		throw std::invalid_argument("wp loader get engine activated");
 
-	return this->m_pc.fpGetEngineActivated(e, pactivated);
+	return this->m_pc.fpGetEngineActivated(c, pactivated);
 }
 
-int WpLoader::getEngineVendorLogo(csre_wp_engine_h e,
+int WpLoader::getEngineVendorLogo(csre_wp_context_h c,
 								  std::vector<unsigned char> &value)
 {
-	if (e == nullptr)
+	if (c == nullptr)
 		throw std::invalid_argument("wp loader get engine vendor logo");
 
 	unsigned char *cvalue = nullptr;
 	unsigned int size = 0;
-	auto retval = this->m_pc.fpGetEngineVendorLogo(e, &cvalue, &size);
+	auto retval = this->m_pc.fpGetEngineVendorLogo(c, &cvalue, &size);
 
 	if (retval == CSRE_ERROR_NONE && cvalue != nullptr && size != 0)
 		value.assign(cvalue, cvalue + size);
@@ -220,10 +209,6 @@ void WpLoader::init(const std::string &enginePath, const std::string &roResDir,
 								  "csre_wp_result_get_detailed_url"));
 	this->m_pc.fpGetErrorString = reinterpret_cast <FpGetErrorString>(dlsym(handle,
 								  "csre_wp_get_error_string"));
-	this->m_pc.fpGetEngineInfo = reinterpret_cast<FpGetEngineInfo>(dlsym(handle,
-								 "csre_wp_engine_get_info"));
-	this->m_pc.fpDestroyEngine = reinterpret_cast<FpDestroyEngine>(dlsym(handle,
-								 "csre_wp_engine_destroy"));
 	this->m_pc.fpGetEngineApiVersion = reinterpret_cast<FpGetEngineApiVersion>(dlsym(
 									   handle, "csre_wp_engine_get_api_version"));
 	this->m_pc.fpGetEngineVendor = reinterpret_cast<FpGetEngineVendor>(dlsym(handle,
@@ -248,8 +233,6 @@ void WpLoader::init(const std::string &enginePath, const std::string &roResDir,
 			this->m_pc.fpCheckUrl == nullptr || this->m_pc.fpGetRiskLevel == nullptr ||
 			this->m_pc.fpGetDetailedUrl == nullptr ||
 			this->m_pc.fpGetErrorString == nullptr ||
-			this->m_pc.fpGetEngineInfo == nullptr ||
-			this->m_pc.fpDestroyEngine == nullptr ||
 			this->m_pc.fpGetEngineApiVersion == nullptr ||
 			this->m_pc.fpGetEngineVendor == nullptr ||
 			this->m_pc.fpGetEngineName == nullptr ||
@@ -313,26 +296,6 @@ WpEngineContext::~WpEngineContext()
 csre_wp_context_h &WpEngineContext::get(void)
 {
 	return this->m_context;
-}
-
-
-WpEngineInfo::WpEngineInfo(const std::shared_ptr<WpLoader> &loader) :
-	m_loader(loader), m_info(nullptr)
-{
-	if (!this->m_loader)
-		ThrowExc(EngineNotExist, "null loader means engine not exist!");
-
-	toException(this->m_loader->getEngineInfo(this->m_info));
-}
-
-WpEngineInfo::~WpEngineInfo()
-{
-	toException(this->m_loader->destroyEngine(this->m_info));
-}
-
-csre_wp_engine_h &WpEngineInfo::get(void)
-{
-	return this->m_info;
 }
 
 }

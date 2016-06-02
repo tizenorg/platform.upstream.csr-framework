@@ -69,24 +69,7 @@ inline void checkDetected(Csr::CsLoader &loader,
 	EXCEPTION_GUARD_END
 }
 
-template <typename T>
 struct Handle {
-	Handle()
-	{
-		BOOST_REQUIRE_MESSAGE(0, "Not specialized for handle template");
-	}
-
-	~Handle()
-	{
-		BOOST_REQUIRE_MESSAGE(0, "Not specialized for handle template");
-	}
-
-	Csr::CsLoader loader;
-	T context;
-};
-
-template <>
-struct Handle<csre_cs_context_h> {
 	Handle() :
 		loader(ENGINE_DIR "/libcsr-cs-engine.so",
 			   ENGINE_DIR,
@@ -104,25 +87,6 @@ struct Handle<csre_cs_context_h> {
 	csre_cs_context_h context;
 };
 
-template <>
-struct Handle<csre_cs_engine_h> {
-	Handle() :
-		loader(ENGINE_DIR "/libcsr-cs-engine.so",
-			   ENGINE_DIR,
-			   ENGINE_RW_WORKING_DIR)
-	{
-		ASSERT_IF(loader.getEngineInfo(context), CSRE_ERROR_NONE);
-	}
-
-	~Handle()
-	{
-		ASSERT_IF(loader.destroyEngine(context), CSRE_ERROR_NONE);
-	}
-
-	Csr::CsLoader loader;
-	csre_cs_engine_h context;
-};
-
 } // namespace anonymous
 
 BOOST_AUTO_TEST_SUITE(CS_LOADER)
@@ -131,7 +95,7 @@ BOOST_AUTO_TEST_CASE(context_create_destroy)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_context_h> h;
+	Handle h;
 	(void) h;
 
 	EXCEPTION_GUARD_END
@@ -141,7 +105,7 @@ BOOST_AUTO_TEST_CASE(scan_data_clear)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_context_h> h;
+	Handle h;
 
 	const char *cdata =
 		"abcd1234dfdfdf334dfdi8ffndsfdfdsfdasfagdfvdfdfafadfasdfsdfe";
@@ -159,7 +123,7 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_context_h> h;
+	Handle h;
 
 	const char *cdata =
 		"aabbccX5O!P%@AP[4\\PZX54(P^)7CC)7}$"
@@ -184,7 +148,7 @@ BOOST_AUTO_TEST_CASE(scan_data_medium)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_context_h> h;
+	Handle h;
 
 	const char *cdata = "aabbccRISKY_MALWARE112233";
 
@@ -207,7 +171,7 @@ BOOST_AUTO_TEST_CASE(scan_file_normal)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_context_h> h;
+	Handle h;
 
 	csre_cs_detected_h detected;
 	ASSERT_IF(h.loader.scanFile(h.context, TEST_FILE_NORMAL, &detected),
@@ -222,7 +186,7 @@ BOOST_AUTO_TEST_CASE(scan_file_malware)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_context_h> h;
+	Handle h;
 
 	csre_cs_detected_h detected;
 	ASSERT_IF(h.loader.scanFile(h.context, TEST_FILE_MALWARE, &detected),
@@ -243,7 +207,7 @@ BOOST_AUTO_TEST_CASE(scan_file_risky)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_context_h> h;
+	Handle h;
 
 	csre_cs_detected_h detected;
 	ASSERT_IF(h.loader.scanFile(h.context, TEST_FILE_RISKY, &detected),
@@ -264,7 +228,7 @@ BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_context_h> h;
+	Handle h;
 
 	csre_cs_detected_h detected;
 	ASSERT_IF(h.loader.scanAppOnCloud(h.context, TEST_APP_ROOT, &detected),
@@ -285,7 +249,7 @@ BOOST_AUTO_TEST_CASE(error_string_positive)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_context_h> h;
+	Handle h;
 
 	std::string str;
 
@@ -295,21 +259,11 @@ BOOST_AUTO_TEST_CASE(error_string_positive)
 	EXCEPTION_GUARD_END
 }
 
-BOOST_AUTO_TEST_CASE(get_engine_info)
-{
-	EXCEPTION_GUARD_START
-
-	Handle<csre_cs_engine_h> h;
-	(void) h;
-
-	EXCEPTION_GUARD_END
-}
-
 BOOST_AUTO_TEST_CASE(get_vendor)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_engine_h> h;
+	Handle h;
 
 	std::string str;
 	ASSERT_IF(h.loader.getEngineVendor(h.context, str), CSRE_ERROR_NONE);
@@ -322,7 +276,7 @@ BOOST_AUTO_TEST_CASE(get_vendor_logo)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_engine_h> h;
+	Handle h;
 
 	std::vector<unsigned char> logo;
 	ASSERT_IF(h.loader.getEngineVendorLogo(h.context, logo), CSRE_ERROR_NONE);
@@ -334,7 +288,7 @@ BOOST_AUTO_TEST_CASE(get_version)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_engine_h> h;
+	Handle h;
 
 	std::string str;
 	ASSERT_IF(h.loader.getEngineVersion(h.context, str), CSRE_ERROR_NONE);
@@ -347,7 +301,7 @@ BOOST_AUTO_TEST_CASE(get_data_version)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_engine_h> h;
+	Handle h;
 
 	std::string str;
 	ASSERT_IF(h.loader.getEngineDataVersion(h.context, str), CSRE_ERROR_NONE);
@@ -360,7 +314,7 @@ BOOST_AUTO_TEST_CASE(get_latest_update_time)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_engine_h> h;
+	Handle h;
 
 	time_t time = 0;
 	ASSERT_IF(h.loader.getEngineLatestUpdateTime(h.context, &time),
@@ -373,7 +327,7 @@ BOOST_AUTO_TEST_CASE(get_engine_activated)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_engine_h> h;
+	Handle h;
 
 	csre_cs_activated_e activated;
 	ASSERT_IF(h.loader.getEngineActivated(h.context, &activated), CSRE_ERROR_NONE);
@@ -385,7 +339,7 @@ BOOST_AUTO_TEST_CASE(get_api_version)
 {
 	EXCEPTION_GUARD_START
 
-	Handle<csre_cs_engine_h> h;
+	Handle h;
 
 	std::string str;
 	ASSERT_IF(h.loader.getEngineApiVersion(h.context, str), CSRE_ERROR_NONE);

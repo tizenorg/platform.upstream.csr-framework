@@ -52,16 +52,14 @@ public:
 
 	int getErrorString(int, std::string &);
 
-	int getEngineInfo(csre_cs_engine_h &);
-	int destroyEngine(csre_cs_engine_h);
-	int getEngineApiVersion(csre_cs_engine_h, std::string &);
-	int getEngineVendor(csre_cs_engine_h, std::string &);
-	int getEngineName(csre_cs_engine_h, std::string &);
-	int getEngineVersion(csre_cs_engine_h, std::string &);
-	int getEngineDataVersion(csre_cs_engine_h, std::string &);
-	int getEngineLatestUpdateTime(csre_cs_engine_h, time_t *);
-	int getEngineActivated(csre_cs_engine_h, csre_cs_activated_e *);
-	int getEngineVendorLogo(csre_cs_engine_h, std::vector<unsigned char> &);
+	int getEngineApiVersion(csre_cs_context_h, std::string &);
+	int getEngineVendor(csre_cs_context_h, std::string &);
+	int getEngineName(csre_cs_context_h, std::string &);
+	int getEngineVersion(csre_cs_context_h, std::string &);
+	int getEngineDataVersion(csre_cs_context_h, std::string &);
+	int getEngineLatestUpdateTime(csre_cs_context_h, time_t *);
+	int getEngineActivated(csre_cs_context_h, csre_cs_activated_e *);
+	int getEngineVendorLogo(csre_cs_context_h, std::vector<unsigned char> &);
 
 private:
 	using FpGlobalInit = int(*)(const char *, const char *);
@@ -77,16 +75,14 @@ private:
 	using FpGetMalwareName = int(*)(csre_cs_detected_h, const char **);
 	using FpGetDetailedUrl = int(*)(csre_cs_detected_h, const char **);
 	using FpGetErrorString = int(*)(int, const char **);
-	using FpGetEngineInfo = int(*)(csre_cs_engine_h *);
-	using FpDestroyEngine = int(*)(csre_cs_engine_h);
-	using FpGetEngineApiVersion = int(*)(csre_cs_engine_h, const char **);
-	using FpGetEngineVendor = int(*)(csre_cs_engine_h, const char **);
-	using FpGetEngineName = int(*)(csre_cs_engine_h, const char **);
-	using FpGetEngineVersion = int(*)(csre_cs_engine_h, const char **);
-	using FpGetEngineDataVersion = int(*)(csre_cs_engine_h, const char **);
-	using FpGetEngineLatestUpdateTime = int(*)(csre_cs_engine_h, time_t *);
-	using FpGetEngineActivated = int(*)(csre_cs_engine_h, csre_cs_activated_e *);
-	using FpGetEngineVendorLogo = int(*)(csre_cs_engine_h, unsigned char **,
+	using FpGetEngineApiVersion = int(*)(csre_cs_context_h, const char **);
+	using FpGetEngineVendor = int(*)(csre_cs_context_h, const char **);
+	using FpGetEngineName = int(*)(csre_cs_context_h, const char **);
+	using FpGetEngineVersion = int(*)(csre_cs_context_h, const char **);
+	using FpGetEngineDataVersion = int(*)(csre_cs_context_h, const char **);
+	using FpGetEngineLatestUpdateTime = int(*)(csre_cs_context_h, time_t *);
+	using FpGetEngineActivated = int(*)(csre_cs_context_h, csre_cs_activated_e *);
+	using FpGetEngineVendorLogo = int(*)(csre_cs_context_h, unsigned char **,
 										 unsigned int *);
 
 	struct PluginContext {
@@ -103,8 +99,6 @@ private:
 		FpGetMalwareName fpGetMalwareName;
 		FpGetDetailedUrl fpGetDetailedUrl;
 		FpGetErrorString fpGetErrorString;
-		FpGetEngineInfo fpGetEngineInfo;
-		FpDestroyEngine fpDestroyEngine;
 		FpGetEngineApiVersion fpGetEngineApiVersion;
 		FpGetEngineVendor fpGetEngineVendor;
 		FpGetEngineName fpGetEngineName;
@@ -130,17 +124,6 @@ public:
 private:
 	std::shared_ptr<CsLoader> m_loader;
 	csre_cs_context_h m_context;
-};
-
-class CsEngineInfo {
-public:
-	CsEngineInfo(const std::shared_ptr<CsLoader> &);
-	~CsEngineInfo();
-	csre_cs_engine_h &get(void);
-
-private:
-	std::shared_ptr<CsLoader> m_loader;
-	csre_cs_engine_h m_info;
 };
 
 }

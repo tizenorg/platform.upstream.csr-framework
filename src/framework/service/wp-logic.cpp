@@ -40,8 +40,8 @@ WpLogic::WpLogic(const std::shared_ptr<WpLoader> &loader,
 		ThrowExc(DbFailed, "DB init failed.");
 
 	if (this->m_loader) {
-		WpEngineInfo wpEngineInfo(this->m_loader);
-		toException(this->m_loader->getEngineDataVersion(wpEngineInfo.get(),
+		WpEngineContext wpEngineContext(this->m_loader);
+		toException(this->m_loader->getEngineDataVersion(wpEngineContext.get(),
 					this->m_dataVersion));
 	}
 }

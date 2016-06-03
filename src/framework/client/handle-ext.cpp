@@ -21,10 +21,8 @@
  */
 #include "client/handle-ext.h"
 
-#include <algorithm>
+#include <utility>
 
-#include "client/utils.h"
-#include "common/dispatcher.h"
 #include "common/audit/logger.h"
 #include "common/exception.h"
 
@@ -32,138 +30,82 @@ namespace Csr {
 namespace Client {
 
 HandleExt::HandleExt(SockId id, ContextShPtr &&context) :
-	Handle(id, std::move(context)),
-	m_stop(false)
+	Handle(id, std::move(context)), m_stop(false), m_isRunning(false)
 {
 }
 
 HandleExt::~HandleExt()
 {
-	DEBUG("Destroying extended handle... join all workers...");
-	eraseJoinableIf();
+	DEBUG("Destroying extended handle... join worker...");
+	if (this->m_worker.joinable())
+		this->m_worker.join();
 }
 
 void HandleExt::stop()
 {
-	DEBUG("Stop & join all workers...");
-	m_stop = true;
-	eraseJoinableIf();
-}
+	DEBUG("Stop & join worker...");
 
-bool HandleExt::isStopped() const noexcept
-{
-	return m_stop.load();
-}
-
-bool HandleExt::hasRunning()
-{
-	std::unique_lock<std::mutex> l(m_mutex);
-	auto it = m_workerMap.begin();
-
-	while (it != m_workerMap.end()) {
-		if (!it->second.isDone.load())
-			return true;
+	{
+		std::lock_guard<std::mutex> l(this->m_flagMutex);
+		this->m_stop = true;
 	}
 
-	return false;
+	if (this->m_worker.joinable())
+		this->m_worker.join();
 }
 
-void HandleExt::eraseJoinableIf(std::function<bool(const WorkerMapPair &)> pred)
+bool HandleExt::isStopped() const
 {
-	std::unique_lock<std::mutex> l(m_mutex);
-	DEBUG("clean joinable workers! current worker map size: " <<
-		  m_workerMap.size());
-	auto it = m_workerMap.begin();
-
-	while (it != m_workerMap.end()) {
-		DEBUG("Worker map traversing to erase! current iter tid: " << it->first);
-
-		if (!it->second.t.joinable())
-			ThrowExc(InternalError, "All workers should be joinable but it isn't. "
-					 "tid: " << it->first);
-
-		if (!pred(*it)) {
-			++it;
-			continue;
-		}
-
-		DEBUG("Joining worker! tid:" << it->first);
-		l.unlock();
-		it->second.t.join(); // release lock for worker who calls done()
-		l.lock();
-		DEBUG("Joined worker! tid:" << it->first);
-		it = m_workerMap.erase(it);
-	}
+	std::lock_guard<std::mutex> l(this->m_flagMutex);
+	return this->m_stop;
 }
 
-void HandleExt::done()
+bool HandleExt::isRunning() const
 {
-	std::lock_guard<std::mutex> l(m_mutex);
-	auto it = m_workerMap.find(std::this_thread::get_id());
-
-	if (it == m_workerMap.end())
-		ThrowExc(InternalError, "worker done but it's not registered in map. "
-				 "tid: " << std::this_thread::get_id());
-
-	it->second.isDone = true;
+	std::lock_guard<std::mutex> l(this->m_flagMutex);
+	return this->m_isRunning;
 }
 
-void HandleExt::dispatchAsync(const Task &f)
+void HandleExt::dispatchAsync(const std::shared_ptr<Task> &f)
 {
-	eraseJoinableIf([](const WorkerMapPair & pair) {
-		return pair.second.isDone.load();
-	});
+	std::lock_guard<std::mutex> l(this->m_flagMutex);
+
+	if (this->m_isRunning)
+		ThrowExc(BusyError, "Worker is already running. Async is busy!");
+
+	if (this->m_worker.joinable())
+		this->m_worker.join();
+
+	this->m_isRunning = true;
+	this->m_stop = false;
+
 	// TODO: how to handle exceptions in workers
-	std::thread t([this, f] {
+	this->m_worker = std::thread([this, f] {
 		DEBUG("client async thread dispatched! tid: " << std::this_thread::get_id());
-		m_stop = false;
 
-		f();
-		done();
+		(*f)();
+
+		{
+			std::lock_guard<std::mutex> _l(this->m_flagMutex);
+			this->m_isRunning = false;
+		}
 
 		DEBUG("client async thread done! tid: " << std::this_thread::get_id());
 	});
-
-	{
-		std::lock_guard<std::mutex> l(m_mutex);
-		m_workerMap.emplace(t.get_id(), std::move(t));
-	}
-}
-
-HandleExt::Worker::Worker() : isDone(false)
-{
-	DEBUG("Worker default constructor called");
-}
-
-HandleExt::Worker::Worker(std::thread &&_t) :
-	isDone(false),
-	t(std::forward<std::thread>(_t))
-{
-}
-
-HandleExt::Worker::Worker(HandleExt::Worker &&other) :
-	isDone(other.isDone.load()),
-	t(std::move(other.t))
-{
-}
-
-HandleExt::Worker &HandleExt::Worker::operator=(HandleExt::Worker &&other)
-{
-	isDone = other.isDone.load();
-	t = std::move(other.t);
-	return *this;
 }
 
 void HandleExt::add(ResultPtr &&ptr)
 {
-	std::lock_guard<std::mutex> l(m_resultsMutex);
-	m_results.emplace_back(std::forward<ResultPtr>(ptr));
+	std::lock_guard<std::mutex> l(this->m_resultsMutex);
+
+	this->m_results.emplace_back(std::move(ptr));
 }
 
 void HandleExt::add(ResultListPtr &&ptr)
 {
-	std::lock_guard<std::mutex> l(m_resultsMutex);
-	m_resultLists.emplace_back(std::forward<ResultListPtr>(ptr));
+	std::lock_guard<std::mutex> l(this->m_resultsMutex);
+
+	this->m_resultLists.emplace_back(std::move(ptr));
 }
 
 } // namespace Client

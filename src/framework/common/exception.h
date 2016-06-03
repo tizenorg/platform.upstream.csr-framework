@@ -81,6 +81,7 @@ using InternalError      = DerivedException<CSR_ERROR_SERVER>;
 using SocketError        = DerivedException<CSR_ERROR_SOCKET>;
 using FileDoNotExist     = DerivedException<CSR_ERROR_FILE_DO_NOT_EXIST>;
 using FileSystemError    = DerivedException<CSR_ERROR_FILE_SYSTEM>;
+using BusyError          = DerivedException<CSR_ERROR_BUSY>;
 
 } // namespace Csr
 

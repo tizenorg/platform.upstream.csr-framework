@@ -23,16 +23,10 @@
 
 #include <mutex>
 #include <thread>
-#include <atomic>
-
-#include <string>
-#include <map>
-#include <set>
-#include <utility>
+#include <memory>
 
 #include "client/handle.h"
 #include "client/callback.h"
-#include "common/icontext.h"
 
 namespace Csr {
 namespace Client {
@@ -42,10 +36,10 @@ public:
 	explicit HandleExt(SockId id, ContextShPtr &&);
 	virtual ~HandleExt();
 
-	void dispatchAsync(const Task &task);
+	void dispatchAsync(const std::shared_ptr<Task> &task);
 	void stop(void);
-	bool isStopped(void) const noexcept;
-	bool hasRunning(void);
+	bool isStopped(void) const;
+	bool isRunning(void) const;
 
 	Callback m_cb; // TODO: to refine..
 
@@ -53,30 +47,11 @@ public:
 	virtual void add(ResultListPtr &&) override;
 
 private:
-	struct Worker {
-		std::atomic<bool> isDone;
-		std::thread t;
-
-		Worker();
-		Worker(const std::thread &_t) = delete; // to prevent thread instance copied
-		Worker(std::thread &&_t);
-		Worker(Worker &&other);
-		Worker &operator=(Worker &&other);
-	};
-
-	using WorkerMapPair = std::pair<const std::thread::id, Worker>;
-
-	void eraseJoinableIf(std::function<bool(const WorkerMapPair &)>
-						 = [](const WorkerMapPair &)
-	{
-		return true;
-	});
-	void done(void);
-
-	std::atomic<bool> m_stop;
-	std::mutex m_mutex;
-	std::mutex m_resultsMutex;
-	std::map<std::thread::id, Worker> m_workerMap;
+	bool m_stop;
+	bool m_isRunning;
+	std::thread m_worker;
+	mutable std::mutex m_resultsMutex;
+	mutable std::mutex m_flagMutex;
 };
 
 } // namespace Client

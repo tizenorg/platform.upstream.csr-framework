@@ -371,7 +371,7 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
-	if (hExt->hasRunning()) {
+	if (hExt->isRunning()) {
 		ERROR("Async scanning already running with this handle.");
 		return CSR_ERROR_BUSY;
 	}
@@ -385,7 +385,7 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 		fileSet->emplace(Client::getAbsolutePath(file_paths[i]));
 	}
 
-	hExt->dispatchAsync([hExt, user_data, fileSet] {
+	auto task = std::make_shared<Task>([hExt, user_data, fileSet] {
 		auto ret = hExt->dispatch<std::pair<int, std::shared_ptr<StrSet>>>(
 					CommandId::CANONICALIZE_PATHS, *fileSet);
 
@@ -408,6 +408,8 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 		l.scanFiles(*canonicalizedFiles).second();
 	});
 
+	hExt->dispatchAsync(task);
+
 	return CSR_ERROR_NONE;
 
 	EXCEPTION_SAFE_END
@@ -426,18 +428,20 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path,
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
-	if (hExt->hasRunning()) {
+	if (hExt->isRunning()) {
 		ERROR("Async scanning already running with this handle.");
 		return CSR_ERROR_BUSY;
 	}
 
 	auto dir = std::make_shared<std::string>(Client::getAbsolutePath(dir_path));
 
-	hExt->dispatchAsync([hExt, user_data, dir] {
+	auto task = std::make_shared<Task>([hExt, user_data, dir] {
 		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
 		l.scanDir(*dir).second();
 	});
+
+	hExt->dispatchAsync(task);
 
 	return CSR_ERROR_NONE;
 
@@ -457,7 +461,7 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
-	if (hExt->hasRunning()) {
+	if (hExt->isRunning()) {
 		ERROR("Async scanning already running with this handle.");
 		return CSR_ERROR_BUSY;
 	}
@@ -471,7 +475,7 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 		dirSet->insert(Client::getAbsolutePath(dir_paths[i]));
 	}
 
-	hExt->dispatchAsync([hExt, user_data, dirSet] {
+	auto task = std::make_shared<Task>([hExt, user_data, dirSet] {
 		auto ret = hExt->dispatch<std::pair<int, std::shared_ptr<StrSet>>>(
 					CommandId::CANONICALIZE_PATHS, *dirSet);
 
@@ -496,6 +500,8 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 		l.scanDirs(*canonicalizedDirs).second();
 	});
 
+	hExt->dispatchAsync(task);
+
 	return CSR_ERROR_NONE;
 
 	EXCEPTION_SAFE_END
@@ -511,7 +517,7 @@ int csr_cs_cancel_scanning(csr_cs_context_h handle)
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
-	if (!hExt->hasRunning() || hExt->isStopped())
+	if (!hExt->isRunning() || hExt->isStopped())
 		return CSR_ERROR_NO_TASK;
 
 	hExt->stop();

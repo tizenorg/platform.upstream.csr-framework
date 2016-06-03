@@ -42,6 +42,7 @@ extern "C" {
 typedef struct __csr_engine_h *csr_engine_h;
 
 /**
+ * @platform
  * @brief Engine identifier
  * @since_tizen 3.0
  */
@@ -51,6 +52,7 @@ typedef enum {
 } csr_engine_id_e;
 
 /**
+ * @platform
  * @brief State of engine activation
  * @since_tizen 3.0
  */
@@ -60,6 +62,7 @@ typedef enum {
 } csr_activated_e;
 
 /**
+ * @platform
  * @brief State of engine
  * @since_tizen 3.0
  */

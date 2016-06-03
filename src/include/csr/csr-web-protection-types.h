@@ -46,6 +46,7 @@ typedef struct __csr_wp_context_s *csr_wp_context_h;
 typedef struct __csr_wp_check_result_h *csr_wp_check_result_h;
 
 /**
+ * @partner
  * @brief The options about prompting a popup to a user.
  * @since_tizen 3.0
  */
@@ -55,6 +56,7 @@ typedef enum {
 } csr_wp_ask_user_e;
 
 /**
+ * @partner
  * @brief The user response for a popup.
  * @since_tizen 3.0
  */
@@ -65,6 +67,7 @@ typedef enum {
 } csr_wp_user_response_e;
 
 /**
+ * @partner
  * @brief Risk level of a url
  * @since_tizen 3.0
  */

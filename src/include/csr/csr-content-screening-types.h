@@ -32,6 +32,7 @@ extern "C" {
  */
 
 /**
+ * @partner
  * @brief Severity level of a detected malware
  * @since_tizen 3.0
  */
@@ -42,6 +43,7 @@ typedef enum {
 } csr_cs_severity_level_e;
 
 /**
+ * @partner
  * @brief The option of asking user about handling a detected malware
  * @since_tizen 3.0
  */
@@ -51,6 +53,7 @@ typedef enum {
 } csr_cs_ask_user_e;
 
 /**
+ * @partner
  * @brief The user response from popup
  * @since_tizen 3.0
  */
@@ -62,6 +65,7 @@ typedef enum {
 } csr_cs_user_response_e;
 
 /**
+ * @partner
  * @brief The action types for the detected malware files
  * @since_tizen 3.0
  */
@@ -72,6 +76,7 @@ typedef enum {
 } csr_cs_action_e;
 
 /**
+ * @partner
  * @brief Maximum core usage during scanning
  * @since_tizen 3.0
  */

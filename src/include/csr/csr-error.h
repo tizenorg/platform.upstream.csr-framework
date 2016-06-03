@@ -41,6 +41,7 @@ extern "C" {
 
 
 /**
+ * @partner
  * @brief Enumeration for CSR Errors.
  * @since_tizen 3.0
  */

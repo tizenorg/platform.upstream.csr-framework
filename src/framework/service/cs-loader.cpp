@@ -128,9 +128,21 @@ int CsLoader::getDetailedUrl(csre_cs_detected_h d, std::string &value)
 	if (d == nullptr)
 		throw std::invalid_argument("cs loader get detailed url");
 
+#ifdef DETAILED_URL_BASE
+	DEBUG("get deatiled url with base!");
+	std::string name;
+	auto ret = this->getMalwareName(d, name);
+
+	if (ret == CSRE_ERROR_NONE)
+		value = std::string(DETAILED_URL_BASE) + name;
+
+	return ret;
+#else
+	DEBUG("get detailed url with engine getter API!");
 	return getValueCstr(value, [&](const char **cvalue) {
 		return this->m_pc.fpGetDetailedUrl(d, cvalue);
 	});
+#endif
 }
 
 int CsLoader::getErrorString(int ec, std::string &value)
@@ -262,8 +274,6 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 							   "csre_cs_detected_get_severity"));
 	this->m_pc.fpGetMalwareName = reinterpret_cast<FpGetMalwareName>(dlsym(handle,
 								  "csre_cs_detected_get_malware_name"));
-	this->m_pc.fpGetDetailedUrl = reinterpret_cast<FpGetDetailedUrl>(dlsym(handle,
-								  "csre_cs_detected_get_detailed_url"));
 	this->m_pc.fpGetErrorString = reinterpret_cast <FpGetErrorString>(dlsym(handle,
 								  "csre_cs_get_error_string"));
 	this->m_pc.fpGetEngineApiVersion = reinterpret_cast<FpGetEngineApiVersion>(dlsym(
@@ -291,7 +301,6 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 			this->m_pc.fpScanAppOnCloud == nullptr ||
 			this->m_pc.fpGetSeverity == nullptr ||
 			this->m_pc.fpGetMalwareName == nullptr ||
-			this->m_pc.fpGetDetailedUrl == nullptr ||
 			this->m_pc.fpGetErrorString == nullptr ||
 			this->m_pc.fpGetEngineApiVersion == nullptr ||
 			this->m_pc.fpGetEngineVendor == nullptr ||
@@ -304,8 +313,19 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 		dlclose(this->m_pc.dlhandle);
 		this->m_pc.dlhandle = nullptr;
 		ThrowExc(EngineError, "Failed to load funcs from engine library. "
-				 "engine path: " << enginePath << "errno: " << errno);
+				 "engine path: " << enginePath << " errno: " << errno);
 	}
+
+#ifndef DETAILED_URL_BASE
+	this->m_pc.fpGetDetailedUrl = reinterpret_cast<FpGetDetailedUrl>(dlsym(handle,
+								  "csre_cs_detected_get_detailed_url"));
+	if (this->m_pc.fpGetDetailedUrl == nullptr) {
+		dlclose(this->m_pc.dlhandle);
+		this->m_pc.dlhandle = nullptr;
+		ThrowExc(EngineError, "Failed to load detailed_url getter from engine lib."
+				 "engine path: " << enginePath << " errno: " << errno);
+	}
+#endif
 
 	auto ret = this->m_pc.fpGlobalInit(roResDir.c_str(), rwWorkingDir.c_str());
 

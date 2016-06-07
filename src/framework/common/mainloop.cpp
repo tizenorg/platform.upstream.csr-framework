@@ -61,7 +61,6 @@ void Mainloop::run(int timeout)
 
 void Mainloop::addEventSource(int fd, uint32_t event, Callback &&callback)
 {
-	/* TODO: use scoped-lock to thread safe on member variables */
 	if (this->m_callbacks.count(fd) != 0)
 		ThrowExc(CSR_ERROR_SERVER, "event source on fd[" << fd << "] already added!");
 
@@ -82,7 +81,6 @@ void Mainloop::addEventSource(int fd, uint32_t event, Callback &&callback)
 
 void Mainloop::removeEventSource(int fd)
 {
-	/* TODO: use scoped-lock to thread safe on member variables */
 	if (this->m_callbacks.count(fd) == 0)
 		ThrowExc(CSR_ERROR_SERVER, "event source on fd[" << fd << "] isn't added at all");
 
@@ -134,7 +132,6 @@ void Mainloop::dispatch(int timeout)
 	}
 
 	for (int i = 0; i < nfds; i++) {
-		/* TODO: use scoped-lock to thread safe on member variables */
 		int fd = event[i].data.fd;
 
 		if (this->m_callbacks.count(fd) == 0)

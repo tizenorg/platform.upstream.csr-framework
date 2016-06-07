@@ -73,11 +73,11 @@ void Service::start(int timeout)
 
 void Service::setNewConnectionCallback(const ConnCallback &callback)
 {
-	this->m_onNewConnection = [this, &callback](const ConnShPtr &connection) {
+	this->m_onNewConnection = [this, &callback](ConnShPtr &&connection) {
 		if (!connection)
 			ThrowExc(CSR_ERROR_SERVER, "onNewConnection called but ConnShPtr is nullptr.");
 
-		int fd = connection->getFd();
+		auto fd = connection->getFd();
 
 		INFO("welcome! accepted client socket fd[" << fd << "]");
 
@@ -86,6 +86,8 @@ void Service::setNewConnectionCallback(const ConnCallback &callback)
 
 		this->m_loop.addEventSource(fd, EPOLLIN | EPOLLHUP | EPOLLRDHUP,
 		[&, fd](uint32_t event) {
+			std::unique_lock<std::mutex> lock(this->m_crMtx);
+
 			DEBUG("read event comes in to fd[" << fd << "]");
 
 			if (this->m_connectionRegistry.count(fd) == 0)
@@ -100,12 +102,17 @@ void Service::setNewConnectionCallback(const ConnCallback &callback)
 				return;
 			}
 
+			lock.unlock();
+
 			DEBUG("Start message process on fd[" << fd << "]");
 
 			onMessageProcess(conn);
 		});
 
-		this->m_connectionRegistry[fd] = connection;
+		{
+			std::lock_guard<std::mutex> l(this->m_crMtx);
+			this->m_connectionRegistry[fd] = std::move(connection);
+		}
 	};
 }
 
@@ -115,7 +122,7 @@ void Service::setCloseConnectionCallback(const ConnCallback &callback)
 		if (!connection)
 			ThrowExc(CSR_ERROR_SERVER, "no connection to close");
 
-		int fd = connection->getFd();
+		auto fd = connection->getFd();
 
 		if (this->m_connectionRegistry.count(fd) == 0)
 			ThrowExc(CSR_ERROR_SERVER, "no connection in registry to remove "
@@ -124,11 +131,19 @@ void Service::setCloseConnectionCallback(const ConnCallback &callback)
 		INFO("good-bye! close socket fd[" << fd << "]");
 
 		this->m_loop.removeEventSource(fd);
+
 		this->m_connectionRegistry.erase(fd);
 
 		if (callback)
 			callback(connection);
 	};
+}
+
+bool Service::isConnectionValid(int fd) const
+{
+	std::lock_guard<std::mutex> l(this->m_crMtx);
+
+	return this->m_connectionRegistry.count(fd) != 0;
 }
 
 }

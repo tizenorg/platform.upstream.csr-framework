@@ -24,8 +24,10 @@
 #include <string>
 #include <memory>
 
-#include "common/icontext.h"
 #include <csr-content-screening-types.h>
+
+#include "common/macros.h"
+#include "common/icontext.h"
 
 namespace Csr {
 
@@ -33,7 +35,7 @@ struct CsContext;
 using CsContextPtr = std::unique_ptr<CsContext>;
 using CsContextShPtr = std::shared_ptr<CsContext>;
 
-struct CsContext : public IContext {
+struct API CsContext : public IContext {
 	enum class Key : int {
 		PopupMessage = 0x01, // string
 

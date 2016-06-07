@@ -26,12 +26,13 @@
 #include <memory>
 #include <cstddef>
 
+#include "common/macros.h"
 #include "common/serialization.h"
 #include "common/types.h"
 
 namespace Csr {
 
-class BinaryQueue : public IStream {
+class API BinaryQueue : public IStream {
 public:
 	BinaryQueue() noexcept;
 	virtual ~BinaryQueue() = default;

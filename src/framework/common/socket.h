@@ -23,12 +23,13 @@
 
 #include <string>
 
+#include "common/macros.h"
 #include "common/types.h"
 #include "common/socket-descriptor.h"
 
 namespace Csr {
 
-class Socket {
+class API Socket {
 public:
 	// Socket with accepted / connected
 	Socket(SockId sockId, int fd);

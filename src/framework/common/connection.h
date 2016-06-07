@@ -24,13 +24,14 @@
 #include <memory>
 #include <mutex>
 
+#include "common/macros.h"
 #include "common/socket.h"
 #include "common/types.h"
 #include "common/credential.h"
 
 namespace Csr {
 
-class Connection {
+class API Connection {
 public:
 	explicit Connection(Socket &&socket) noexcept;
 	virtual ~Connection() = default;

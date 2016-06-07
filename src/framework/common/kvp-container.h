@@ -24,10 +24,12 @@
 #include <string>
 #include <ctime>
 
+#include "common/macros.h"
+
 namespace Csr {
 
 // set/get key-value pairs. Key should be defined in each derived classes
-class KvpContainer {
+class API KvpContainer {
 public:
 	virtual ~KvpContainer() = default;
 

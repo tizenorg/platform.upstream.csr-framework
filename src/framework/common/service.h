@@ -25,6 +25,7 @@
 #include <functional>
 #include <set>
 
+#include "common/macros.h"
 #include "common/connection.h"
 #include "common/mainloop.h"
 #include "common/socket-descriptor.h"
@@ -33,7 +34,7 @@ namespace Csr {
 
 using ConnCallback = std::function<void(const ConnShPtr &)>;
 
-class Service {
+class API Service {
 public:
 	Service();
 	virtual ~Service() = default;

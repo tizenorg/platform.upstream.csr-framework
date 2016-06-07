@@ -47,7 +47,7 @@ extern "C" {
  *
  * @since_tizen 3.0
  *
- * @remarks The @a handle should be released using csr_cs_context_destroy().
+ * @remarks @a handle should be released using csr_cs_context_destroy().
  * @remarks Multiple handles can be obtained.
  *
  * @param[out] handle A pointer of CSR CS context handle.
@@ -199,7 +199,7 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle, bool scan_on_cloud);
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
  * @remarks Scan data synchronously.
- * @remarks The @a malware will be released when @a handle is released using
+ * @remarks @a malware will be released when @a handle is released using
  *          csr_cs_context_destroy().
  * @remarks If multiple malwares exists in @a data,
  *          the malware with the highest severity will be returned.
@@ -241,7 +241,7 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data, size_t 
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
  * @remarks  Scan file synchronously.
- * @remarks  The @a malware will be released when @a handle is released using
+ * @remarks  @a malware will be released when @a handle is released using
  *           csr_cs_context_destroy().
  * @remarks  If multiple malwares exists in a file,
  *           the malware with the highest severity will be returned.
@@ -644,7 +644,7 @@ int csr_cs_malware_get_severity(csr_cs_malware_h malware,
  *
  * @since_tizen 3.0
  *
- * @remarks  The @a name must be released using free().
+ * @remarks  @a name must be released using free().
  *
  * @param[in]  malware  A detected malware handle.
  * @param[out] name     A pointer of the name of a detected malware.
@@ -665,7 +665,7 @@ int csr_cs_malware_get_name(csr_cs_malware_h malware, char **name);
  *
  * @since_tizen 3.0
  *
- * @remarks  The @a detailed_url must be released using free().
+ * @remarks  @a detailed_url must be released using free().
  *
  * @param[in]  malware       A detected malware handle.
  * @param[out] detailed_url  A pointer of an url that contains detailed information on
@@ -708,7 +708,7 @@ int csr_cs_malware_get_timestamp(csr_cs_malware_h malware, time_t *timestamp);
  *
  * @since_tizen 3.0
  *
- * @remarks The @a file_name must be released using free().
+ * @remarks @a file_name must be released using free().
  *
  * @param[in]  malware    A detected malware handle.
  * @param[out] file_name  A pointer of the file name where a malware is detected. The
@@ -767,7 +767,7 @@ int csr_cs_malware_is_app(csr_cs_malware_h malware, bool *is_app);
  *
  * @since_tizen 3.0
  *
- * @remarks  The @a pkg_id must be released using free().
+ * @remarks  @a pkg_id must be released using free().
  *
  * @param[in]  malware  A detected malware handle.
  * @param[out] pkg_id   A pointer of the package id where a malware is detected.
@@ -828,7 +828,7 @@ int csr_cs_judge_detected_malware(csr_cs_context_h handle, csr_cs_malware_h malw
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
- * @remarks The @a malware will be released when @a handle is destroyed.
+ * @remarks @a malware will be released when @a handle is destroyed.
  * @remarks @a file_path will be null if it's result of csr_cs_scan_data().
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
@@ -864,7 +864,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
- * @remarks  The @a list will be released when @a handle is destroyed.
+ * @remarks  @a list will be released when @a handle is destroyed.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  dir_paths  A directory path where detected malware files exists.
@@ -899,7 +899,7 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle, const char *dir_paths[
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
- * @remarks  The @a malware will be released when @a handle is destroyed.
+ * @remarks  @a malware will be released when @a handle is destroyed.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  file_path  A path of a ignored malware file.
@@ -930,7 +930,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.scan
  *
- * @remarks  The @a list will be released when @a handle is destroyed.
+ * @remarks  @a list will be released when @a handle is destroyed.
  *
  * @param[in]  handle     CSR CS context handle returned by csr_cs_context_create().
  * @param[in]  dir_paths  A directory path where ignored malware files exists.
@@ -963,7 +963,7 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle, const char *dir_paths[]
  *
  * @since_tizen 3.0
  *
- * @remarks The @a malware will be released when a context is released using
+ * @remarks @a malware will be released when a context is released using
  *          csr_cs_context_destroy().
  *
  * @param[in]  list     A detected malware list handle returned by

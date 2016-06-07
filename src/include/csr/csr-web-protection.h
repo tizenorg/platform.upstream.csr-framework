@@ -44,7 +44,7 @@ extern "C" {
  *
  * @since_tizen 3.0
  *
- * @remarks The @a handle should be released using csr_wp_context_destroy().
+ * @remarks @a handle should be released using csr_wp_context_destroy().
  * @remarks Multiple handles can be obtained.
  *
  * @param[out] handle A pointer of CSR WP context handle.
@@ -145,7 +145,7 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
  * @privlevel partner
  * @privilege %http://tizen.org/privilege/antivirus.webprotect
  *
- * @remarks The @a result will be released when @a handle is released using
+ * @remarks @a result will be released when @a handle is released using
  *          csr_wp_context_destroy().
  *
  * @param[in]  handle   CSR WP context handle returned by csr_wp_context_create().
@@ -203,7 +203,7 @@ int csr_wp_result_get_risk_level(csr_wp_check_result_h result, csr_wp_risk_level
  *
  * @since_tizen 3.0
  *
- * @remarks  The @a detailed_url must be released using free().
+ * @remarks  @a detailed_url must be released using free().
  *
  * @param[in]  result        A result handle returned by csr_wp_check_url().
  * @param[out] detailed_url  A pointer of an url that contains detailed information about

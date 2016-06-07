@@ -77,7 +77,7 @@ typedef enum {
  *
  * @since_tizen 3.0
  *
- * @remarks The @a engine should be released using csr_engine_destroy().
+ * @remarks @a engine should be released using csr_engine_destroy().
  *
  * @param[in]  id       Engine identifier to get handle.
  * @param[out] engine   A pointer of the engine information handle.
@@ -103,7 +103,7 @@ int csr_get_current_engine(csr_engine_id_e id, csr_engine_h *engine);
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
- * @remarks  The @a vendor must be released using free().
+ * @remarks  @a vendor must be released using free().
  *
  * @param[in]  engine   The engine information handle.
  * @param[out] vendor   A pointer of the engine's vendor name.
@@ -129,7 +129,7 @@ int csr_engine_get_vendor(csr_engine_h engine, char **vendor);
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
- * @remarks  The @a name must be released using free().
+ * @remarks  @a name must be released using free().
  *
  * @param[in]  engine  The engine information handle.
  * @param[out] name    A pointer of the engine's name.
@@ -155,7 +155,7 @@ int csr_engine_get_name(csr_engine_h engine, char **name);
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
- * @remarks  The @a version must be released using free().
+ * @remarks  @a version must be released using free().
  *
  * @param[in]  engine    An engine information handle.
  * @param[out] version   A pointer of the engine's version.
@@ -181,7 +181,7 @@ int csr_engine_get_version(csr_engine_h engine, char **version);
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/antivirus.admin
  *
- * @remarks  The @a version must be released using free().
+ * @remarks  @a version must be released using free().
  *
  * @param[in]  engine    The engine information handle.
  * @param[out] version   A pointer of the data version. It can be null.

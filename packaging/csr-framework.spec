@@ -18,7 +18,7 @@
 #                  concatenating base url + malware name.
 # Else it's not defined, detailed_url getter in engine API will be used.
 %define with_detailed_base_url 0
-%define detailed_base_url
+%define detailed_base_url ""
 
 Summary: A general purpose content screening and reputation solution
 Name: csr-framework

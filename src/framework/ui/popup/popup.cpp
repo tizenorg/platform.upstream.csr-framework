@@ -49,7 +49,7 @@ Popup::Popup(int buttonN)
 	// Subbox is for icon.
 	m_subBox = elm_box_add(m_box);
 	evas_object_size_hint_align_set(m_subBox, 0, 0);
-	elm_box_horizontal_set(m_subBox, TRUE);
+	elm_box_horizontal_set(m_subBox, EINA_TRUE);
 
 	// If icon is not set, it doesn't appear.
 	m_icon = elm_icon_add(m_subBox);

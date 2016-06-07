@@ -25,11 +25,13 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "common/macros.h"
+
 namespace Csr {
 
-class Mainloop {
+class API Mainloop {
 public:
-	typedef std::function<void(uint32_t event)> Callback;
+	using Callback = std::function<void(uint32_t event)>;
 
 	Mainloop();
 	virtual ~Mainloop();

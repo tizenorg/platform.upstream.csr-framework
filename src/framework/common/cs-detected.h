@@ -24,15 +24,17 @@
 #include <string>
 #include <ctime>
 
-#include "common/iresult.h"
 #include <csr-content-screening-types.h>
+
+#include "common/macros.h"
+#include "common/iresult.h"
 
 namespace Csr {
 
 class CsDetected;
 using CsDetectedPtr = std::unique_ptr<CsDetected>;
 
-struct CsDetected : public IResult {
+struct API CsDetected : public IResult {
 	CsDetected() noexcept;
 	virtual ~CsDetected() = default;
 

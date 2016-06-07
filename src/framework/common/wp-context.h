@@ -24,8 +24,10 @@
 #include <string>
 #include <memory>
 
-#include "common/icontext.h"
 #include <csr-web-protection-types.h>
+
+#include "common/macros.h"
+#include "common/icontext.h"
 
 namespace Csr {
 
@@ -33,7 +35,7 @@ struct WpContext;
 using WpContextPtr = std::unique_ptr<WpContext>;
 using WpContextShPtr = std::shared_ptr<WpContext>;
 
-struct WpContext : public IContext {
+struct API WpContext : public IContext {
 	enum class Key : int {
 		PopupMessage = 0x01, // string
 		AskUser      = 0x10, // int

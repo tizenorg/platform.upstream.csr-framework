@@ -25,9 +25,11 @@
 #include <string>
 #include <sys/types.h>
 
+#include "common/macros.h"
+
 namespace Csr {
 
-struct Credential {
+struct API Credential {
 	uid_t uid;
 	gid_t gid;
 	std::string label;

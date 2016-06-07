@@ -28,10 +28,11 @@
 #include <csr-error.h>
 
 #include "common/audit/logger.h"
+#include "common/macros.h"
 
 namespace Csr {
 
-class Exception : public std::exception {
+class API Exception : public std::exception {
 public:
 	Exception(int ec, const char *file, const char *function, unsigned int line,
 			  const std::string &message) noexcept;

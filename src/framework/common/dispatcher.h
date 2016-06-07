@@ -23,12 +23,13 @@
 
 #include <string>
 
+#include "common/macros.h"
 #include "common/connection.h"
 #include "common/binary-queue.h"
 
 namespace Csr {
 
-class Dispatcher {
+class API Dispatcher {
 public:
 	Dispatcher(SockId) noexcept;
 	virtual ~Dispatcher() = default;

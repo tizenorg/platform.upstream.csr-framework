@@ -25,6 +25,7 @@
 
 #include "client/utils.h"
 #include "client/handle.h"
+#include "common/macros.h"
 #include "common/types.h"
 #include "common/command-id.h"
 #include "common/wp-context.h"

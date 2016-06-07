@@ -21,8 +21,8 @@
  */
 #pragma once
 
-#include "common/socket-descriptor.h"
 #include "common/connection.h"
+#include "common/socket-descriptor.h"
 
 namespace Csr {
 

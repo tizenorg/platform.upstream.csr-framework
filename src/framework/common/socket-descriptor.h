@@ -24,6 +24,8 @@
 #include <map>
 #include <string>
 
+#include "common/macros.h"
+
 namespace Csr {
 
 enum class SockId : int {
@@ -33,7 +35,7 @@ enum class SockId : int {
 	POPUP = 0x04, // Popup service
 };
 
-struct SocketDescriptor {
+struct API SocketDescriptor {
 	const std::string path;
 	const std::string privilege;
 	const std::string label;
@@ -43,6 +45,7 @@ struct SocketDescriptor {
 					 const std::string &label);
 };
 
+API
 const SocketDescriptor &getSockDesc(const SockId &);
 
 }

@@ -24,6 +24,7 @@
 #include <string>
 #include <functional>
 #include <set>
+#include <mutex>
 
 #include "common/macros.h"
 #include "common/connection.h"
@@ -53,6 +54,7 @@ public:
 
 protected:
 	void setIdleChecker(std::function<bool()> &&idleChecker);
+	bool isConnectionValid(int fd) const;
 
 private:
 	virtual void onMessageProcess(const ConnShPtr &) = 0;
@@ -60,6 +62,7 @@ private:
 	ConnCallback m_onNewConnection;
 	ConnCallback m_onCloseConnection;
 
+	mutable std::mutex m_crMtx;
 	std::unordered_map<int, ConnShPtr> m_connectionRegistry;
 	Mainloop m_loop;
 

@@ -86,6 +86,8 @@ void Service::setNewConnectionCallback(const ConnCallback &callback)
 
 		this->m_loop.addEventSource(fd, EPOLLIN | EPOLLHUP | EPOLLRDHUP,
 		[&, fd](uint32_t event) {
+			std::lock_guard<std::mutex> l(m_crMtx);
+
 			DEBUG("read event comes in to fd[" << fd << "]");
 
 			if (this->m_connectionRegistry.count(fd) == 0)
@@ -105,13 +107,18 @@ void Service::setNewConnectionCallback(const ConnCallback &callback)
 			onMessageProcess(conn);
 		});
 
-		this->m_connectionRegistry[fd] = connection;
+		{
+			std::lock_guard<std::mutex> l(m_crMtx);
+			this->m_connectionRegistry[fd] = connection;
+		}
 	};
 }
 
 void Service::setCloseConnectionCallback(const ConnCallback &callback)
 {
 	this->m_onCloseConnection = [this, &callback](const ConnShPtr &connection) {
+		std::lock_guard<std::mutex> l(m_crMtx);
+
 		if (!connection)
 			ThrowExc(CSR_ERROR_SERVER, "no connection to close");
 
@@ -124,11 +131,19 @@ void Service::setCloseConnectionCallback(const ConnCallback &callback)
 		INFO("good-bye! close socket fd[" << fd << "]");
 
 		this->m_loop.removeEventSource(fd);
+
 		this->m_connectionRegistry.erase(fd);
 
 		if (callback)
 			callback(connection);
 	};
+}
+
+bool Service::isConnectionValid(int fd) const
+{
+	std::lock_guard<std::mutex> l(m_crMtx);
+
+	return this->m_connectionRegistry.count(fd) != 0;
 }
 
 }

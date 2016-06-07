@@ -378,10 +378,13 @@ void ServerService::onMessageProcess(const ConnShPtr &connection)
 
 	auto inbufPtr = std::make_shared<RawBuffer>(connection->receive());
 
-	this->m_workqueue.submit([this, &connection, process, inbufPtr]() {
+	auto fd = connection->getFd();
+
+	this->m_workqueue.submit([this, &connection, fd, process, inbufPtr]() {
 		auto outbuf = (*process)(connection, *inbufPtr);
 
-		connection->send(outbuf);
+		if (this->isConnectionValid(fd))
+			connection->send(outbuf);
 
 		CpuUsageManager::reset();
 	});

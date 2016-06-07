@@ -53,13 +53,13 @@ private:
 template<typename Type, typename ...Args>
 Type Dispatcher::methodCall(Args &&...args)
 {
-	if (!isConnected())
-		connect();
+	if (!this->isConnected())
+		this->connect();
 
-	m_connection->send(BinaryQueue::Serialize(std::forward<Args>(args)...).pop());
+	this->m_connection->send(BinaryQueue::Serialize(std::forward<Args>(args)...).pop());
 
 	BinaryQueue q;
-	q.push(m_connection->receive());
+	q.push(this->m_connection->receive());
 
 	Type response;
 	q.Deserialize(response);

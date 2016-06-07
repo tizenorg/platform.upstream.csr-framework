@@ -54,7 +54,7 @@ void Service::start(int timeout)
 	INFO("Service start!");
 
 	for (const auto &id : this->m_sockIds) {
-		auto socket = std::make_shared<Socket>(id);
+		auto socket = std::make_shared<Socket>(Socket::create(id, Socket::Type::SERVER));
 
 		DEBUG("Get systemd socket[" << socket->getFd() <<
 			  "] for sock id: " << static_cast<int>(id));
@@ -71,10 +71,9 @@ void Service::start(int timeout)
 	this->m_loop.run(timeout);
 }
 
-void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
+void Service::setNewConnectionCallback(const ConnCallback &callback)
 {
-	/* TODO: scoped-lock */
-	this->m_onNewConnection = [&](const ConnShPtr & connection) {
+	this->m_onNewConnection = [this, &callback](const ConnShPtr &connection) {
 		if (!connection)
 			ThrowExc(CSR_ERROR_SERVER, "onNewConnection called but ConnShPtr is nullptr.");
 
@@ -82,14 +81,11 @@ void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
 
 		INFO("welcome! accepted client socket fd[" << fd << "]");
 
-		/*
-		    // TODO: disable temporarily
-		    if (callback)
-		    callback(connection);
-		*/
+		if (callback)
+			callback(connection);
 
 		this->m_loop.addEventSource(fd, EPOLLIN | EPOLLHUP | EPOLLRDHUP,
-		[ &, fd](uint32_t event) {
+		[&, fd](uint32_t event) {
 			DEBUG("read event comes in to fd[" << fd << "]");
 
 			if (this->m_connectionRegistry.count(fd) == 0)
@@ -113,10 +109,9 @@ void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
 	};
 }
 
-void Service::setCloseConnectionCallback(const ConnCallback &/*callback*/)
+void Service::setCloseConnectionCallback(const ConnCallback &callback)
 {
-	/* TODO: scoped-lock */
-	this->m_onCloseConnection = [&](const ConnShPtr & connection) {
+	this->m_onCloseConnection = [this, &callback](const ConnShPtr &connection) {
 		if (!connection)
 			ThrowExc(CSR_ERROR_SERVER, "no connection to close");
 
@@ -129,13 +124,10 @@ void Service::setCloseConnectionCallback(const ConnCallback &/*callback*/)
 		INFO("good-bye! close socket fd[" << fd << "]");
 
 		this->m_loop.removeEventSource(fd);
-		this->m_connectionRegistry.erase(fd); /* scoped-lock needed? */
+		this->m_connectionRegistry.erase(fd);
 
-		/*
-		    // TODO: disable temporarily
-		    if (callback)
-		        callback(connection);
-		*/
+		if (callback)
+			callback(connection);
 	};
 }
 

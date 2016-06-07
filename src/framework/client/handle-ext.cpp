@@ -79,7 +79,6 @@ void HandleExt::dispatchAsync(const std::shared_ptr<Task> &f)
 	this->m_isRunning = true;
 	this->m_stop = false;
 
-	// TODO: how to handle exceptions in workers
 	this->m_worker = std::thread([this, f] {
 		DEBUG("client async thread dispatched! tid: " << std::this_thread::get_id());
 

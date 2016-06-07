@@ -57,6 +57,18 @@ int createSystemdSocket(const std::string &path)
 
 } // namespace anonymous
 
+Socket Socket::create(SockId sockId, Socket::Type type)
+{
+	switch (type) {
+	case Socket::Type::SERVER:
+		return Socket(sockId);
+	case Socket::Type::CLIENT:
+		return Socket::connect(sockId);
+	default:
+		ThrowExc(CSR_ERROR_SOCKET, "Invalid type to Socket::create");
+	}
+}
+
 Socket::Socket(SockId sockId, int fd) : m_sockId(sockId), m_fd(fd)
 {
 	if (this->m_fd < 0)

@@ -105,6 +105,11 @@ int CsLoader::scanAppOnCloud(csre_cs_context_h c, const std::string &appdir,
 	return this->m_pc.fpScanAppOnCloud(c, appdir.c_str(), pdetected);
 }
 
+bool CsLoader::scanAppOnCloudSupported(void)
+{
+	return this->m_pc.fpScanAppOnCloudSupported() == CSRE_CS_SUPPORTED;
+}
+
 int CsLoader::getSeverity(csre_cs_detected_h d,
 						  csre_cs_severity_level_e *pseverity)
 {
@@ -271,6 +276,9 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 							"csre_cs_scan_file"));
 	this->m_pc.fpScanAppOnCloud = reinterpret_cast<FpScanAppOnCloud>(dlsym(handle,
 								  "csre_cs_scan_app_on_cloud"));
+	this->m_pc.fpScanAppOnCloudSupported = reinterpret_cast<FpScanAppOnCloudSupported>(
+										   dlsym(handle,
+												 "csre_cs_scan_app_on_cloud_supported"));
 	this->m_pc.fpGetSeverity = reinterpret_cast<FpGetSeverity>(dlsym(handle,
 							   "csre_cs_detected_get_severity"));
 	this->m_pc.fpGetMalwareName = reinterpret_cast<FpGetMalwareName>(dlsym(handle,
@@ -300,6 +308,7 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 			this->m_pc.fpContextDestroy == nullptr ||
 			this->m_pc.fpScanData == nullptr || this->m_pc.fpScanFile == nullptr  ||
 			this->m_pc.fpScanAppOnCloud == nullptr ||
+			this->m_pc.fpScanAppOnCloudSupported == nullptr ||
 			this->m_pc.fpGetSeverity == nullptr ||
 			this->m_pc.fpGetMalwareName == nullptr ||
 			this->m_pc.fpGetErrorString == nullptr ||

@@ -206,7 +206,7 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 	const auto &pkgPath = fileptr->getAppPkgPath();
 	const auto &pkgId = fileptr->getAppPkgId();
 
-	if (context.isScanOnCloud)
+	if (context.isScanOnCloud && this->m_loader->scanAppOnCloudSupported())
 		return this->scanAppOnCloud(context, pkgPath, pkgId);
 
 	// old history

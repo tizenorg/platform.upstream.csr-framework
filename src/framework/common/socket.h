@@ -31,11 +31,12 @@ namespace Csr {
 
 class API Socket {
 public:
-	// Socket with accepted / connected
-	Socket(SockId sockId, int fd);
+	enum class Type : int {
+		SERVER = 0x01,
+		CLIENT = 0x02
+	};
 
-	// Create systemd socket
-	Socket(SockId sockId);
+	static Socket create(SockId, Socket::Type);
 
 	Socket(const Socket &) = delete;
 	Socket &operator=(const Socket &) = delete;
@@ -53,10 +54,11 @@ public:
 	RawBuffer read(void) const;
 	void write(const RawBuffer &data) const;
 
-	/* TODO: can it be constructor? */
-	static Socket connect(SockId);
-
 private:
+	static Socket connect(SockId);
+	Socket(SockId sockId, int fd);
+	Socket(SockId sockId);
+
 	SockId m_sockId;
 	int m_fd;
 };

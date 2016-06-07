@@ -39,11 +39,15 @@ namespace Ui {
 /*
  * --------------------
  * |      title       |
- * --------------------
+ * ========box=========
  * | content(header)  |
- * | content(body)    |
+ * |------subBox------|
+ * |icon|content(body)|
+ * |------------------|
+ * | -hypertext       |
+ * |                  |
  * | content(footer)  |
- * --------------------
+ * ====================
  * |     button(N)    |
  * --------------------
  */
@@ -66,6 +70,7 @@ public:
 	void setHeader(const std::string &header) noexcept;
 	void setBody(const std::string &body) noexcept;
 	void setFooter(const std::string &footer) noexcept;
+	void setIcon(const std::string &path) noexcept;
 	void setText(Evas_Object *obj, const std::string &text) noexcept;
 
 	void callbackRegister(Evas_Object *obj, const char *event, int *type);
@@ -79,12 +84,15 @@ private:
 	Evas_Object *m_win;
 	Evas_Object *m_popup;
 	Evas_Object *m_box;
+	Evas_Object *m_subBox;
 	Evas_Object *m_header;
 	Evas_Object *m_body;
 	Evas_Object *m_hypertext;
 	Evas_Object *m_footer;
+	Evas_Object *m_icon;
 
 	std::string m_message;
+	std::string m_iconPath;
 	std::string m_hypertextUrl;
 
 	static int response;

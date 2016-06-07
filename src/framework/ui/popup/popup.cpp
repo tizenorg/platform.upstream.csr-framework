@@ -21,32 +21,52 @@
  * @brief
  */
 #include "popup.h"
+#include <package-info.h>
 
 namespace Csr {
 namespace Ui {
 
 Popup::Popup(int buttonN)
 {
+	// Set win properties.
 	m_win = elm_win_add(nullptr, "CSR popup", ELM_WIN_NOTIFICATION);
 	elm_win_indicator_opacity_set(m_win, ELM_WIN_INDICATOR_TRANSLUCENT);
 	elm_win_borderless_set(m_win, EINA_TRUE);
 	elm_win_alpha_set(m_win, EINA_TRUE);
 
+	// Set popup properties.
 	m_popup = elm_popup_add(m_win);
 	evas_object_size_hint_weight_set(m_popup, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 
+	// Wrap objects with box.
 	m_box = elm_box_add(m_popup);
-
 	m_header = elm_label_add(m_box);
+
 	evas_object_size_hint_align_set(m_header, EVAS_HINT_FILL, 0);
 	elm_box_pack_end(m_box, m_header);
 	evas_object_show(m_header);
 
-	m_body = elm_label_add(m_box);
+	// Subbox is for icon.
+	m_subBox = elm_box_add(m_box);
+	evas_object_size_hint_align_set(m_subBox, 0, 0);
+	elm_box_horizontal_set(m_subBox, TRUE);
+
+	// If icon is not set, it doesn't appear.
+	m_icon = elm_icon_add(m_subBox);
+	// TODO(sangwan.kwon) Fix icon size
+	elm_image_resizable_set(m_icon, EINA_FALSE, EINA_FALSE);
+	elm_box_pack_end(m_subBox, m_icon);
+	evas_object_show(m_icon);
+
+	m_body = elm_label_add(m_subBox);
 	evas_object_size_hint_align_set(m_body, EVAS_HINT_FILL, 0);
-	elm_box_pack_end(m_box, m_body);
+	elm_box_pack_end(m_subBox, m_body);
 	evas_object_show(m_body);
 
+	elm_box_pack_end(m_box, m_subBox);
+	evas_object_show(m_subBox);
+
+	// This label is for linking to webview.
 	m_hypertext = elm_label_add(m_box);
 	elm_object_text_set(m_hypertext,"<color=#0000FFFF>"
 		"    More information</color>");
@@ -61,6 +81,7 @@ Popup::Popup(int buttonN)
 
 	elm_object_content_set(m_popup, m_box);
 
+	// Add buttons dynamically.
 	for(int i=1 ; i <= buttonN; i++) {
 		std::string id("button" + std::to_string(i));
 		Evas_Object *button = elm_button_add(m_popup);
@@ -101,12 +122,22 @@ void Popup::setMessage(const std::string &msg) noexcept
 	m_message = msg;
 }
 
+void Popup::setIcon(const std::string &path) noexcept
+{
+	if (path.compare(PackageInfo::UNKNOWN) == 0)
+		elm_image_file_set(m_icon, DEFAULT_ICON_PATH, NULL);
+	else
+		elm_image_file_set(m_icon, path.c_str(), NULL);
+}
+
 void Popup::run(void)
 {
 	m_objects.emplace_back(m_header);
 	m_objects.emplace_back(m_body);
 	m_objects.emplace_back(m_hypertext);
 	m_objects.emplace_back(m_footer);
+	m_objects.emplace_back(m_icon);
+	m_objects.emplace_back(m_subBox);
 	m_objects.emplace_back(m_box);
 
 	for (auto &btn : m_buttons)

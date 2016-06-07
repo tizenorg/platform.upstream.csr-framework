@@ -30,7 +30,7 @@
 #include "common/audit/logger.h"
 #include "common/exception.h"
 #include "ui/common.h"
-
+#include "package-info.h"
 #include "popup.h"
 
 #include <csr-content-screening-types.h>
@@ -114,6 +114,7 @@ RawBuffer Logic::csPromptFile(const std::string &message, const CsDetected &d) c
 RawBuffer Logic::csPromptApp(const std::string &message, const CsDetected &d) const
 {
 	std::string risk(d.severity == CSR_CS_SEVERITY_LOW ? "Low" : "Medium");
+	PackageInfo info(d.pkgId);
 
 	Popup p(3);
 
@@ -121,9 +122,10 @@ RawBuffer Logic::csPromptApp(const std::string &message, const CsDetected &d) co
 	p.setTitle("    Malware detected");
 	p.setHeader("    Malware which is harm your phone is detected.");
 	p.setBody(FORMAT(
-		"    App name : " << d.targetName << "<br>" <<
-		"    Version : " << "1.0" << "<br>" <<
+		"    App name : " << info.getLabel() << "<br>" <<
+		"    Version : " << info.getVersion() << "<br>" <<
 		"    Risk : " << risk << " (" << d.malwareName << ")"));
+	p.setIcon(info.getIconPath());
 	p.setFooter(
 		"    Tap Uninstall to uninstall infected<br>"
 		"    application and protect your phone.<br>"
@@ -203,14 +205,17 @@ RawBuffer Logic::csNotifyFile(const std::string &message, const CsDetected &d) c
 
 RawBuffer Logic::csNotifyApp(const std::string &message, const CsDetected &d) const
 {
+	PackageInfo info(d.pkgId);
+
 	Popup p(2);
 
 	p.setMessage(message);
 	p.setTitle("    Malware detected");
 	p.setHeader("    Malware which is harm your phone is detected.");
+	p.setIcon(info.getIconPath());
 	p.setBody(FORMAT(
-		"    App name : " << d.targetName << "<br>" <<
-		"    Version : " << "1.0" << "<br>" <<
+		"    App name : " << info.getLabel() << "<br>" <<
+		"    Version : " << info.getVersion() << "<br>" <<
 		"    Risk : " << "High" << " (" << d.malwareName << ")"));
 	p.setFooter(
 		"    Tap Uninstall to uninstall infected<br>"

@@ -56,6 +56,7 @@ file contents and checking url to prevent malicious items.
 %global rw_data_dir                  /opt/share
 %global ro_db_dir                    %{ro_data_dir}/%{service_name}/dbspace
 %global rw_db_dir                    %{rw_data_dir}/%{service_name}/dbspace
+%global ro_res_dir                   %{ro_data_dir}/%{service_name}/res
 %global engine_rw_working_dir        %{rw_data_dir}/%{service_name}/%{engine_rw_dir_name}
 %global engine_dir                   %{ro_data_dir}/%{service_name}/%{engine_ro_dir_name}
 %global test_dir                     %{rw_data_dir}/%{service_name}-test
@@ -157,6 +158,7 @@ test program of csr-framework
     -DPOPUP_SYSTEMD_UNIT_DIR=%{popup_unitdir} \
     -DRO_DBSPACE:PATH=%{ro_db_dir} \
     -DRW_DBSPACE:PATH=%{rw_db_dir} \
+    -DRO_RES_DIR:PATH=%{ro_res_dir} \
     -DSERVICE_IDLE_TIMEOUT_TIME=%{service_idle_timeout_time} \
     -DPOPUP_SERVICE_IDLE_TIMEOUT_TIME=%{popup_service_idle_timeout_time} \
     -DENGINE_RW_WORKING_DIR:PATH=%{engine_rw_working_dir} \
@@ -252,6 +254,7 @@ fi
 %{popup_unitdir}/%{service_name}-popup.socket
 %{popup_unitdir}/sockets.target.wants/%{service_name}-popup.socket
 %{popup_unitdir}/%{service_name}-popup.service
+%{ro_res_dir}/default-icon.png
 
 %dir %{ro_data_dir}/%{service_name}
 %dir %attr(-, %{service_user}, %{service_group}) %{rw_data_dir}/%{service_name}

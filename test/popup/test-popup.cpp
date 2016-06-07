@@ -27,6 +27,7 @@
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 
+#include "test-resource.h"
 #include "test-common.h"
 
 using namespace Csr;
@@ -125,7 +126,8 @@ BOOST_AUTO_TEST_CASE(prompt_app)
 	EXCEPTION_GUARD_START
 
 	CsDetected d;
-	d.targetName = "pkg_id_of_app";
+	// message pkg is for get icon temporary.
+	d.pkgId = "org.tizen.message";
 	d.malwareName = "dummy malware in app";
 	d.detailedUrl = "http://detailedurl/cs_prompt_app";
 	d.severity = CSR_CS_SEVERITY_MEDIUM;
@@ -176,7 +178,11 @@ BOOST_AUTO_TEST_CASE(notify_app)
 	EXCEPTION_GUARD_START
 
 	CsDetected d;
-	d.targetName = "pkg_id_of_app";
+
+	Test::uninstall_app(TEST_WGT_PKG_ID);
+	ASSERT_INSTALL_APP(TEST_WGT_PATH, TEST_WGT_TYPE);
+
+	d.pkgId = TEST_WGT_PKG_ID;
 	d.malwareName = "dummy malware in app";
 	d.detailedUrl = "http://detailedurl/cs_notify_app";
 	d.severity = CSR_CS_SEVERITY_HIGH;

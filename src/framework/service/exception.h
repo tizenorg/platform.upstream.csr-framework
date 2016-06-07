@@ -32,17 +32,6 @@
 
 namespace Csr {
 
-// exceptions listed here are only thrown in server side.
-using PermDenied         = DerivedException<CSR_ERROR_PERMISSION_DENIED>;
-using DbFailed           = DerivedException<CSR_ERROR_DB>;
-using RemoveFailed       = DerivedException<CSR_ERROR_REMOVE_FAILED>;
-using FileChanged        = DerivedException<CSR_ERROR_FILE_CHANGED>;
-using EngineNotExist     = DerivedException<CSR_ERROR_ENGINE_NOT_EXIST>;
-using EngineError        = DerivedException<CSR_ERROR_ENGINE_INTERNAL>;
-using EngineNotActivated = DerivedException<CSR_ERROR_ENGINE_NOT_ACTIVATED>;
-using EngineDisabled     = DerivedException<CSR_ERROR_ENGINE_DISABLED>;
-using EnginePermDenied   = DerivedException<CSR_ERROR_ENGINE_PERMISSION>;
-
 RawBuffer exceptionGuard(const std::function<RawBuffer()> &);
 
 }

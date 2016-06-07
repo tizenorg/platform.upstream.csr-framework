@@ -24,9 +24,9 @@
 #include <utility>
 
 #include "common/audit/logger.h"
+#include "common/exception.h"
 #include "service/type-converter.h"
 #include "service/engine-error-converter.h"
-#include "service/exception.h"
 #include "ui/askuser.h"
 #include <csr-error.h>
 
@@ -37,7 +37,7 @@ WpLogic::WpLogic(const std::shared_ptr<WpLoader> &loader,
 	m_loader(loader), m_db(db)
 {
 	if (!this->m_db)
-		ThrowExc(DbFailed, "DB init failed.");
+		ThrowExc(CSR_ERROR_DB, "DB init failed.");
 
 	if (this->m_loader) {
 		WpEngineContext wpEngineContext(this->m_loader);
@@ -48,10 +48,8 @@ WpLogic::WpLogic(const std::shared_ptr<WpLoader> &loader,
 
 RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
 {
-	EXCEPTION_GUARD_START
-
 	if (this->m_db->getEngineState(CSR_ENGINE_WP) != CSR_STATE_ENABLE)
-		ThrowExc(EngineDisabled, "engine is disabled");
+		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
 
 	WpEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
@@ -83,12 +81,10 @@ RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid level: " << static_cast<int>(wr.riskLevel));
+		ThrowExc(CSR_ERROR_SERVER, "Invalid level: " << static_cast<int>(wr.riskLevel));
 	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, wr).pop();
-
-	EXCEPTION_GUARD_END
 }
 
 csr_wp_user_response_e WpLogic::getUserResponse(const WpContext &c, const std::string &url,

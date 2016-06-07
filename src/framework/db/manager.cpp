@@ -27,7 +27,7 @@
 #include "db/query.h"
 #include "db/statement.h"
 #include "common/audit/logger.h"
-#include "service/exception.h"
+#include "common/exception.h"
 
 namespace Csr {
 namespace Db {
@@ -124,13 +124,13 @@ std::string Manager::getScript(const std::string &scriptName)
 	std::ifstream is(scriptPath);
 
 	if (is.fail())
-		ThrowExc(DbFailed, "Cannot open script: " << scriptPath);
+		ThrowExc(CSR_ERROR_DB, "Cannot open script: " << scriptPath);
 
 	std::istreambuf_iterator<char> begin(is), end;
 	auto str = std::string(begin, end);
 
 	if (str.empty())
-		ThrowExc(DbFailed, "Script file empty: " << scriptPath);
+		ThrowExc(CSR_ERROR_DB, "Script file empty: " << scriptPath);
 
 	return str;
 }
@@ -167,7 +167,7 @@ void Manager::setSchemaVersion(int sv)
 	stmt.bind(sv);
 
 	if (stmt.exec() == 0)
-		ThrowExc(DbFailed, "Failed to set schema version to: " << sv);
+		ThrowExc(CSR_ERROR_DB, "Failed to set schema version to: " << sv);
 }
 
 //===========================================================================

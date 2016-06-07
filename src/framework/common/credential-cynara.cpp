@@ -34,7 +34,7 @@ Credential::Credential(const std::string &_user, const std::string &_client) :
 
 Credential::Credential(uid_t, gid_t, const std::string &)
 {
-	ThrowExc(InternalError, "Invalid credential ctor called which is for smack backend.");
+	ThrowExc(CSR_ERROR_SERVER, "Invalid credential ctor called which is for smack backend.");
 }
 
 std::unique_ptr<Credential> Credential::get(int sockfd)
@@ -43,14 +43,14 @@ std::unique_ptr<Credential> Credential::get(int sockfd)
 	auto ret = cynara_creds_socket_get_user(sockfd, USER_METHOD_DEFAULT, &userptr);
 
 	if (ret != CYNARA_API_SUCCESS)
-		ThrowExc(InternalError, "Failed to cynara_creds_socket_get_user. ret: " << ret);
+		ThrowExc(CSR_ERROR_SERVER, "Failed to cynara_creds_socket_get_user. ret: " << ret);
 
 	char *clientptr = nullptr;
 	ret = cynara_creds_socket_get_client(sockfd, CLIENT_METHOD_DEFAULT, &clientptr);
 
 	if (ret != CYNARA_API_SUCCESS) {
 		free(userptr);
-		ThrowExc(InternalError, "Failed to cynara_creds_socket_get_client. ret: " << ret);
+		ThrowExc(CSR_ERROR_SERVER, "Failed to cynara_creds_socket_get_client. ret: " << ret);
 	}
 
 	std::unique_ptr<Credential> cred(new Credential(userptr, clientptr));

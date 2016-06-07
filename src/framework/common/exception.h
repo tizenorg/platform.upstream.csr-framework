@@ -25,65 +25,27 @@
 #include <exception>
 #include <string>
 
-#include "common/audit/logger.h"
 #include <csr-error.h>
+
+#include "common/audit/logger.h"
 
 namespace Csr {
 
 class Exception : public std::exception {
 public:
-	Exception(const char *file, const char *function, unsigned int line,
+	Exception(int ec, const char *file, const char *function, unsigned int line,
 			  const std::string &message) noexcept;
 	virtual ~Exception() = default;
 	virtual const char *what() const noexcept final;
 
-	virtual int error(void) const = 0;
+	virtual int error(void) const noexcept;
 
 protected:
+	int m_ec;
 	std::string m_message;
 };
 
-template <int Error = 0, Audit::LogLevel level = Audit::LogLevel::Error>
-class DerivedException : public Exception {
-public:
-	DerivedException(const char *file, const char *function, unsigned int line,
-					 const std::string &message) noexcept :
-		Exception(file, function, line, message)
-	{
-		switch (level) {
-		case Audit::LogLevel::Error:
-			ERROR(message);
-			break;
-
-		case Audit::LogLevel::Warning:
-			WARN(message);
-			break;
-
-		case Audit::LogLevel::Info:
-			INFO(message);
-			break;
-
-		default:
-			DEBUG(message);
-			break;
-		}
-	}
-
-	virtual ~DerivedException() = default;
-
-	virtual int error(void) const noexcept override
-	{
-		return Error;
-	}
-};
-
-using InternalError      = DerivedException<CSR_ERROR_SERVER>;
-using SocketError        = DerivedException<CSR_ERROR_SOCKET>;
-using FileDoNotExist     = DerivedException<CSR_ERROR_FILE_DO_NOT_EXIST>;
-using FileSystemError    = DerivedException<CSR_ERROR_FILE_SYSTEM>;
-using BusyError          = DerivedException<CSR_ERROR_BUSY>;
-
 } // namespace Csr
 
-#define ThrowExc(name, MESSAGE) \
-	throw name(__FILE__, __FUNCTION__, __LINE__, FORMAT(MESSAGE))
+#define ThrowExc(ec, MESSAGE) \
+	throw Csr::Exception(ec, __FILE__, __FUNCTION__, __LINE__, FORMAT(MESSAGE))

@@ -25,7 +25,7 @@
 
 #include <cynara-client.h>
 
-#include "service/exception.h"
+#include "common/exception.h"
 
 namespace Csr {
 
@@ -57,7 +57,7 @@ public:
 		auto ret = cynara_initialize(&(this->m_cynara), nullptr);
 
 		if (ret != CYNARA_API_SUCCESS)
-			ThrowExc(InternalError, "Failed to cynara_async_initialize. ret: " << ret);
+			ThrowExc(CSR_ERROR_SERVER, "Failed to cynara_async_initialize. ret: " << ret);
 
 		this->m_isInitialized = true;
 	}
@@ -72,7 +72,7 @@ public:
 		case CYNARA_API_ACCESS_ALLOWED: return true;
 		case CYNARA_API_ACCESS_DENIED:  return false;
 		default:
-			ThrowExc(InternalError, "cynara_check failed. ret: " << ret);
+			ThrowExc(CSR_ERROR_SERVER, "cynara_check failed. ret: " << ret);
 		}
 	}
 
@@ -100,8 +100,8 @@ void hasPermission(const ConnShPtr &conn, SockId sockId)
 	g_cynara.initialize();
 
 	if (!g_cynara.request(c.user, c.client, std::to_string(conn->getFd()), d.privilege))
-		ThrowExc(PermDenied, "Client[" << c.client << "] doesn't have permission"
-				 " to call API. Checked by cynara.");
+		ThrowExc(CSR_ERROR_PERMISSION_DENIED, "Client[" << c.client << "] doesn't have"
+				 " permission to call API. Checked by cynara.");
 }
 
 }

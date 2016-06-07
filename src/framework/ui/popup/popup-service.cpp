@@ -47,7 +47,7 @@ bool isCsCommand(const CommandId &cid)
 		return false;
 
 	default:
-		ThrowExc(InternalError, "Protocol error. unknown popup-service command id.");
+		ThrowExc(CSR_ERROR_SERVER, "Protocol error. unknown popup-service command id.");
 	}
 }
 
@@ -97,7 +97,7 @@ RawBuffer PopupService::process(const ConnShPtr &, RawBuffer &data)
 			return m_logic.csNotifyFile(message, d);
 
 		default:
-			ThrowExc(InternalError, "protocol error. invalid ui command id.");
+			ThrowExc(CSR_ERROR_SERVER, "protocol error. invalid ui command id.");
 		}
 	} else {
 		std::string message;
@@ -112,7 +112,7 @@ RawBuffer PopupService::process(const ConnShPtr &, RawBuffer &data)
 			return m_logic.wpNotify(message, item);
 
 		default:
-			ThrowExc(InternalError, "protocol error. invalid ui command id.");
+			ThrowExc(CSR_ERROR_SERVER, "protocol error. invalid ui command id.");
 		}
 	}
 }

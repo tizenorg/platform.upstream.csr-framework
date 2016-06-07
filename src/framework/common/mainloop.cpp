@@ -63,7 +63,7 @@ void Mainloop::addEventSource(int fd, uint32_t event, Callback &&callback)
 {
 	/* TODO: use scoped-lock to thread safe on member variables */
 	if (this->m_callbacks.count(fd) != 0)
-		ThrowExc(InternalError, "event source on fd[" << fd << "] already added!");
+		ThrowExc(CSR_ERROR_SERVER, "event source on fd[" << fd << "] already added!");
 
 	DEBUG("Add event[" << event << "] source on fd[" << fd << "]");
 
@@ -84,7 +84,7 @@ void Mainloop::removeEventSource(int fd)
 {
 	/* TODO: use scoped-lock to thread safe on member variables */
 	if (this->m_callbacks.count(fd) == 0)
-		ThrowExc(InternalError, "event source on fd[" << fd << "] isn't added at all");
+		ThrowExc(CSR_ERROR_SERVER, "event source on fd[" << fd << "] isn't added at all");
 
 	DEBUG("Remove event source on fd[" << fd << "]");
 
@@ -93,7 +93,7 @@ void Mainloop::removeEventSource(int fd)
 
 		if (::epoll_ctl(m_pollfd, EPOLL_CTL_DEL, fd, nullptr) == -1) {
 			if (errno == ENOENT)
-				ThrowExc(InternalError, "Tried to delete epoll item which wasn't added");
+				ThrowExc(CSR_ERROR_SERVER, "Tried to delete epoll item which wasn't added");
 			else
 				throw std::system_error(
 					std::error_code(errno, std::generic_category()),
@@ -138,7 +138,7 @@ void Mainloop::dispatch(int timeout)
 		int fd = event[i].data.fd;
 
 		if (this->m_callbacks.count(fd) == 0)
-			ThrowExc(InternalError, "event in on fd[" << fd <<
+			ThrowExc(CSR_ERROR_SERVER, "event in on fd[" << fd <<
 					 "] but associated callback isn't exist!");
 
 		if (event[i].events & (EPOLLHUP | EPOLLRDHUP)) {

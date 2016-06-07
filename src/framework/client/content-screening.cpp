@@ -386,6 +386,8 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 	}
 
 	auto task = std::make_shared<Task>([hExt, user_data, fileSet] {
+		EXCEPTION_ASYNC_SAFE_START(hExt->m_cb, user_data)
+
 		auto ret = hExt->dispatch<std::pair<int, std::shared_ptr<StrSet>>>(
 					CommandId::CANONICALIZE_PATHS, *fileSet);
 
@@ -405,7 +407,9 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 
 		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
-		l.scanFiles(*canonicalizedFiles).second();
+		l.scanFiles(*canonicalizedFiles);
+
+		EXCEPTION_SAFE_END
 	});
 
 	hExt->dispatchAsync(task);
@@ -436,9 +440,13 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path,
 	auto dir = std::make_shared<std::string>(Client::getAbsolutePath(dir_path));
 
 	auto task = std::make_shared<Task>([hExt, user_data, dir] {
+		EXCEPTION_ASYNC_SAFE_START(hExt->m_cb, user_data)
+
 		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
-		l.scanDir(*dir).second();
+		l.scanDir(*dir);
+
+		EXCEPTION_SAFE_END
 	});
 
 	hExt->dispatchAsync(task);
@@ -476,6 +484,8 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 	}
 
 	auto task = std::make_shared<Task>([hExt, user_data, dirSet] {
+		EXCEPTION_ASYNC_SAFE_START(hExt->m_cb, user_data)
+
 		auto ret = hExt->dispatch<std::pair<int, std::shared_ptr<StrSet>>>(
 					CommandId::CANONICALIZE_PATHS, *dirSet);
 
@@ -497,7 +507,9 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 
 		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
 
-		l.scanDirs(*canonicalizedDirs).second();
+		l.scanDirs(*canonicalizedDirs);
+
+		EXCEPTION_SAFE_END
 	});
 
 	hExt->dispatchAsync(task);

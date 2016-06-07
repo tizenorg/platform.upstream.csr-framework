@@ -23,15 +23,23 @@
 
 #include <functional>
 
+#include "client/callback.h"
+
 #define API __attribute__((visibility("default")))
 
 #define EXCEPTION_SAFE_START return Csr::Client::exceptionGuard([&]()->int {
 #define EXCEPTION_SAFE_END });
 
+#define EXCEPTION_ASYNC_SAFE_START(callbacks, userdata) \
+	return Csr::Client::exceptionGuardAsync(callbacks, userdata, [&]() {
+
 namespace Csr {
 namespace Client {
 
 int exceptionGuard(const std::function<int()> &);
+
+void exceptionGuardAsync(const Callback &callbacks, void *userdata,
+						 const std::function<void()> &);
 
 } // namespace Client
 } // namespace Csr

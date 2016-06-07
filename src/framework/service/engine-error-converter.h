@@ -21,8 +21,6 @@
  */
 #pragma once
 
-#include "service/exception.h"
-
 namespace Csr {
 
 // throw converted common exception if it have to.

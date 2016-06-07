@@ -31,7 +31,7 @@ PackageInfo::PackageInfo(const std::string &pkgid)
 {
 	auto ret = ::pkgmgrinfo_pkginfo_get_pkginfo(pkgid.c_str(), &this->m_handle);
 	if (ret != PMINFO_R_OK)
-		ThrowExc(InternalError, "Invalid package id: " << pkgid << " ret: " << ret);
+		ThrowExc(CSR_ERROR_SERVER, "Invalid package id: " << pkgid << " ret: " << ret);
 }
 
 PackageInfo::~PackageInfo()

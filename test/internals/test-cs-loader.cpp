@@ -245,6 +245,17 @@ BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 	EXCEPTION_GUARD_END
 }
 
+BOOST_AUTO_TEST_CASE(scan_app_on_cloud_supported)
+{
+	EXCEPTION_GUARD_START
+
+	Handle h;
+
+	BOOST_MESSAGE("scanAppOnCloudSupported: " << h.loader.scanAppOnCloudSupported());
+
+	EXCEPTION_GUARD_END
+}
+
 BOOST_AUTO_TEST_CASE(error_string_positive)
 {
 	EXCEPTION_GUARD_START

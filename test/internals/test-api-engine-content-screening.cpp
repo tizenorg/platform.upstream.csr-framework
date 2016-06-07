@@ -241,6 +241,19 @@ BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 	EXCEPTION_GUARD_END
 }
 
+BOOST_AUTO_TEST_CASE(scan_app_on_cloud_supported)
+{
+	EXCEPTION_GUARD_START
+
+	auto ret = csre_cs_scan_app_on_cloud_supported();
+
+	BOOST_REQUIRE_MESSAGE(
+		ret == CSRE_CS_NOT_SUPPORTED || ret == CSRE_CS_SUPPORTED,
+		"invalid returned value from csre_cs_scan_app_on_cloud_supported: " << ret);
+
+	EXCEPTION_GUARD_END
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 

@@ -431,6 +431,12 @@ int csre_cs_scan_file(csre_cs_context_h handle,
 }
 
 API
+int csre_cs_scan_app_on_cloud_supported()
+{
+	return CSRE_CS_SUPPORTED;
+}
+
+API
 int csre_cs_scan_app_on_cloud(csre_cs_context_h handle,
 							  const char *app_root_dir,
 							  csre_cs_detected_h *pdetected)

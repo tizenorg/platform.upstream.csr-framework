@@ -59,6 +59,11 @@ typedef enum {
 	CSRE_CS_THREAT_GENERIC = 0x02   /**< Generic threat */
 } csre_cs_threat_type_e;
 
+typedef enum {
+	CSRE_CS_NOT_SUPPORTED  = 0x00,  /**< Cloud scan is not supported */
+	CSRE_CS_SUPPORTED      = 0x01,  /**< Cloud scan is supported */
+} csre_cs_cloud_supported_e;
+
 #ifdef __cplusplus
 }
 #endif

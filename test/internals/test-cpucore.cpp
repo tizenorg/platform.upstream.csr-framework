@@ -21,6 +21,7 @@
  */
 #include "service/core-usage.h"
 
+#include <algorithm>
 #include <system_error>
 #include <boost/test/unit_test.hpp>
 
@@ -68,9 +69,9 @@ BOOST_AUTO_TEST_CASE(half)
 {
 	EXCEPTION_GUARD_START
 
-	int total = ::getRunningCores();
+	int expected = std::max(::getRunningCores() / 2, Csr::CpuUsageManager::MinCoreNum);
 
-	coreNumTest(CSR_CS_CORE_USAGE_HALF, total / 2);
+	coreNumTest(CSR_CS_CORE_USAGE_HALF, expected);
 
 	EXCEPTION_GUARD_END
 }

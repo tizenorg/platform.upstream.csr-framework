@@ -32,7 +32,7 @@ public:
 	static void set(const csr_cs_core_usage_e &cu);
 	static void reset(void);
 
-	static const int MinCoreNum = 1;
+	static const int MinCoreNum;
 
 private:
 	static void setRunningCores(int num);

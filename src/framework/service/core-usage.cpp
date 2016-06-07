@@ -35,6 +35,8 @@ const int TotalCoreNum = ::sysconf(_SC_NPROCESSORS_ONLN);
 
 } // namespace anonymous
 
+const int CpuUsageManager::MinCoreNum = 1;
+
 void CpuUsageManager::set(const csr_cs_core_usage_e &cu)
 {
 	switch (cu) {

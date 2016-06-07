@@ -45,6 +45,7 @@ public:
 				 csre_cs_detected_h *);
 	int scanFile(csre_cs_context_h, const std::string &, csre_cs_detected_h *);
 	int scanAppOnCloud(csre_cs_context_h, const std::string &, csre_cs_detected_h *);
+	bool scanAppOnCloudSupported(void);
 
 	int getSeverity(csre_cs_detected_h, csre_cs_severity_level_e *);
 	int getMalwareName(csre_cs_detected_h, std::string &);
@@ -71,6 +72,7 @@ private:
 	using FpScanFile = int(*)(csre_cs_context_h, const char *,
 							  csre_cs_detected_h *);
 	using FpScanAppOnCloud = int(*)(csre_cs_context_h, const char *, csre_cs_detected_h *);
+	using FpScanAppOnCloudSupported = int(*)();
 	using FpGetSeverity = int(*)(csre_cs_detected_h, csre_cs_severity_level_e *);
 	using FpGetMalwareName = int(*)(csre_cs_detected_h, const char **);
 	using FpGetDetailedUrl = int(*)(csre_cs_detected_h, const char **);
@@ -95,6 +97,7 @@ private:
 		FpScanData fpScanData;
 		FpScanFile fpScanFile;
 		FpScanAppOnCloud fpScanAppOnCloud;
+		FpScanAppOnCloudSupported fpScanAppOnCloudSupported;
 		FpGetSeverity fpGetSeverity;
 		FpGetMalwareName fpGetMalwareName;
 		FpGetDetailedUrl fpGetDetailedUrl;

@@ -195,10 +195,21 @@ int csre_cs_scan_file(csre_cs_context_h handle,
  *
  * @see csre_cs_context_create()
  * @see csre_cs_scan_data()
+ * @see csre_cs_scan_app_on_cloud_supported()
  */
 int csre_cs_scan_app_on_cloud(csre_cs_context_h handle,
 							  const char *app_root_dir,
 							  csre_cs_detected_h *pdetected);
+
+/**
+ * @brief Checks the engine supports scan on cloud feature.
+ *
+ * @return #CSRE_CS_SUPPORTED if scan app on cloud feature supported,
+ *         otherwise #CSRE_CS_NOT_SUPPORTED.
+ *
+ * @see csre_cs_scan_app_on_cloud()
+ */
+int csre_cs_scan_app_on_cloud_supported();
 
 //==============================================================================
 // Result related

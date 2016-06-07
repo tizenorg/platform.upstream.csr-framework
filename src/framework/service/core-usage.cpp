@@ -25,7 +25,7 @@
 #include <sched.h>
 #include <unistd.h>
 
-#include "service/exception.h"
+#include "common/exception.h"
 
 namespace Csr {
 
@@ -52,7 +52,7 @@ void CpuUsageManager::set(const csr_cs_core_usage_e &cu)
 		break;
 
 	default:
-		ThrowExc(InternalError, "invalid core usage param: " << static_cast<int>(cu));
+		ThrowExc(CSR_ERROR_SERVER, "invalid core usage param: " << static_cast<int>(cu));
 	}
 }
 
@@ -74,7 +74,7 @@ void CpuUsageManager::setRunningCores(int num)
 		CPU_SET(coreId, &set);
 
 	if (::sched_setaffinity(0, sizeof(set), &set) == -1)
-		ThrowExc(InternalError, "sched set affinity failed. errno: " << errno);
+		ThrowExc(CSR_ERROR_SERVER, "sched set affinity failed. errno: " << errno);
 }
 
 int CpuUsageManager::getRunningCores(void)
@@ -84,7 +84,7 @@ int CpuUsageManager::getRunningCores(void)
 	CPU_ZERO(&set);
 
 	if (::sched_getaffinity(0, sizeof(set), &set) == -1)
-		ThrowExc(InternalError, "sched get affinity failed. errno: " << errno);
+		ThrowExc(CSR_ERROR_SERVER, "sched get affinity failed. errno: " << errno);
 
 	return CPU_COUNT(&set);
 }

@@ -28,10 +28,10 @@
 #include <unistd.h>
 
 #include "common/audit/logger.h"
+#include "common/exception.h"
 #include "service/type-converter.h"
 #include "service/engine-error-converter.h"
 #include "service/core-usage.h"
-#include "service/exception.h"
 #include "ui/askuser.h"
 #include <csr-error.h>
 
@@ -59,7 +59,7 @@ CsLogic::CsLogic(const std::shared_ptr<CsLoader> &loader,
 	m_loader(loader), m_db(db)
 {
 	if (!this->m_db)
-		ThrowExc(DbFailed, "Failed to init db");
+		ThrowExc(CSR_ERROR_DB, "Failed to init db");
 
 	if (this->m_loader) {
 		CsEngineContext csEngineContext(this->m_loader);
@@ -70,10 +70,8 @@ CsLogic::CsLogic(const std::shared_ptr<CsLoader> &loader,
 
 RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 {
-	EXCEPTION_GUARD_START
-
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
-		ThrowExc(EngineDisabled, "engine is disabled");
+		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
 
 	setCoreUsage(context.coreUsage);
 
@@ -93,8 +91,6 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 	auto d = this->convert(result, std::string(), timestamp);
 
 	return this->handleAskUser(context, d);
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
@@ -177,28 +173,35 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 	FilePtr fileptr;
 	try {
 		fileptr = File::create(path);
-	} catch (const FileDoNotExist &e) {
-		WARN("Pinned file[" << path << " in app doesn't exist or perm denied.");
-	} catch (const FileSystemError &e) {
-		WARN("Pinned file[" << path << " in app type isn't regular file or dir.");
+	} catch (const Exception &e) {
+		if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST)
+			WARN("Pinned file[" << path << " in app doesn't exist or perm denied.");
+		else if (e.error() == CSR_ERROR_FILE_SYSTEM)
+			WARN("Pinned file[" << path << " in app type isn't regular file or dir.");
+		else
+			throw;
 	}
 
 	// try again to create FilePtr by package path
 	if (!fileptr) {
 		try {
 			fileptr = File::create(File::getPkgPath(path));
-		} catch (const FileDoNotExist &e) {
-			WARN("Package path of file[" << path << "] doesn't exist or perm denied.");
-		} catch (const FileSystemError &e) {
-			WARN("Package path of file[" << path << "] type isn't regular file or dir.");
+		} catch (const Exception &e) {
+			if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST)
+				WARN("Package path of file[" << path << "] doesn't exist or perm denied.");
+			else if (e.error() == CSR_ERROR_FILE_SYSTEM)
+				WARN("Package path of file[" << path << "] type isn't regular file or dir.");
+			else
+				throw;
 		}
 	}
 
 	if (!fileptr->isInApp())
-		ThrowExc(InternalError, "fileptr should be in app.");
+		ThrowExc(CSR_ERROR_SERVER, "fileptr should be in app.");
 
 	if (!fileptr->isRemovable())
-		ThrowExc(PermDenied, "app[" << fileptr->getAppPkgPath() << "] isn't removable.");
+		ThrowExc(CSR_ERROR_PERMISSION_DENIED, "app[" << fileptr->getAppPkgPath() <<
+				 "] isn't removable.");
 
 	const auto &pkgPath = fileptr->getAppPkgPath();
 	const auto &pkgId = fileptr->getAppPkgId();
@@ -341,10 +344,8 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 
 RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepath)
 {
-	EXCEPTION_GUARD_START
-
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
-		ThrowExc(EngineDisabled, "engine is disabled");
+		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
 
 	setCoreUsage(context.coreUsage);
 
@@ -371,7 +372,8 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 			this->m_db->deleteDetectedByNameOnPath(filepath);
 
 		if (fileptr->isDir())
-			ThrowExc(FileSystemError, "file type shouldn't be directory: " << filepath);
+			ThrowExc(CSR_ERROR_FILE_SYSTEM,
+					 "file type shouldn't be directory: " << filepath);
 
 		DEBUG("file[" << filepath << "] is modified since the detected time. "
 			  "let's remove history and re-scan");
@@ -384,8 +386,6 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
 	return this->handleAskUser(context, *history);
-
-	EXCEPTION_GUARD_END
 }
 
 // Application in input param directory will be treated as one item.
@@ -416,10 +416,8 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 //           % items which has detected history is included in list as well.
 RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 {
-	EXCEPTION_GUARD_START
-
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
-		ThrowExc(EngineDisabled, "engine is disabled");
+		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
 
 	auto lastScanTime = this->m_db->getLastScanTime(dir, this->m_dataVersion);
 
@@ -448,25 +446,23 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 
 				fileset.insert(fileptr->isInApp() ?
 						fileptr->getAppPkgPath() : fileptr->getPath());
-			} catch (const FileDoNotExist &) {
-				this->m_db->deleteDetectedByNameOnPath(row->targetName);
-			} catch (const FileSystemError &) {
-				this->m_db->deleteDetectedByNameOnPath(row->targetName);
+			} catch (const Exception &e) {
+				if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST ||
+					e.error() == CSR_ERROR_FILE_SYSTEM)
+					this->m_db->deleteDetectedByNameOnPath(row->targetName);
+				else
+					throw;
 			}
 		}
 	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
 {
-	EXCEPTION_GUARD_START
-
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
-		ThrowExc(EngineDisabled, "engine is disabled");
+		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
 
 	StrSet canonicalized;
 
@@ -477,11 +473,12 @@ RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
 		if (resolved == nullptr) {
 			const int err = errno;
 			if (err == ENOENT)
-				ThrowExc(FileDoNotExist, "File do not exist: " << target);
+				ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "File do not exist: " << target);
 			else if (err == EACCES)
-				ThrowExc(PermDenied, "Perm denied to get real path: " << target);
+				ThrowExc(CSR_ERROR_PERMISSION_DENIED,
+						 "Perm denied to get real path: " << target);
 			else
-				ThrowExc(FileSystemError, "Failed to get real path: " << target <<
+				ThrowExc(CSR_ERROR_FILE_SYSTEM, "Failed to get real path: " << target <<
 						 " with errno: " << err);
 		}
 
@@ -495,25 +492,17 @@ RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
 	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, canonicalized).pop();
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer CsLogic::setDirTimestamp(const std::string &dir, time_t ts)
 {
-	EXCEPTION_GUARD_START
-
 	this->m_db->insertLastScanTime(dir, ts, this->m_dataVersion);
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e action)
 {
-	EXCEPTION_GUARD_START
-
 	// for file existence / status check. exception thrown.
 	FilePtr file;
 	try {
@@ -538,9 +527,10 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 
 	// file create based on fileInAppPath(for app target, it is worst detected)
 	if (File::createIfModified(history->fileInAppPath, static_cast<time_t>(history->ts)))
-		ThrowExc(FileChanged, "File[" << history->fileInAppPath << "] modified since "
-				 "db delta inserted. Don't refresh detected history to know that it's "
-				 "changed since the time.");
+		ThrowExc(CSR_ERROR_FILE_CHANGED,
+				 "File[" << history->fileInAppPath << "] modified since db delta inserted."
+				 " Don't refresh detected history to know that it's changed since the"
+				 " time.");
 
 	switch (action) {
 	case CSR_CS_ACTION_REMOVE:
@@ -558,33 +548,25 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid acation enum val: " <<
+		ThrowExc(CSR_ERROR_SERVER, "Invalid acation enum val: " <<
 				 static_cast<csr_cs_action_e>(action));
 	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer CsLogic::getDetected(const std::string &filepath)
 {
-	EXCEPTION_GUARD_START
-
 	auto row = this->m_db->getDetectedByNameOnPath(File::getPkgPath(filepath));
 
 	if (row && !row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
 	else
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer CsLogic::getDetectedList(const StrSet &dirSet)
 {
-	EXCEPTION_GUARD_START
-
 	Db::RowShPtrs rows;
 	std::for_each(dirSet.begin(), dirSet.end(),
 	[this, &rows](const std::string & dir) {
@@ -597,29 +579,21 @@ RawBuffer CsLogic::getDetectedList(const StrSet &dirSet)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 	else
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
-
-	EXCEPTION_GUARD_END
 }
 
 // TODO: is this command needed?
 RawBuffer CsLogic::getIgnored(const std::string &filepath)
 {
-	EXCEPTION_GUARD_START
-
 	auto row = this->m_db->getDetectedByNameOnPath(File::getPkgPath(filepath));
 
 	if (row && row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
 	else
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer CsLogic::getIgnoredList(const StrSet &dirSet)
 {
-	EXCEPTION_GUARD_START
-
 	Db::RowShPtrs rows;
 	std::for_each(dirSet.begin(), dirSet.end(),
 	[this, &rows](const std::string & dir) {
@@ -632,8 +606,6 @@ RawBuffer CsLogic::getIgnoredList(const StrSet &dirSet)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 	else
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fileptr)
@@ -668,7 +640,7 @@ RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fi
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid severity: " << static_cast<int>(d.severity));
+		ThrowExc(CSR_ERROR_SERVER, "Invalid severity: " << static_cast<int>(d.severity));
 	}
 
 	Ui::AskUser askUser;
@@ -684,10 +656,14 @@ RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fi
 				_fileptr = File::create(d.targetName);
 
 			_fileptr->remove();
-		} catch (const FileDoNotExist &) {
-			WARN("File already removed.: " << d.targetName);
-		} catch (const FileSystemError &) {
-			WARN("File type is changed, considered as different file: " << d.targetName);
+		} catch (const Exception &e) {
+			if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST)
+				WARN("File already removed.: " << d.targetName);
+			else if (e.error() == CSR_ERROR_FILE_SYSTEM)
+				WARN("File type is changed, considered as different file: " <<
+					 d.targetName);
+			else
+				throw;
 		}
 
 		this->m_db->deleteDetectedByNameOnPath(File::getPkgPath(d.targetName));

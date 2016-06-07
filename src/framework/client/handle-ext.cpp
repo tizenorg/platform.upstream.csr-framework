@@ -71,7 +71,7 @@ void HandleExt::dispatchAsync(const std::shared_ptr<Task> &f)
 	std::lock_guard<std::mutex> l(this->m_flagMutex);
 
 	if (this->m_isRunning)
-		ThrowExc(BusyError, "Worker is already running. Async is busy!");
+		ThrowExc(CSR_ERROR_BUSY, "Worker is already running. Async is busy!");
 
 	if (this->m_worker.joinable())
 		this->m_worker.join();

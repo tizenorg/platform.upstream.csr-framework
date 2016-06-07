@@ -23,7 +23,7 @@
 
 #include <sys/smack.h>
 
-#include "service/exception.h"
+#include "common/exception.h"
 
 namespace Csr {
 
@@ -39,11 +39,11 @@ void hasPermission(const ConnShPtr &conn, SockId sockId)
 
 	auto ret = smack_have_access(cred.label.c_str(), sockDesc.label.c_str(), "w");
 	if (ret < 0)
-		ThrowExc(InternalError, "smack_have_access failed.");
+		ThrowExc(CSR_ERROR_SERVER, "smack_have_access failed.");
 
 	if (ret != 1)
-		ThrowExc(PermDenied, "Client[" << cred.label << "] doesn't have permission"
-				 " to call API. Checked by smack.");
+		ThrowExc(CSR_ERROR_PERMISSION_DENIED, "Client[" << cred.label << "] doesn't have"
+				 " permission to call API. Checked by smack.");
 }
 
 }

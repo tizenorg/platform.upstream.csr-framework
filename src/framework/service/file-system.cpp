@@ -29,7 +29,7 @@
 #include <unistd.h>
 
 #include "common/audit/logger.h"
-#include "service/exception.h"
+#include "common/exception.h"
 #include "service/app-deleter.h"
 #include "service/fs-utils.h"
 
@@ -221,7 +221,7 @@ void File::remove() const
 	} else {
 		DEBUG("remove file: " << this->m_path);
 		if (::remove(this->m_path.c_str()) != 0)
-			ThrowExc(RemoveFailed, "Failed to remove file: " << this->m_path);
+			ThrowExc(CSR_ERROR_REMOVE_FAILED, "Failed to remove file: " << this->m_path);
 	}
 }
 
@@ -241,9 +241,9 @@ FilePtr File::createInternal(const std::string &fpath, time_t modifiedSince,
 	auto statptr = getStat(fpath);
 
 	if (statptr == nullptr)
-		ThrowExc(FileDoNotExist, "file not exist: " << fpath);
+		ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "file not exist: " << fpath);
 	else if (!S_ISREG(statptr->st_mode) && !S_ISDIR(statptr->st_mode))
-		ThrowExc(FileSystemError, "file type is not reguler or dir: " << fpath);
+		ThrowExc(CSR_ERROR_FILE_SYSTEM, "file type is not reguler or dir: " << fpath);
 
 	auto type = static_cast<int>(S_ISREG(statptr->st_mode) ? Type::File : Type::Directory);
 
@@ -270,9 +270,9 @@ FsVisitorPtr FsVisitor::create(const std::string &dirpath, time_t modifiedSince)
 {
 	auto statptr = getStat(dirpath);
 	if (statptr == nullptr)
-		ThrowExc(FileDoNotExist, "directory not exist: " << dirpath);
+		ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "directory not exist: " << dirpath);
 	else if (!S_ISDIR(statptr->st_mode))
-		ThrowExc(FileSystemError, "file type is not directory: " << dirpath);
+		ThrowExc(CSR_ERROR_FILE_SYSTEM, "file type is not directory: " << dirpath);
 	else
 		return FsVisitorPtr(new FsVisitor(dirpath, modifiedSince));
 }
@@ -283,7 +283,7 @@ FsVisitor::FsVisitor(const std::string &dirpath, time_t modifiedSince) :
 			offsetof(struct dirent, d_name) + NAME_MAX + 1)))
 {
 	if (!this->m_dirptr)
-		ThrowExc(InternalError, "Failed to open dir: " << dirpath);
+		ThrowExc(CSR_ERROR_SERVER, "Failed to open dir: " << dirpath);
 
 	this->m_dirs.push((dirpath.back() == '/') ? dirpath : (dirpath + '/'));
 }
@@ -322,18 +322,19 @@ FilePtr FsVisitor::next()
 
 				if (fileptr)
 					return fileptr;
-			} catch (const FileDoNotExist &e) {
-				WARN("file not exist: " << dir << filepath <<
-					 " msg: " << e.what());
-			} catch (const FileSystemError &e) {
-				WARN("file type is not regular...? can it be happened?"
-					 " :" << dir << filepath << " msg: " << e.what());
+			} catch (const Exception &e) {
+				if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST)
+					WARN("file not exist: " << dir << filepath << " msg: " << e.what());
+				else if (e.error() == CSR_ERROR_FILE_SYSTEM)
+					WARN("file type is not regular...? can it be happened?"
+						 " :" << dir << filepath << " msg: " << e.what());
+				else
+					throw;
 			}
 		}
 	}
 
-	throw std::system_error(std::error_code(),
-							FORMAT("reading dir: " << this->m_dirs.front()));
+	ThrowExc(CSR_ERROR_FILE_SYSTEM, "readdir_r error on dir: " << this->m_dirs.front());
 }
 
 } // namespace Csr

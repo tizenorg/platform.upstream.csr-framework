@@ -34,7 +34,7 @@ Credential::Credential(uid_t _uid, gid_t _gid, const std::string &_label) :
 
 Credential::Credential(const std::string &, const std::string &)
 {
-	ThrowExc(InternalError, "Invalid credential ctor called which is for cynara backend.");
+	ThrowExc(CSR_ERROR_SERVER, "Invalid credential ctor called which is for cynara backend.");
 }
 
 std::unique_ptr<Credential> Credential::get(int sockfd)
@@ -43,13 +43,13 @@ std::unique_ptr<Credential> Credential::get(int sockfd)
 	socklen_t lenCred = sizeof(ucred);
 
 	if (getsockopt(sockfd, SOL_SOCKET, SO_PEERCRED, &cred, &lenCred) != 0)
-		ThrowExc(InternalError, "getsockopt peercred failed. errno: " << errno);
+		ThrowExc(CSR_ERROR_SERVER, "getsockopt peercred failed. errno: " << errno);
 
 	std::vector<char> label(SMACK_LABEL_LEN + 1, '0');
 	socklen_t lenLabel = SMACK_LABEL_LEN;
 
 	if (getsockopt(sockfd, SOL_SOCKET, SO_PEERSEC, label.data(), &lenLabel) != 0)
-		ThrowExc(InternalError, "getsockopt peersec failed. errno: " << errno);
+		ThrowExc(CSR_ERROR_SERVER, "getsockopt peersec failed. errno: " << errno);
 
 	return std::unique_ptr<Credential>(new Credential(cred.uid, cred.gid,
 									   std::string(label.data(), lenLabel)));

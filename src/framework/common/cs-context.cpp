@@ -63,7 +63,7 @@ void CsContext::set(int key, int value)
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to set as int.");
+		ThrowExc(CSR_ERROR_SERVER, "Invalid key[" << key << "] comes in to set as int.");
 	}
 }
 
@@ -75,7 +75,7 @@ void CsContext::set(int key, const std::string &value)
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to set as string.");
+		ThrowExc(CSR_ERROR_SERVER, "Invalid key[" << key << "] comes in to set as string.");
 	}
 }
 
@@ -87,7 +87,7 @@ void CsContext::set(int key, const char *value)
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to set as string.");
+		ThrowExc(CSR_ERROR_SERVER, "Invalid key[" << key << "] comes in to set as string.");
 	}
 }
 
@@ -99,7 +99,7 @@ void CsContext::set(int key, bool value)
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to set as bool.");
+		ThrowExc(CSR_ERROR_SERVER, "Invalid key[" << key << "] comes in to set as bool.");
 	}
 }
 
@@ -115,7 +115,7 @@ void CsContext::get(int key, int &value) const
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to get as int.");
+		ThrowExc(CSR_ERROR_SERVER, "Invalid key[" << key << "] comes in to get as int.");
 	}
 }
 
@@ -127,7 +127,7 @@ void CsContext::get(int key, std::string &value) const
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to get as string.");
+		ThrowExc(CSR_ERROR_SERVER, "Invalid key[" << key << "] comes in to get as string.");
 	}
 }
 
@@ -142,7 +142,7 @@ void CsContext::get(int key, const char **value) const
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to get as string.");
+		ThrowExc(CSR_ERROR_SERVER, "Invalid key[" << key << "] comes in to get as string.");
 	}
 }
 
@@ -154,7 +154,7 @@ void CsContext::get(int key, bool &value) const
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key << "] comes in to get as bool.");
+		ThrowExc(CSR_ERROR_SERVER, "Invalid key[" << key << "] comes in to get as bool.");
 	}
 }
 

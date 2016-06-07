@@ -72,7 +72,7 @@ const SocketDescriptor &getSockDesc(const SockId &id)
 		return g_sockDescMap.at(id);
 
 	default:
-		ThrowExc(InternalError, "Invalid sock id to descriptor map");
+		ThrowExc(CSR_ERROR_SERVER, "Invalid sock id to descriptor map");
 	}
 }
 

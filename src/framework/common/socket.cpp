@@ -43,7 +43,7 @@ int createSystemdSocket(const std::string &path)
 		g_sd_listen_fds = ::sd_listen_fds(0);
 
 	if (g_sd_listen_fds < 0)
-		ThrowExc(SocketError, "failed to sd_listen_fds");
+		ThrowExc(CSR_ERROR_SOCKET, "failed to sd_listen_fds");
 
 	for (int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START + g_sd_listen_fds; ++fd) {
 		if (::sd_is_socket_unix(fd, SOCK_STREAM, 1, path.c_str(), 0) > 0) {
@@ -52,7 +52,7 @@ int createSystemdSocket(const std::string &path)
 		}
 	}
 
-	ThrowExc(SocketError, "No useable socket were passed by systemd. path: " << path);
+	ThrowExc(CSR_ERROR_SOCKET, "No useable socket were passed by systemd. path: " << path);
 }
 
 } // namespace anonymous
@@ -60,7 +60,7 @@ int createSystemdSocket(const std::string &path)
 Socket::Socket(SockId sockId, int fd) : m_sockId(sockId), m_fd(fd)
 {
 	if (this->m_fd < 0)
-		ThrowExc(SocketError, "Socket fd from constructor is invalid!!");
+		ThrowExc(CSR_ERROR_SOCKET, "Socket fd from constructor is invalid!!");
 }
 
 Socket::Socket(SockId sockId) : m_sockId(sockId)
@@ -99,7 +99,7 @@ Socket Socket::accept(void) const
 	int fd = ::accept(this->m_fd, nullptr, nullptr);
 
 	if (fd < 0)
-		ThrowExc(SocketError, "socket on fd[" << this->m_fd << "] accept failed "
+		ThrowExc(CSR_ERROR_SOCKET, "socket on fd[" << this->m_fd << "] accept failed "
 				 "with errno: " << errno);
 
 	INFO("Accept client success with fd: " << fd);
@@ -112,12 +112,12 @@ Socket Socket::connect(SockId sockId)
 	const auto &path = getSockDesc(sockId).path;
 
 	if (path.size() >= sizeof(sockaddr_un::sun_path))
-		ThrowExc(InternalError, "socket path size too long!");
+		ThrowExc(CSR_ERROR_SERVER, "socket path size too long!");
 
 	int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
 
 	if (fd < 0)
-		ThrowExc(SocketError, "Socket create failed with errno: " << errno);
+		ThrowExc(CSR_ERROR_SOCKET, "Socket create failed with errno: " << errno);
 
 	sockaddr_un addr;
 	addr.sun_family = AF_UNIX;
@@ -126,7 +126,7 @@ Socket Socket::connect(SockId sockId)
 
 	if (::connect(fd, reinterpret_cast<sockaddr *>(&addr),
 				  sizeof(sockaddr_un)) == -1)
-		ThrowExc(SocketError, "Socket[" << path << "] connect failed "
+		ThrowExc(CSR_ERROR_SOCKET, "Socket[" << path << "] connect failed "
 				 "with errno: " << errno);
 
 	INFO("Connect to CSR server success with fd:" << fd);
@@ -153,7 +153,7 @@ RawBuffer Socket::read(void) const
 
 	auto bytes = ::read(this->m_fd, &size, sizeof(size));
 	if (bytes < 0)
-		ThrowExc(SocketError, "Socket data size read failed with errno: " << errno);
+		ThrowExc(CSR_ERROR_SOCKET, "Socket data size read failed with errno: " << errno);
 
 	RawBuffer data(size, 0);
 	auto buf = reinterpret_cast<char *>(data.data());
@@ -165,7 +165,7 @@ RawBuffer Socket::read(void) const
 			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 				continue;
 			else
-				ThrowExc(SocketError, "Socket read failed with errno: " << errno);
+				ThrowExc(CSR_ERROR_SOCKET, "Socket read failed with errno: " << errno);
 		}
 
 		total += bytes;
@@ -190,7 +190,7 @@ void Socket::write(const RawBuffer &data) const
 
 	auto bytes = ::write(this->m_fd, &size, sizeof(size));
 	if (bytes < 0)
-		ThrowExc(SocketError, "Socket data size write failed with errno: " << errno);
+		ThrowExc(CSR_ERROR_SOCKET, "Socket data size write failed with errno: " << errno);
 
 	while (total < size) {
 		bytes = ::write(this->m_fd, buf + total, size - total);
@@ -199,7 +199,7 @@ void Socket::write(const RawBuffer &data) const
 			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 				continue;
 			else
-				ThrowExc(SocketError, "Socket write failed with errno: " << errno);
+				ThrowExc(CSR_ERROR_SOCKET, "Socket write failed with errno: " << errno);
 		}
 
 		total += bytes;

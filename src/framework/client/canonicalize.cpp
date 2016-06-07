@@ -46,7 +46,7 @@ std::string getAbsolutePath(const std::string &path)
 	}
 
 	if (result == nullptr)
-		ThrowExc(FileSystemError, "Failed to getcwd. errno: " << errno);
+		ThrowExc(CSR_ERROR_FILE_SYSTEM, "Failed to getcwd. errno: " << errno);
 
 	std::string apath(buf.data());
 	apath += '/';

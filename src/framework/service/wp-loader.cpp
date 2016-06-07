@@ -25,6 +25,7 @@
 #include <dlfcn.h>
 
 #include "common/audit/logger.h"
+#include "common/exception.h"
 #include "service/engine-error-converter.h"
 
 namespace Csr {
@@ -54,7 +55,7 @@ void WpLoader::checkEngineActivated(csre_wp_context_h c)
 		toException(ret);
 
 	if (a == CSRE_WP_NOT_ACTIVATED)
-		ThrowExc(EngineNotActivated, "engine is not activated yet");
+		ThrowExc(CSR_ERROR_ENGINE_NOT_ACTIVATED, "engine is not activated yet");
 }
 
 int WpLoader::contextCreate(csre_wp_context_h &c)
@@ -74,7 +75,7 @@ int WpLoader::checkUrl(csre_wp_context_h c, const std::string &url,
 					   csre_wp_check_result_h *presult)
 {
 	if (c == nullptr || url.empty() || presult == nullptr)
-		throw std::invalid_argument("wp loader check url error");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "wp loader check url error");
 
 	this->checkEngineActivated(c);
 
@@ -85,7 +86,7 @@ int WpLoader::getRiskLevel(csre_wp_check_result_h r,
 						   csre_wp_risk_level_e *plevel)
 {
 	if (r == nullptr || plevel == nullptr)
-		throw std::invalid_argument("wp loader Get Risk Level error");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "wp loader Get Risk Level error");
 
 	return this->m_pc.fpGetRiskLevel(r, plevel);
 }
@@ -93,7 +94,7 @@ int WpLoader::getRiskLevel(csre_wp_check_result_h r,
 int WpLoader::getDetailedUrl(csre_wp_check_result_h r, std::string &value)
 {
 	if (r == nullptr)
-		throw std::invalid_argument("wp loader get detailed url error");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "wp loader get detailed url error");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return this->m_pc.fpGetDetailedUrl(r, cvalue);
@@ -111,7 +112,7 @@ int WpLoader::getErrorString(int ec, std::string &value)
 int WpLoader::getEngineApiVersion(csre_wp_context_h c, std::string &value)
 {
 	if (c == nullptr)
-		throw std::invalid_argument("wp loader get error string");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "wp loader get error string");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return this->m_pc.fpGetEngineApiVersion(c, cvalue);
@@ -121,7 +122,7 @@ int WpLoader::getEngineApiVersion(csre_wp_context_h c, std::string &value)
 int WpLoader::getEngineVendor(csre_wp_context_h c, std::string &value)
 {
 	if (c == nullptr)
-		throw std::invalid_argument("wp loader get engine vendor");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "wp loader get engine vendor");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return this->m_pc.fpGetEngineVendor(c, cvalue);
@@ -131,7 +132,7 @@ int WpLoader::getEngineVendor(csre_wp_context_h c, std::string &value)
 int WpLoader::getEngineName(csre_wp_context_h c, std::string &value)
 {
 	if (c == nullptr)
-		throw std::invalid_argument("wp loader get engine name");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "wp loader get engine name");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return this->m_pc.fpGetEngineName(c, cvalue);
@@ -141,7 +142,7 @@ int WpLoader::getEngineName(csre_wp_context_h c, std::string &value)
 int WpLoader::getEngineVersion(csre_wp_context_h c, std::string &value)
 {
 	if (c == nullptr)
-		throw std::invalid_argument("wp loader get engine version");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "wp loader get engine version");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return this->m_pc.fpGetEngineVersion(c, cvalue);
@@ -151,7 +152,7 @@ int WpLoader::getEngineVersion(csre_wp_context_h c, std::string &value)
 int WpLoader::getEngineDataVersion(csre_wp_context_h c, std::string &value)
 {
 	if (c == nullptr)
-		throw std::invalid_argument("wp loader get engine version");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "wp loader get engine version");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return this->m_pc.fpGetEngineDataVersion(c, cvalue);
@@ -161,7 +162,7 @@ int WpLoader::getEngineDataVersion(csre_wp_context_h c, std::string &value)
 int WpLoader::getEngineLatestUpdateTime(csre_wp_context_h c, time_t *ptime)
 {
 	if (c == nullptr || ptime == nullptr)
-		throw std::invalid_argument("wp loader get latest update time");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "wp loader get latest update time");
 
 	return this->m_pc.fpGetEngineLatestUpdateTime(c, ptime);
 }
@@ -170,7 +171,7 @@ int WpLoader::getEngineActivated(csre_wp_context_h c,
 								 csre_wp_activated_e *pactivated)
 {
 	if (c == nullptr || pactivated == nullptr)
-		throw std::invalid_argument("wp loader get engine activated");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "wp loader get engine activated");
 
 	auto ret = this->m_pc.fpGetEngineActivated(c, pactivated);
 
@@ -185,7 +186,7 @@ int WpLoader::getEngineActivated(csre_wp_context_h c,
 int WpLoader::getEngineVendorLogo(csre_wp_context_h c, std::vector<unsigned char> &value)
 {
 	if (c == nullptr)
-		throw std::invalid_argument("wp loader get engine vendor logo");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "wp loader get engine vendor logo");
 
 	unsigned char *cvalue = nullptr;
 	unsigned int size = 0;
@@ -201,14 +202,14 @@ void WpLoader::init(const std::string &enginePath, const std::string &roResDir,
 					const std::string &rwWorkingDir)
 {
 	if (enginePath.empty() || roResDir.empty() || rwWorkingDir.empty())
-		ThrowExc(InternalError, "empty string comes in to loader init");
+		ThrowExc(CSR_ERROR_SERVER, "empty string comes in to loader init");
 
 	INFO("Load WP-Engine plugin start. engine path: " << enginePath);
 
 	void *handle = dlopen(enginePath.c_str(), RTLD_LAZY);
 
 	if (handle == nullptr)
-		ThrowExc(InternalError, "engine dlopen error. path: " << enginePath <<
+		ThrowExc(CSR_ERROR_ENGINE_NOT_EXIST, "engine dlopen error. path: " << enginePath <<
 				 " errno: " << errno);
 
 	this->m_pc.dlhandle = handle;
@@ -263,7 +264,7 @@ void WpLoader::init(const std::string &enginePath, const std::string &roResDir,
 			this->m_pc.fpGetEngineVendorLogo == nullptr) {
 		dlclose(this->m_pc.dlhandle);
 		this->m_pc.dlhandle = nullptr;
-		ThrowExc(EngineError, "Failed to load funcs from engine library. "
+		ThrowExc(CSR_ERROR_ENGINE_NOT_EXIST, "Failed to load funcs from engine library. "
 				 "engine path: " << enginePath << "errno: " << errno);
 	}
 
@@ -303,7 +304,7 @@ WpEngineContext::WpEngineContext(const std::shared_ptr<WpLoader> &loader) :
 	m_loader(loader), m_context(nullptr)
 {
 	if (!this->m_loader)
-		ThrowExc(EngineNotExist, "null loader means engine not exist!");
+		ThrowExc(CSR_ERROR_ENGINE_NOT_EXIST, "null loader means engine not exist!");
 
 	toException(this->m_loader->contextCreate(this->m_context));
 }

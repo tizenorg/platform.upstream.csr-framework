@@ -35,15 +35,13 @@ namespace Client {
 
 class AsyncLogic {
 public:
-	using Ending = std::pair<Callback::Id, Task>;
-
 	AsyncLogic(HandleExt *handle, void *userdata,
 			   const std::function<bool()> &isStopped);
 	virtual ~AsyncLogic();
 
-	Ending scanFiles(const StrSet &files);
-	Ending scanDir(const std::string &dir);
-	Ending scanDirs(const StrSet &dirs);
+	void scanFiles(const StrSet &files);
+	void scanDir(const std::string &dir);
+	void scanDirs(const StrSet &dirs);
 
 	void stop(void);
 

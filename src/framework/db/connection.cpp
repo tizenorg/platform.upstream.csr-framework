@@ -16,7 +16,7 @@
 #include <iostream>
 
 #include "db/connection.h"
-#include "service/exception.h"
+#include "common/exception.h"
 
 namespace Csr {
 namespace Db {
@@ -26,7 +26,7 @@ Connection::Connection(const std::string &name, const int flags) :
 	m_filename(name)
 {
 	if (::sqlite3_open_v2(m_filename.c_str(), &m_handle, flags, nullptr))
-		ThrowExc(DbFailed, "db connection ctor failed: " << getErrorMessage());
+		ThrowExc(CSR_ERROR_DB, "db connection ctor failed: " << getErrorMessage());
 }
 
 Connection::~Connection()
@@ -38,7 +38,7 @@ int Connection::exec(const std::string &query)
 {
 	if (::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
 					   nullptr) != SQLITE_OK)
-		ThrowExc(DbFailed, "db connection exec failed: " << getErrorMessage());
+		ThrowExc(CSR_ERROR_DB, "db connection exec failed: " << getErrorMessage());
 
 	return ::sqlite3_changes(m_handle);
 }

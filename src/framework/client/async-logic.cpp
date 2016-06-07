@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <utility>
 
+#include "common/exception.h"
 #include "common/cs-detected.h"
 #include "common/audit/logger.h"
 
@@ -47,44 +48,28 @@ AsyncLogic::AsyncLogic(HandleExt *handle, void *userdata,
 
 AsyncLogic::~AsyncLogic()
 {
-	for (auto &resultPtr : m_results)
-		m_handle->add(std::move(resultPtr));
+	for (auto &resultPtr : this->m_results)
+		this->m_handle->add(std::move(resultPtr));
 }
 
-AsyncLogic::Ending AsyncLogic::scanDirs(const StrSet &dirs)
+void AsyncLogic::scanDirs(const StrSet &dirs)
 {
-	Ending e(Callback::Id::OnCompleted, [this] {
-		if (m_cb.onCompleted)
-			m_cb.onCompleted(this->m_userdata);
-	});
-
-	for (const auto &dir : dirs) {
-		e = scanDir(dir);
-
-		if (e.first != Callback::Id::OnCompleted)
-			return e;
-	}
-
-	return e;
+	for (const auto &dir : dirs)
+		this->scanDir(dir);
 }
 
-AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
+void AsyncLogic::scanDir(const std::string &dir)
 {
 	auto startTime = ::time(nullptr);
 
 	// Already scanned files are included in history. it'll be skipped later
 	// on server side by every single scan_file request.
-	auto retFiles = m_dispatcher->methodCall<std::pair<int, std::shared_ptr<StrSet>>>(
+	auto retFiles = this->m_dispatcher->methodCall<std::pair<int, std::shared_ptr<StrSet>>>(
 						CommandId::GET_SCANNABLE_FILES, dir);
 
-	if (retFiles.first != CSR_ERROR_NONE) {
-		ERROR("[Error] ret: " << retFiles.first);
-		auto ec = retFiles.first;
-		return std::make_pair(Callback::Id::OnError, [this, ec] {
-			if (this->m_cb.onError)
-				this->m_cb.onError(ec, this->m_userdata);
-		});
-	}
+	if (retFiles.first != CSR_ERROR_NONE)
+		ThrowExc(retFiles.first, "Error to get scannalbe files. "
+				 "dir: " << dir << " ret: " << retFiles.first);
 
 #ifdef TIZEN_DEBUG_ENABLE
 	DEBUG("scannable file list in dir[" << dir <<
@@ -95,34 +80,26 @@ AsyncLogic::Ending AsyncLogic::scanDir(const std::string &dir)
 #endif
 
 	// Let's start scan files!
-	auto task = scanFiles(*(retFiles.second));
+	this->scanFiles(*(retFiles.second));
 
 	auto ts64 = static_cast<int64_t>(startTime);
 
-	auto ret = m_dispatcher->methodCall<int>(
-			CommandId::SET_DIR_TIMESTAMP, dir, ts64);
+	auto ret = this->m_dispatcher->methodCall<int>(CommandId::SET_DIR_TIMESTAMP, dir, ts64);
 	if (ret != CSR_ERROR_NONE)
 		ERROR("Failed to set dir timestamp after scan dir[" << dir << "] with "
 			  "ec[" << ret << "] This is server error and not affects to "
 			  "client / scan result when it doesn't comes to delta scanning... "
 			  "So just ignore this error on client side.");
-
-	return task;
 }
 
-AsyncLogic::Ending AsyncLogic::scanFiles(const StrSet &fileSet)
+void AsyncLogic::scanFiles(const StrSet &fileSet)
 {
 	for (const auto &file : fileSet) {
-		if (m_isStopped()) {
-			INFO("async operation cancelled!");
-			return std::make_pair(Callback::Id::OnCancelled, [this] {
-				if (this->m_cb.onCancelled)
-					this->m_cb.onCancelled(this->m_userdata);
-			});
-		}
+		if (this->m_isStopped())
+			ThrowExc(-999, "Async op cancelled!");
 
-		auto ret = m_dispatcher->methodCall<std::pair<int, CsDetected *>>(
-					   CommandId::SCAN_FILE, m_ctx, file);
+		auto ret = this->m_dispatcher->methodCall<std::pair<int, CsDetected *>>(
+					   CommandId::SCAN_FILE, this->m_ctx, file);
 
 		// for auto memory deleting in case of exception
 		ResultPtr resultPtr(ret.second);
@@ -138,37 +115,24 @@ AsyncLogic::Ending AsyncLogic::scanFiles(const StrSet &fileSet)
 			continue;
 		}
 
-		if (ret.first != CSR_ERROR_NONE) {
-			ERROR("[Error] ret: " << ret.first << " while scan file: " << file);
-			auto ec = ret.first;
-			return std::make_pair(Callback::Id::OnError, [this, ec] {
-				if (this->m_cb.onError)
-					this->m_cb.onError(ec, this->m_userdata);
-
-				return;
-			});
-		}
+		if (ret.first != CSR_ERROR_NONE)
+			ThrowExc(ret.first, "Error on async scan. ret: " << ret.first <<
+					 " while scan file: " << file);
 
 		if (ret.second) {
 			INFO("[Detected] file[" << file << "]");
-			m_results.emplace_back(std::move(resultPtr));
+			this->m_results.emplace_back(std::move(resultPtr));
 
-			if (m_cb.onDetected)
-				m_cb.onDetected(reinterpret_cast<csr_cs_malware_h>(ret.second), m_userdata);
+			if (this->m_cb.onDetected)
+				this->m_cb.onDetected(reinterpret_cast<csr_cs_malware_h>(ret.second),
+									  this->m_userdata);
 		} else {
 			DEBUG("[Scanned] file[" << file << "]");
 
-			if (m_cb.onScanned)
-				m_cb.onScanned(file.c_str(), m_userdata);
+			if (this->m_cb.onScanned)
+				this->m_cb.onScanned(file.c_str(), this->m_userdata);
 		}
 	}
-
-	return std::make_pair(Callback::Id::OnCompleted, [this] {
-		DEBUG("[Completed]");
-
-		if (this->m_cb.onCompleted)
-			this->m_cb.onCompleted(this->m_userdata);
-	});
 }
 
 } // namespace Client

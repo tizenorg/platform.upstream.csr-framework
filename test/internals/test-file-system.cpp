@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(file_visitor_positive_modified)
 
 BOOST_AUTO_TEST_CASE(file_visitor_negative_non_existing)
 {
-	BOOST_REQUIRE_THROW(File::create(TEST_DIR "/non_existing_file"), FileDoNotExist);
+	BOOST_REQUIRE_THROW(File::create(TEST_DIR "/non_existing_file"), Csr::Exception);
 }
 
 BOOST_AUTO_TEST_CASE(directory_visitor_positive_existing)

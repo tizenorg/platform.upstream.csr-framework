@@ -1,4 +1,4 @@
-%define platform_version 2.4
+%define platform_version 3.0
 
 # services timeoout time on idle for on-demand activation.
 # give it '-1' if don't want to timeout on idle.

@@ -27,7 +27,6 @@
 
 #include "common/icontext.h"
 #include "common/dispatcher.h"
-#include "common/socket-descriptor.h"
 
 namespace Csr {
 namespace Client {

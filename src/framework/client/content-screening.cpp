@@ -28,6 +28,7 @@
 #include "client/handle-ext.h"
 #include "client/async-logic.h"
 #include "client/canonicalize.h"
+#include "common/macros.h"
 #include "common/types.h"
 #include "common/cs-context.h"
 #include "common/cs-detected.h"

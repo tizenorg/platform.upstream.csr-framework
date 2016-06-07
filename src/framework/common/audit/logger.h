@@ -29,6 +29,8 @@
 
 #include <cstring>
 
+#include "common/macros.h"
+
 namespace Csr {
 namespace Audit {
 
@@ -40,7 +42,7 @@ enum class LogLevel : int {
 	Trace
 };
 
-class Logger {
+class API Logger {
 public:
 	static void log(LogLevel level,
 					const std::string &file,

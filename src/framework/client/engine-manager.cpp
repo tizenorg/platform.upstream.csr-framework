@@ -27,6 +27,7 @@
 
 #include "client/utils.h"
 #include "client/handle.h"
+#include "common/macros.h"
 #include "common/command-id.h"
 #include "common/em-context.h"
 #include "common/audit/logger.h"

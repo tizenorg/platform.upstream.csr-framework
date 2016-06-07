@@ -25,8 +25,6 @@
 
 #include "client/callback.h"
 
-#define API __attribute__((visibility("default")))
-
 #define EXCEPTION_SAFE_START return Csr::Client::exceptionGuard([&]()->int {
 #define EXCEPTION_SAFE_END });
 

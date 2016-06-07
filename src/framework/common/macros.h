@@ -14,35 +14,11 @@
  *  limitations under the License
  */
 /*
- * @file        wp-result.h
- * @author      Dongsun Lee (ds73.lee@samsung.com)
+ * @file        macros.h
+ * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief       Web protection result
+ * @brief       Preprocessor macros
  */
 #pragma once
 
-#include <string>
-
-#include <csr-web-protection-types.h>
-
-#include "common/macros.h"
-#include "common/iresult.h"
-
-namespace Csr {
-
-struct API WpResult : public IResult {
-	WpResult() noexcept;
-	virtual ~WpResult() = default;
-
-	WpResult(IStream &);
-	virtual void Serialize(IStream &) const override;
-
-	WpResult(WpResult &&) noexcept;
-	WpResult &operator=(WpResult &&) noexcept;
-
-	csr_wp_risk_level_e riskLevel;
-	std::string detailedUrl;
-	csr_wp_user_response_e response;
-};
-
-}
+#define API __attribute__((visibility("default")))

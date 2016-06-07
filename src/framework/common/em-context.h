@@ -21,15 +21,17 @@
  */
 #pragma once
 
-#include "common/icontext.h"
 #include <csr-engine-manager.h>
+
+#include "common/macros.h"
+#include "common/icontext.h"
 
 namespace Csr {
 
 struct EmContext;
 using EmContextShPtr = std::shared_ptr<EmContext>;
 
-struct EmContext : public IContext {
+struct API EmContext : public IContext {
 	enum class Key : int {
 		EngineId = 0x01 // int
 	};

@@ -31,8 +31,10 @@
 #include <set>
 #include <memory>
 
-#include "common/command-id.h"
 #include <csr-error.h>
+
+#include "common/macros.h"
+#include "common/command-id.h"
 
 namespace Csr {
 
@@ -46,7 +48,7 @@ public:
 };
 
 // Serializable interface
-class ISerializable {
+class API ISerializable {
 public:
 	ISerializable() {}
 	ISerializable(IStream &) {}

@@ -378,12 +378,19 @@ void ServerService::onMessageProcess(const ConnShPtr &connection)
 
 	auto inbufPtr = std::make_shared<RawBuffer>(connection->receive());
 
-	this->m_workqueue.submit([this, &connection, process, inbufPtr]() {
+	auto fd = connection->getFd();
+
+	this->m_workqueue.submit([this, &connection, fd, process, inbufPtr]() {
 		auto outbuf = (*process)(connection, *inbufPtr);
 
-		connection->send(outbuf);
-
 		CpuUsageManager::reset();
+
+		if (!this->isConnectionValid(fd)) {
+			ERROR("Connection for fd[] is closed while task is in processing...");
+			return;
+		}
+
+		connection->send(outbuf);
 	});
 }
 

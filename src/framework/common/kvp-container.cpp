@@ -27,52 +27,52 @@ namespace Csr {
 
 void KvpContainer::set(int, int)
 {
-	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
+	ThrowExc(CSR_ERROR_SERVER, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::set(int, bool)
 {
-	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
+	ThrowExc(CSR_ERROR_SERVER, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::set(int, const std::string &)
 {
-	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
+	ThrowExc(CSR_ERROR_SERVER, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::set(int, const char *)
 {
-	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
+	ThrowExc(CSR_ERROR_SERVER, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::set(int, time_t)
 {
-	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
+	ThrowExc(CSR_ERROR_SERVER, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::get(int, int &) const
 {
-	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
+	ThrowExc(CSR_ERROR_SERVER, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::get(int, bool &) const
 {
-	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
+	ThrowExc(CSR_ERROR_SERVER, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::get(int, std::string &) const
 {
-	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
+	ThrowExc(CSR_ERROR_SERVER, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::get(int, const char **) const
 {
-	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
+	ThrowExc(CSR_ERROR_SERVER, "Not implemented key-value pair interface used!");
 }
 
 void KvpContainer::get(int, time_t &) const
 {
-	ThrowExc(InternalError, "Not implemented key-value pair interface used!");
+	ThrowExc(CSR_ERROR_SERVER, "Not implemented key-value pair interface used!");
 }
 
 }

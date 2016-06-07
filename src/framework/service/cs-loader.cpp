@@ -25,6 +25,7 @@
 #include <dlfcn.h>
 
 #include "common/audit/logger.h"
+#include "common/exception.h"
 #include "service/engine-error-converter.h"
 
 namespace Csr {
@@ -54,7 +55,7 @@ void CsLoader::checkEngineActivated(csre_cs_context_h c)
 		toException(ret);
 
 	if (a == CSRE_CS_NOT_ACTIVATED)
-		ThrowExc(EngineNotActivated, "engine is not activated yet");
+		ThrowExc(CSR_ERROR_ENGINE_NOT_ACTIVATED, "engine is not activated yet");
 }
 
 int CsLoader::contextCreate(csre_cs_context_h &c)
@@ -65,7 +66,7 @@ int CsLoader::contextCreate(csre_cs_context_h &c)
 int CsLoader::contextDestroy(csre_cs_context_h c)
 {
 	if (c == nullptr)
-		throw std::invalid_argument("cs loader context destroy");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader context destroy");
 
 	return this->m_pc.fpContextDestroy(c);
 }
@@ -75,7 +76,7 @@ int CsLoader::scanData(csre_cs_context_h c,
 					   csre_cs_detected_h *pdetected)
 {
 	if (c == nullptr || data.empty() || pdetected == nullptr)
-		throw std::invalid_argument("cs loader scan data");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader scan data");
 
 	this->checkEngineActivated(c);
 
@@ -86,7 +87,7 @@ int CsLoader::scanFile(csre_cs_context_h c, const std::string &filepath,
 					   csre_cs_detected_h *pdetected)
 {
 	if (c == nullptr || filepath.empty() || pdetected == nullptr)
-		throw std::invalid_argument("cs loader scan file");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader scan file");
 
 	this->checkEngineActivated(c);
 
@@ -97,7 +98,7 @@ int CsLoader::scanAppOnCloud(csre_cs_context_h c, const std::string &appdir,
 							 csre_cs_detected_h *pdetected)
 {
 	if (c == nullptr || appdir.empty() || pdetected == nullptr)
-		throw std::invalid_argument("cs loader scan app on cloud");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader scan app on cloud");
 
 	this->checkEngineActivated(c);
 
@@ -108,7 +109,7 @@ int CsLoader::getSeverity(csre_cs_detected_h d,
 						  csre_cs_severity_level_e *pseverity)
 {
 	if (d == nullptr || pseverity == nullptr)
-		throw std::invalid_argument("cs loader get severity");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader get severity");
 
 	return this->m_pc.fpGetSeverity(d, pseverity);
 }
@@ -116,7 +117,7 @@ int CsLoader::getSeverity(csre_cs_detected_h d,
 int CsLoader::getMalwareName(csre_cs_detected_h d, std::string &value)
 {
 	if (d == nullptr)
-		throw std::invalid_argument("cs loader get malware name");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader get malware name");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return this->m_pc.fpGetMalwareName(d, cvalue);
@@ -126,7 +127,7 @@ int CsLoader::getMalwareName(csre_cs_detected_h d, std::string &value)
 int CsLoader::getDetailedUrl(csre_cs_detected_h d, std::string &value)
 {
 	if (d == nullptr)
-		throw std::invalid_argument("cs loader get detailed url");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader get detailed url");
 
 #ifdef DETAILED_URL_BASE
 	DEBUG("get deatiled url with base!");
@@ -155,7 +156,7 @@ int CsLoader::getErrorString(int ec, std::string &value)
 int CsLoader::getEngineApiVersion(csre_cs_context_h c, std::string &value)
 {
 	if (c == nullptr)
-		throw std::invalid_argument("cs loader get error string");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader get error string");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return this->m_pc.fpGetEngineApiVersion(c, cvalue);
@@ -165,7 +166,7 @@ int CsLoader::getEngineApiVersion(csre_cs_context_h c, std::string &value)
 int CsLoader::getEngineVendor(csre_cs_context_h c, std::string &value)
 {
 	if (c == nullptr)
-		throw std::invalid_argument("cs loader get engine vendor");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader get engine vendor");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return this->m_pc.fpGetEngineVendor(c, cvalue);
@@ -175,7 +176,7 @@ int CsLoader::getEngineVendor(csre_cs_context_h c, std::string &value)
 int CsLoader::getEngineName(csre_cs_context_h c, std::string &value)
 {
 	if (c == nullptr)
-		throw std::invalid_argument("cs loader get engine name");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader get engine name");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return this->m_pc.fpGetEngineName(c, cvalue);
@@ -185,7 +186,7 @@ int CsLoader::getEngineName(csre_cs_context_h c, std::string &value)
 int CsLoader::getEngineVersion(csre_cs_context_h c, std::string &value)
 {
 	if (c == nullptr)
-		throw std::invalid_argument("cs loader get engine version");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader get engine version");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return this->m_pc.fpGetEngineVersion(c, cvalue);
@@ -195,7 +196,7 @@ int CsLoader::getEngineVersion(csre_cs_context_h c, std::string &value)
 int CsLoader::getEngineDataVersion(csre_cs_context_h c, std::string &value)
 {
 	if (c == nullptr)
-		throw std::invalid_argument("cs loader get engine version");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader get engine version");
 
 	return getValueCstr(value, [&](const char **cvalue) {
 		return this->m_pc.fpGetEngineDataVersion(c, cvalue);
@@ -205,7 +206,7 @@ int CsLoader::getEngineDataVersion(csre_cs_context_h c, std::string &value)
 int CsLoader::getEngineLatestUpdateTime(csre_cs_context_h c, time_t *ptime)
 {
 	if (c == nullptr || ptime == nullptr)
-		throw std::invalid_argument("cs loader get latest update time");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader get latest update time");
 
 	return this->m_pc.fpGetEngineLatestUpdateTime(c, ptime);
 }
@@ -213,7 +214,7 @@ int CsLoader::getEngineLatestUpdateTime(csre_cs_context_h c, time_t *ptime)
 int CsLoader::getEngineActivated(csre_cs_context_h c, csre_cs_activated_e *pactivated)
 {
 	if (c == nullptr || pactivated == nullptr)
-		throw std::invalid_argument("cs loader get engine activated");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader get engine activated");
 
 	auto ret = this->m_pc.fpGetEngineActivated(c, pactivated);
 
@@ -228,7 +229,7 @@ int CsLoader::getEngineActivated(csre_cs_context_h c, csre_cs_activated_e *pacti
 int CsLoader::getEngineVendorLogo(csre_cs_context_h c, std::vector<unsigned char> &value)
 {
 	if (c == nullptr)
-		throw std::invalid_argument("cs loader get engine vendor logo");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "cs loader get engine vendor logo");
 
 	unsigned char *cvalue = nullptr;
 	unsigned int size = 0;
@@ -244,14 +245,14 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 					const std::string &rwWorkingDir)
 {
 	if (enginePath.empty() || roResDir.empty() || rwWorkingDir.empty())
-		ThrowExc(InternalError, "empty string comes in to loader init");
+		ThrowExc(CSR_ERROR_SERVER, "empty string comes in to loader init");
 
 	INFO("Load CS-Engine plugin start. engine path: " << enginePath);
 
 	void *handle = dlopen(enginePath.c_str(), RTLD_LAZY);
 
 	if (handle == nullptr)
-		ThrowExc(InternalError, "engine dlopen error. path: " << enginePath <<
+		ThrowExc(CSR_ERROR_ENGINE_NOT_EXIST, "engine dlopen error. path: " << enginePath <<
 				 " errno: " << errno);
 
 	this->m_pc.dlhandle = handle;
@@ -312,7 +313,7 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 			this->m_pc.fpGetEngineVendorLogo == nullptr) {
 		dlclose(this->m_pc.dlhandle);
 		this->m_pc.dlhandle = nullptr;
-		ThrowExc(EngineError, "Failed to load funcs from engine library. "
+		ThrowExc(CSR_ERROR_ENGINE_NOT_EXIST, "Failed to load funcs from engine library. "
 				 "engine path: " << enginePath << " errno: " << errno);
 	}
 
@@ -322,8 +323,8 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 	if (this->m_pc.fpGetDetailedUrl == nullptr) {
 		dlclose(this->m_pc.dlhandle);
 		this->m_pc.dlhandle = nullptr;
-		ThrowExc(EngineError, "Failed to load detailed_url getter from engine lib."
-				 "engine path: " << enginePath << " errno: " << errno);
+		ThrowExc(CSR_ERROR_ENGINE_NOT_EXIST, "Failed to load detailed_url getter from "
+				 "engine lib. engine path: " << enginePath << " errno: " << errno);
 	}
 #endif
 
@@ -363,7 +364,7 @@ CsEngineContext::CsEngineContext(const std::shared_ptr<CsLoader> &loader) :
 	m_loader(loader), m_context(nullptr)
 {
 	if (!this->m_loader)
-		ThrowExc(EngineNotExist, "null loader means engine not exist!");
+		ThrowExc(CSR_ERROR_ENGINE_NOT_EXIST, "null loader means engine not exist!");
 
 	toException(this->m_loader->contextCreate(this->m_context));
 }

@@ -32,6 +32,7 @@
 #include "common/wp-context.h"
 #include "common/cs-detected.h"
 #include "common/wp-result.h"
+#include "common/exception.h"
 #include "service/exception.h"
 #include "service/access-control.h"
 #include "service/core-usage.h"
@@ -123,7 +124,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 	// need not to try resetting engine because the engine is pre-loaded (RO) and it
 	// cannot be fixed in dynamically except platform-development time.
 	if (!this->m_cs)
-		ThrowExc(EngineNotExist, "Content screening engine is not exist!");
+		ThrowExc(CSR_ERROR_ENGINE_NOT_EXIST, "Content screening engine is not exist!");
 
 	BinaryQueue q;
 	q.push(data);
@@ -230,7 +231,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	default:
-		ThrowExc(InternalError, "CS Command isn't in range");
+		ThrowExc(CSR_ERROR_SERVER, "CS Command isn't in range");
 	}
 
 	EXCEPTION_GUARD_END
@@ -241,7 +242,7 @@ RawBuffer ServerService::processWp(const ConnShPtr &conn, RawBuffer &data)
 	EXCEPTION_GUARD_START
 
 	if (!this->m_wp)
-		ThrowExc(EngineNotExist, "Web protection engine is not exist!");
+		ThrowExc(CSR_ERROR_ENGINE_NOT_EXIST, "Web protection engine is not exist!");
 
 	hasPermission(conn);
 
@@ -262,7 +263,7 @@ RawBuffer ServerService::processWp(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	default:
-		ThrowExc(InternalError, "WP Command isn't in range");
+		ThrowExc(CSR_ERROR_SERVER, "WP Command isn't in range");
 	}
 
 	EXCEPTION_GUARD_END
@@ -281,19 +282,20 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 	q.Deserialize(cptr);
 
 	if (!cptr)
-		ThrowExc(SocketError, "engine context for processAdmin should be exist!");
+		ThrowExc(CSR_ERROR_SOCKET, "engine context for processAdmin should be exist!");
 
 	switch (cptr->engineId) {
 	case CSR_ENGINE_CS:
 		if (!this->m_cs)
-			ThrowExc(EngineNotExist, "Content screening engine is not exist!");
+			ThrowExc(CSR_ERROR_ENGINE_NOT_EXIST, "Content screening engine is not exist!");
 		break;
 	case CSR_ENGINE_WP:
 		if (!this->m_wp)
-			ThrowExc(EngineNotExist, "Web protection engine is not exist!");
+			ThrowExc(CSR_ERROR_ENGINE_NOT_EXIST, "Web protection engine is not exist!");
 		break;
 	default:
-		throw std::invalid_argument("context engine Id is invalid for processAdmin!");
+		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "context engine Id is invalid for "
+				 "processAdmin!");
 	}
 
 	hasPermission(conn);
@@ -337,7 +339,7 @@ RawBuffer ServerService::processAdmin(const ConnShPtr &conn, RawBuffer &data)
 	}
 
 	default:
-		ThrowExc(InternalError, "ADMIN Command isn't in range");
+		ThrowExc(CSR_ERROR_SERVER, "ADMIN Command isn't in range");
 	}
 
 	EXCEPTION_GUARD_END
@@ -371,7 +373,7 @@ void ServerService::onMessageProcess(const ConnShPtr &connection)
 		break;
 
 	default:
-		ThrowExc(InternalError, "Message from unknown sock id");
+		ThrowExc(CSR_ERROR_SERVER, "Message from unknown sock id");
 	}
 
 	auto inbufPtr = std::make_shared<RawBuffer>(connection->receive());

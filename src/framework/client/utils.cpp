@@ -58,5 +58,34 @@ int exceptionGuard(const std::function<int()> &func)
 	}
 }
 
+void exceptionGuardAsync(const Callback &callbacks, void *userdata,
+						 const std::function<void()> &func)
+{
+	try {
+		func();
+		callbacks.onCompleted(userdata);
+	} catch (const Exception &e) {
+		if (e.error() == -999) {
+			INFO("Async operation cancel exception!");
+			callbacks.onCancelled(userdata);
+		} else {
+			ERROR("Exception caught. code: " << e.error() << " message: " << e.what());
+			callbacks.onError(e.error(), userdata);
+		}
+	} catch (const std::invalid_argument &e) {
+		ERROR("invalid argument: " << e.what());
+		callbacks.onError(CSR_ERROR_INVALID_PARAMETER, userdata);
+	} catch (const std::bad_alloc &e) {
+		ERROR("memory allocation failed: " << e.what());
+		callbacks.onError(CSR_ERROR_OUT_OF_MEMORY, userdata);
+	} catch (const std::exception &e) {
+		ERROR("std exception: " << e.what());
+		callbacks.onError(CSR_ERROR_SYSTEM, userdata);
+	} catch (...) {
+		ERROR("Unknown exception occured!");
+		callbacks.onError(CSR_ERROR_SYSTEM, userdata);
+	}
+}
+
 }
 }

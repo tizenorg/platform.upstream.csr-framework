@@ -76,7 +76,7 @@ void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
 	/* TODO: scoped-lock */
 	this->m_onNewConnection = [&](const ConnShPtr & connection) {
 		if (!connection)
-			ThrowExc(InternalError, "onNewConnection called but ConnShPtr is nullptr.");
+			ThrowExc(CSR_ERROR_SERVER, "onNewConnection called but ConnShPtr is nullptr.");
 
 		int fd = connection->getFd();
 
@@ -93,7 +93,7 @@ void Service::setNewConnectionCallback(const ConnCallback &/*callback*/)
 			DEBUG("read event comes in to fd[" << fd << "]");
 
 			if (this->m_connectionRegistry.count(fd) == 0)
-				ThrowExc(InternalError, "get event on fd[" << fd <<
+				ThrowExc(CSR_ERROR_SERVER, "get event on fd[" << fd <<
 						 "] but no associated connection exist");
 
 			auto &conn = this->m_connectionRegistry[fd];
@@ -118,12 +118,12 @@ void Service::setCloseConnectionCallback(const ConnCallback &/*callback*/)
 	/* TODO: scoped-lock */
 	this->m_onCloseConnection = [&](const ConnShPtr & connection) {
 		if (!connection)
-			ThrowExc(InternalError, "no connection to close");
+			ThrowExc(CSR_ERROR_SERVER, "no connection to close");
 
 		int fd = connection->getFd();
 
 		if (this->m_connectionRegistry.count(fd) == 0)
-			ThrowExc(InternalError, "no connection in registry to remove "
+			ThrowExc(CSR_ERROR_SERVER, "no connection in registry to remove "
 					 "associated to fd[" << fd << "]");
 
 		INFO("good-bye! close socket fd[" << fd << "]");

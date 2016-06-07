@@ -26,7 +26,7 @@
 #include <stdexcept>
 
 #include "common/audit/logger.h"
-#include "service/exception.h"
+#include "common/exception.h"
 
 #define __BEGIN_CRITICAL__ { std::lock_guard<std::mutex> lock(this->m_mutex);
 #define __END_CRITICAL__   }
@@ -40,7 +40,7 @@ ThreadPool::ThreadPool(size_t min, size_t max) :
 	m_runningWorkersNum(0)
 {
 	if (this->m_min > this->m_max)
-		throw std::invalid_argument("thread pool MIN shouldn't be bigger than MAX");
+		ThrowExc(CSR_ERROR_SERVER, "thread pool MIN shouldn't be bigger than MAX");
 
 	for (size_t i = 0; i < this->m_min; i++)
 		this->add();

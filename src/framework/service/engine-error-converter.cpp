@@ -21,6 +21,8 @@
  */
 #include "service/engine-error-converter.h"
 
+#include "common/exception.h"
+
 #include <csre-error.h>
 
 namespace Csr {
@@ -35,16 +37,16 @@ void toException(int ee)
 		throw std::bad_alloc();
 
 	case CSRE_ERROR_PERMISSION_DENIED:
-		ThrowExc(EnginePermDenied, "access denied related to engine");
+		ThrowExc(CSR_ERROR_ENGINE_PERMISSION, "access denied related to engine");
 
 	case CSRE_ERROR_FILE_NOT_FOUND:
-		ThrowExc(FileDoNotExist, "file not found.");
+		ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "file not found.");
 
 	case CSRE_ERROR_ENGINE_NOT_ACTIVATED:
-		ThrowExc(EngineNotActivated, "engine is not activated yet");
+		ThrowExc(CSR_ERROR_ENGINE_NOT_ACTIVATED, "engine is not activated yet");
 
 	default:
-		ThrowExc(EngineError, "engine internal error. ec: " << ee);
+		ThrowExc(CSR_ERROR_ENGINE_INTERNAL, "engine internal error. ec: " << ee);
 	}
 }
 

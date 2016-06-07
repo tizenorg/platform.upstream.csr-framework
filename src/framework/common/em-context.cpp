@@ -46,7 +46,7 @@ void EmContext::set(int key, int value)
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key <<
+		ThrowExc(CSR_ERROR_SERVER, "Invalid key[" << key <<
 				 "] comes in to set as int. value=" << value);
 	}
 }
@@ -59,7 +59,7 @@ void EmContext::get(int key, int &value) const
 		break;
 
 	default:
-		ThrowExc(InternalError, "Invalid key[" << key <<
+		ThrowExc(CSR_ERROR_SERVER, "Invalid key[" << key <<
 				 "] comes in to get int. value=" << value);
 	}
 }

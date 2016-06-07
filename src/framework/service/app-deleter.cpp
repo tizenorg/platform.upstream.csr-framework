@@ -27,14 +27,14 @@
 #include <package-manager.h>
 
 #include "common/audit/logger.h"
-#include "service/exception.h"
+#include "common/exception.h"
 
 namespace Csr {
 
 void AppDeleter::remove(const std::string &pkgid)
 {
 	if (pkgid.empty())
-		ThrowExc(InternalError, "pkgid shouldn't be empty in AppDeleter");
+		ThrowExc(CSR_ERROR_SERVER, "pkgid shouldn't be empty in AppDeleter");
 
 	std::unique_ptr<pkgmgr_client, int(*)(pkgmgr_client *)> client(
 		pkgmgr_client_new(PC_REQUEST), pkgmgr_client_free);
@@ -45,8 +45,8 @@ void AppDeleter::remove(const std::string &pkgid)
 	auto ret = pkgmgr_client_uninstall(client.get(), nullptr, pkgid.c_str(), PM_QUIET,
 									   nullptr, nullptr);
 	if (ret < PKGMGR_R_OK)
-		ThrowExc(RemoveFailed, "Failed to pkgmgr_client_uninstall for pkg: " << pkgid <<
-				 " ret: " << ret);
+		ThrowExc(CSR_ERROR_REMOVE_FAILED, "Failed to pkgmgr_client_uninstall for pkg: " <<
+				 pkgid << " ret: " << ret);
 
 	DEBUG("App Removed. pkgid: " << pkgid);
 }

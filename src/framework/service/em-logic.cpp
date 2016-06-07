@@ -26,8 +26,8 @@
 #include <cstdint>
 
 #include "common/audit/logger.h"
+#include "common/exception.h"
 #include "service/engine-error-converter.h"
-#include "service/exception.h"
 #include <csr-error.h>
 
 namespace Csr {
@@ -64,13 +64,11 @@ EmLogic::EmLogic(const std::shared_ptr<CsLoader> &cs, const std::shared_ptr<WpLo
 				 const std::shared_ptr<Db::Manager> &db) : m_cs(cs), m_wp(wp), m_db(db)
 {
 	if (!this->m_db)
-		ThrowExc(DbFailed, "DB init failed");
+		ThrowExc(CSR_ERROR_DB, "DB init failed");
 }
 
 RawBuffer EmLogic::getEngineName(const EmContext &context)
 {
-	EXCEPTION_GUARD_START
-
 	if (context.engineId == CSR_ENGINE_CS) {
 		CsEngineContext engineContext(this->m_cs);
 		auto &c = engineContext.get();
@@ -88,14 +86,10 @@ RawBuffer EmLogic::getEngineName(const EmContext &context)
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer EmLogic::getEngineVendor(const EmContext &context)
 {
-	EXCEPTION_GUARD_START
-
 	if (context.engineId == CSR_ENGINE_CS) {
 		CsEngineContext engineContext(this->m_cs);
 		auto &c = engineContext.get();
@@ -113,14 +107,10 @@ RawBuffer EmLogic::getEngineVendor(const EmContext &context)
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer EmLogic::getEngineVersion(const EmContext &context)
 {
-	EXCEPTION_GUARD_START
-
 	if (context.engineId == CSR_ENGINE_CS) {
 		CsEngineContext engineContext(this->m_cs);
 		auto &c = engineContext.get();
@@ -138,14 +128,10 @@ RawBuffer EmLogic::getEngineVersion(const EmContext &context)
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer EmLogic::getEngineDataVersion(const EmContext &context)
 {
-	EXCEPTION_GUARD_START
-
 	if (context.engineId == CSR_ENGINE_CS) {
 		CsEngineContext engineContext(this->m_cs);
 		auto &c = engineContext.get();
@@ -163,14 +149,10 @@ RawBuffer EmLogic::getEngineDataVersion(const EmContext &context)
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, value).pop();
 	}
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 {
-	EXCEPTION_GUARD_START
-
 	if (context.engineId == CSR_ENGINE_CS) {
 		CsEngineContext engineContext(this->m_cs);
 		auto &c = engineContext.get();
@@ -192,14 +174,10 @@ RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, ts64).pop();
 	}
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer EmLogic::getEngineActivated(const EmContext &context)
 {
-	EXCEPTION_GUARD_START
-
 	csr_activated_e activated = CSR_NOT_ACTIVATED;
 
 	if (context.engineId == CSR_ENGINE_CS) {
@@ -214,7 +192,7 @@ RawBuffer EmLogic::getEngineActivated(const EmContext &context)
 		else if (value == CSRE_CS_NOT_ACTIVATED)
 			activated = CSR_NOT_ACTIVATED;
 		else
-			ThrowExc(EngineError, "Invalid returned activated val: " <<
+			ThrowExc(CSR_ERROR_ENGINE_INTERNAL, "Invalid returned activated val: " <<
 					 static_cast<int>(value));
 	} else {
 		WpEngineContext engineContext(this->m_wp);
@@ -228,43 +206,33 @@ RawBuffer EmLogic::getEngineActivated(const EmContext &context)
 		else if (value == CSRE_WP_NOT_ACTIVATED)
 			activated = CSR_NOT_ACTIVATED;
 		else
-			ThrowExc(EngineError, "Invalid returned activated val: " <<
+			ThrowExc(CSR_ERROR_ENGINE_INTERNAL, "Invalid returned activated val: " <<
 					 static_cast<int>(value));
 	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, static_cast<int>(activated)).pop();
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer EmLogic::getEngineState(const EmContext &context)
 {
-	EXCEPTION_GUARD_START
-
 	if (!_isValid(context.engineId))
-		ThrowExc(InternalError, "invalid engine id comes to get engine state.");
+		ThrowExc(CSR_ERROR_SERVER, "invalid engine id comes to get engine state.");
 
 	auto state = this->m_db->getEngineState(context.engineId);
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE,
 			static_cast<int>(state) == -1 ? static_cast<int>(CSR_STATE_DISABLE) :
 											static_cast<int>(state)).pop();
-
-	EXCEPTION_GUARD_END
 }
 
 RawBuffer EmLogic::setEngineState(const EmContext &context, csr_state_e state)
 {
-	EXCEPTION_GUARD_START
-
 	if (!_isValid(context.engineId) || !_isValid(state))
-		ThrowExc(InternalError, "invalid argument comes to set engine state.");
+		ThrowExc(CSR_ERROR_SERVER, "invalid argument comes to set engine state.");
 
 	this->m_db->setEngineState(context.engineId, state);
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-	EXCEPTION_GUARD_END
 }
 
 }

@@ -25,15 +25,22 @@
 
 namespace Csr {
 
-Exception::Exception(const char *file, const char *function, unsigned int line,
+Exception::Exception(int ec, const char *file, const char *function, unsigned int line,
 					 const std::string &message) noexcept :
+	m_ec(ec),
 	m_message(FORMAT("[" << file << ":" << line << " " << function << "()]" << message))
 {
+	ERROR(this->m_message);
 }
 
 const char *Exception::what() const noexcept
 {
 	return this->m_message.c_str();
+}
+
+int Exception::error(void) const noexcept
+{
+	return this->m_ec;
 }
 
 }

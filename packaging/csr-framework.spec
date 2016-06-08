@@ -62,6 +62,7 @@ file contents and checking url to prevent malicious items.
 %global engine_rw_working_dir        %{rw_data_dir}/%{service_name}/%{engine_rw_dir_name}
 %global engine_dir                   %{ro_data_dir}/%{service_name}/%{engine_ro_dir_name}
 %global test_dir                     %{rw_data_dir}/%{service_name}-test
+%global test_res_dir                 %{ro_data_dir}/%{service_name}-test
 
 %if "%{platform_version}" == "3.0"
 %global service_user                 security_fw
@@ -167,6 +168,7 @@ test program of csr-framework
     -DENGINE_DIR:PATH=%{engine_dir} \
     -DTEST_TARGET=%{test_target} \
     -DTEST_DIR:PATH=%{test_dir} \
+    -DTEST_RES_DIR:PATH=%{test_res_dir} \
 %if 0%{?with_detailed_base_url}
     -DDETAILED_URL_BASE:STRING=%{detailed_base_url} \
 %endif
@@ -323,6 +325,9 @@ fi
 # test resources
 %dir %attr(-, %{service_user}, %{service_group}) %{test_dir}
 %attr(-, %{service_user}, %{service_group}) %{test_dir}/*
+
+%dir %attr(-, %{service_user}, %{service_group}) %{test_res_dir}
+%attr(-, %{service_user}, %{service_group}) %{test_res_dir}/*
 
 # sample engine related files
 %if 0%{?with_sample_engine}

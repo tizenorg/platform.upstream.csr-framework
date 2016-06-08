@@ -40,18 +40,18 @@
 #define TEST_WGT_PKG_ID    "hFhcNcbE6K"
 #define TEST_WGT_APP_ROOT  TEST_DIR_APPS "/" TEST_WGT_PKG_ID
 #define TEST_WGT_MAL_FILE  TEST_WGT_APP_ROOT "/res/wgt/data/malicious.txt"
-#define TEST_WGT_PATH      TEST_DIR "/" TEST_TARGET "/MaliciousWgt.wgt"
+#define TEST_WGT_PATH      TEST_RES_DIR "/" TEST_TARGET "/MaliciousWgt.wgt"
 #define TEST_WGT_TYPE      "WGT"
 
 #define TEST_SAFE_WGT_PKG_ID   "q3JfX6RA5q"
 #define TEST_SAFE_WGT_APP_ROOT TEST_DIR_APPS "/" TEST_SAFE_WGT_PKG_ID
-#define TEST_SAFE_WGT_PATH     TEST_DIR "/" TEST_TARGET "/non-malware.wgt"
+#define TEST_SAFE_WGT_PATH     TEST_RES_DIR "/" TEST_TARGET "/non-malware.wgt"
 #define TEST_SAFE_WGT_TYPE     "WGT"
 
 #define TEST_TPK_PKG_ID    "org.example.malicioustpk"
 #define TEST_TPK_APP_ROOT  TEST_DIR_APPS "/" TEST_TPK_PKG_ID
 #define TEST_TPK_MAL_FILE  TEST_TPK_APP_ROOT "/shared/res/malicious.txt"
-#define TEST_TPK_PATH      TEST_DIR "/" TEST_TARGET "/MaliciousTpk.tpk"
+#define TEST_TPK_PATH      TEST_RES_DIR "/" TEST_TARGET "/MaliciousTpk.tpk"
 #define TEST_TPK_TYPE      "TPK"
 
 #define TEST_FAKE_APP_ROOT TEST_DIR_APPS "/fake_app"

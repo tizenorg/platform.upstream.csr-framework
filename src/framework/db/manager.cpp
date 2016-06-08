@@ -188,8 +188,7 @@ csr_state_e Manager::getEngineState(csr_engine_id_e id)
 		}
 	}
 
-	return (this->m_stateMap.count(id) == 0) ? static_cast<csr_state_e>(-1) :
-											   this->m_stateMap[id];
+	return (this->m_stateMap.count(id) == 0) ? CSR_STATE_ENABLE : this->m_stateMap[id];
 }
 
 void Manager::setEngineState(csr_engine_id_e id, csr_state_e state)

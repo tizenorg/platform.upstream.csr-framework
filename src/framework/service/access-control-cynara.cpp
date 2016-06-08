@@ -80,7 +80,6 @@ private:
 	bool m_isInitialized;
 	cynara *m_cynara;
 	std::mutex m_mutex;
-
 };
 
 Cynara g_cynara;

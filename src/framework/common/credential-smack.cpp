@@ -53,7 +53,6 @@ std::unique_ptr<Credential> Credential::get(int sockfd)
 
 	return std::unique_ptr<Credential>(new Credential(cred.uid, cred.gid,
 									   std::string(label.data(), lenLabel)));
-
 }
 
 }

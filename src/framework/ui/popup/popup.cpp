@@ -68,7 +68,7 @@ Popup::Popup(int buttonN)
 
 	// This label is for linking to webview.
 	m_hypertext = elm_label_add(m_box);
-	elm_object_text_set(m_hypertext,"<color=#0000FFFF>"
+	elm_object_text_set(m_hypertext, "<color=#0000FFFF>"
 		"    More information</color>");
 	evas_object_size_hint_align_set(m_hypertext, EVAS_HINT_FILL, 0);
 	elm_box_pack_end(m_box, m_hypertext);

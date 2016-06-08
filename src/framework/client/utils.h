@@ -27,10 +27,8 @@
 
 #define EXCEPTION_SAFE_START return Csr::Client::exceptionGuard([&]()->int {
 #define EXCEPTION_SAFE_END });
-
 #define EXCEPTION_ASYNC_SAFE_START(callbacks, userdata) \
 	return Csr::Client::exceptionGuardAsync(callbacks, userdata, [&]() {
-
 namespace Csr {
 namespace Client {
 

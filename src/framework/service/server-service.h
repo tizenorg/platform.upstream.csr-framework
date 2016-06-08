@@ -56,7 +56,6 @@ private:
 	std::unique_ptr<CsLogic> m_cslogic;
 	std::unique_ptr<WpLogic> m_wplogic;
 	std::unique_ptr<EmLogic> m_emlogic;
-
 };
 
 }

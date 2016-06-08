@@ -366,7 +366,6 @@ BOOST_AUTO_TEST_CASE(scan_file_tpk_dir)
 
 BOOST_AUTO_TEST_CASE(scan_file_invalid_params)
 {
-
 	EXCEPTION_GUARD_START
 
 	auto c = Test::Context<csr_cs_context_h>();

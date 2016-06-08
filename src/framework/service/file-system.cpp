@@ -45,17 +45,18 @@ inline std::regex makeRegexpr(const char *str)
 }
 
 std::vector<std::regex> g_regexprs{
-	// Tizen 2.4 app directories
+#ifdef PLATFORM_VERSION_3
+	makeRegexpr("^(/opt/usr/apps/([^/]+))"),               // /opt/usr/apps/{pkgid}/
+	makeRegexpr("^(/home/([^/]+)/apps_rw/([^/]+))"),       // /home/{user}/apps_rw/{pkgid}/
+	makeRegexpr("^(/sdcard/app2sd/([^/]+)/([^/]+))"),      // /sdcard/app2sd/{user}/{pkgid}/
+	makeRegexpr("^(/sdcard/app2sd/([^/]+))"),              // /sdcard/app2sd/{pkgid}/
+	makeRegexpr("^(/sdcard/apps/([^/]+)/apps_rw/([^/]+))") // /sdcard/apps/{user}/apps_rw/{pkgid}/
+#else
 	makeRegexpr("^(/usr/apps/([^/]+))"),                   // /usr/apps/{pkgid}/
 	makeRegexpr("^(/opt/usr/apps/([^/]+))"),               // /opt/usr/apps/{pkgid}/
 	makeRegexpr("^(/sdcard/apps/([^/]+))"),                // /sdcard/apps/{pkgid}/
 	makeRegexpr("^(/sdcard/app2sd/([^/]+))"),              // /sdcard/app2sd/{pkgid}/
-	// Tizen 3.0 app directories
-	//makeRegexpr("^(/opt/usr/apps/([^/]+))"),               // /opt/usr/apps/{pkgid}/
-	//makeRegexpr("^(/home/([^/]+)/apps_rw/([^/]+))"),       // /home/{user}/apps_rw/{pkgid}/
-	//makeRegexpr("^(/sdcard/app2sd/([^/]+)/([^/]+))"),      // /sdcard/app2sd/{user}/{pkgid}/
-	//makeRegexpr("^(/sdcard/app2sd/([^/]+))"),              // /sdcard/app2sd/{pkgid}/
-	//makeRegexpr("^(/sdcard/apps/([^/]+)/apps_rw/([^/]+))") // /sdcard/apps/{user}/apps_rw/{pkgid}/
+#endif
 };
 
 bool hasPermToRemove(const std::string &filepath)
@@ -217,7 +218,7 @@ void File::remove() const
 {
 	if (this->isInApp()) {
 		DEBUG("remove app: " << this->m_appPkgId);
-		AppDeleter::remove(this->m_appPkgId);
+		AppDeleter::remove(this->m_appPkgId, this->m_appUser);
 	} else {
 		DEBUG("remove file: " << this->m_path);
 		if (::remove(this->m_path.c_str()) != 0)

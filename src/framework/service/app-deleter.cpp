@@ -24,14 +24,49 @@
 #include <memory>
 #include <cstring>
 
+#ifdef PLATFORM_VERSION_3
+#include <vector>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+#endif
+
 #include <package-manager.h>
 
 #include "common/audit/logger.h"
 #include "common/exception.h"
 
+namespace {
+
+#ifdef PLATFORM_VERSION_3
+uid_t getUid(const std::string &username)
+{
+	auto bufsize = ::sysconf(_SC_GETPW_R_SIZE_MAX);
+	bufsize = (bufsize == -1) ? 16384 : bufsize;
+
+	std::vector<char> buf(bufsize, 0);
+
+	struct passwd pwd;
+	struct passwd *result = nullptr;
+
+	auto ret = ::getpwnam_r(username.c_str(), &pwd, buf.data(), buf.size(), &result);
+
+	if (result == nullptr) {
+		if (ret == 0)
+			ThrowExc(CSR_ERROR_SERVER, "Uid not found by username: " << username);
+		else
+			ThrowExc(CSR_ERROR_SERVER, "Failed to getpwnam_r with errno: " << errno);
+	}
+
+	return pwd.pw_uid;
+}
+#endif
+
+} // namespace anonymous
+
 namespace Csr {
 
-void AppDeleter::remove(const std::string &pkgid)
+void AppDeleter::remove(const std::string &pkgid, const std::string &username)
 {
 	if (pkgid.empty())
 		ThrowExc(CSR_ERROR_SERVER, "pkgid shouldn't be empty in AppDeleter");
@@ -42,8 +77,20 @@ void AppDeleter::remove(const std::string &pkgid)
 	if (!client)
 		throw std::bad_alloc();
 
-	auto ret = pkgmgr_client_uninstall(client.get(), nullptr, pkgid.c_str(), PM_QUIET,
-									   nullptr, nullptr);
+	int ret = PKGMGR_R_OK;
+#ifdef PLATFORM_VERSION_3
+	if (username.empty())
+		ret = ::pkgmgr_client_uninstall(client.get(), nullptr, pkgid.c_str(), PM_QUIET,
+										nullptr, nullptr);
+	else
+		ret = ::pkgmgr_client_usr_uninstall(client.get(), nullptr, pkgid.c_str(), PM_QUIET,
+											nullptr, nullptr, ::getUid(username));
+#else
+	(void) username;
+	ret = ::pkgmgr_client_uninstall(client.get(), nullptr, pkgid.c_str(), PM_QUIET,
+									nullptr, nullptr);
+#endif
+
 	if (ret < PKGMGR_R_OK)
 		ThrowExc(CSR_ERROR_REMOVE_FAILED, "Failed to pkgmgr_client_uninstall for pkg: " <<
 				 pkgid << " ret: " << ret);

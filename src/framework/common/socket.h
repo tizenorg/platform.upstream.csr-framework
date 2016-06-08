@@ -29,7 +29,7 @@
 
 namespace Csr {
 
-class API Socket {
+class Socket {
 public:
 	enum class Type : int {
 		SERVER = 0x01,

@@ -29,7 +29,7 @@
 
 namespace Csr {
 
-class API Mainloop {
+class Mainloop {
 public:
 	using Callback = std::function<void(uint32_t event)>;
 

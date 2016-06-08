@@ -34,7 +34,7 @@ namespace Csr {
 class API Connection {
 public:
 	explicit Connection(Socket &&socket) noexcept;
-	virtual ~Connection() = default;
+	virtual ~Connection();
 
 	Connection(const Connection &) = delete;
 	Connection &operator=(const Connection &) = delete;

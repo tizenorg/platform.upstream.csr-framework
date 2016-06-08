@@ -35,6 +35,10 @@ Connection::Connection(Connection &&other) noexcept :
 {
 }
 
+Connection::~Connection()
+{
+}
+
 Connection &Connection::operator=(Connection &&other) noexcept
 {
 	if (this == &other)

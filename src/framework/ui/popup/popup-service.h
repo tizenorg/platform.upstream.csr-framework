@@ -33,7 +33,7 @@ namespace Ui {
 class PopupService : public Service {
 public:
 	PopupService();
-	virtual ~PopupService();
+	virtual ~PopupService() = default;
 
 private:
 	virtual void onMessageProcess(const ConnShPtr &) override;

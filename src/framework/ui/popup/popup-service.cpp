@@ -58,10 +58,6 @@ PopupService::PopupService() : Service()
 	this->add(SockId::POPUP);
 }
 
-PopupService::~PopupService()
-{
-}
-
 RawBuffer PopupService::process(const ConnShPtr &, RawBuffer &data)
 {
 	BinaryQueue q;

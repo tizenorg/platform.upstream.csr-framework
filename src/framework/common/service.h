@@ -35,8 +35,8 @@ namespace Csr {
 
 class API Service {
 public:
-	Service() = default;
-	virtual ~Service() = default;
+	Service() noexcept;
+	virtual ~Service();
 
 	Service(const Service &) = delete;
 	Service &operator=(const Service &) = delete;

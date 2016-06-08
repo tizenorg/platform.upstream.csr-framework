@@ -30,6 +30,14 @@
 
 namespace Csr {
 
+Service::Service() noexcept
+{
+}
+
+Service::~Service()
+{
+}
+
 void Service::setIdleChecker(std::function<bool()> &&idleChecker)
 {
 	this->m_loop.setIdleChecker(std::move(idleChecker));

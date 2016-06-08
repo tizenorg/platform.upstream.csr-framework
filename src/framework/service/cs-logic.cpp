@@ -106,6 +106,26 @@ std::string resolvePath(const std::string &_path)
 	return path;
 }
 
+std::string canonicalizePath(const std::string &path, bool checkAccess)
+{
+	auto resolved = resolvePath(path);
+	auto target = File::getPkgPath(resolved);
+
+	if (checkAccess && ::access(target.c_str(), R_OK) != 0) {
+		const int err = errno;
+		if (err == ENOENT)
+			ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "File do not exist: " << target);
+		else if (err == EACCES)
+			ThrowExc(CSR_ERROR_PERMISSION_DENIED,
+					 "Perm denied to get real path: " << target);
+		else
+			ThrowExc(CSR_ERROR_FILE_SYSTEM, "Failed to get real path: " << target <<
+					 " with errno: " << err);
+	}
+
+	return target;
+}
+
 } // namespace anonymous
 
 CsLogic::CsLogic(const std::shared_ptr<CsLoader> &loader,
@@ -521,20 +541,7 @@ RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
 	StrSet canonicalized;
 
 	for (const auto &path : paths) {
-		auto resolved = resolvePath(path);
-		auto target = File::getPkgPath(resolved);
-
-		if (::access(target.c_str(), R_OK) != 0) {
-			const int err = errno;
-			if (err == ENOENT)
-				ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "File do not exist: " << target);
-			else if (err == EACCES)
-				ThrowExc(CSR_ERROR_PERMISSION_DENIED,
-						 "Perm denied to get real path: " << target);
-			else
-				ThrowExc(CSR_ERROR_FILE_SYSTEM, "Failed to get real path: " << target <<
-						 " with errno: " << err);
-		}
+		auto target = canonicalizePath(path, true);
 
 		if (canonicalized.find(target) == canonicalized.end()) {
 			INFO("Insert to canonicalized list: " << target);
@@ -608,7 +615,7 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 
 RawBuffer CsLogic::getDetected(const std::string &filepath)
 {
-	auto row = this->m_db->getDetectedByNameOnPath(File::getPkgPath(filepath));
+	auto row = this->m_db->getDetectedByNameOnPath(canonicalizePath(filepath, false));
 
 	if (row && !row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -616,15 +623,18 @@ RawBuffer CsLogic::getDetected(const std::string &filepath)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 }
 
-RawBuffer CsLogic::getDetectedList(const StrSet &dirSet)
+RawBuffer CsLogic::getDetectedList(const StrSet &_dirSet)
 {
+	StrSet dirSet;
+	for (const auto &dir : _dirSet)
+		dirSet.emplace(canonicalizePath(dir, false));
+
 	Db::RowShPtrs rows;
-	std::for_each(dirSet.begin(), dirSet.end(),
-	[this, &rows](const std::string & dir) {
-		for (auto &row : this->m_db->getDetectedByNameOnDir(File::getPkgPath(dir)))
+	for (const auto &dir : dirSet) {
+		for (auto &row : this->m_db->getDetectedByNameOnDir(dir))
 			if (!row->isIgnored)
 				rows.emplace_back(std::move(row));
-	});
+	}
 
 	if (rows.empty())
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
@@ -632,10 +642,9 @@ RawBuffer CsLogic::getDetectedList(const StrSet &dirSet)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
 }
 
-// TODO: is this command needed?
 RawBuffer CsLogic::getIgnored(const std::string &filepath)
 {
-	auto row = this->m_db->getDetectedByNameOnPath(File::getPkgPath(filepath));
+	auto row = this->m_db->getDetectedByNameOnPath(canonicalizePath(filepath, false));
 
 	if (row && row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -643,15 +652,18 @@ RawBuffer CsLogic::getIgnored(const std::string &filepath)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 }
 
-RawBuffer CsLogic::getIgnoredList(const StrSet &dirSet)
+RawBuffer CsLogic::getIgnoredList(const StrSet &_dirSet)
 {
+	StrSet dirSet;
+	for (const auto &dir : _dirSet)
+		dirSet.emplace(canonicalizePath(dir, false));
+
 	Db::RowShPtrs rows;
-	std::for_each(dirSet.begin(), dirSet.end(),
-	[this, &rows](const std::string & dir) {
-		for (auto &row : this->m_db->getDetectedByNameOnDir(File::getPkgPath(dir)))
+	for (const auto &dir : dirSet) {
+		for (auto &row : this->m_db->getDetectedByNameOnDir(dir))
 			if (row->isIgnored)
 				rows.emplace_back(std::move(row));
-	});
+	}
 
 	if (rows.empty())
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();

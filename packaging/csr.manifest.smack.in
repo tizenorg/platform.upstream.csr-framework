@@ -17,6 +17,7 @@
 			<smack request="sdbd" type="rx" />
 			<smack request="pkgmgr::db" type="rwx" />
 			<smack request="pkgmgr::svc" type="r" />
+			<smack request="system::use_internet" type="w" />
 
 			<smack request="system::media" type="rwxat" />
 			<smack request="system::homedir" type="rwxat" />
@@ -27,6 +28,7 @@
 			<smack permit="pkgmgr" type="rx" />
 			<smack permit="pkgmgr-server" type="rx" />
 			<smack permit="wrt-installer" type="rx" />
+			<smack permit="system::use_internet" type="w" />
 
 			<smack permit="crash-worker" type="rx" />
 		</permit>

@@ -30,15 +30,6 @@
 
 namespace Csr {
 
-Service::Service()
-{
-	this->setNewConnectionCallback(nullptr);
-	this->setCloseConnectionCallback(nullptr);
-
-	// set default idle checker which returns always true
-	this->m_loop.setIdleChecker([]() { return true; });
-}
-
 void Service::setIdleChecker(std::function<bool()> &&idleChecker)
 {
 	this->m_loop.setIdleChecker(std::move(idleChecker));
@@ -64,79 +55,69 @@ void Service::start(int timeout)
 			if (event != EPOLLIN)
 				return;
 
-			this->m_onNewConnection(std::make_shared<Connection>(socket->accept()));
+			this->onNewConnection(std::make_shared<Connection>(socket->accept()));
 		});
 	}
 
 	this->m_loop.run(timeout);
 }
 
-void Service::setNewConnectionCallback(const ConnCallback &callback)
+void Service::onNewConnection(ConnShPtr &&connection)
 {
-	this->m_onNewConnection = [this, &callback](ConnShPtr &&connection) {
-		if (!connection)
-			ThrowExc(CSR_ERROR_SERVER, "onNewConnection called but ConnShPtr is nullptr.");
+	if (!connection)
+		ThrowExc(CSR_ERROR_SERVER, "onNewConnection called but ConnShPtr is nullptr.");
 
-		auto fd = connection->getFd();
+	auto fd = connection->getFd();
 
-		INFO("welcome! accepted client socket fd[" << fd << "]");
+	INFO("welcome! accepted client socket fd[" << fd << "]");
 
-		if (callback)
-			callback(connection);
+	this->m_loop.addEventSource(fd, EPOLLIN | EPOLLHUP | EPOLLRDHUP,
+	[&, fd](uint32_t event) {
+		std::unique_lock<std::mutex> lock(this->m_crMtx);
 
-		this->m_loop.addEventSource(fd, EPOLLIN | EPOLLHUP | EPOLLRDHUP,
-		[&, fd](uint32_t event) {
-			std::unique_lock<std::mutex> lock(this->m_crMtx);
-
-			DEBUG("read event comes in to fd[" << fd << "]");
-
-			if (this->m_connectionRegistry.count(fd) == 0)
-				ThrowExc(CSR_ERROR_SERVER, "get event on fd[" << fd <<
-						 "] but no associated connection exist");
-
-			auto &conn = this->m_connectionRegistry[fd];
-
-			if (event & (EPOLLHUP | EPOLLRDHUP)) {
-				DEBUG("event of epoll hup. close connection on fd[" << fd << "]");
-				this->m_onCloseConnection(conn);
-				return;
-			}
-
-			lock.unlock();
-
-			DEBUG("Start message process on fd[" << fd << "]");
-
-			onMessageProcess(conn);
-		});
-
-		{
-			std::lock_guard<std::mutex> l(this->m_crMtx);
-			this->m_connectionRegistry[fd] = std::move(connection);
-		}
-	};
-}
-
-void Service::setCloseConnectionCallback(const ConnCallback &callback)
-{
-	this->m_onCloseConnection = [this, &callback](const ConnShPtr &connection) {
-		if (!connection)
-			ThrowExc(CSR_ERROR_SERVER, "no connection to close");
-
-		auto fd = connection->getFd();
+		DEBUG("read event comes in to fd[" << fd << "]");
 
 		if (this->m_connectionRegistry.count(fd) == 0)
-			ThrowExc(CSR_ERROR_SERVER, "no connection in registry to remove "
-					 "associated to fd[" << fd << "]");
+			ThrowExc(CSR_ERROR_SERVER, "get event on fd[" << fd <<
+					 "] but no associated connection exist");
 
-		INFO("good-bye! close socket fd[" << fd << "]");
+		auto &conn = this->m_connectionRegistry[fd];
 
-		this->m_loop.removeEventSource(fd);
+		if (event & (EPOLLHUP | EPOLLRDHUP)) {
+			DEBUG("event of epoll hup. close connection on fd[" << fd << "]");
+			this->onCloseConnection(conn);
+			return;
+		}
 
-		this->m_connectionRegistry.erase(fd);
+		lock.unlock();
 
-		if (callback)
-			callback(connection);
-	};
+		DEBUG("Start message process on fd[" << fd << "]");
+
+		onMessageProcess(conn);
+	});
+
+	{
+		std::lock_guard<std::mutex> l(this->m_crMtx);
+		this->m_connectionRegistry[fd] = std::move(connection);
+	}
+}
+
+void Service::onCloseConnection(const ConnShPtr &connection)
+{
+	if (!connection)
+		ThrowExc(CSR_ERROR_SERVER, "no connection to close");
+
+	auto fd = connection->getFd();
+
+	if (this->m_connectionRegistry.count(fd) == 0)
+		ThrowExc(CSR_ERROR_SERVER, "no connection in registry to remove "
+				 "associated to fd[" << fd << "]");
+
+	INFO("good-bye! close socket fd[" << fd << "]");
+
+	this->m_loop.removeEventSource(fd);
+
+	this->m_connectionRegistry.erase(fd);
 }
 
 bool Service::isConnectionValid(int fd) const

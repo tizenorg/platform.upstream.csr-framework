@@ -33,11 +33,9 @@
 
 namespace Csr {
 
-using ConnCallback = std::function<void(const ConnShPtr &)>;
-
 class API Service {
 public:
-	Service();
+	Service() = default;
 	virtual ~Service() = default;
 
 	Service(const Service &) = delete;
@@ -48,10 +46,6 @@ public:
 	virtual void add(const SockId &) final;
 	virtual void start(int timeout) final;
 
-	/* ConnCallback param should throw exception to handle error */
-	virtual void setNewConnectionCallback(const ConnCallback &) final;
-	virtual void setCloseConnectionCallback(const ConnCallback &) final;
-
 protected:
 	void setIdleChecker(std::function<bool()> &&idleChecker);
 	bool isConnectionValid(int fd) const;
@@ -59,8 +53,8 @@ protected:
 private:
 	virtual void onMessageProcess(const ConnShPtr &) = 0;
 
-	std::function<void(ConnShPtr &&)> m_onNewConnection;
-	ConnCallback m_onCloseConnection;
+	void onNewConnection(ConnShPtr &&);
+	void onCloseConnection(const ConnShPtr &);
 
 	mutable std::mutex m_crMtx;
 	std::unordered_map<int, ConnShPtr> m_connectionRegistry;

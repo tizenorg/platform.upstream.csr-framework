@@ -52,6 +52,60 @@ void setCoreUsage(const csr_cs_core_usage_e &cu)
 	}
 }
 
+// resolve all of "/." and "/.." in absolute path (which starts with '/')
+std::string resolvePath(const std::string &_path)
+{
+	auto path = _path;
+
+	while (path.back() == '/')
+		path.pop_back();
+
+	size_t from = 0;
+	size_t to = 0;
+
+	while (true) {
+		if (path.empty()) {
+			path = "/";
+			break;
+		}
+
+		auto len = path.length();
+
+		if (from >= len)
+			break;
+
+		while (len > from + 1 && path[from + 1] == '/') {
+			path.erase(from, 1);
+			--len;
+		}
+
+		to = path.find_first_of('/', from + 1);
+
+		if (to == std::string::npos)
+			to = len;
+
+		auto substr = path.substr(from, to - from);
+
+		if (substr == "/.") {
+			path.erase(from, 2);
+		} else if (substr == "/..") {
+			path.erase(from, 3);
+
+			if (from == 0)
+				continue;
+
+			auto parent = path.find_last_of('/', from - 1);
+			path.erase(parent, from - parent);
+
+			from = parent;
+		} else {
+			from = to;
+		}
+	}
+
+	return path;
+}
+
 } // namespace anonymous
 
 CsLogic::CsLogic(const std::shared_ptr<CsLoader> &loader,
@@ -467,10 +521,10 @@ RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
 	StrSet canonicalized;
 
 	for (const auto &path : paths) {
-		auto target = File::getPkgPath(path);
-		auto resolved = ::realpath(target.c_str(), nullptr);
+		auto resolved = resolvePath(path);
+		auto target = File::getPkgPath(resolved);
 
-		if (resolved == nullptr) {
+		if (::access(target.c_str(), R_OK) != 0) {
 			const int err = errno;
 			if (err == ENOENT)
 				ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "File do not exist: " << target);
@@ -482,12 +536,9 @@ RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
 						 " with errno: " << err);
 		}
 
-		std::string resolvedStr(resolved);
-		free(resolved);
-
-		if (canonicalized.find(resolvedStr) == canonicalized.end()) {
-			INFO("Insert to canonicalized list: " << resolvedStr);
-			canonicalized.emplace(std::move(resolvedStr));
+		if (canonicalized.find(target) == canonicalized.end()) {
+			INFO("Insert to canonicalized list: " << target);
+			canonicalized.emplace(std::move(target));
 		}
 	}
 

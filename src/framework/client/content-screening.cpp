@@ -481,7 +481,7 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 		if (dir_paths[i] == nullptr)
 			return CSR_ERROR_INVALID_PARAMETER;
 
-		dirSet->insert(Client::getAbsolutePath(dir_paths[i]));
+		dirSet->emplace(Client::getAbsolutePath(dir_paths[i]));
 	}
 
 	auto task = std::make_shared<Task>([hExt, user_data, dirSet] {
@@ -729,7 +729,7 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 	auto ret = hExt->dispatch<std::pair<int, CsDetected *>>(
-				   CommandId::GET_DETECTED, std::string(file_path));
+				CommandId::GET_DETECTED, Client::getAbsolutePath(file_path));
 
 	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
@@ -761,7 +761,7 @@ int csr_cs_get_detected_malwares(csr_cs_context_h handle,
 		if (dir_paths[i] == nullptr || dir_paths[i][0] == '\0')
 			return CSR_ERROR_INVALID_PARAMETER;
 
-		dirSet.emplace(dir_paths[i]);
+		dirSet.emplace(Client::getAbsolutePath(dir_paths[i]));
 	}
 
 	if (dirSet.size() == 0)
@@ -805,7 +805,7 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
 
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 	auto ret = hExt->dispatch<std::pair<int, CsDetected *>>(
-				   CommandId::GET_IGNORED, std::string(file_path));
+				CommandId::GET_IGNORED, Client::getAbsolutePath(file_path));
 
 	if (ret.second)
 		hExt->add(ResultPtr(ret.second));
@@ -837,7 +837,7 @@ int csr_cs_get_ignored_malwares(csr_cs_context_h handle,
 		if (dir_paths[i] == nullptr || dir_paths[i][0] == '\0')
 			return CSR_ERROR_INVALID_PARAMETER;
 
-		dirSet.emplace(dir_paths[i]);
+		dirSet.emplace(Client::getAbsolutePath(dir_paths[i]));
 	}
 
 	if (dirSet.size() == 0)

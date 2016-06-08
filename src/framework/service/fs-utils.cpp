@@ -23,6 +23,7 @@
 
 #include <cstring>
 #include <cerrno>
+#include <unistd.h>
 
 #include "common/audit/logger.h"
 
@@ -33,20 +34,24 @@ std::unique_ptr<struct stat> getStat(const std::string &target)
 	std::unique_ptr<struct stat> statptr(new struct stat);
 	memset(statptr.get(), 0x00, sizeof(struct stat));
 
-	if (stat(target.c_str(), statptr.get()) != 0) {
+	if (::stat(target.c_str(), statptr.get()) != 0) {
 		const int err = errno;
 
 		if (err == ENOENT)
 			WARN("target not exist: " << target);
 		else if (err == EACCES)
-			WARN("no permission to read target: " << target);
+			WARN("no permission to read path: " << target);
 		else
 			ERROR("stat() failed on target: " << target << " errno: " << err);
 
 		return nullptr;
 	}
 
-	return statptr;
+	// if no permission to read, return nullptr
+	if (::access(target.c_str(), R_OK) != 0)
+		return nullptr;
+	else
+		return statptr;
 }
 
 }

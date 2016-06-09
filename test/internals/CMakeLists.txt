@@ -28,6 +28,16 @@ PKG_CHECK_MODULES(${TARGET_CSR_INTERNAL_TEST}_DEP
 	pkgmgr-info
 )
 
+IF (WITH_SAMPLE_ENGINE)
+	ADD_DEFINITIONS("-DWITH_SAMPLE_ENGINE")
+	SET(SAMPLE_ENGINE_LINKED_SRCS
+		test-cs-loader.cpp
+		test-wp-loader.cpp
+		test-api-engine-content-screening.cpp
+		test-api-engine-web-protection.cpp
+	)
+ENDIF (WITH_SAMPLE_ENGINE)
+
 SET(${TARGET_CSR_INTERNAL_TEST}_SRCS
 	${CSR_FW_SRC_PATH}/common/exception.cpp
 	${CSR_FW_SRC_PATH}/db/connection.cpp
@@ -45,13 +55,11 @@ SET(${TARGET_CSR_INTERNAL_TEST}_SRCS
 	test-db.cpp
 	test-cpucore.cpp
 	test-file-system.cpp
-	test-api-engine-content-screening.cpp
-	test-api-engine-web-protection.cpp
-	test-cs-loader.cpp
-	test-wp-loader.cpp
 	test-package-info.cpp
 
 	test-main.cpp
+
+	${SAMPLE_ENGINE_LINKED_SRCS}
 )
 
 INCLUDE_DIRECTORIES(
@@ -75,6 +83,7 @@ SET_TARGET_PROPERTIES(${TARGET_CSR_INTERNAL_TEST}
 		LINK_FLAGS "-pie -Wl,-rpath,${ENGINE_DIR}"
 )
 
+IF (WITH_SAMPLE_ENGINE)
 TARGET_LINK_LIBRARIES(${TARGET_CSR_INTERNAL_TEST}
 	${TARGET_CSR_TEST_COMMON}
 	${TARGET_CSR_COMMON}
@@ -84,5 +93,14 @@ TARGET_LINK_LIBRARIES(${TARGET_CSR_INTERNAL_TEST}
 	-lboost_unit_test_framework
 	-ldl
 )
+ELSE (WITH_SAMPLE_ENGINE)
+TARGET_LINK_LIBRARIES(${TARGET_CSR_INTERNAL_TEST}
+	${TARGET_CSR_TEST_COMMON}
+	${TARGET_CSR_COMMON}
+	${${TARGET_CSR_INTERNAL_TEST}_DEP_LIBRARIES}
+	-lboost_unit_test_framework
+	-ldl
+)
+ENDIF (WITH_SAMPLE_ENGINE)
 
 INSTALL(TARGETS ${TARGET_CSR_INTERNAL_TEST} DESTINATION ${BIN_DIR})

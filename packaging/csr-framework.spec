@@ -20,6 +20,8 @@
 %define with_detailed_base_url 0
 %define detailed_base_url %nil
 
+%define with_sample_engine 0
+
 Summary: A general purpose content screening and reputation solution
 Name: csr-framework
 Version: 2.0.0
@@ -168,6 +170,11 @@ test program of csr-framework
 %if 0%{?with_detailed_base_url}
     -DDETAILED_URL_BASE:STRING=%{detailed_base_url} \
 %endif
+%if 0%{?with_sample_engine}
+    -DWITH_SAMPLE_ENGINE:BOOL=ON \
+%else
+    -DWITH_SAMPLE_ENGINE:BOOL=OFF \
+%endif
 %if "%{platform_version}" == "3.0"
     -DPLATFORM_VERSION_3:BOOL=ON
 %else
@@ -190,8 +197,10 @@ cp LICENSE %{buildroot}%{ro_data_dir}/license/%{name}
 cp LICENSE.BSL-1.0 %{buildroot}%{ro_data_dir}/license/%{name}.BSL-1.0
 cp LICENSE %{buildroot}%{ro_data_dir}/license/lib%{name}-client
 cp LICENSE %{buildroot}%{ro_data_dir}/license/lib%{name}-common
+
 cp LICENSE %{buildroot}%{ro_data_dir}/license/%{name}-test
 cp LICENSE.BSL-1.0 %{buildroot}%{ro_data_dir}/license/%{name}-test.BSL-1.0
+
 
 mkdir -p %{buildroot}%{rw_db_dir}
 mkdir -p %{buildroot}%{ro_db_dir}
@@ -316,6 +325,8 @@ fi
 %attr(-, %{service_user}, %{service_group}) %{test_dir}/*
 
 # sample engine related files
+%if 0%{?with_sample_engine}
 %{engine_dir}/lib%{service_name}-cs-engine.so
 %{engine_dir}/lib%{service_name}-wp-engine.so
 %attr(-, %{service_user}, %{service_group}) %{engine_rw_working_dir}/*
+%endif

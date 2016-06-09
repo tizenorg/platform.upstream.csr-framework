@@ -39,6 +39,9 @@ struct TestConfig {
 	}
 };
 
+BOOST_GLOBAL_FIXTURE(TestConfig)
+
+#ifdef WITH_SAMPLE_ENGINE
 bool isEngineInitialized = false;
 struct Initializer {
 	Initializer()
@@ -79,5 +82,5 @@ struct Initializer {
 	}
 };
 
-BOOST_GLOBAL_FIXTURE(TestConfig)
 BOOST_GLOBAL_FIXTURE(Initializer)
+#endif

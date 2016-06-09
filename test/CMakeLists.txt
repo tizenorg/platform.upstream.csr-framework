@@ -17,7 +17,9 @@
 # @brief       build test program of csr-framework
 #
 ####################### sample engine #########################
-ADD_SUBDIRECTORY(engine)
+IF (WITH_SAMPLE_ENGINE)
+	ADD_SUBDIRECTORY(engine)
+ENDIF (WITH_SAMPLE_ENGINE)
 ###############################################################
 
 FIND_PACKAGE(Threads REQUIRED)

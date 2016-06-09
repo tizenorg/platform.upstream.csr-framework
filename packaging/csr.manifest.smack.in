@@ -21,6 +21,7 @@
 
 			<smack request="system::media" type="rwxat" />
 			<smack request="system::homedir" type="rwxat" />
+			<smack request="system::ext_storage" type="rwxat" />
 		</request>
 		<permit>
 			<smack permit="_" type="rwx" />

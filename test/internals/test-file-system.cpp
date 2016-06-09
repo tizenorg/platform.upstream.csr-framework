@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(remove_app)
 	Test::uninstall_app(TEST_TPK_PKG_ID);
 	ASSERT_INSTALL_APP(TEST_TPK_PATH, TEST_TPK_TYPE);
 
-	auto app = File::create(TEST_TPK_MAL_FILE);
+	auto app = File::create(TEST_TPK_MAL_FILE());
 	CHECK_IS_NOT_NULL(app);
 	app->remove();
 

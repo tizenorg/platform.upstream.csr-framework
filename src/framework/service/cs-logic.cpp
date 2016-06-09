@@ -185,6 +185,11 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 	detected.isApp = true;
 	detected.pkgId = pkgId;
 
+	this->m_db->deleteDetectedByNameOnPath(pkgPath);
+	this->m_db->insertName(pkgPath);
+	this->m_db->insertDetected(detected, pkgPath, this->m_dataVersion);
+	this->m_db->insertWorst(pkgId, pkgPath, pkgPath);
+
 	return this->handleAskUser(context, detected);
 }
 
@@ -284,6 +289,12 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
 
 	// old history
 	auto history = this->m_db->getWorstByPkgId(pkgId);
+	// if history's target name and file path is same, it's detected history of
+	// scan on cloud. When scanning delta, it's ignored and totally re-scan.
+	if (history && history->targetName == history->fileInAppPath) {
+		this->m_db->deleteDetectedByNameOnPath(pkgPath);
+		history.reset();
+	}
 	// riskiest detected among newly scanned files
 	std::string riskiestPath;
 	auto riskiest = this->scanAppDelta(pkgPath, pkgId, riskiestPath);

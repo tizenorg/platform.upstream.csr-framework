@@ -218,7 +218,6 @@ if [ $1 = 1 ]; then
     systemctl start %{service_name}-wp.socket
     systemctl start %{service_name}-admin.socket
     systemctl start %{service_name}-popup.socket
-    systemctl start %{service_name}.service
 fi
 
 if [ $1 = 2 ]; then
@@ -226,7 +225,6 @@ if [ $1 = 2 ]; then
     systemctl restart %{service_name}-wp.socket
     systemctl restart %{service_name}-admin.socket
     systemctl restart %{service_name}-popup.socket
-    systemctl restart %{service_name}.service
 fi
 
 %preun

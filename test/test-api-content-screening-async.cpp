@@ -365,14 +365,14 @@ BOOST_AUTO_TEST_CASE(scan_dir_root)
 		TEST_FILE_TMP, false, nullptr);
 
 	ASSERT_DETECTED_IN_LIST(testCtx.detectedList,
-		TEST_WGT_APP_ROOT, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+		TEST_WGT_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_IN_LIST_EXT(testCtx.detectedList,
-		TEST_WGT_APP_ROOT, true, TEST_WGT_PKG_ID);
+		TEST_WGT_APP_ROOT(), true, TEST_WGT_PKG_ID);
 
 	ASSERT_DETECTED_IN_LIST(testCtx.detectedList,
-		TEST_TPK_APP_ROOT, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+		TEST_TPK_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_IN_LIST_EXT(testCtx.detectedList,
-		TEST_TPK_APP_ROOT, true, TEST_TPK_PKG_ID);
+		TEST_TPK_APP_ROOT(), true, TEST_TPK_PKG_ID);
 
 	ASSERT_DETECTED_IN_LIST(testCtx.detectedList,
 		TEST_FAKE_APP_FILE, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
@@ -466,14 +466,14 @@ BOOST_AUTO_TEST_CASE(scan_dir_apps)
 	ASSERT_CALLBACK(testCtx, -1, 3, 1, 0, 0);
 
 	ASSERT_DETECTED_IN_LIST(testCtx.detectedList,
-		TEST_WGT_APP_ROOT, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+		TEST_WGT_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_IN_LIST_EXT(testCtx.detectedList,
-		TEST_WGT_APP_ROOT, true, TEST_WGT_PKG_ID);
+		TEST_WGT_APP_ROOT(), true, TEST_WGT_PKG_ID);
 
 	ASSERT_DETECTED_IN_LIST(testCtx.detectedList,
-		TEST_TPK_APP_ROOT, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+		TEST_TPK_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_IN_LIST_EXT(testCtx.detectedList,
-		TEST_TPK_APP_ROOT, true, TEST_TPK_PKG_ID);
+		TEST_TPK_APP_ROOT(), true, TEST_TPK_PKG_ID);
 
 	ASSERT_DETECTED_IN_LIST(testCtx.detectedList,
 		TEST_FAKE_APP_FILE, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
@@ -499,7 +499,7 @@ BOOST_AUTO_TEST_CASE(scan_dir_wgt)
 
 	AsyncTestContext testCtx;
 
-	ASSERT_IF(csr_cs_scan_dir_async(context, TEST_WGT_APP_ROOT, &testCtx), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_dir_async(context, TEST_WGT_APP_ROOT().c_str(), &testCtx), CSR_ERROR_NONE);
 
 	std::unique_lock<std::mutex> l(testCtx.m);
 	testCtx.cv.wait(l);
@@ -509,9 +509,9 @@ BOOST_AUTO_TEST_CASE(scan_dir_wgt)
 	ASSERT_CALLBACK(testCtx, -1, 1, 1, 0, 0);
 
 	ASSERT_DETECTED_IN_LIST(testCtx.detectedList,
-		TEST_WGT_APP_ROOT, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+		TEST_WGT_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_IN_LIST_EXT(testCtx.detectedList,
-		TEST_WGT_APP_ROOT, true, TEST_WGT_PKG_ID);
+		TEST_WGT_APP_ROOT(), true, TEST_WGT_PKG_ID);
 
 	Test::uninstall_app(TEST_WGT_PKG_ID);
 
@@ -532,7 +532,7 @@ BOOST_AUTO_TEST_CASE(scan_dir_tpk)
 
 	AsyncTestContext testCtx;
 
-	ASSERT_IF(csr_cs_scan_dir_async(context, TEST_TPK_APP_ROOT, &testCtx), CSR_ERROR_NONE);
+	ASSERT_IF(csr_cs_scan_dir_async(context, TEST_TPK_APP_ROOT().c_str(), &testCtx), CSR_ERROR_NONE);
 
 	std::unique_lock<std::mutex> l(testCtx.m);
 	testCtx.cv.wait(l);
@@ -542,9 +542,9 @@ BOOST_AUTO_TEST_CASE(scan_dir_tpk)
 	ASSERT_CALLBACK(testCtx, -1, 1, 1, 0, 0);
 
 	ASSERT_DETECTED_IN_LIST(testCtx.detectedList,
-		TEST_TPK_APP_ROOT, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+		TEST_TPK_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_IN_LIST_EXT(testCtx.detectedList,
-		TEST_TPK_APP_ROOT, true, TEST_TPK_PKG_ID);
+		TEST_TPK_APP_ROOT(), true, TEST_TPK_PKG_ID);
 
 	Test::uninstall_app(TEST_TPK_PKG_ID);
 
@@ -672,7 +672,7 @@ BOOST_AUTO_TEST_CASE(delta_scan_basic)
 	// Base Scan
 	AsyncTestContext testBaseCtx;
 
-	ASSERT_IF(csr_cs_scan_dir_async(context, TEST_DIR_APPS, &testBaseCtx), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_dir_async(context, TEST_DIR_APPS, &testBaseCtx));
 
 	std::unique_lock<std::mutex> lBase(testBaseCtx.m);
 	testBaseCtx.cv.wait(lBase);
@@ -686,8 +686,7 @@ BOOST_AUTO_TEST_CASE(delta_scan_basic)
 	// Rescan the same dir
 	AsyncTestContext testRescanCtx;
 
-	ASSERT_IF(csr_cs_scan_dir_async(context, TEST_DIR_APPS, &testRescanCtx),
-			  CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_dir_async(context, TEST_DIR_APPS, &testRescanCtx));
 
 	std::unique_lock<std::mutex> lRescan(testRescanCtx.m);
 	testRescanCtx.cv.wait(lRescan);
@@ -697,14 +696,14 @@ BOOST_AUTO_TEST_CASE(delta_scan_basic)
 	ASSERT_CALLBACK(testRescanCtx, 0, 3, 1, 0, 0);
 
 	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList,
-		TEST_WGT_APP_ROOT, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+		TEST_WGT_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_IN_LIST_EXT(testRescanCtx.detectedList,
-		TEST_WGT_APP_ROOT, true, TEST_WGT_PKG_ID);
+		TEST_WGT_APP_ROOT(), true, TEST_WGT_PKG_ID);
 
 	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList,
-		TEST_TPK_APP_ROOT, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+		TEST_TPK_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_IN_LIST_EXT(testRescanCtx.detectedList,
-		TEST_TPK_APP_ROOT, true, TEST_TPK_PKG_ID);
+		TEST_TPK_APP_ROOT(), true, TEST_TPK_PKG_ID);
 
 	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList,
 		TEST_FAKE_APP_FILE, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
@@ -714,7 +713,7 @@ BOOST_AUTO_TEST_CASE(delta_scan_basic)
 	// Rescan the sub dir
 	AsyncTestContext testRescanSubCtx;
 
-	ASSERT_IF(csr_cs_scan_dir_async(context, TEST_WGT_APP_ROOT, &testRescanSubCtx), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_dir_async(context, TEST_WGT_APP_ROOT().c_str(), &testRescanSubCtx));
 
 	std::unique_lock<std::mutex> lRescanSub(testRescanSubCtx.m);
 	testRescanSubCtx.cv.wait(lRescanSub);
@@ -724,9 +723,9 @@ BOOST_AUTO_TEST_CASE(delta_scan_basic)
 	ASSERT_CALLBACK(testRescanSubCtx, 0, 1, 1, 0, 0);
 
 	ASSERT_DETECTED_IN_LIST(testRescanSubCtx.detectedList,
-		TEST_WGT_APP_ROOT, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+		TEST_WGT_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_IN_LIST_EXT(testRescanSubCtx.detectedList,
-		TEST_WGT_APP_ROOT, true, TEST_WGT_PKG_ID);
+		TEST_WGT_APP_ROOT(), true, TEST_WGT_PKG_ID);
 
 	uninstall_test_apps();
 
@@ -750,7 +749,7 @@ BOOST_AUTO_TEST_CASE(delta_scan_changed_after_scan)
 	// Base Scan
 	AsyncTestContext testBaseCtx;
 
-	ASSERT_IF(csr_cs_scan_dir_async(context, TEST_DIR_APPS, &testBaseCtx), CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_dir_async(context, TEST_DIR_APPS, &testBaseCtx));
 
 	std::unique_lock<std::mutex> lBase(testBaseCtx.m);
 	testBaseCtx.cv.wait(lBase);
@@ -768,8 +767,7 @@ BOOST_AUTO_TEST_CASE(delta_scan_changed_after_scan)
 	// Rescan the same dir
 	AsyncTestContext testRescanCtx;
 
-	ASSERT_IF(csr_cs_scan_dir_async(context, TEST_DIR_APPS, &testRescanCtx),
-			  CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_dir_async(context, TEST_DIR_APPS, &testRescanCtx));
 
 	std::unique_lock<std::mutex> lRescan(testRescanCtx.m);
 	testRescanCtx.cv.wait(lRescan);
@@ -779,14 +777,14 @@ BOOST_AUTO_TEST_CASE(delta_scan_changed_after_scan)
 	ASSERT_CALLBACK(testRescanCtx, 1, 3, 1, 0, 0);
 
 	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList,
-		TEST_WGT_APP_ROOT, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+		TEST_WGT_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_IN_LIST_EXT(testRescanCtx.detectedList,
-		TEST_WGT_APP_ROOT, true, TEST_WGT_PKG_ID);
+		TEST_WGT_APP_ROOT(), true, TEST_WGT_PKG_ID);
 
 	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList,
-		TEST_TPK_APP_ROOT, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+		TEST_TPK_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_IN_LIST_EXT(testRescanCtx.detectedList,
-		TEST_TPK_APP_ROOT, true, TEST_TPK_PKG_ID);
+		TEST_TPK_APP_ROOT(), true, TEST_TPK_PKG_ID);
 
 	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList,
 		TEST_FAKE_APP_FILE, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
@@ -821,9 +819,8 @@ BOOST_AUTO_TEST_CASE(canonicalize_files_absolute_path)
 
 	AsyncTestContext testCtx;
 
-	ASSERT_IF(csr_cs_scan_files_async(context, files, sizeof(files) / sizeof(const char *),
-									  &testCtx),
-			  CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_files_async(context, files, sizeof(files) / sizeof(const char *),
+										   &testCtx));
 
 	std::unique_lock<std::mutex> l(testCtx.m);
 	testCtx.cv.wait(l);
@@ -861,9 +858,8 @@ BOOST_AUTO_TEST_CASE(canonicalize_files_relative_path)
 
 	Test::ScopedChDir scopedCd(TEST_DIR);
 
-	ASSERT_IF(csr_cs_scan_files_async(context, files, sizeof(files) / sizeof(const char *),
-									  &testCtx),
-			  CSR_ERROR_NONE);
+	ASSERT_SUCCESS(csr_cs_scan_files_async(context, files, sizeof(files) / sizeof(const char *),
+										   &testCtx));
 
 	std::unique_lock<std::mutex> l(testCtx.m);
 	testCtx.cv.wait(l);

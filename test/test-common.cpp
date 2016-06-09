@@ -85,13 +85,15 @@ bool pkgmgr_request(const std::function<int(pkgmgr_client *, PkgEventData *)> &r
 
 	PkgEventData data;
 	auto ret = request(pkgmgr, &data);
-	if (ret <= PKGMGR_R_OK)
+	if (ret <= PKGMGR_R_OK) {
+		BOOST_MESSAGE("pkgmgr request failed with ret: " << ret);
 		return false;
+	}
 
 	auto id = g_timeout_add_seconds(10, __quit_loop_on_timeout_cb, &data);
 	data.loop = g_main_loop_new(nullptr, false);
 	g_main_loop_run(data.loop);
-	BOOST_REQUIRE_MESSAGE(g_source_remove(id),
+	BOOST_WARN_MESSAGE(g_source_remove(id),
 			"Failed to remove timeout event source from main loop.");
 	g_main_loop_unref(data.loop);
 	pkgmgr_client_free(pkgmgr);
@@ -303,22 +305,33 @@ bool is_file_exist(const char *file)
 bool uninstall_app(const char *pkg_id)
 {
 	return pkgmgr_request([&](pkgmgr_client *pc, PkgEventData *data) {
-		return pkgmgr_client_uninstall(pc, nullptr, pkg_id, PM_QUIET,
-									   __quit_loop_on_end_cb, data);
+#ifdef PLATFORM_VERSION_3
+		return ::pkgmgr_client_usr_uninstall(pc, nullptr, pkg_id, PM_QUIET,
+										 __quit_loop_on_end_cb, data, ::getuid());
+#else
+		return ::pkgmgr_client_uninstall(pc, nullptr, pkg_id, PM_QUIET,
+										 __quit_loop_on_end_cb, data);
+#endif
 	});
 }
 
 bool install_app(const char *app_path, const char *pkg_type)
 {
 	return pkgmgr_request([&](pkgmgr_client *pc, PkgEventData *data) {
-		return pkgmgr_client_install(pc, pkg_type, nullptr, app_path, nullptr, PM_QUIET,
-									 __quit_loop_on_end_cb, data);
+#ifdef PLATFORM_VERSION_3
+		return ::pkgmgr_client_usr_install(pc, pkg_type, nullptr, app_path, nullptr,
+										   PM_QUIET, __quit_loop_on_end_cb, data,
+										   ::getuid());
+#else
+		return ::pkgmgr_client_install(pc, pkg_type, nullptr, app_path, nullptr, PM_QUIET,
+									   __quit_loop_on_end_cb, data);
+#endif
 	});
 }
 
 void initialize_db()
 {
-#ifdef PLATFORM_VERSION3
+#ifdef PLATFORM_VERSION_3
 	remove_file(RW_DBSPACE ".csr.db");
 	remove_file(RW_DBSPACE ".csr.db-journal");
 

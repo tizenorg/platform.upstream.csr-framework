@@ -118,9 +118,9 @@ void ASSERT_DETECTED_IN_LIST(const std::vector<csr_cs_malware_h> &detectedList,
 		ASSERT_SUCCESS(csr_cs_malware_get_severity(d, &a_severity));
 		ASSERT_SUCCESS(csr_cs_malware_get_detailed_url(d, &a_detailed_url.ptr));
 
-		ASSERT_IF(name, a_name.ptr);
-		ASSERT_IF(severity, a_severity);
-		ASSERT_IF(detailed_url, a_detailed_url.ptr);
+		ASSERT_IF(a_name.ptr, name);
+		ASSERT_IF(a_severity, severity);
+		ASSERT_IF(a_detailed_url.ptr, detailed_url);
 
 		return;
 	}
@@ -143,8 +143,8 @@ void ASSERT_DETECTED_IN_LIST_EXT(const std::vector<csr_cs_malware_h> &detectedLi
 		ASSERT_SUCCESS(csr_cs_malware_is_app(d, &a_is_app));
 		ASSERT_SUCCESS(csr_cs_malware_get_pkg_id(d, &a_pkg_id.ptr));
 
-		ASSERT_IF(is_app, a_is_app);
-		ASSERT_IF(pkg_id, a_pkg_id.ptr);
+		ASSERT_IF(a_is_app, is_app);
+		ASSERT_IF(a_pkg_id.ptr, pkg_id);
 
 		return;
 	}

@@ -63,27 +63,34 @@ void exceptionGuardAsync(const Callback &callbacks, void *userdata,
 {
 	try {
 		func();
-		callbacks.onCompleted(userdata);
+		if (callbacks.onCompleted != nullptr)
+			callbacks.onCompleted(userdata);
 	} catch (const Exception &e) {
 		if (e.error() == -999) {
 			INFO("Async operation cancel exception!");
-			callbacks.onCancelled(userdata);
+			if (callbacks.onCancelled != nullptr)
+				callbacks.onCancelled(userdata);
 		} else {
 			ERROR("Exception caught. code: " << e.error() << " message: " << e.what());
-			callbacks.onError(e.error(), userdata);
+			if (callbacks.onError != nullptr)
+				callbacks.onError(e.error(), userdata);
 		}
 	} catch (const std::invalid_argument &e) {
 		ERROR("invalid argument: " << e.what());
-		callbacks.onError(CSR_ERROR_INVALID_PARAMETER, userdata);
+		if (callbacks.onError != nullptr)
+			callbacks.onError(CSR_ERROR_INVALID_PARAMETER, userdata);
 	} catch (const std::bad_alloc &e) {
 		ERROR("memory allocation failed: " << e.what());
-		callbacks.onError(CSR_ERROR_OUT_OF_MEMORY, userdata);
+		if (callbacks.onError != nullptr)
+			callbacks.onError(CSR_ERROR_OUT_OF_MEMORY, userdata);
 	} catch (const std::exception &e) {
 		ERROR("std exception: " << e.what());
-		callbacks.onError(CSR_ERROR_SYSTEM, userdata);
+		if (callbacks.onError != nullptr)
+			callbacks.onError(CSR_ERROR_SYSTEM, userdata);
 	} catch (...) {
 		ERROR("Unknown exception occured!");
-		callbacks.onError(CSR_ERROR_SYSTEM, userdata);
+		if (callbacks.onError != nullptr)
+			callbacks.onError(CSR_ERROR_SYSTEM, userdata);
 	}
 }
 

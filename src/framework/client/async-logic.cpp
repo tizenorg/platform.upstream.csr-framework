@@ -123,13 +123,13 @@ void AsyncLogic::scanFiles(const StrSet &fileSet)
 			INFO("[Detected] file[" << file << "]");
 			this->m_results.emplace_back(std::move(resultPtr));
 
-			if (this->m_cb.onDetected)
+			if (this->m_cb.onDetected != nullptr)
 				this->m_cb.onDetected(reinterpret_cast<csr_cs_malware_h>(ret.second),
 									  this->m_userdata);
 		} else {
 			DEBUG("[Scanned] file[" << file << "]");
 
-			if (this->m_cb.onScanned)
+			if (this->m_cb.onScanned != nullptr)
 				this->m_cb.onScanned(file.c_str(), this->m_userdata);
 		}
 	}

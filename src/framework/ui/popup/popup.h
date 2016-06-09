@@ -73,11 +73,14 @@ public:
 	void setIcon(const std::string &path) noexcept;
 	void setText(Evas_Object *obj, const std::string &text) noexcept;
 
-	void callbackRegister(Evas_Object *obj, const char *event, int *type);
+	void callbackRegister(Evas_Object *obj, int *type);
+	void callbackRegister(Evas_Object *obj, const std::string &url);
 	static void btnClickedCb(void *data, Evas_Object *, void *);
+	static void hypertextClickedCb(void *data, Evas_Object *, void *);
 
 	std::vector<Evas_Object *> m_objects;
 	std::vector<Evas_Object *> m_buttons;
+	Evas_Object *m_hypertext;
 	std::vector<int> m_types;
 
 private:
@@ -87,7 +90,6 @@ private:
 	Evas_Object *m_subBox;
 	Evas_Object *m_header;
 	Evas_Object *m_body;
-	Evas_Object *m_hypertext;
 	Evas_Object *m_footer;
 	Evas_Object *m_icon;
 

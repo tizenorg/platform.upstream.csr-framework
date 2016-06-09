@@ -34,11 +34,12 @@ BuildRequires: cmake
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(libsystemd-daemon)
 BuildRequires: pkgconfig(vconf)
-BuildRequires: pkgconfig(elementary)
 BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(pkgmgr)
 BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(libsmack)
+BuildRequires: pkgconfig(capi-appfw-application)
+BuildRequires: pkgconfig(elementary)
 %if "%{platform_version}" == "3.0"
 BuildRequires: pkgconfig(cynara-client)
 %else

@@ -20,6 +20,8 @@
 %define with_detailed_base_url 0
 %define detailed_base_url %nil
 
+%define csr_build_internal_test 1
+
 Summary: A general purpose content screening and reputation solution
 Name: csr-framework
 Version: 2.0.0
@@ -118,6 +120,8 @@ Group:   Security/Development
 %description engine-devel
 csr-framework engine development files including headers and pkgconfig file.
 
+
+%if 0%{?csr_build_internal_test}
 %package test
 Summary: test program for %{name}
 License: Apache-2.0 and BSL-1.0
@@ -126,9 +130,12 @@ BuildRequires: boost-devel
 BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(glib-2.0)
 Requires:      %{name} = %{version}
+%endif
 
+%if 0%{?csr_build_internal_test}
 %description test
 test program of csr-framework
+%endif
 
 %prep
 %setup -q
@@ -168,6 +175,9 @@ test program of csr-framework
 %if 0%{?with_detailed_base_url}
     -DDETAILED_URL_BASE:STRING=%{detailed_base_url} \
 %endif
+%if 0%{?csr_build_internal_test}
+        -DCSR_BUILD_INTERNAL_TEST=1 \
+%endif
 %if "%{platform_version}" == "3.0"
     -DPLATFORM_VERSION_3:BOOL=ON
 %else
@@ -190,8 +200,12 @@ cp LICENSE %{buildroot}%{ro_data_dir}/license/%{name}
 cp LICENSE.BSL-1.0 %{buildroot}%{ro_data_dir}/license/%{name}.BSL-1.0
 cp LICENSE %{buildroot}%{ro_data_dir}/license/lib%{name}-client
 cp LICENSE %{buildroot}%{ro_data_dir}/license/lib%{name}-common
+
+%if 0%{?csr_build_internal_test}
 cp LICENSE %{buildroot}%{ro_data_dir}/license/%{name}-test
 cp LICENSE.BSL-1.0 %{buildroot}%{ro_data_dir}/license/%{name}-test.BSL-1.0
+%endif
+
 
 mkdir -p %{buildroot}%{rw_db_dir}
 mkdir -p %{buildroot}%{ro_db_dir}
@@ -300,6 +314,7 @@ fi
 %{_includedir}/csre/csre-web-protection-types.h
 %{_libdir}/pkgconfig/%{service_name}-engine.pc
 
+%if 0%{?csr_build_internal_test}
 %files test
 %defattr(-,root,root,-)
 %manifest %{service_name}-test.manifest
@@ -319,3 +334,4 @@ fi
 %{engine_dir}/lib%{service_name}-cs-engine.so
 %{engine_dir}/lib%{service_name}-wp-engine.so
 %attr(-, %{service_user}, %{service_group}) %{engine_rw_working_dir}/*
+%endif

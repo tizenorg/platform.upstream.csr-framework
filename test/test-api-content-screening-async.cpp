@@ -907,4 +907,58 @@ BOOST_AUTO_TEST_CASE(multiple_async_dispatch_negative)
 	EXCEPTION_GUARD_END
 }
 
+BOOST_AUTO_TEST_CASE(get_malware_after_async)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	set_default_callback(context);
+
+	const char *dirs[4] = {
+		"/opt/usr/media/",
+		"/opt/usr/apps/",
+		"/tmp/",
+		"/sdcard/"
+	};
+
+	csr_cs_malware_list_h malwares = nullptr;
+	csr_cs_malware_h malware = nullptr;
+	size_t count = 0;
+
+	ASSERT_SUCCESS(csr_cs_get_detected_malwares(context, dirs, sizeof(dirs) / sizeof(const char *), &malwares, &count));
+	BOOST_MESSAGE("detected malware exist count before scanning: " << count);
+
+	AsyncTestContext testCtx;
+
+	ASSERT_SUCCESS(csr_cs_scan_dirs_async(context, dirs, sizeof(dirs) / sizeof(const char *), &testCtx));
+
+	std::unique_lock<std::mutex> l(testCtx.m);
+	testCtx.cv.wait(l);
+	l.unlock();
+
+	BOOST_MESSAGE("scanned count: " << testCtx.scannedCnt);
+	BOOST_MESSAGE("detected count: " << testCtx.detectedCnt);
+	BOOST_MESSAGE("completed count: " << testCtx.completedCnt);
+	BOOST_MESSAGE("cancelled count: " << testCtx.cancelledCnt);
+	BOOST_MESSAGE("error count: " << testCtx.errorCnt);
+
+	ASSERT_SUCCESS(csr_cs_get_detected_malwares(context, dirs, sizeof(dirs) / sizeof(const char *), &malwares, &count));
+
+	CHECK_IS_NOT_NULL(malwares);
+
+	for (size_t i = 0; i < count; ++i) {
+		malware = nullptr;
+		Test::ScopedCstr filepath;
+		ASSERT_SUCCESS(csr_cs_malware_list_get_malware(malwares, i, &malware));
+		CHECK_IS_NOT_NULL(malware);
+		ASSERT_SUCCESS(csr_cs_malware_get_file_name(malware, &filepath.ptr));
+		CHECK_IS_NOT_NULL(filepath.ptr);
+		BOOST_MESSAGE("detect malware from file: " << filepath.ptr);
+	}
+
+	EXCEPTION_GUARD_END
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -81,7 +81,7 @@ void Service::onNewConnection(ConnShPtr &&connection)
 
 	this->m_loop.addEventSource(fd, EPOLLIN | EPOLLHUP | EPOLLRDHUP,
 	[&, fd](uint32_t event) {
-		std::unique_lock<std::mutex> lock(this->m_crMtx);
+		std::lock_guard<std::mutex> lock(this->m_crMtx);
 
 		DEBUG("read event comes in to fd[" << fd << "]");
 
@@ -97,17 +97,13 @@ void Service::onNewConnection(ConnShPtr &&connection)
 			return;
 		}
 
-		lock.unlock();
-
 		DEBUG("Start message process on fd[" << fd << "]");
 
 		onMessageProcess(conn);
 	});
 
-	{
-		std::lock_guard<std::mutex> l(this->m_crMtx);
-		this->m_connectionRegistry[fd] = std::move(connection);
-	}
+	std::lock_guard<std::mutex> lock(this->m_crMtx);
+	this->m_connectionRegistry[fd] = std::move(connection);
 }
 
 void Service::onCloseConnection(const ConnShPtr &connection)
@@ -126,13 +122,6 @@ void Service::onCloseConnection(const ConnShPtr &connection)
 	this->m_loop.removeEventSource(fd);
 
 	this->m_connectionRegistry.erase(fd);
-}
-
-bool Service::isConnectionValid(int fd) const
-{
-	std::lock_guard<std::mutex> l(this->m_crMtx);
-
-	return this->m_connectionRegistry.count(fd) != 0;
 }
 
 }

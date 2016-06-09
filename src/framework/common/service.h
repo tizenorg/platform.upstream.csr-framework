@@ -48,7 +48,6 @@ public:
 
 protected:
 	void setIdleChecker(std::function<bool()> &&idleChecker);
-	bool isConnectionValid(int fd) const;
 
 private:
 	virtual void onMessageProcess(const ConnShPtr &) = 0;

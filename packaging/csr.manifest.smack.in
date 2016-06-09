@@ -29,6 +29,7 @@
 			<smack permit="pkgmgr-server" type="rx" />
 			<smack permit="wrt-installer" type="rx" />
 			<smack permit="system::use_internet" type="w" />
+			<smack permit="dbus" type="rx" />
 
 			<smack permit="crash-worker" type="rx" />
 		</permit>

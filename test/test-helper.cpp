@@ -39,9 +39,9 @@ void ASSERT_DETECTED(csr_cs_malware_h detected, const char *e_malware_name,
 	ASSERT_SUCCESS(csr_cs_malware_get_name(detected, &a_malware_name.ptr));
 	ASSERT_SUCCESS(csr_cs_malware_get_detailed_url(detected, &a_detailed_url.ptr));
 
-	ASSERT_IF(a_severity, e_severity);
-	ASSERT_IF(a_malware_name.ptr, e_malware_name);
-	ASSERT_IF(a_detailed_url.ptr, e_detailed_url);
+	WARN_IF(a_severity, e_severity);
+	WARN_IF(a_malware_name.ptr, e_malware_name);
+	WARN_IF(a_detailed_url.ptr, e_detailed_url);
 }
 
 void ASSERT_DETECTED_EXT(csr_cs_malware_h detected, time_t e_timestamp,
@@ -56,9 +56,9 @@ void ASSERT_DETECTED_EXT(csr_cs_malware_h detected, time_t e_timestamp,
 	ASSERT_SUCCESS(csr_cs_malware_is_app(detected, &a_is_app));
 	ASSERT_SUCCESS(csr_cs_malware_get_pkg_id(detected, &a_pkg_id.ptr));
 
-	ASSERT_IF(a_file_name.ptr, e_file_name);
-	ASSERT_IF(a_is_app, e_is_app);
-	ASSERT_IF(a_pkg_id.ptr, e_pkg_id);
+	WARN_IF(a_file_name.ptr, e_file_name);
+	WARN_IF(a_is_app, e_is_app);
+	WARN_IF(a_pkg_id.ptr, e_pkg_id);
 
 	BOOST_WARN_MESSAGE(e_timestamp <= a_timestamp,
 					   "Actual detected item's time stamp is later than expected time "
@@ -92,13 +92,13 @@ void ASSERT_DETECTED_HANDLE(csr_cs_malware_h expected, csr_cs_malware_h actual)
 	ASSERT_SUCCESS(csr_cs_malware_is_app(actual, &a_is_app));
 	ASSERT_SUCCESS(csr_cs_malware_get_pkg_id(actual, &a_pkg_id.ptr));
 
-	ASSERT_IF(a_severity, e_severity);
-	ASSERT_IF(a_malware_name.ptr, e_malware_name.ptr);
-	ASSERT_IF(a_detailed_url.ptr, e_detailed_url.ptr);
-	ASSERT_IF(a_file_name.ptr, e_file_name.ptr);
-	ASSERT_IF(a_is_app, e_is_app);
-	ASSERT_IF(a_pkg_id.ptr, e_pkg_id.ptr);
-	ASSERT_IF(a_timestamp, e_timestamp);
+	WARN_IF(a_severity, e_severity);
+	WARN_IF(a_malware_name.ptr, e_malware_name.ptr);
+	WARN_IF(a_detailed_url.ptr, e_detailed_url.ptr);
+	WARN_IF(a_file_name.ptr, e_file_name.ptr);
+	WARN_IF(a_is_app, e_is_app);
+	WARN_IF(a_pkg_id.ptr, e_pkg_id.ptr);
+	WARN_IF(a_timestamp, e_timestamp);
 }
 
 void ASSERT_DETECTED_IN_LIST(const std::vector<csr_cs_malware_h> &detectedList,
@@ -118,9 +118,9 @@ void ASSERT_DETECTED_IN_LIST(const std::vector<csr_cs_malware_h> &detectedList,
 		ASSERT_SUCCESS(csr_cs_malware_get_severity(d, &a_severity));
 		ASSERT_SUCCESS(csr_cs_malware_get_detailed_url(d, &a_detailed_url.ptr));
 
-		ASSERT_IF(name, a_name.ptr);
-		ASSERT_IF(severity, a_severity);
-		ASSERT_IF(detailed_url, a_detailed_url.ptr);
+		WARN_IF(a_name.ptr, name);
+		WARN_IF(a_severity, severity);
+		WARN_IF(a_detailed_url.ptr, detailed_url);
 
 		return;
 	}
@@ -143,8 +143,8 @@ void ASSERT_DETECTED_IN_LIST_EXT(const std::vector<csr_cs_malware_h> &detectedLi
 		ASSERT_SUCCESS(csr_cs_malware_is_app(d, &a_is_app));
 		ASSERT_SUCCESS(csr_cs_malware_get_pkg_id(d, &a_pkg_id.ptr));
 
-		ASSERT_IF(is_app, a_is_app);
-		ASSERT_IF(pkg_id, a_pkg_id.ptr);
+		WARN_IF(a_is_app, is_app);
+		WARN_IF(a_pkg_id.ptr, pkg_id);
 
 		return;
 	}

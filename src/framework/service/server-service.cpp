@@ -378,19 +378,21 @@ void ServerService::onMessageProcess(const ConnShPtr &connection)
 
 	auto inbufPtr = std::make_shared<RawBuffer>(connection->receive());
 
-	auto fd = connection->getFd();
+	this->m_workqueue.submit([this, connection, process, inbufPtr]() {
+		try {
+			auto outbuf = (*process)(connection, *inbufPtr);
 
-	this->m_workqueue.submit([this, &connection, fd, process, inbufPtr]() {
-		auto outbuf = (*process)(connection, *inbufPtr);
+			CpuUsageManager::reset();
 
-		CpuUsageManager::reset();
-
-		if (!this->isConnectionValid(fd)) {
-			ERROR("Connection for fd[] is closed while task is in processing...");
-			return;
+			connection->send(outbuf);
+		} catch (const std::exception &e) {
+			ERROR("exception on workqueue task: " << e.what());
+			try {
+				connection->send(BinaryQueue::Serialize(CSR_ERROR_SYSTEM).pop());
+			} catch (const std::exception &e) {
+				ERROR("The connection is abnormally closed by the peer: " << e.what());
+			}
 		}
-
-		connection->send(outbuf);
 	});
 }
 

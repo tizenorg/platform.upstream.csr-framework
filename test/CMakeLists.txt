@@ -36,6 +36,7 @@ PKG_CHECK_MODULES(${TARGET_CSR_TEST_COMMON}_DEP
 
 SET(${TARGET_CSR_TEST_COMMON}_SRCS
 	test-common.cpp
+	test-resource.cpp
 	colour_log_formatter.cpp
 )
 

@@ -45,7 +45,7 @@ void ASSERT_DETECTED(csr_cs_malware_h detected, const char *e_malware_name,
 }
 
 void ASSERT_DETECTED_EXT(csr_cs_malware_h detected, time_t e_timestamp,
-						 const char *e_file_name, bool e_is_app, const char *e_pkg_id)
+						 const std::string &e_file_name, bool e_is_app, const char *e_pkg_id)
 {
 	time_t a_timestamp;
 	bool a_is_app;
@@ -102,7 +102,7 @@ void ASSERT_DETECTED_HANDLE(csr_cs_malware_h expected, csr_cs_malware_h actual)
 }
 
 void ASSERT_DETECTED_IN_LIST(const std::vector<csr_cs_malware_h> &detectedList,
-							 const char *file_name, const char *name,
+							 const std::string &file_name, const char *name,
 							 csr_cs_severity_level_e severity, const char *detailed_url)
 {
 	csr_cs_severity_level_e a_severity;
@@ -111,7 +111,7 @@ void ASSERT_DETECTED_IN_LIST(const std::vector<csr_cs_malware_h> &detectedList,
 	std::vector<csr_cs_malware_h>::iterator iter;
 	for (auto &d : detectedList) {
 		ASSERT_IF(csr_cs_malware_get_file_name(d, &a_file_name.ptr), CSR_ERROR_NONE);
-		if (strcmp(file_name, a_file_name.ptr) != 0)
+		if (file_name != a_file_name.ptr)
 			continue;
 
 		ASSERT_SUCCESS(csr_cs_malware_get_name(d, &a_name.ptr));
@@ -130,14 +130,15 @@ void ASSERT_DETECTED_IN_LIST(const std::vector<csr_cs_malware_h> &detectedList,
 }
 
 void ASSERT_DETECTED_IN_LIST_EXT(const std::vector<csr_cs_malware_h> &detectedList,
-								 const char *file_name, bool is_app, const char *pkg_id)
+								 const std::string &file_name, bool is_app,
+								 const char *pkg_id)
 {
 	bool a_is_app;
 	Test::ScopedCstr a_file_name, a_pkg_id;
 
 	for (auto &d : detectedList) {
 		ASSERT_SUCCESS(csr_cs_malware_get_file_name(d, &a_file_name.ptr));
-		if (strcmp(file_name, a_file_name.ptr) != 0)
+		if (file_name != a_file_name.ptr)
 			continue;
 
 		ASSERT_SUCCESS(csr_cs_malware_is_app(d, &a_is_app));

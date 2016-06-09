@@ -18,6 +18,8 @@
 			<smack request="pkgmgr::db" type="rwx" />
 			<smack request="pkgmgr::svc" type="r" />
 			<smack request="system::use_internet" type="w" />
+			<smack request="aul::launch" type="x" />
+			<smack request="app-svc::db" type="rw" />
 
 			<smack request="system::media" type="rwxat" />
 			<smack request="system::homedir" type="rwxat" />

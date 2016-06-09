@@ -66,7 +66,8 @@ RawBuffer Logic::csPromptData(const std::string &message, const CsDetected &d) c
 	p.m_types.emplace_back(
 		static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED));
 
-	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
+	p.callbackRegister(p.m_buttons[0], &p.m_types[0]);
+	p.callbackRegister(p.m_hypertext, d.detailedUrl);
 
 	p.run();
 	return p.getResult();
@@ -103,9 +104,10 @@ RawBuffer Logic::csPromptFile(const std::string &message, const CsDetected &d) c
 	p.m_types.emplace_back(
 		static_cast<int>(CSR_CS_USER_RESPONSE_REMOVE));
 
-	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
-	p.callbackRegister(p.m_buttons[1], "clicked", &p.m_types[1]);
-	p.callbackRegister(p.m_buttons[2], "clicked", &p.m_types[2]);
+	p.callbackRegister(p.m_buttons[0], &p.m_types[0]);
+	p.callbackRegister(p.m_buttons[1], &p.m_types[1]);
+	p.callbackRegister(p.m_buttons[2], &p.m_types[2]);
+	p.callbackRegister(p.m_hypertext, d.detailedUrl);
 
 	p.run();
 	return p.getResult();
@@ -142,9 +144,10 @@ RawBuffer Logic::csPromptApp(const std::string &message, const CsDetected &d) co
 	p.m_types.emplace_back(
 		static_cast<int>(CSR_CS_USER_RESPONSE_REMOVE));
 
-	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
-	p.callbackRegister(p.m_buttons[1], "clicked", &p.m_types[1]);
-	p.callbackRegister(p.m_buttons[2], "clicked", &p.m_types[2]);
+	p.callbackRegister(p.m_buttons[0], &p.m_types[0]);
+	p.callbackRegister(p.m_buttons[1], &p.m_types[1]);
+	p.callbackRegister(p.m_buttons[2], &p.m_types[2]);
+	p.callbackRegister(p.m_hypertext, d.detailedUrl);
 
 	p.run();
 	return p.getResult();
@@ -165,7 +168,8 @@ RawBuffer Logic::csNotifyData(const std::string &message, const CsDetected &d) c
 	p.m_types.emplace_back(
 		static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_DISALLOWED));
 
-	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
+	p.callbackRegister(p.m_buttons[0], &p.m_types[0]);
+	p.callbackRegister(p.m_hypertext, d.detailedUrl);
 
 	p.run();
 	return p.getResult();
@@ -196,8 +200,9 @@ RawBuffer Logic::csNotifyFile(const std::string &message, const CsDetected &d) c
 	p.m_types.emplace_back(
 		static_cast<int>(CSR_CS_USER_RESPONSE_REMOVE));
 
-	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
-	p.callbackRegister(p.m_buttons[1], "clicked", &p.m_types[1]);
+	p.callbackRegister(p.m_buttons[0], &p.m_types[0]);
+	p.callbackRegister(p.m_buttons[1], &p.m_types[1]);
+	p.callbackRegister(p.m_hypertext, d.detailedUrl);
 
 	p.run();
 	return p.getResult();
@@ -229,8 +234,9 @@ RawBuffer Logic::csNotifyApp(const std::string &message, const CsDetected &d) co
 	p.m_types.emplace_back(
 		static_cast<int>(CSR_CS_USER_RESPONSE_PROCESSING_ALLOWED));
 
-	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
-	p.callbackRegister(p.m_buttons[1], "clicked", &p.m_types[1]);
+	p.callbackRegister(p.m_buttons[0], &p.m_types[0]);
+	p.callbackRegister(p.m_buttons[1], &p.m_types[1]);
+	p.callbackRegister(p.m_hypertext, d.detailedUrl);
 
 	p.run();
 	return p.getResult();
@@ -243,7 +249,7 @@ RawBuffer Logic::wpPrompt(const std::string &message, const UrlItem &item) const
 	Popup p(1);
 
 	p.setMessage(message);
-	p.setTitle("    Block malicious URL");
+	p.setTitle("Block malicious URL");
 	p.setHeader("    This website may harm your phone.");
 	p.setBody(FORMAT(
 		"    - URL : " << item.url << "<br>" <<
@@ -256,7 +262,8 @@ RawBuffer Logic::wpPrompt(const std::string &message, const UrlItem &item) const
 
 	p.m_types.emplace_back(static_cast<int>(CSR_WP_USER_RESPONSE_PROCESSING_DISALLOWED));
 
-	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
+	p.callbackRegister(p.m_buttons[0], &p.m_types[0]);
+	p.callbackRegister(p.m_hypertext, item.url);
 
 	p.run();
 	return p.getResult();
@@ -267,7 +274,7 @@ RawBuffer Logic::wpNotify(const std::string &message, const UrlItem &item) const
 	Popup p(2);
 
 	p.setMessage(message);
-	p.setTitle("    Block malicious URL");
+	p.setTitle("Block malicious URL");
 	p.setHeader("   This website may harm your phone.");
 	p.setBody(FORMAT(
 		"    - URL : " << item.url << "<br>" <<
@@ -284,8 +291,9 @@ RawBuffer Logic::wpNotify(const std::string &message, const UrlItem &item) const
 	p.m_types.emplace_back(
 		static_cast<int>(CSR_WP_USER_RESPONSE_PROCESSING_ALLOWED));
 
-	p.callbackRegister(p.m_buttons[0], "clicked", &p.m_types[0]);
-	p.callbackRegister(p.m_buttons[1], "clicked", &p.m_types[1]);
+	p.callbackRegister(p.m_buttons[0], &p.m_types[0]);
+	p.callbackRegister(p.m_buttons[1], &p.m_types[1]);
+	p.callbackRegister(p.m_hypertext, item.url);
 
 	p.run();
 	return p.getResult();

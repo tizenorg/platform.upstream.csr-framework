@@ -23,6 +23,7 @@ PKG_CHECK_MODULES(${TARGET_CSR_POPUP}_DEP
 	libsystemd-daemon
 	vconf
 	pkgmgr-info
+	capi-appfw-application
 )
 
 INCLUDE_DIRECTORIES(

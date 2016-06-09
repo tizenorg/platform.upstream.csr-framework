@@ -49,13 +49,22 @@
 										0, std::ios_base::cur) << ITEMS)).str()
 
 #define ASSERT_IF_MSG(value, expected, msg) \
-	Test::_assert(value, expected, __FILENAME__, __func__, __LINE__, TOSTRING(msg))
+	Test::_assert(value, expected, __FILENAME__, __func__, __LINE__, true, TOSTRING(msg))
+
+#define WARN_IF_MSG(value, expected, msg) \
+	Test::_assert(value, expected, __FILENAME__, __func__, __LINE__, false, TOSTRING(msg))
 
 #define ASSERT_IF(value, expected) \
-	Test::_assert(value, expected, __FILENAME__, __func__, __LINE__, "")
+	Test::_assert(value, expected, __FILENAME__, __func__, __LINE__, true, "")
+
+#define WARN_IF(value, expected) \
+	Test::_assert(value, expected, __FILENAME__, __func__, __LINE__, false, "")
 
 #define ASSERT_SUCCESS(value) \
-	Test::_assert(value, CSR_ERROR_NONE, __FILENAME__, __func__, __LINE__, "")
+	Test::_assert(value, CSR_ERROR_NONE, __FILENAME__, __func__, __LINE__, true, "")
+
+#define WARN_SUCCESS(value) \
+	Test::_assert(value, CSR_ERROR_NONE, __FILENAME__, __func__, __LINE__, false, "")
 
 #define ASSERT_INSTALL_APP(path, type)                       \
 	BOOST_REQUIRE_MESSAGE(Test::install_app(path, type),     \
@@ -75,12 +84,19 @@ namespace Test {
 
 template <typename T, typename U>
 void _assert(const T &value, const U &expected, const std::string &filename,
-			 const std::string &funcname, unsigned int line, const std::string &msg)
+			 const std::string &funcname, unsigned int line, bool isAssert,
+			 const std::string &msg)
 {
-	BOOST_REQUIRE_MESSAGE(value == expected,
-						  "[" << filename << " > " << funcname << " : " << line << "]" <<
-						  " returned[" << value << "] expected[" << expected <<
-						  "] " << msg);
+	if (isAssert)
+		BOOST_REQUIRE_MESSAGE(value == expected,
+							  "[" << filename << " > " << funcname << " : " << line <<
+							  "]" << " returned[" << value << "] expected[" << expected <<
+							  "] " << msg);
+	else
+		BOOST_WARN_MESSAGE(value == expected,
+							  "[" << filename << " > " << funcname << " : " << line <<
+							  "]" << " returned[" << value << "] expected[" << expected <<
+							  "] " << msg);
 }
 
 template <>
@@ -89,6 +105,7 @@ void _assert<csr_error_e, csr_error_e>(const csr_error_e &value,
 									   const std::string &filename,
 									   const std::string &funcname,
 									   unsigned int line,
+									   bool isAssert,
 									   const std::string &msg);
 
 template <>
@@ -97,6 +114,7 @@ void _assert<csr_error_e, int>(const csr_error_e &value,
 							   const std::string &filename,
 							   const std::string &funcname,
 							   unsigned int line,
+							   bool isAssert,
 							   const std::string &msg);
 
 template <>
@@ -105,6 +123,7 @@ void _assert<int, csr_error_e>(const int &value,
 							   const std::string &filename,
 							   const std::string &funcname,
 							   unsigned int line,
+							   bool isAssert,
 							   const std::string &msg);
 
 template <>
@@ -113,6 +132,7 @@ void _assert<const char *, const char *>(const char * const &value,
 										 const std::string &filename,
 										 const std::string &funcname,
 										 unsigned int line,
+										 bool isAssert,
 										 const std::string &msg);
 
 template <>
@@ -121,6 +141,7 @@ void _assert<char *, const char *>(char * const &value,
 								   const std::string &filename,
 								   const std::string &funcname,
 								   unsigned int line,
+								   bool isAssert,
 								   const std::string &msg);
 
 template <>
@@ -129,6 +150,7 @@ void _assert<const char *, char *>(const char * const &value,
 								   const std::string &filename,
 								   const std::string &funcname,
 								   unsigned int line,
+								   bool isAssert,
 								   const std::string &msg);
 
 template <>
@@ -137,6 +159,7 @@ void _assert<char *, char *>(char * const &value,
 							 const std::string &filename,
 							 const std::string &funcname,
 							 unsigned int line,
+							 bool isAssert,
 							 const std::string &msg);
 
 template <>
@@ -145,6 +168,7 @@ void _assert<const char *, std::string>(const char * const &value,
 										const std::string &filename,
 										const std::string &funcname,
 										unsigned int line,
+										bool isAssert,
 										const std::string &msg);
 
 template <>
@@ -153,6 +177,7 @@ void _assert<char *, std::string>(char * const &value,
 								  const std::string &filename,
 								  const std::string &funcname,
 								  unsigned int line,
+								  bool isAssert,
 								  const std::string &msg);
 
 void exceptionGuard(const std::function<void()> &);

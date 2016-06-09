@@ -23,6 +23,10 @@ PKG_CHECK_MODULES(${TARGET_CSR_POPUP}_DEP
 	libsystemd-daemon
 	vconf
 	pkgmgr-info
+	efl-extension
+	ewebkit2
+	ecore
+	evas
 )
 
 INCLUDE_DIRECTORIES(
@@ -36,6 +40,7 @@ SET(${TARGET_CSR_POPUP}_SRCS
 	logic.cpp
 	popup.cpp
 	popup-service.cpp
+	popup-webview.cpp
 	package-info.cpp
 	${PROJECT_SOURCE_DIR}/src/framework/ui/common.cpp
 )

@@ -21,6 +21,8 @@
  * @brief
  */
 #include "popup.h"
+#include "popup-webview.h"
+
 #include <package-info.h>
 
 namespace Csr {
@@ -67,12 +69,13 @@ Popup::Popup(int buttonN)
 	evas_object_show(m_subBox);
 
 	// This label is for linking to webview.
-	m_hypertext = elm_label_add(m_box);
-	elm_object_text_set(m_hypertext,"<color=#0000FFFF>"
-		"    More information</color>");
+	m_hypertext = elm_button_add(m_box);
+	elm_object_text_set(m_hypertext, "More information");
 	evas_object_size_hint_align_set(m_hypertext, EVAS_HINT_FILL, 0);
 	elm_box_pack_end(m_box, m_hypertext);
 	evas_object_show(m_hypertext);
+	// TODO(sangwan.kwon) Fix button theme & should not focus.
+	elm_object_style_set(m_hypertext, "anchor");
 
 	m_footer = elm_label_add(m_box);
 	evas_object_size_hint_align_set(m_footer, EVAS_HINT_FILL, 0);
@@ -166,9 +169,21 @@ void Popup::setText(Evas_Object *obj, const std::string &text) noexcept
 	elm_object_text_set(obj, text.c_str());
 }
 
-void Popup::callbackRegister(Evas_Object *obj, const char *event, int *type)
+void Popup::callbackRegister(Evas_Object *obj, int *type)
 {
-	evas_object_smart_callback_add(obj, event, btnClickedCb, type);
+	evas_object_smart_callback_add(obj, "clicked", btnClickedCb, type);
+}
+
+void Popup::callbackRegister(Evas_Object *obj, std::string *url)
+{
+	evas_object_smart_callback_add(obj, "clicked", hypertextClickedCb, url);
+}
+
+void Popup::hypertextClickedCb(void *data, Evas_Object *, void *)
+{
+	std::string url = *(reinterpret_cast<std::string *>(data));
+	Webview wv(url);
+	wv.run();
 }
 
 void Popup::btnClickedCb(void *data, Evas_Object *, void *)

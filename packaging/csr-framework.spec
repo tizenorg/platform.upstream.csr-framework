@@ -37,10 +37,13 @@ BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(pkgmgr)
 BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(libsmack)
+BuildRequires: pkgconfig(efl-extension)
 %if "%{platform_version}" == "3.0"
 BuildRequires: pkgconfig(cynara-client)
+BuildRequires: pkgconfig(chromium-efl)
 %else
 BuildRequires: pkgconfig(libsmack)
+BuildRequires: pkgconfig(ewebkit2)
 %endif
 Requires:      lib%{name}-common = %{version}-%{release}
 %{?systemd_requires}

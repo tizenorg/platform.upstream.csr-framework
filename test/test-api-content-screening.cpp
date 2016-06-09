@@ -327,12 +327,12 @@ BOOST_AUTO_TEST_CASE(scan_file_wgt_dir)
 	Test::uninstall_app(TEST_WGT_PKG_ID);
 	ASSERT_INSTALL_APP(TEST_WGT_PATH, TEST_WGT_TYPE);
 
-	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_WGT_MAL_FILE, &detected));
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_WGT_MAL_FILE().c_str(), &detected));
 
 	CHECK_IS_NOT_NULL(detected);
 	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
 					MALWARE_HIGH_DETAILED_URL);
-	ASSERT_DETECTED_EXT(detected, start_time, TEST_WGT_APP_ROOT, true, TEST_WGT_PKG_ID);
+	ASSERT_DETECTED_EXT(detected, start_time, TEST_WGT_APP_ROOT(), true, TEST_WGT_PKG_ID);
 
 	ASSERT_UNINSTALL_APP(TEST_WGT_PKG_ID);
 
@@ -352,12 +352,12 @@ BOOST_AUTO_TEST_CASE(scan_file_tpk_dir)
 	Test::uninstall_app(TEST_TPK_PKG_ID);
 	ASSERT_INSTALL_APP(TEST_TPK_PATH, TEST_TPK_TYPE);
 
-	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_TPK_MAL_FILE, &detected));
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_TPK_MAL_FILE().c_str(), &detected));
 
 	CHECK_IS_NOT_NULL(detected);
 	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
 					MALWARE_HIGH_DETAILED_URL);
-	ASSERT_DETECTED_EXT(detected, start_time, TEST_TPK_APP_ROOT, true, TEST_TPK_PKG_ID);
+	ASSERT_DETECTED_EXT(detected, start_time, TEST_TPK_APP_ROOT(), true, TEST_TPK_PKG_ID);
 
 	ASSERT_UNINSTALL_APP(TEST_TPK_PKG_ID);
 
@@ -915,7 +915,7 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_remove_wgt)
 	ASSERT_INSTALL_APP(TEST_WGT_PATH, TEST_WGT_TYPE);
 
 	// remove detected malware file
-	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_WGT_MAL_FILE, &detected));
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_WGT_MAL_FILE().c_str(), &detected));
 	CHECK_IS_NOT_NULL(detected);
 
 	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE));
@@ -936,7 +936,7 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_remove_tpk)
 	ASSERT_INSTALL_APP(TEST_TPK_PATH, TEST_TPK_TYPE);
 
 	// remove detected malware file
-	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_TPK_MAL_FILE, &detected));
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_TPK_MAL_FILE().c_str(), &detected));
 	CHECK_IS_NOT_NULL(detected);
 
 	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, detected, CSR_CS_ACTION_REMOVE));

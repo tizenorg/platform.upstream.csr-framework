@@ -424,12 +424,14 @@ bool install_app(const char *app_path, const char *pkg_type)
 
 void initialize_db()
 {
+#if 0
 #ifdef PLATFORM_VERSION_3
 	remove_file(RW_DBSPACE ".csr.db");
 	remove_file(RW_DBSPACE ".csr.db-journal");
 
 	int ret = system("systemctl restart csr.service");
 	BOOST_MESSAGE("CSR DB Initalization & Daemon Restart. Result=" << ret);
+#endif
 #endif
 }
 

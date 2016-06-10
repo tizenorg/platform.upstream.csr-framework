@@ -206,11 +206,15 @@ int csret_cs_read_binary(const std::string &path, RawBuffer &buffer)
 
 	f.seekg(0, f.end);
 	auto len = f.tellg();
+	if (len == -1) {
+		buffer.clear();
+		return CSRET_CS_ERROR_FILE_IO;
+	}
+
 	f.seekg(0, f.beg);
 
 	buffer.resize(len, 0);
 	f.read(reinterpret_cast<char *>(buffer.data()), buffer.size());
-
 	if (!f) {
 		buffer.clear();
 		return CSRET_CS_ERROR_FILE_IO;
@@ -454,7 +458,6 @@ int csre_cs_scan_app_on_cloud(csre_cs_context_h handle,
 
 	if (!dirp)
 		return CSRE_ERROR_FILE_NOT_FOUND;
-
 
 	struct dirent entry;
 	struct dirent *result;

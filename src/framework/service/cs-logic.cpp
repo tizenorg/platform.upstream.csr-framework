@@ -241,42 +241,26 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 	return riskiest;
 }
 
-RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &path)
+RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
 {
 	FilePtr fileptr;
 	try {
-		fileptr = File::create(path);
+		fileptr = File::create(pkgPath);
 	} catch (const Exception &e) {
 		if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST)
-			WARN("Pinned file[" << path << " in app doesn't exist or perm denied.");
+			WARN("Package path of file[" << pkgPath << "] doesn't exist or perm denied.");
 		else if (e.error() == CSR_ERROR_FILE_SYSTEM)
-			WARN("Pinned file[" << path << " in app type isn't regular file or dir.");
+			WARN("Package path of file[" << pkgPath << "] type isn't regular file or dir.");
 		else
 			throw;
-	}
-
-	// try again to create FilePtr by package path
-	if (!fileptr) {
-		try {
-			fileptr = File::create(File::getPkgPath(path));
-		} catch (const Exception &e) {
-			if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST)
-				WARN("Package path of file[" << path << "] doesn't exist or perm denied.");
-			else if (e.error() == CSR_ERROR_FILE_SYSTEM)
-				WARN("Package path of file[" << path << "] type isn't regular file or dir.");
-			else
-				throw;
-		}
 	}
 
 	if (!fileptr->isInApp())
 		ThrowExc(CSR_ERROR_SERVER, "fileptr should be in app.");
 
 	if (!fileptr->isRemovable())
-		ThrowExc(CSR_ERROR_PERMISSION_DENIED, "app[" << fileptr->getAppPkgPath() <<
-				 "] isn't removable.");
+		ThrowExc(CSR_ERROR_PERMISSION_DENIED, "app[" << pkgPath << "] isn't removable.");
 
-	const auto &pkgPath = fileptr->getAppPkgPath();
 	const auto &pkgId = fileptr->getAppPkgId();
 
 	if (context.isScanOnCloud && this->m_loader->scanAppOnCloudSupported())
@@ -407,6 +391,8 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 	if (result == nullptr)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
+	INFO("New malware detected on file: " << filepath);
+
 	auto d = this->convert(result, filepath, timestamp);
 
 	this->m_db->insertName(d.targetName);
@@ -422,38 +408,44 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 
 	setCoreUsage(context.coreUsage);
 
-	if (File::isInApp(filepath))
-		return this->scanApp(context, filepath);
+	auto target = canonicalizePath(filepath, true);
 
-	DEBUG("Scan request on file: " << filepath);
+	if (File::isInApp(target))
+		return this->scanApp(context, target);
 
-	auto history = this->m_db->getDetectedByNameOnPath(filepath);
+	DEBUG("Scan request on file: " << target);
+
+	auto history = this->m_db->getDetectedByNameOnPath(target);
 
 	FilePtr fileptr;
 
 	// if history exist, fileptr can be null because of modified since value
 	// from history.
 	if (history)
-		fileptr = File::createIfModified(filepath, static_cast<time_t>(history->ts));
+		fileptr = File::createIfModified(target, static_cast<time_t>(history->ts));
 	else
-		fileptr = File::create(filepath);
+		fileptr = File::create(target);
 
 	// non-null fileptr means the file is modified since the last history
 	// OR there's no history at all.
 	if (fileptr) {
 		if (history)
-			this->m_db->deleteDetectedByNameOnPath(filepath);
+			this->m_db->deleteDetectedByNameOnPath(target);
+
+		if (!fileptr->isRemovable())
+			ThrowExc(CSR_ERROR_PERMISSION_DENIED, "No permission to remove file[" <<
+					 target << "] so cannot scan.");
 
 		if (fileptr->isDir())
 			ThrowExc(CSR_ERROR_FILE_SYSTEM,
-					 "file type shouldn't be directory: " << filepath);
+					 "file type shouldn't be directory: " << target);
 
-		DEBUG("file[" << filepath << "] is modified since the detected time. "
+		DEBUG("file[" << target << "] is modified since the detected time. "
 			  "let's remove history and re-scan");
-		return this->scanFileWithoutDelta(context, filepath, std::move(fileptr));
+		return this->scanFileWithoutDelta(context, target, std::move(fileptr));
 	}
 
-	DEBUG("Usable scan history exist on file: " << filepath);
+	DEBUG("Usable scan history exist on file: " << target);
 
 	if (history->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();

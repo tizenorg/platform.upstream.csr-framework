@@ -183,9 +183,13 @@ void _assert<char *, std::string>(char * const &value,
 void exceptionGuard(const std::function<void()> &);
 
 void make_dir(const char *dir);
+void make_dir_assert(const char *dir);
 void copy_file(const char *src_file, const char *dest_file);
+void copy_file_assert(const char *src_file, const char *dest_file);
 void touch_file(const char *file);
+void touch_file_assert(const char *file);
 void remove_file(const char *file);
+void remove_file_assert(const char *file);
 bool is_file_exist(const char *file);
 bool install_app(const char *app_path, const char *app_type);
 bool uninstall_app(const char *pkg_id);

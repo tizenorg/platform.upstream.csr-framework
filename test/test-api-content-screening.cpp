@@ -35,6 +35,43 @@
 #include "test-helper.h"
 #include "test-resource.h"
 
+namespace {
+
+void assertMalwareInList(csr_cs_malware_list_h list, size_t count, const std::string &filepath)
+{
+	csr_cs_malware_h malware;
+	for (size_t i = 0; i < count; i++) {
+		ASSERT_SUCCESS(csr_cs_malware_list_get_malware(list, i, &malware));
+		CHECK_IS_NOT_NULL(malware);
+
+		Test::ScopedCstr filepath_cstr;
+		ASSERT_SUCCESS(csr_cs_malware_get_file_name(malware, &filepath_cstr.ptr));
+		if (filepath == filepath_cstr.ptr)
+			return;
+	}
+
+	BOOST_REQUIRE_MESSAGE(false, "malware on file[" << filepath << " is not exist "
+						  "in the list");
+}
+
+void assertMalwareNotInList(csr_cs_malware_list_h list, size_t count, const std::string &filepath)
+{
+	csr_cs_malware_h malware;
+	for (size_t i = 0; i < count; i++) {
+		ASSERT_SUCCESS(csr_cs_malware_list_get_malware(list, i, &malware));
+		CHECK_IS_NOT_NULL(malware);
+
+		Test::ScopedCstr filepath_cstr;
+		ASSERT_SUCCESS(csr_cs_malware_get_file_name(malware, &filepath_cstr.ptr));
+		if (filepath == filepath_cstr.ptr)
+			BOOST_REQUIRE_MESSAGE(false, "malware on file[" << filepath << " is exist "
+								  "in the list");
+	}
+
+}
+
+} // namespace anonymous
+
 BOOST_AUTO_TEST_SUITE(API_CONTENT_SCREENING)
 
 BOOST_AUTO_TEST_CASE(context_create_destroy)
@@ -962,6 +999,295 @@ BOOST_AUTO_TEST_CASE(judge_detected_malware_invalid_params)
 	ASSERT_IF(csr_cs_judge_detected_malware(context, detected,
 											static_cast<csr_cs_action_e>(-1)),
 			  CSR_ERROR_INVALID_PARAMETER);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_malware_after_file_removed)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_malware_h malware;
+
+	Test::remove_file(TEST_FILE_TMP);
+	Test::copy_file_assert(TEST_FILE_HIGH, TEST_FILE_TMP);
+
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_TMP, &malware));
+	CHECK_IS_NOT_NULL(malware);
+
+	csr_cs_malware_h malware_stored;
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_TMP, &malware_stored));
+	CHECK_IS_NOT_NULL(malware_stored);
+
+	Test::remove_file_assert(TEST_FILE_TMP);
+
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_TMP, &malware_stored));
+	CHECK_IS_NULL(malware_stored);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_malwares_after_file_removed)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_malware_h malware;
+
+	Test::remove_file(TEST_FILE_TMP);
+	Test::remove_file(TEST_FILE_TMP_IN_DIR_MALWARES);
+	Test::copy_file_assert(TEST_FILE_HIGH, TEST_FILE_TMP);
+	Test::copy_file_assert(TEST_FILE_HIGH, TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_TMP, &malware));
+	CHECK_IS_NOT_NULL(malware);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_TMP_IN_DIR_MALWARES, &malware));
+	CHECK_IS_NOT_NULL(malware);
+
+	const char *dirs[2] = {
+		TEST_DIR_TMP,
+		TEST_DIR_MALWARES
+	};
+
+	csr_cs_malware_list_h malware_list;
+	size_t list_count;
+	ASSERT_SUCCESS(csr_cs_get_detected_malwares(context, dirs, 2, &malware_list, &list_count));
+	::assertMalwareInList(malware_list, list_count, TEST_FILE_TMP);
+	::assertMalwareInList(malware_list, list_count, TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	Test::remove_file_assert(TEST_FILE_TMP);
+	Test::remove_file_assert(TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	ASSERT_SUCCESS(csr_cs_get_detected_malwares(context, dirs, 2, &malware_list, &list_count));
+	::assertMalwareNotInList(malware_list, list_count, TEST_FILE_TMP);
+	::assertMalwareNotInList(malware_list, list_count, TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_malware_after_file_changed)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_malware_h malware;
+
+	Test::remove_file(TEST_FILE_TMP);
+	Test::copy_file_assert(TEST_FILE_HIGH, TEST_FILE_TMP);
+
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_TMP, &malware));
+	CHECK_IS_NOT_NULL(malware);
+
+	csr_cs_malware_h malware_stored;
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_TMP, &malware_stored));
+	CHECK_IS_NOT_NULL(malware_stored);
+
+	Test::touch_file_assert(TEST_FILE_TMP);
+
+	malware_stored = nullptr;
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_TMP, &malware_stored));
+	CHECK_IS_NOT_NULL(malware_stored);
+
+	Test::remove_file(TEST_FILE_TMP);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_malwares_after_file_changed)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_malware_h malware;
+
+	Test::remove_file(TEST_FILE_TMP);
+	Test::remove_file(TEST_FILE_TMP_IN_DIR_MALWARES);
+	Test::copy_file_assert(TEST_FILE_HIGH, TEST_FILE_TMP);
+	Test::copy_file_assert(TEST_FILE_HIGH, TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_TMP, &malware));
+	CHECK_IS_NOT_NULL(malware);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_TMP_IN_DIR_MALWARES, &malware));
+	CHECK_IS_NOT_NULL(malware);
+
+	const char *dirs[2] = {
+		TEST_DIR_TMP,
+		TEST_DIR_MALWARES
+	};
+
+	csr_cs_malware_list_h malware_list;
+	size_t list_count;
+	ASSERT_SUCCESS(csr_cs_get_detected_malwares(context, dirs, 2, &malware_list, &list_count));
+
+	::assertMalwareInList(malware_list, list_count, TEST_FILE_TMP);
+	::assertMalwareInList(malware_list, list_count, TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	Test::touch_file_assert(TEST_FILE_TMP);
+	Test::touch_file_assert(TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	ASSERT_SUCCESS(csr_cs_get_detected_malwares(context, dirs, 2, &malware_list, &list_count));
+
+	::assertMalwareInList(malware_list, list_count, TEST_FILE_TMP);
+	::assertMalwareInList(malware_list, list_count, TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	Test::remove_file(TEST_FILE_TMP_IN_DIR_MALWARES);
+	Test::remove_file(TEST_FILE_TMP);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_ignored_malware_after_file_removed)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_malware_h malware;
+
+	Test::remove_file(TEST_FILE_TMP);
+	Test::copy_file_assert(TEST_FILE_HIGH, TEST_FILE_TMP);
+
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_TMP, &malware));
+	CHECK_IS_NOT_NULL(malware);
+
+	csr_cs_malware_h malware_stored;
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_TMP, &malware_stored));
+	CHECK_IS_NOT_NULL(malware_stored);
+
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, malware_stored, CSR_CS_ACTION_IGNORE));
+
+	Test::remove_file_assert(TEST_FILE_TMP);
+
+	ASSERT_SUCCESS(csr_cs_get_ignored_malware(context, TEST_FILE_TMP, &malware_stored));
+	CHECK_IS_NULL(malware_stored);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_ignored_malwares_after_file_removed)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	Test::remove_file(TEST_FILE_TMP);
+	Test::remove_file(TEST_FILE_TMP_IN_DIR_MALWARES);
+	Test::copy_file_assert(TEST_FILE_HIGH, TEST_FILE_TMP);
+	Test::copy_file_assert(TEST_FILE_HIGH, TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	csr_cs_malware_h malware_tmp[2];
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_TMP, &malware_tmp[0]));
+	CHECK_IS_NOT_NULL(malware_tmp[0]);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_TMP_IN_DIR_MALWARES, &malware_tmp[1]));
+	CHECK_IS_NOT_NULL(malware_tmp[1]);
+
+	const char *dirs[2] = {
+		TEST_DIR_TMP,
+		TEST_DIR_MALWARES
+	};
+
+	csr_cs_malware_list_h malware_list;
+	size_t list_count;
+	ASSERT_SUCCESS(csr_cs_get_detected_malwares(context, dirs, 2, &malware_list, &list_count));
+	::assertMalwareInList(malware_list, list_count, TEST_FILE_TMP);
+	::assertMalwareInList(malware_list, list_count, TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, malware_tmp[0], CSR_CS_ACTION_IGNORE));
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, malware_tmp[1], CSR_CS_ACTION_IGNORE));
+
+	Test::remove_file_assert(TEST_FILE_TMP);
+	Test::remove_file_assert(TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	ASSERT_SUCCESS(csr_cs_get_ignored_malwares(context, dirs, 2, &malware_list, &list_count));
+	::assertMalwareNotInList(malware_list, list_count, TEST_FILE_TMP);
+	::assertMalwareNotInList(malware_list, list_count, TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_ignored_malware_after_file_changed)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_malware_h malware;
+
+	Test::remove_file(TEST_FILE_TMP);
+	Test::copy_file_assert(TEST_FILE_HIGH, TEST_FILE_TMP);
+
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_TMP, &malware));
+	CHECK_IS_NOT_NULL(malware);
+
+	csr_cs_malware_h malware_stored;
+	ASSERT_SUCCESS(csr_cs_get_detected_malware(context, TEST_FILE_TMP, &malware_stored));
+	CHECK_IS_NOT_NULL(malware_stored);
+
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, malware_stored, CSR_CS_ACTION_IGNORE));
+
+	Test::touch_file_assert(TEST_FILE_TMP);
+
+	malware_stored = nullptr;
+	ASSERT_SUCCESS(csr_cs_get_ignored_malware(context, TEST_FILE_TMP, &malware_stored));
+	CHECK_IS_NOT_NULL(malware_stored);
+
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, malware_stored, CSR_CS_ACTION_UNIGNORE));
+
+	Test::remove_file(TEST_FILE_TMP);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(get_ignored_malwares_after_file_changed)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	Test::remove_file(TEST_FILE_TMP);
+	Test::remove_file(TEST_FILE_TMP_IN_DIR_MALWARES);
+	Test::copy_file_assert(TEST_FILE_HIGH, TEST_FILE_TMP);
+	Test::copy_file_assert(TEST_FILE_HIGH, TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	csr_cs_malware_h malware_tmp[2];
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_TMP, &malware_tmp[0]));
+	CHECK_IS_NOT_NULL(malware_tmp[0]);
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_FILE_TMP_IN_DIR_MALWARES, &malware_tmp[1]));
+	CHECK_IS_NOT_NULL(malware_tmp[1]);
+
+	const char *dirs[2] = {
+		TEST_DIR_TMP,
+		TEST_DIR_MALWARES
+	};
+
+	csr_cs_malware_list_h malware_list;
+	size_t list_count;
+	ASSERT_SUCCESS(csr_cs_get_detected_malwares(context, dirs, 2, &malware_list, &list_count));
+	::assertMalwareInList(malware_list, list_count, TEST_FILE_TMP);
+	::assertMalwareInList(malware_list, list_count, TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, malware_tmp[0], CSR_CS_ACTION_IGNORE));
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, malware_tmp[1], CSR_CS_ACTION_IGNORE));
+
+	Test::touch_file_assert(TEST_FILE_TMP);
+	Test::touch_file_assert(TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	ASSERT_SUCCESS(csr_cs_get_ignored_malwares(context, dirs, 2, &malware_list, &list_count));
+	::assertMalwareInList(malware_list, list_count, TEST_FILE_TMP);
+	::assertMalwareInList(malware_list, list_count, TEST_FILE_TMP_IN_DIR_MALWARES);
+
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, malware_tmp[0], CSR_CS_ACTION_UNIGNORE));
+	ASSERT_SUCCESS(csr_cs_judge_detected_malware(context, malware_tmp[1], CSR_CS_ACTION_UNIGNORE));
+
+	Test::remove_file(TEST_FILE_TMP);
+	Test::remove_file(TEST_FILE_TMP_IN_DIR_MALWARES);
 
 	EXCEPTION_GUARD_END
 }

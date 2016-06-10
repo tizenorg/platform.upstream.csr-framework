@@ -24,6 +24,7 @@
 #include <iostream>
 #include <fstream>
 #include <functional>
+#include <cerrno>
 #include <unistd.h>
 #include <utime.h>
 #include <sys/types.h>
@@ -309,37 +310,89 @@ void exceptionGuard(const std::function<void()> &f)
 	}
 }
 
+void copy_file_assert(const char *src_file, const char *dest_file)
+{
+	try {
+		std::ifstream srce(src_file, std::ios::binary);
+		std::ofstream dest(dest_file, std::ios::binary);
+		dest << srce.rdbuf();
+	} catch (const std::exception &e) {
+		BOOST_REQUIRE_MESSAGE(false,
+			"Failed to copy file from src[" << src_file <<
+			"] to dst[" << dest_file << "]: " << e.what());
+	}
+}
+
 void copy_file(const char *src_file, const char *dest_file)
 {
-	std::ifstream srce(src_file, std::ios::binary);
-	std::ofstream dest(dest_file, std::ios::binary);
-	dest << srce.rdbuf();
+	try {
+		std::ifstream srce(src_file, std::ios::binary);
+		std::ofstream dest(dest_file, std::ios::binary);
+		dest << srce.rdbuf();
+	} catch (const std::exception &e) {
+		BOOST_WARN_MESSAGE(false,
+			"Failed to copy file from src[" << src_file <<
+			"] to dst[" << dest_file << "]: " << e.what());
+	}
+}
+
+void make_dir_assert(const char *dir)
+{
+	BOOST_REQUIRE_MESSAGE(
+		::mkdir(dir, S_IRWXU | S_IRWXG | S_IRWXO) == 0,
+		"Failed to mkdir[" << dir << "] with errno: " << errno);
 }
 
 void make_dir(const char *dir)
 {
-	mkdir(dir, S_IRWXU | S_IRWXG | S_IRWXO);
+	BOOST_WARN_MESSAGE(
+		::mkdir(dir, S_IRWXU | S_IRWXG | S_IRWXO) == 0,
+		"Failed to mkdir[" << dir << "] with errno: " << errno);
+}
+
+void touch_file_assert(const char *file)
+{
+	struct utimbuf new_times;
+	time_t now = ::time(nullptr);
+
+	new_times.actime = now;
+	new_times.modtime = now;
+
+	BOOST_REQUIRE_MESSAGE(
+		::utime(file, &new_times) == 0,
+		"utime() to touch file[" << file << "] failed with errno: " << errno);
 }
 
 void touch_file(const char *file)
 {
 	struct utimbuf new_times;
-	time_t now = time(nullptr);
+	time_t now = ::time(nullptr);
 
 	new_times.actime = now;
 	new_times.modtime = now;
 
-	utime(file, &new_times);
+	BOOST_WARN_MESSAGE(
+		::utime(file, &new_times) == 0,
+		"utime() to touch file[" << file << "] failed with errno: " << errno);
+}
+
+void remove_file_assert(const char *file)
+{
+	BOOST_REQUIRE_MESSAGE(
+		::unlink(file) == 0,
+		"unlink file[" << file << " failed with errno: " << errno);
 }
 
 void remove_file(const char *file)
 {
-	unlink(file);
+	BOOST_WARN_MESSAGE(
+		::unlink(file) == 0,
+		"unlink file[" << file << " failed with errno: " << errno);
 }
 
 bool is_file_exist(const char *file)
 {
-	return (access(file, F_OK) != -1);
+	return ::access(file, F_OK) != -1;
 }
 
 bool uninstall_app(const char *pkg_id)

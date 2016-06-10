@@ -222,7 +222,8 @@ void File::remove() const
 	} else {
 		DEBUG("remove file: " << this->m_path);
 		if (::remove(this->m_path.c_str()) != 0)
-			ThrowExc(CSR_ERROR_REMOVE_FAILED, "Failed to remove file: " << this->m_path);
+			ThrowExc(CSR_ERROR_REMOVE_FAILED,
+					 "Failed to remove file: " << this->m_path << " with errno: " << errno);
 	}
 }
 

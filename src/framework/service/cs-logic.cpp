@@ -614,7 +614,17 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 
 RawBuffer CsLogic::getDetected(const std::string &filepath)
 {
-	auto row = this->m_db->getDetectedByNameOnPath(canonicalizePath(filepath, false));
+	std::string target;
+	try {
+		target = canonicalizePath(filepath, true);
+	} catch (const Exception &e) {
+		WARN("Ignore exceptions on file canonicalize/existence check for getting"
+			 " history e.g., detected/ignored. filepath: " << filepath);
+		this->m_db->deleteDetectedByNameOnPath(canonicalizePath(filepath, false));
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+	}
+
+	auto row = this->m_db->getDetectedByNameOnPath(target);
 
 	if (row && !row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -630,9 +640,15 @@ RawBuffer CsLogic::getDetectedList(const StrSet &_dirSet)
 
 	Db::RowShPtrs rows;
 	for (const auto &dir : dirSet) {
-		for (auto &row : this->m_db->getDetectedByNameOnDir(dir))
-			if (!row->isIgnored)
+		for (auto &row : this->m_db->getDetectedByNameOnDir(dir)) {
+			if (::access(row->targetName.c_str(), R_OK) != 0) {
+				WARN("Exclude not-accessable malware detected file from the list: " <<
+					 row->targetName);
+				this->m_db->deleteDetectedByNameOnPath(row->targetName);
+			} else if (!row->isIgnored) {
 				rows.emplace_back(std::move(row));
+			}
+		}
 	}
 
 	if (rows.empty())
@@ -643,7 +659,17 @@ RawBuffer CsLogic::getDetectedList(const StrSet &_dirSet)
 
 RawBuffer CsLogic::getIgnored(const std::string &filepath)
 {
-	auto row = this->m_db->getDetectedByNameOnPath(canonicalizePath(filepath, false));
+	std::string target;
+	try {
+		target = canonicalizePath(filepath, true);
+	} catch (const Exception &e) {
+		WARN("Ignore exceptions on file canonicalize/existence check for getting"
+			 " history e.g., detected/ignored. filepath: " << filepath);
+		this->m_db->deleteDetectedByNameOnPath(canonicalizePath(filepath, false));
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+	}
+
+	auto row = this->m_db->getDetectedByNameOnPath(target);
 
 	if (row && row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -659,9 +685,15 @@ RawBuffer CsLogic::getIgnoredList(const StrSet &_dirSet)
 
 	Db::RowShPtrs rows;
 	for (const auto &dir : dirSet) {
-		for (auto &row : this->m_db->getDetectedByNameOnDir(dir))
-			if (row->isIgnored)
+		for (auto &row : this->m_db->getDetectedByNameOnDir(dir)) {
+			if (::access(row->targetName.c_str(), R_OK) != 0) {
+				WARN("Exclude not-accessable malware detected file from the list: " <<
+					 row->targetName);
+				this->m_db->deleteDetectedByNameOnPath(row->targetName);
+			} else if (row->isIgnored) {
 				rows.emplace_back(std::move(row));
+			}
+		}
 	}
 
 	if (rows.empty())

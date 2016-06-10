@@ -41,7 +41,6 @@ public:
 	const std::string &getPath() const noexcept;
 	bool isInApp() const noexcept;
 	bool isDir() const noexcept;
-	bool isRemovable() const noexcept;
 	bool isModified() const noexcept;
 	const std::string &getAppPkgId() const noexcept;
 	const std::string &getAppUser() const noexcept;
@@ -59,10 +58,9 @@ public:
 private:
 	enum class Type : int {
 		Modified  = (1 << 0),
-		Removable = (1 << 1),
-		Package   = (1 << 2),
-		File      = (1 << 3),
-		Directory = (1 << 4),
+		Package   = (1 << 1),
+		File      = (1 << 2),
+		Directory = (1 << 3),
 	};
 
 	static FilePtr createInternal(const std::string &fpath, time_t modifiedSince,

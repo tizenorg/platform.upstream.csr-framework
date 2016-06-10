@@ -59,12 +59,6 @@ std::vector<std::regex> g_regexprs{
 #endif
 };
 
-bool hasPermToRemove(const std::string &filepath)
-{
-	auto parent = filepath.substr(0, filepath.find_last_of('/'));
-	return ::access(parent.c_str(), W_OK) == 0;
-}
-
 } // namespace anonymous
 
 int File::getPkgTypes(const std::string &pkgid)
@@ -76,17 +70,7 @@ int File::getPkgTypes(const std::string &pkgid)
 
 	auto type = static_cast<int>(Type::Package);
 
-	bool isRemovable = false;
-	ret = ::pkgmgrinfo_pkginfo_is_removable(handle, &isRemovable);
-	if (ret != PMINFO_R_OK) {
-		ERROR("Failed to pkgmgrinfo_pkginfo_is_removable. ret: " << ret);
-		return type;
-	}
-
 	::pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
-
-	if (isRemovable)
-		type |= static_cast<int>(Type::Removable);
 
 	return type;
 }
@@ -189,11 +173,6 @@ bool File::isDir() const noexcept
 	return this->m_type & static_cast<int>(Type::Directory);
 }
 
-bool File::isRemovable() const noexcept
-{
-	return this->m_type & static_cast<int>(Type::Removable);
-}
-
 bool File::isModified() const noexcept
 {
 	return this->m_type & static_cast<int>(Type::Modified);
@@ -248,9 +227,6 @@ FilePtr File::createInternal(const std::string &fpath, time_t modifiedSince,
 		ThrowExc(CSR_ERROR_FILE_SYSTEM, "file type is not reguler or dir: " << fpath);
 
 	auto type = static_cast<int>(S_ISREG(statptr->st_mode) ? Type::File : Type::Directory);
-
-	if (hasPermToRemove(fpath))
-		type |= static_cast<int>(Type::Removable);
 
 	if (modifiedSince == -1 || statptr->st_ctime > modifiedSince) {
 		DEBUG("file[" << fpath << "] is changed since[" << modifiedSince << "]");

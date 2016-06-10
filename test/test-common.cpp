@@ -102,6 +102,8 @@ bool pkgmgr_request(const std::function<int(pkgmgr_client *, PkgEventData *)> &r
 	return data.isSuccess;
 }
 
+} // namespace anonymous
+
 #define ERRORDESCRIBE(name) case name: return #name
 std::string capi_ec_to_string(csr_error_e ec)
 {
@@ -132,8 +134,6 @@ std::string capi_ec_to_string(csr_error_e ec)
 	}
 }
 #undef ERRORDESCRIBE
-
-} // namespace anonymous
 
 template <>
 void _assert<csr_error_e, csr_error_e>(const csr_error_e &value,

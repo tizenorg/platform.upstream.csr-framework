@@ -182,6 +182,8 @@ void _assert<char *, std::string>(char * const &value,
 
 void exceptionGuard(const std::function<void()> &);
 
+std::string capi_ec_to_string(csr_error_e ec);
+
 void make_dir(const char *dir);
 void make_dir_assert(const char *dir);
 void copy_file(const char *src_file, const char *dest_file);
@@ -261,13 +263,13 @@ class Context<csr_cs_context_h> {
 public:
 	Context() : m_context(nullptr)
 	{
-		ASSERT_IF(csr_cs_context_create(&m_context), CSR_ERROR_NONE);
+		ASSERT_SUCCESS(csr_cs_context_create(&m_context));
 		BOOST_REQUIRE(m_context != nullptr);
 	}
 
 	virtual ~Context()
 	{
-		ASSERT_IF(csr_cs_context_destroy(m_context), CSR_ERROR_NONE);
+		ASSERT_SUCCESS(csr_cs_context_destroy(m_context));
 	}
 
 	csr_cs_context_h get(void) const
@@ -284,13 +286,13 @@ class Context<csr_wp_context_h> {
 public:
 	Context() : m_context(nullptr)
 	{
-		ASSERT_IF(csr_wp_context_create(&m_context), CSR_ERROR_NONE);
+		ASSERT_SUCCESS(csr_wp_context_create(&m_context));
 		BOOST_REQUIRE(m_context != nullptr);
 	}
 
 	virtual ~Context()
 	{
-		ASSERT_IF(csr_wp_context_destroy(m_context), CSR_ERROR_NONE);
+		ASSERT_SUCCESS(csr_wp_context_destroy(m_context));
 	}
 
 	csr_wp_context_h get(void) const
@@ -307,13 +309,13 @@ class Context<csre_cs_context_h> {
 public:
 	Context() : m_context(nullptr)
 	{
-		ASSERT_IF(csre_cs_context_create(&m_context), CSRE_ERROR_NONE);
+		ASSERT_SUCCESS(csre_cs_context_create(&m_context));
 		BOOST_REQUIRE(m_context != nullptr);
 	}
 
 	virtual ~Context()
 	{
-		ASSERT_IF(csre_cs_context_destroy(m_context), CSRE_ERROR_NONE);
+		ASSERT_SUCCESS(csre_cs_context_destroy(m_context));
 	}
 
 	csre_cs_context_h get(void) const
@@ -330,13 +332,13 @@ class Context<csre_wp_context_h> {
 public:
 	Context() : m_context(nullptr)
 	{
-		ASSERT_IF(csre_wp_context_create(&m_context), CSRE_ERROR_NONE);
+		ASSERT_SUCCESS(csre_wp_context_create(&m_context));
 		BOOST_REQUIRE(m_context != nullptr);
 	}
 
 	virtual ~Context()
 	{
-		ASSERT_IF(csre_wp_context_destroy(m_context), CSRE_ERROR_NONE);
+		ASSERT_SUCCESS(csre_wp_context_destroy(m_context));
 	}
 
 	csre_wp_context_h get(void) const

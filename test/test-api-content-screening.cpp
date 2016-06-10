@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 	auto context = c.get();
 	csr_cs_malware_h detected;
 	unsigned char data[100] = {0, };
-	time_t start_time = time(nullptr);
+	auto start_time = ::time(nullptr);
 
 	// severity high detected
 	memcpy(data, MALWARE_HIGH_SIGNATURE, strlen(MALWARE_HIGH_SIGNATURE));
@@ -160,7 +160,7 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 	CHECK_IS_NOT_NULL(detected);
 	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
 					MALWARE_HIGH_DETAILED_URL);
-	ASSERT_DETECTED_EXT(detected, start_time, nullptr, false, nullptr);
+	ASSERT_DETECTED_EXT(detected, start_time, "", false, "");
 
 	EXCEPTION_GUARD_END
 }
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE(scan_data_medium)
 	auto context = c.get();
 	csr_cs_malware_h detected;
 	unsigned char data[100] = {0, };
-	time_t start_time = time(nullptr);
+	auto start_time = ::time(nullptr);
 
 	// severity medium detected
 	memcpy(data, MALWARE_MEDIUM_SIGNATURE, strlen(MALWARE_MEDIUM_SIGNATURE));
@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE(scan_data_medium)
 	CHECK_IS_NOT_NULL(detected);
 	ASSERT_DETECTED(detected, MALWARE_MEDIUM_NAME, MALWARE_MEDIUM_SEVERITY,
 					MALWARE_MEDIUM_DETAILED_URL);
-	ASSERT_DETECTED_EXT(detected, start_time, nullptr, false, nullptr);
+	ASSERT_DETECTED_EXT(detected, start_time, "", false, "");
 
 	EXCEPTION_GUARD_END
 }
@@ -195,7 +195,7 @@ BOOST_AUTO_TEST_CASE(scan_data_low)
 	auto context = c.get();
 	csr_cs_malware_h detected;
 	unsigned char data[100] = {0, };
-	time_t start_time = time(nullptr);
+	auto start_time = ::time(nullptr);
 
 	// severity low detected
 	memcpy(data, MALWARE_LOW_SIGNATURE, strlen(MALWARE_LOW_SIGNATURE));
@@ -204,7 +204,7 @@ BOOST_AUTO_TEST_CASE(scan_data_low)
 	CHECK_IS_NOT_NULL(detected);
 	ASSERT_DETECTED(detected, MALWARE_LOW_NAME, MALWARE_LOW_SEVERITY,
 					MALWARE_LOW_DETAILED_URL);
-	ASSERT_DETECTED_EXT(detected, start_time, nullptr, false, nullptr);
+	ASSERT_DETECTED_EXT(detected, start_time, "", false, "");
 
 	EXCEPTION_GUARD_END
 }
@@ -253,7 +253,7 @@ BOOST_AUTO_TEST_CASE(scan_file_high)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 	csr_cs_malware_h detected;
-	time_t start_time = time(nullptr);
+	auto start_time = ::time(nullptr);
 
 	Test::touch_file(TEST_FILE_HIGH);
 
@@ -262,7 +262,7 @@ BOOST_AUTO_TEST_CASE(scan_file_high)
 	CHECK_IS_NOT_NULL(detected);
 	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
 					MALWARE_HIGH_DETAILED_URL);
-	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_HIGH, false, nullptr);
+	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_HIGH, false, "");
 
 	EXCEPTION_GUARD_END
 }
@@ -274,7 +274,7 @@ BOOST_AUTO_TEST_CASE(scan_file_medium)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 	csr_cs_malware_h detected;
-	time_t start_time = time(nullptr);
+	auto start_time = ::time(nullptr);
 
 	Test::touch_file(TEST_FILE_MEDIUM);
 
@@ -283,7 +283,7 @@ BOOST_AUTO_TEST_CASE(scan_file_medium)
 	CHECK_IS_NOT_NULL(detected);
 	ASSERT_DETECTED(detected, MALWARE_MEDIUM_NAME, MALWARE_MEDIUM_SEVERITY,
 					MALWARE_MEDIUM_DETAILED_URL);
-	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_MEDIUM, false, nullptr);
+	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_MEDIUM, false, "");
 
 	EXCEPTION_GUARD_END
 }
@@ -295,7 +295,7 @@ BOOST_AUTO_TEST_CASE(scan_file_low)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 	csr_cs_malware_h detected;
-	time_t start_time = time(nullptr);
+	auto start_time = ::time(nullptr);
 
 	Test::touch_file(TEST_FILE_LOW);
 
@@ -304,7 +304,7 @@ BOOST_AUTO_TEST_CASE(scan_file_low)
 	CHECK_IS_NOT_NULL(detected);
 	ASSERT_DETECTED(detected, MALWARE_LOW_NAME, MALWARE_LOW_SEVERITY,
 					MALWARE_LOW_DETAILED_URL);
-	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_LOW, false, nullptr);
+	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_LOW, false, "");
 
 	EXCEPTION_GUARD_END
 }
@@ -316,7 +316,7 @@ BOOST_AUTO_TEST_CASE(scan_file_media_dir)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 	csr_cs_malware_h detected;
-	time_t start_time = time(nullptr);
+	auto start_time = ::time(nullptr);
 
 	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_MEDIA);
 
@@ -325,7 +325,7 @@ BOOST_AUTO_TEST_CASE(scan_file_media_dir)
 	CHECK_IS_NOT_NULL(detected);
 	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
 					MALWARE_HIGH_DETAILED_URL);
-	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_MEDIA, false, nullptr);
+	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_MEDIA, false, "");
 
 	EXCEPTION_GUARD_END
 }
@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(scan_file_tmp_dir)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 	csr_cs_malware_h detected;
-	time_t start_time = time(nullptr);
+	auto start_time = ::time(nullptr);
 
 	Test::copy_file(TEST_FILE_HIGH, TEST_FILE_TMP);
 
@@ -346,7 +346,7 @@ BOOST_AUTO_TEST_CASE(scan_file_tmp_dir)
 	CHECK_IS_NOT_NULL(detected);
 	ASSERT_DETECTED(detected, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
 					MALWARE_HIGH_DETAILED_URL);
-	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_TMP, false, nullptr);
+	ASSERT_DETECTED_EXT(detected, start_time, TEST_FILE_TMP, false, "");
 
 	EXCEPTION_GUARD_END
 }
@@ -359,7 +359,7 @@ BOOST_AUTO_TEST_CASE(scan_file_wgt_dir)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 	csr_cs_malware_h detected;
-	time_t start_time = time(nullptr);
+	auto start_time = ::time(nullptr);
 
 	Test::uninstall_app(TEST_WGT_PKG_ID);
 	ASSERT_INSTALL_APP(TEST_WGT_PATH, TEST_WGT_TYPE);
@@ -384,7 +384,7 @@ BOOST_AUTO_TEST_CASE(scan_file_tpk_dir)
 	auto c = Test::Context<csr_cs_context_h>();
 	auto context = c.get();
 	csr_cs_malware_h detected;
-	time_t start_time = time(nullptr);
+	auto start_time = ::time(nullptr);
 
 	Test::uninstall_app(TEST_TPK_PKG_ID);
 	ASSERT_INSTALL_APP(TEST_TPK_PATH, TEST_TPK_TYPE);

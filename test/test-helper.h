@@ -23,17 +23,18 @@
 
 #include <string>
 
-void ASSERT_DETECTED(csr_cs_malware_h detected, const char *name,
-					 csr_cs_severity_level_e severity, const char *detailed_url);
+void ASSERT_DETECTED(csr_cs_malware_h detected, const std::string &name,
+					 csr_cs_severity_level_e severity, const std::string &detailed_url);
 
 void ASSERT_DETECTED_EXT(csr_cs_malware_h detected, time_t time, const std::string &file_name,
-						 bool is_app, const char *pkg_id);
+						 bool is_app, const std::string &pkg_id);
 
 void ASSERT_DETECTED_HANDLE(csr_cs_malware_h expected, csr_cs_malware_h actual);
 
 void ASSERT_DETECTED_IN_LIST(const std::vector<csr_cs_malware_h> &detectedList,
-							 const std::string &file_name, const char *name,
-							 csr_cs_severity_level_e severity, const char *detailed_url);
+							 const std::string &file_name, const std::string &name,
+							 csr_cs_severity_level_e severity, const std::string &detailed_url);
 
 void ASSERT_DETECTED_IN_LIST_EXT(const std::vector<csr_cs_malware_h> &detectedList,
-								 const std::string &file_name, bool is_app, const char *pkg_id);
+								 const std::string &file_name, bool is_app,
+								 const std::string &pkg_id);

@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(prompt_data)
 
 	CsDetected d;
 	d.targetName.clear(); // data's target name should be empty
-	d.malwareName = "dummy malware in data";
+	d.malwareName = "dummy malware";
 	d.detailedUrl = "http://detailedurl/cs_prompt_data";
 	d.severity = CSR_CS_SEVERITY_MEDIUM;
 
@@ -126,9 +126,13 @@ BOOST_AUTO_TEST_CASE(prompt_app)
 	EXCEPTION_GUARD_START
 
 	CsDetected d;
+
+	Test::uninstall_app(TEST_TPK_PKG_ID);
+	ASSERT_INSTALL_APP(TEST_TPK_PATH, TEST_TPK_TYPE);
+
 	// message pkg is for get icon temporary.
-	d.pkgId = "org.tizen.message";
-	d.malwareName = "dummy malware in app";
+	d.pkgId = TEST_TPK_PKG_ID;
+	d.malwareName = "dummy malware";
 	d.detailedUrl = "http://detailedurl/cs_prompt_app";
 	d.severity = CSR_CS_SEVERITY_MEDIUM;
 
@@ -162,7 +166,7 @@ BOOST_AUTO_TEST_CASE(notify_data)
 
 	CsDetected d;
 	d.targetName.clear(); // data's target name should be empty
-	d.malwareName = "dummy malware in data";
+	d.malwareName = "dummy malware";
 	d.detailedUrl = "http://detailedurl/cs_notify_data";
 	d.severity = CSR_CS_SEVERITY_HIGH;
 
@@ -183,7 +187,7 @@ BOOST_AUTO_TEST_CASE(notify_app)
 	ASSERT_INSTALL_APP(TEST_WGT_PATH, TEST_WGT_TYPE);
 
 	d.pkgId = TEST_WGT_PKG_ID;
-	d.malwareName = "dummy malware in app";
+	d.malwareName = "dummy malware";
 	d.detailedUrl = "http://detailedurl/cs_notify_app";
 	d.severity = CSR_CS_SEVERITY_HIGH;
 

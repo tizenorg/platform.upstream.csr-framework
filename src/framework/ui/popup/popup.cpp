@@ -49,12 +49,16 @@ Popup::Popup(int buttonN)
 
 	// Set popup properties.
 	m_popup = elm_popup_add(m_win);
+	elm_popup_align_set(m_popup, ELM_NOTIFY_ALIGN_FILL, 1.0);
 	evas_object_size_hint_weight_set(m_popup, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 
 	// Wrap objects with box.
 	m_box = elm_box_add(m_popup);
-	m_header = elm_label_add(m_box);
+	evas_object_size_hint_weight_set(m_box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	elm_box_padding_set(m_box, 10, 10);
 
+	m_header = elm_label_add(m_box);
+	evas_object_size_hint_weight_set(m_header, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	evas_object_size_hint_align_set(m_header, EVAS_HINT_FILL, 0);
 	elm_box_pack_end(m_box, m_header);
 	evas_object_show(m_header);
@@ -71,6 +75,7 @@ Popup::Popup(int buttonN)
 	evas_object_show(m_icon);
 
 	m_body = elm_label_add(m_subBox);
+	evas_object_size_hint_weight_set(m_body, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	evas_object_size_hint_align_set(m_body, EVAS_HINT_FILL, 0);
 	elm_box_pack_end(m_subBox, m_body);
 	evas_object_show(m_body);
@@ -81,10 +86,12 @@ Popup::Popup(int buttonN)
 	// This label is for linking to webview.
 	m_hypertext = elm_button_add(m_box);
 	elm_object_text_set(m_hypertext, "More information");
+	evas_object_size_hint_weight_set(m_hypertext, EVAS_HINT_FILL, EVAS_HINT_FILL);
 	evas_object_size_hint_align_set(m_hypertext, EVAS_HINT_FILL, 0);
 	elm_box_pack_end(m_box, m_hypertext);
 	evas_object_show(m_hypertext);
 	elm_object_style_set(m_hypertext, "anchor");
+	elm_object_focus_set(m_hypertext, EINA_FALSE);
 
 	m_footer = elm_label_add(m_box);
 	evas_object_size_hint_align_set(m_footer, EVAS_HINT_FILL, 0);
@@ -116,17 +123,17 @@ Popup::~Popup()
 
 void Popup::setHeader(const std::string &header) noexcept
 {
-	setText(m_header, header);
+	setText(m_header, "<wrap = word>" + header + "</wrap>");
 }
 
 void Popup::setBody(const std::string &body) noexcept
 {
-	setText(m_body, body);
+	setText(m_body, "<wrap = word>" + body + "</wrap>");
 }
 
 void Popup::setFooter(const std::string &footer) noexcept
 {
-	setText(m_footer, "<br>" + footer);
+	setText(m_footer, "<br>""<wrap = word>" + footer + "</wrap>");
 }
 
 void Popup::setMessage(const std::string &msg) noexcept

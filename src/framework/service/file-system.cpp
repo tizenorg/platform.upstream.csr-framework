@@ -274,8 +274,20 @@ FsVisitor::~FsVisitor()
 FilePtr FsVisitor::next()
 {
 	struct dirent *result = nullptr;
-	while (readdir_r(this->m_dirptr.get(), this->m_entryBuf, &result) == 0) {
-		if (result == nullptr) { // end of dir stream
+	while (true) {
+		bool isDone = false;
+
+		if (readdir_r(this->m_dirptr.get(), this->m_entryBuf, &result) != 0) {
+			ERROR("readdir_r error on dir: " << this->m_dirs.front() <<
+				  " with errno: " << errno << ". Silently ignore this error & dir stream"
+				  " to reduce side-effect of traversing all the other file systems.");
+			isDone = true;
+		} else if (result == nullptr) {
+			DEBUG("End of stream of dir: " << this->m_dirs.front());
+			isDone = true;
+		}
+
+		if (isDone) {
 			this->m_dirs.pop();
 			while (!this->m_dirs.empty() &&
 					!(this->m_dirptr = openDir(this->m_dirs.front())))

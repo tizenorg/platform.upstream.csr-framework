@@ -78,7 +78,6 @@ public:
 	static void btnClickedCb(void *data, Evas_Object *, void *);
 	static void hypertextClickedCb(void *data, Evas_Object *, void *);
 
-	std::vector<Evas_Object *> m_objects;
 	std::vector<Evas_Object *> m_buttons;
 	Evas_Object *m_hypertext;
 	std::vector<int> m_types;

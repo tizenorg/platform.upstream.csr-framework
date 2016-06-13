@@ -117,8 +117,7 @@ Popup::Popup(int buttonN)
 
 Popup::~Popup()
 {
-	for (auto &obj : m_objects)
-		evas_object_del(obj);
+	evas_object_del(m_win);
 }
 
 void Popup::setHeader(const std::string &header) noexcept
@@ -151,20 +150,6 @@ void Popup::setIcon(const std::string &path) noexcept
 
 void Popup::run(void)
 {
-	m_objects.emplace_back(m_header);
-	m_objects.emplace_back(m_body);
-	m_objects.emplace_back(m_hypertext);
-	m_objects.emplace_back(m_footer);
-	m_objects.emplace_back(m_icon);
-	m_objects.emplace_back(m_subBox);
-	m_objects.emplace_back(m_box);
-
-	for (auto &btn : m_buttons)
-		m_objects.emplace_back(btn);
-
-	m_objects.emplace_back(m_popup);
-	m_objects.emplace_back(m_win);
-
 	elm_run();
 }
 

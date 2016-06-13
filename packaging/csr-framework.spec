@@ -1,4 +1,5 @@
-%define platform_version 2.4
+%define platform_version 3.0
+%define with_sample_engine 1
 
 # services timeoout time on idle for on-demand activation.
 # give it '-1' if don't want to timeout on idle.
@@ -19,8 +20,6 @@
 # Else it's not defined, detailed_url getter in engine API will be used.
 %define with_detailed_base_url 0
 %define detailed_base_url %nil
-
-%define with_sample_engine 0
 
 Summary: A general purpose content screening and reputation solution
 Name: csr-framework

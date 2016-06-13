@@ -54,6 +54,7 @@ SET(${TARGET_CSR_SERVER}_SRCS
 	framework/service/cs-loader.cpp
 	framework/service/wp-loader.cpp
 	framework/service/engine-error-converter.cpp
+	framework/service/dir-blacklist.cpp
 	framework/ui/askuser.cpp
 
 	# question and response codes needed on both of

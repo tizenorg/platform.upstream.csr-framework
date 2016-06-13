@@ -31,6 +31,7 @@
 #include "service/type-converter.h"
 #include "service/engine-error-converter.h"
 #include "service/core-usage.h"
+#include "service/dir-blacklist.h"
 #include "ui/askuser.h"
 #include <csr-error.h>
 
@@ -376,6 +377,9 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
 RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 										const std::string &filepath, FilePtr &&fileptr)
 {
+	if (isInBlackList(filepath))
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
 	CsEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 

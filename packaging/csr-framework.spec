@@ -1,5 +1,3 @@
-%define platform_version 2.4
-
 # services timeoout time on idle for on-demand activation.
 # give it '-1' if don't want to timeout on idle.
 %define service_idle_timeout_time       60
@@ -40,7 +38,7 @@ BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(libsmack)
 BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(elementary)
-%if "%{platform_version}" == "3.0"
+%if "%{?tizen_version}" == "3.0"
 BuildRequires: pkgconfig(cynara-client)
 %else
 BuildRequires: pkgconfig(libsmack)
@@ -65,7 +63,7 @@ file contents and checking url to prevent malicious items.
 %global test_dir                     %{rw_data_dir}/%{service_name}-test
 %global test_res_dir                 %{ro_data_dir}/%{service_name}-test
 
-%if "%{platform_version}" == "3.0"
+%if "%{?tizen_version}" == "3.0"
 %global service_user                 security_fw
 %global service_group                security_fw
 %global popup_service_env_file_path  /run/tizen-system-env
@@ -83,7 +81,7 @@ file contents and checking url to prevent malicious items.
 Summary: Common library package for %{name}
 License: Apache-2.0
 Group:   Security/Libraries
-%if "%{platform_version}" == "3.0"
+%if "%{?tizen_version}" == "3.0"
 BuildRequires: pkgconfig(cynara-creds-socket)
 %else
 BuildRequires: pkgconfig(libsmack)
@@ -178,7 +176,7 @@ test program of csr-framework
 %else
     -DWITH_SAMPLE_ENGINE:BOOL=OFF \
 %endif
-%if "%{platform_version}" == "3.0"
+%if "%{?tizen_version}" == "3.0"
     -DPLATFORM_VERSION_3:BOOL=ON
 %else
     -DPLATFORM_VERSION_3:BOOL=OFF

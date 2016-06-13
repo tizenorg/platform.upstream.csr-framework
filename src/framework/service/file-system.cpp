@@ -32,6 +32,7 @@
 #include "common/exception.h"
 #include "service/app-deleter.h"
 #include "service/fs-utils.h"
+#include "service/dir-blacklist.h"
 
 #include <pkgmgr-info.h>
 
@@ -284,6 +285,9 @@ FilePtr FsVisitor::next()
 			isDone = true;
 		} else if (result == nullptr) {
 			DEBUG("End of stream of dir: " << this->m_dirs.front());
+			isDone = true;
+		} else if (isInBlackList(this->m_dirs.front())) {
+			DEBUG("dir[" << this->m_dirs.front() << "] is in black list.");
 			isDone = true;
 		}
 

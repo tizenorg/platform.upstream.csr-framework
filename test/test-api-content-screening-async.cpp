@@ -60,19 +60,25 @@ struct AsyncTestContext {
 	std::vector<std::string> scannedList;
 	std::vector<csr_cs_malware_h> detectedList;
 	int errorCode;
+	bool apiReturned;
 
-	AsyncTestContext() :
+	AsyncTestContext(bool raceTest = false) :
 		scannedCnt(0),
 		detectedCnt(0),
 		completedCnt(0),
 		cancelledCnt(0),
-		errorCnt(0) {}
+		errorCnt(0),
+		apiReturned(!raceTest) {}
 };
 
 void on_scanned(const char *file, void *userdata)
 {
-	BOOST_MESSAGE("on_scanned. file[" << file << "] scanned!");
 	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
+
+	BOOST_REQUIRE_MESSAGE(ctx->apiReturned,
+		"API not returned yet but scanned callback called on file: " << file);
+
+	BOOST_MESSAGE("on_scanned. file[" << file << "] scanned!");
 
 	std::lock_guard<std::mutex> l(ctx->m_vec);
 
@@ -82,10 +88,14 @@ void on_scanned(const char *file, void *userdata)
 
 void on_detected(csr_cs_malware_h detected, void *userdata)
 {
+	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
+
+	BOOST_REQUIRE_MESSAGE(ctx->apiReturned,
+		"API not returned yet but detected callback called");
+
 	Test::ScopedCstr file_name;
 	ASSERT_SUCCESS(csr_cs_malware_get_file_name(detected, &file_name.ptr));
 	BOOST_MESSAGE("on_detected. file[" << file_name.ptr << "] detected!");
-	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
 
 	std::lock_guard<std::mutex> l(ctx->m_vec);
 
@@ -95,9 +105,14 @@ void on_detected(csr_cs_malware_h detected, void *userdata)
 
 void on_error(int ec, void *userdata)
 {
+	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
+
+	BOOST_REQUIRE_MESSAGE(ctx->apiReturned,
+		"API not returned yet but error callback called with error: " <<
+		Test::capi_ec_to_string(static_cast<csr_error_e>(ec)));
+
 	BOOST_MESSAGE("on_error. async request done with error: " <<
 				  Test::capi_ec_to_string(static_cast<csr_error_e>(ec)));
-	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
 
 	ctx->errorCnt++;
 	ctx->errorCode = ec;
@@ -106,16 +121,24 @@ void on_error(int ec, void *userdata)
 
 void on_completed(void *userdata)
 {
-	BOOST_MESSAGE("on_completed. async request completed succesfully.");
 	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
+
+	BOOST_REQUIRE_MESSAGE(ctx->apiReturned,
+		"API not returned yet but completed callback called");
+
+	BOOST_MESSAGE("on_completed. async request completed succesfully.");
 	ctx->completedCnt++;
 	ctx->cv.notify_one();
 }
 
 void on_cancelled(void *userdata)
 {
-	BOOST_MESSAGE("on_cancelled. async request canceled!");
 	auto ctx = reinterpret_cast<AsyncTestContext *>(userdata);
+
+	BOOST_REQUIRE_MESSAGE(ctx->apiReturned,
+		"API not returned yet but cancelled callback called");
+
+	BOOST_MESSAGE("on_cancelled. async request canceled!");
 	ctx->cancelledCnt++;
 	ctx->cv.notify_one();
 }
@@ -906,6 +929,34 @@ BOOST_AUTO_TEST_CASE(get_malware_after_async)
 		CHECK_IS_NOT_NULL(filepath.ptr);
 		BOOST_MESSAGE("detect malware from file: " << filepath.ptr);
 	}
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(async_api_returning_and_callback_race)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	install_test_files();
+
+	set_default_callback(context);
+
+	const char *files[2] = {
+		TEST_FILE_NORMAL,
+		TEST_FILE_HIGH
+	};
+
+	AsyncTestContext testCtx(true);
+
+	ASSERT_SUCCESS(csr_cs_scan_files_async(context, files, 2, &testCtx));
+	testCtx.apiReturned = true;
+
+	std::unique_lock<std::mutex> l(testCtx.m);
+	testCtx.cv.wait(l);
+	l.unlock();
 
 	EXCEPTION_GUARD_END
 }

@@ -413,6 +413,8 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 		EXCEPTION_SAFE_END
 	});
 
+	std::lock_guard<std::mutex> l(hExt->m_dispatchMutex);
+
 	hExt->dispatchAsync(task);
 
 	return CSR_ERROR_NONE;
@@ -449,6 +451,8 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path,
 
 		EXCEPTION_SAFE_END
 	});
+
+	std::lock_guard<std::mutex> l(hExt->m_dispatchMutex);
 
 	hExt->dispatchAsync(task);
 
@@ -512,6 +516,8 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 
 		EXCEPTION_SAFE_END
 	});
+
+	std::lock_guard<std::mutex> l(hExt->m_dispatchMutex);
 
 	hExt->dispatchAsync(task);
 

@@ -82,7 +82,12 @@ void HandleExt::dispatchAsync(const std::shared_ptr<Task> &f)
 	this->m_worker = std::thread([this, f] {
 		DEBUG("client async thread dispatched! tid: " << std::this_thread::get_id());
 
-		(*f)();
+		{
+			// Wait for client lib API func returned & mutex freed by scoped-lock dtor
+			// This is for invoking registered callbacks follows returning API func
+			std::lock_guard<std::mutex> _l(this->m_dispatchMutex);
+		}
+			(*f)();
 
 		{
 			std::lock_guard<std::mutex> _l(this->m_flagMutex);

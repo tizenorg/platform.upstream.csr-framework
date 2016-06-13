@@ -42,6 +42,7 @@ public:
 	bool isRunning(void) const;
 
 	Callback m_cb; // TODO: to refine..
+	std::mutex m_dispatchMutex;
 
 	virtual void add(ResultPtr &&) override;
 	virtual void add(ResultListPtr &&) override;

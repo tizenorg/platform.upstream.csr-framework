@@ -92,11 +92,7 @@ bool File::isInApp(const std::string &path)
 		else
 			continue;
 
-		auto types = File::getPkgTypes(pkgId);
-		if (types & static_cast<int>(Type::Package))
-			return true;
-		else
-			break;
+		return File::getPkgTypes(pkgId) != 0;
 	}
 
 	return false;
@@ -123,11 +119,7 @@ std::string File::getPkgPath(const std::string &path)
 			continue;
 		}
 
-		auto types = File::getPkgTypes(pkgId);
-		if (types & static_cast<int>(Type::Package))
-			return pkgPath;
-		else
-			break;
+		return File::getPkgTypes(pkgId) != 0 ? pkgPath : path;
 	}
 
 	return path;
@@ -300,31 +292,38 @@ FilePtr FsVisitor::next()
 		}
 
 		auto &dir = this->m_dirs.front();
-		std::string filepath(result->d_name);
+		const auto &name = result->d_name;
+		auto name_size = ::strlen(name);
+
+		if (name_size == 0)
+			continue;
 
 		if (result->d_type == DT_DIR) {
-			if (filepath.compare(".") != 0 && filepath.compare("..") != 0)
-				this->m_dirs.emplace(
-					dir + ((filepath.back() == '/') ? filepath : (filepath + '/')));
+			if (name_size == 1 && ::strcmp(name, ".") == 0)
+				continue;
+			else if (name_size == 2 && ::strcmp(name, "..") == 0)
+				continue;
+
+			this->m_dirs.emplace(dir + name + '/');
 		} else if (result->d_type == DT_REG) {
 			try {
-				auto fileptr = File::createIfModified(dir + filepath, this->m_since);
+				auto fileptr = File::createIfModified(dir + name, this->m_since);
 
 				if (fileptr)
 					return fileptr;
 			} catch (const Exception &e) {
 				if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST)
-					WARN("file not exist: " << dir << filepath << " msg: " << e.what());
+					WARN("file not exist: " << dir << name << " msg: " << e.what());
 				else if (e.error() == CSR_ERROR_FILE_SYSTEM)
 					WARN("file type is not regular...? can it be happened?"
-						 " :" << dir << filepath << " msg: " << e.what());
+						 " :" << dir << name << " msg: " << e.what());
 				else
 					throw;
 			}
 		}
 	}
 
-	ThrowExc(CSR_ERROR_FILE_SYSTEM, "readdir_r error on dir: " << this->m_dirs.front());
+	return nullptr;
 }
 
 } // namespace Csr

@@ -51,17 +51,17 @@ inline void checkDetected(Csr::CsLoader &loader,
 	CHECK_IS_NOT_NULL(detected);
 
 	csre_cs_severity_level_e severity;
-	ASSERT_IF(loader.getSeverity(detected, &severity), CSRE_ERROR_NONE);
+	loader.getSeverity(detected, &severity);
 	ASSERT_IF(severity, expected_severity);
 
 	std::string malware_name;
-	ASSERT_IF(loader.getMalwareName(detected, malware_name), CSRE_ERROR_NONE);
+	loader.getMalwareName(detected, malware_name);
 
 	if (expected_malware_name != nullptr)
 		ASSERT_IF(malware_name, expected_malware_name);
 
 	std::string detailed_url;
-	ASSERT_IF(loader.getDetailedUrl(detected, detailed_url), CSRE_ERROR_NONE);
+	loader.getDetailedUrl(detected, detailed_url);
 
 	if (expected_detailed_url != nullptr)
 		ASSERT_IF(detailed_url, expected_detailed_url);
@@ -75,12 +75,12 @@ struct Handle {
 			   ENGINE_DIR,
 			   ENGINE_RW_WORKING_DIR)
 	{
-		ASSERT_IF(loader.contextCreate(context), CSRE_ERROR_NONE);
+		loader.contextCreate(context);
 	}
 
 	~Handle()
 	{
-		ASSERT_IF(loader.contextDestroy(context), CSRE_ERROR_NONE);
+		loader.contextDestroy(context);
 	}
 
 	Csr::CsLoader loader;
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(scan_data_clear)
 
 	csre_cs_detected_h detected;
 	std::vector<unsigned char> data(cdata, cdata + strlen(cdata));
-	ASSERT_IF(h.loader.scanData(h.context, data, &detected), CSRE_ERROR_NONE);
+	h.loader.scanData(h.context, data, &detected);
 
 	CHECK_IS_NULL(detected);
 
@@ -131,7 +131,7 @@ BOOST_AUTO_TEST_CASE(scan_data_high)
 
 	csre_cs_detected_h detected;
 	std::vector<unsigned char> data(cdata, cdata + strlen(cdata));
-	ASSERT_IF(h.loader.scanData(h.context, data, &detected), CSRE_ERROR_NONE);
+	h.loader.scanData(h.context, data, &detected);
 
 	CHECK_IS_NOT_NULL(detected);
 
@@ -154,7 +154,7 @@ BOOST_AUTO_TEST_CASE(scan_data_medium)
 
 	csre_cs_detected_h detected;
 	std::vector<unsigned char> data(cdata, cdata + strlen(cdata));
-	ASSERT_IF(h.loader.scanData(h.context, data, &detected), CSRE_ERROR_NONE);
+	h.loader.scanData(h.context, data, &detected);
 
 	CHECK_IS_NOT_NULL(detected);
 
@@ -174,8 +174,7 @@ BOOST_AUTO_TEST_CASE(scan_file_normal)
 	Handle h;
 
 	csre_cs_detected_h detected;
-	ASSERT_IF(h.loader.scanFile(h.context, TEST_FILE_NORMAL, &detected),
-			  CSRE_ERROR_NONE);
+	h.loader.scanFile(h.context, TEST_FILE_NORMAL, &detected);
 
 	CHECK_IS_NULL(detected);
 
@@ -189,8 +188,7 @@ BOOST_AUTO_TEST_CASE(scan_file_malware)
 	Handle h;
 
 	csre_cs_detected_h detected;
-	ASSERT_IF(h.loader.scanFile(h.context, TEST_FILE_MALWARE, &detected),
-			  CSRE_ERROR_NONE);
+	h.loader.scanFile(h.context, TEST_FILE_MALWARE, &detected);
 
 	CHECK_IS_NOT_NULL(detected);
 
@@ -210,8 +208,7 @@ BOOST_AUTO_TEST_CASE(scan_file_risky)
 	Handle h;
 
 	csre_cs_detected_h detected;
-	ASSERT_IF(h.loader.scanFile(h.context, TEST_FILE_RISKY, &detected),
-			  CSRE_ERROR_NONE);
+	h.loader.scanFile(h.context, TEST_FILE_RISKY, &detected);
 
 	CHECK_IS_NOT_NULL(detected);
 
@@ -231,8 +228,7 @@ BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 	Handle h;
 
 	csre_cs_detected_h detected;
-	ASSERT_IF(h.loader.scanAppOnCloud(h.context, TEST_APP_ROOT, &detected),
-			  CSRE_ERROR_NONE);
+	h.loader.scanAppOnCloud(h.context, TEST_APP_ROOT, &detected);
 
 	CHECK_IS_NOT_NULL(detected);
 
@@ -262,9 +258,7 @@ BOOST_AUTO_TEST_CASE(error_string_positive)
 
 	Handle h;
 
-	std::string str;
-
-	ASSERT_IF(h.loader.getErrorString(CSRE_ERROR_UNKNOWN, str), CSRE_ERROR_NONE);
+	std::string str = h.loader.getErrorString(CSRE_ERROR_UNKNOWN);
 	ASSERT_IF(str.empty(), false);
 
 	EXCEPTION_GUARD_END
@@ -277,7 +271,7 @@ BOOST_AUTO_TEST_CASE(get_vendor)
 	Handle h;
 
 	std::string str;
-	ASSERT_IF(h.loader.getEngineVendor(h.context, str), CSRE_ERROR_NONE);
+	h.loader.getEngineVendor(h.context, str);
 	ASSERT_IF(str.empty(), false);
 
 	EXCEPTION_GUARD_END
@@ -290,7 +284,7 @@ BOOST_AUTO_TEST_CASE(get_vendor_logo)
 	Handle h;
 
 	std::vector<unsigned char> logo;
-	ASSERT_IF(h.loader.getEngineVendorLogo(h.context, logo), CSRE_ERROR_NONE);
+	h.loader.getEngineVendorLogo(h.context, logo);
 
 	EXCEPTION_GUARD_END
 }
@@ -302,7 +296,7 @@ BOOST_AUTO_TEST_CASE(get_version)
 	Handle h;
 
 	std::string str;
-	ASSERT_IF(h.loader.getEngineVersion(h.context, str), CSRE_ERROR_NONE);
+	h.loader.getEngineVersion(h.context, str);
 	ASSERT_IF(str.empty(), false);
 
 	EXCEPTION_GUARD_END
@@ -315,7 +309,7 @@ BOOST_AUTO_TEST_CASE(get_data_version)
 	Handle h;
 
 	std::string str;
-	ASSERT_IF(h.loader.getEngineDataVersion(h.context, str), CSRE_ERROR_NONE);
+	h.loader.getEngineDataVersion(h.context, str);
 	ASSERT_IF(str.empty(), false);
 
 	EXCEPTION_GUARD_END
@@ -328,8 +322,7 @@ BOOST_AUTO_TEST_CASE(get_latest_update_time)
 	Handle h;
 
 	time_t time = 0;
-	ASSERT_IF(h.loader.getEngineLatestUpdateTime(h.context, &time),
-			  CSRE_ERROR_NONE);
+	h.loader.getEngineLatestUpdateTime(h.context, &time);
 
 	EXCEPTION_GUARD_END
 }
@@ -341,7 +334,7 @@ BOOST_AUTO_TEST_CASE(get_engine_activated)
 	Handle h;
 
 	csre_cs_activated_e activated;
-	ASSERT_IF(h.loader.getEngineActivated(h.context, &activated), CSRE_ERROR_NONE);
+	h.loader.getEngineActivated(h.context, &activated);;
 
 	EXCEPTION_GUARD_END
 }
@@ -353,7 +346,7 @@ BOOST_AUTO_TEST_CASE(get_api_version)
 	Handle h;
 
 	std::string str;
-	ASSERT_IF(h.loader.getEngineApiVersion(h.context, str), CSRE_ERROR_NONE);
+	h.loader.getEngineApiVersion(h.context, str);
 	ASSERT_IF(str == CSRE_CS_API_VERSION, true);
 
 	EXCEPTION_GUARD_END

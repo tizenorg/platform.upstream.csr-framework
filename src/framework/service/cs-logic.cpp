@@ -29,7 +29,6 @@
 #include "common/audit/logger.h"
 #include "common/exception.h"
 #include "service/type-converter.h"
-#include "service/engine-error-converter.h"
 #include "service/core-usage.h"
 #include "service/dir-blacklist.h"
 #include "ui/askuser.h"
@@ -137,8 +136,7 @@ CsLogic::CsLogic(const std::shared_ptr<CsLoader> &loader,
 
 	if (this->m_loader) {
 		CsEngineContext csEngineContext(this->m_loader);
-		toException(this->m_loader->getEngineDataVersion(csEngineContext.get(),
-					this->m_dataVersion));
+		this->m_loader->getEngineDataVersion(csEngineContext.get(), this->m_dataVersion);
 	}
 }
 
@@ -156,7 +154,7 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 
 	auto timestamp = ::time(nullptr);
 
-	toException(this->m_loader->scanData(c, data, &result));
+	this->m_loader->scanData(c, data, &result);
 
 	// detected handle is null if it's safe
 	if (result == nullptr)
@@ -177,7 +175,7 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 	auto timestamp = ::time(nullptr);
 
 	csre_cs_detected_h result = nullptr;
-	toException(this->m_loader->scanAppOnCloud(c, pkgPath, &result));
+	this->m_loader->scanAppOnCloud(c, pkgPath, &result);
 
 	if (!result)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
@@ -210,7 +208,7 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 		auto timestamp = ::time(nullptr);
 
 		csre_cs_detected_h result = nullptr;
-		toException(this->m_loader->scanFile(c, file->getPath(), &result));
+		this->m_loader->scanFile(c, file->getPath(), &result);
 
 		if (!result) {
 			if (lastScanTime != -1)
@@ -386,7 +384,7 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 	auto timestamp = ::time(nullptr);
 
 	csre_cs_detected_h result = nullptr;
-	toException(this->m_loader->scanFile(c, filepath, &result));
+	this->m_loader->scanFile(c, filepath, &result);
 
 	// detected handle is null if it's safe
 	if (result == nullptr)
@@ -763,9 +761,9 @@ CsDetected CsLogic::convert(csre_cs_detected_h &result, const std::string &targe
 
 	csre_cs_severity_level_e eseverity = CSRE_CS_SEVERITY_LOW;
 
-	toException(this->m_loader->getSeverity(result, &eseverity));
-	toException(this->m_loader->getMalwareName(result, d.malwareName));
-	toException(this->m_loader->getDetailedUrl(result, d.detailedUrl));
+	this->m_loader->getSeverity(result, &eseverity);
+	this->m_loader->getMalwareName(result, d.malwareName);
+	this->m_loader->getDetailedUrl(result, d.detailedUrl);
 
 	d.ts = timestamp;
 	d.severity = Csr::convert(eseverity);

@@ -39,21 +39,22 @@ public:
 			 const std::string &rwWorkingDir);
 	virtual ~WpLoader();
 
-	int contextCreate(csre_wp_context_h &);
-	int contextDestroy(csre_wp_context_h);
-	int checkUrl(csre_wp_context_h handle, const std::string &,
+	void contextCreate(csre_wp_context_h &);
+	void contextDestroy(csre_wp_context_h);
+	void checkUrl(csre_wp_context_h handle, const std::string &,
 				 csre_wp_check_result_h *);
-	int getRiskLevel(csre_wp_check_result_h, csre_wp_risk_level_e *);
-	int getDetailedUrl(csre_wp_check_result_h, std::string &);
-	int getErrorString(int, std::string &);
-	int getEngineApiVersion(csre_wp_context_h, std::string &);
-	int getEngineVendor(csre_wp_context_h, std::string &);
-	int getEngineName(csre_wp_context_h, std::string &);
-	int getEngineVersion(csre_wp_context_h, std::string &);
-	int getEngineDataVersion(csre_wp_context_h, std::string &);
-	int getEngineLatestUpdateTime(csre_wp_context_h, time_t *);
-	int getEngineActivated(csre_wp_context_h, csre_wp_activated_e *);
-	int getEngineVendorLogo(csre_wp_context_h, std::vector<unsigned char> &);
+	void getRiskLevel(csre_wp_check_result_h, csre_wp_risk_level_e *);
+	void getDetailedUrl(csre_wp_check_result_h, std::string &);
+	void getEngineApiVersion(csre_wp_context_h, std::string &);
+	void getEngineVendor(csre_wp_context_h, std::string &);
+	void getEngineName(csre_wp_context_h, std::string &);
+	void getEngineVersion(csre_wp_context_h, std::string &);
+	void getEngineDataVersion(csre_wp_context_h, std::string &);
+	void getEngineLatestUpdateTime(csre_wp_context_h, time_t *);
+	void getEngineActivated(csre_wp_context_h, csre_wp_activated_e *);
+	void getEngineVendorLogo(csre_wp_context_h, std::vector<unsigned char> &);
+
+	virtual std::string getErrorString(int) override;
 
 private:
 	using FpGlobalInit = int(*)(const char *, const char *);

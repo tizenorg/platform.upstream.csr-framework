@@ -39,28 +39,28 @@ public:
 			 const std::string &rwWorkingDir);
 	virtual ~CsLoader();
 
-	int contextCreate(csre_cs_context_h &);
-	int contextDestroy(csre_cs_context_h);
-	int scanData(csre_cs_context_h, const std::vector<unsigned char> &,
-				 csre_cs_detected_h *);
-	int scanFile(csre_cs_context_h, const std::string &, csre_cs_detected_h *);
-	int scanAppOnCloud(csre_cs_context_h, const std::string &, csre_cs_detected_h *);
+	void contextCreate(csre_cs_context_h &);
+	void contextDestroy(csre_cs_context_h);
+	void scanData(csre_cs_context_h, const std::vector<unsigned char> &,
+				  csre_cs_detected_h *);
+	void scanFile(csre_cs_context_h, const std::string &, csre_cs_detected_h *);
+	void scanAppOnCloud(csre_cs_context_h, const std::string &, csre_cs_detected_h *);
 	bool scanAppOnCloudSupported(void);
 
-	int getSeverity(csre_cs_detected_h, csre_cs_severity_level_e *);
-	int getMalwareName(csre_cs_detected_h, std::string &);
-	int getDetailedUrl(csre_cs_detected_h, std::string &);
+	void getSeverity(csre_cs_detected_h, csre_cs_severity_level_e *);
+	void getMalwareName(csre_cs_detected_h, std::string &);
+	void getDetailedUrl(csre_cs_detected_h, std::string &);
 
-	int getErrorString(int, std::string &);
+	void getEngineApiVersion(csre_cs_context_h, std::string &);
+	void getEngineVendor(csre_cs_context_h, std::string &);
+	void getEngineName(csre_cs_context_h, std::string &);
+	void getEngineVersion(csre_cs_context_h, std::string &);
+	void getEngineDataVersion(csre_cs_context_h, std::string &);
+	void getEngineLatestUpdateTime(csre_cs_context_h, time_t *);
+	void getEngineActivated(csre_cs_context_h, csre_cs_activated_e *);
+	void getEngineVendorLogo(csre_cs_context_h, std::vector<unsigned char> &);
 
-	int getEngineApiVersion(csre_cs_context_h, std::string &);
-	int getEngineVendor(csre_cs_context_h, std::string &);
-	int getEngineName(csre_cs_context_h, std::string &);
-	int getEngineVersion(csre_cs_context_h, std::string &);
-	int getEngineDataVersion(csre_cs_context_h, std::string &);
-	int getEngineLatestUpdateTime(csre_cs_context_h, time_t *);
-	int getEngineActivated(csre_cs_context_h, csre_cs_activated_e *);
-	int getEngineVendorLogo(csre_cs_context_h, std::vector<unsigned char> &);
+	virtual std::string getErrorString(int) override;
 
 private:
 	using FpGlobalInit = int(*)(const char *, const char *);

@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include <string>
+
 namespace Csr {
 
 class ILoader {
@@ -32,12 +34,16 @@ public:
 		this->init(enginePath, roResDir, rwWorkingDir);
 	}
 
+	virtual std::string getErrorString(int) = 0;
+
 protected:
 	virtual ~ILoader() = default;
 
 	virtual void deinit() = 0;
 	virtual void init(const std::string &enginePath, const std::string &roResDir,
 					  const std::string &rwWorkingDir) = 0;
+
+	virtual void toException(int ee, bool internalErrorToString = true);
 };
 
 }

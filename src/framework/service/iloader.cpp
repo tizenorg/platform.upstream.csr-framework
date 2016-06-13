@@ -14,20 +14,22 @@
  *  limitations under the License
  */
 /*
- * @file        engine-error-converter.cpp
- * @author      Kyungwook Tak (k.tak@samsung.com)
- * @version     1.0
- * @brief       convert engine error to custom exception
+ * @file       iloader.cpp
+ * @author     Kyungwook Tak (k.tak@samsung.com)
+ * @version    1.0
+ * @brief      engine loader abstract class
  */
-#include "service/engine-error-converter.h"
+#include "service/iloader.h"
 
-#include "common/exception.h"
+#include <stdexcept>
 
 #include <csre-error.h>
 
+#include "common/exception.h"
+
 namespace Csr {
 
-void toException(int ee)
+void ILoader::toException(int ee, bool internalErrorToString)
 {
 	switch (ee) {
 	case CSRE_ERROR_NONE:
@@ -46,7 +48,20 @@ void toException(int ee)
 		ThrowExc(CSR_ERROR_ENGINE_NOT_ACTIVATED, "engine is not activated yet");
 
 	default:
-		ThrowExc(CSR_ERROR_ENGINE_INTERNAL, "engine internal error. ec: " << ee);
+		if (internalErrorToString) {
+			std::string errstr;
+			try {
+				errstr = this->getErrorString(ee);
+			} catch (...) {
+				ERROR("exception from engine loader's getErrorString.");
+				ThrowExc(CSR_ERROR_ENGINE_INTERNAL, "engine internal error. Failed to "
+						 "get errno string... engine error code: " << ee);
+			}
+
+			ThrowExc(CSR_ERROR_ENGINE_INTERNAL, "engine internal error: " << errstr);
+		} else {
+			ThrowExc(CSR_ERROR_ENGINE_INTERNAL, "engine internal error. ec: " << ee);
+		}
 	}
 }
 

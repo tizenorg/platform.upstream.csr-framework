@@ -47,9 +47,9 @@ SET(${TARGET_CSR_INTERNAL_TEST}_SRCS
 	${CSR_FW_SRC_PATH}/service/fs-utils.cpp
 	${CSR_FW_SRC_PATH}/service/file-system.cpp
 	${CSR_FW_SRC_PATH}/service/app-deleter.cpp
+	${CSR_FW_SRC_PATH}/service/iloader.cpp
 	${CSR_FW_SRC_PATH}/service/cs-loader.cpp
 	${CSR_FW_SRC_PATH}/service/wp-loader.cpp
-	${CSR_FW_SRC_PATH}/service/engine-error-converter.cpp
 	${CSR_FW_SRC_PATH}/service/dir-blacklist.cpp
 	${CSR_FW_SRC_PATH}/ui/popup/package-info.cpp
 

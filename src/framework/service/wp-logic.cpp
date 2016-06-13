@@ -26,7 +26,6 @@
 #include "common/audit/logger.h"
 #include "common/exception.h"
 #include "service/type-converter.h"
-#include "service/engine-error-converter.h"
 #include "ui/askuser.h"
 #include <csr-error.h>
 
@@ -41,8 +40,7 @@ WpLogic::WpLogic(const std::shared_ptr<WpLoader> &loader,
 
 	if (this->m_loader) {
 		WpEngineContext wpEngineContext(this->m_loader);
-		toException(this->m_loader->getEngineDataVersion(wpEngineContext.get(),
-					this->m_dataVersion));
+		this->m_loader->getEngineDataVersion(wpEngineContext.get(), this->m_dataVersion);
 	}
 }
 
@@ -55,7 +53,7 @@ RawBuffer WpLogic::checkUrl(const WpContext &context, const std::string &url)
 	auto &c = engineContext.get();
 
 	csre_wp_check_result_h result;
-	toException(this->m_loader->checkUrl(c, url.c_str(), &result));
+	this->m_loader->checkUrl(c, url.c_str(), &result);
 
 	auto wr = convert(result);
 
@@ -115,8 +113,8 @@ WpResult WpLogic::convert(csre_wp_check_result_h &r)
 	WpResult wr;
 	csre_wp_risk_level_e elevel;
 
-	toException(this->m_loader->getDetailedUrl(r, wr.detailedUrl));
-	toException(this->m_loader->getRiskLevel(r, &elevel));
+	this->m_loader->getDetailedUrl(r, wr.detailedUrl);
+	this->m_loader->getRiskLevel(r, &elevel);
 	wr.riskLevel = Csr::convert(elevel);
 
 	return wr;

@@ -61,11 +61,11 @@ inline void checkResult(Csr::WpLoader &loader,
 	CHECK_IS_NOT_NULL(result);
 
 	csre_wp_risk_level_e risk_level;
-	ASSERT_IF(loader.getRiskLevel(result, &risk_level), CSRE_ERROR_NONE);
+	loader.getRiskLevel(result, &risk_level);
 	ASSERT_IF(risk_level, expected.second.risk_level);
 
 	std::string detailed_url;
-	ASSERT_IF(loader.getDetailedUrl(result, detailed_url), CSRE_ERROR_NONE);
+	loader.getDetailedUrl(result, detailed_url);
 	ASSERT_IF(detailed_url, expected.second.detailed_url);
 
 	EXCEPTION_GUARD_END
@@ -77,12 +77,12 @@ struct Handle {
 			   ENGINE_DIR,
 			   ENGINE_RW_WORKING_DIR)
 	{
-		ASSERT_IF(loader.contextCreate(context), CSRE_ERROR_NONE);
+		loader.contextCreate(context);
 	}
 
 	~Handle()
 	{
-		ASSERT_IF(loader.contextDestroy(context), CSRE_ERROR_NONE);
+		loader.contextDestroy(context);
 	}
 
 	Csr::WpLoader loader;
@@ -112,8 +112,7 @@ BOOST_AUTO_TEST_CASE(check_url)
 
 	for (const auto &expected : ExpectedResult) {
 		csre_wp_check_result_h result;
-		ASSERT_IF(h.loader.checkUrl(h.context, expected.first.c_str(), &result),
-				  CSRE_ERROR_NONE);
+		h.loader.checkUrl(h.context, expected.first.c_str(), &result);
 		checkResult(h.loader, result, expected);
 	}
 
@@ -127,9 +126,7 @@ BOOST_AUTO_TEST_CASE(error_string)
 
 	Handle h;
 
-	std::string str;
-
-	ASSERT_IF(h.loader.getErrorString(CSRE_ERROR_UNKNOWN, str), CSRE_ERROR_NONE);
+	std::string str = h.loader.getErrorString(CSRE_ERROR_UNKNOWN);
 	ASSERT_IF(str.empty(), false);
 
 	EXCEPTION_GUARD_END
@@ -142,7 +139,7 @@ BOOST_AUTO_TEST_CASE(get_vendor)
 	Handle h;
 
 	std::string str;
-	ASSERT_IF(h.loader.getEngineVendor(h.context, str), CSRE_ERROR_NONE);
+	h.loader.getEngineVendor(h.context, str);
 	ASSERT_IF(str.empty(), false);
 
 	EXCEPTION_GUARD_END
@@ -155,7 +152,7 @@ BOOST_AUTO_TEST_CASE(get_vendor_logo)
 	Handle h;
 
 	std::vector<unsigned char> logo;
-	ASSERT_IF(h.loader.getEngineVendorLogo(h.context, logo), CSRE_ERROR_NONE);
+	h.loader.getEngineVendorLogo(h.context, logo);
 
 	EXCEPTION_GUARD_END
 }
@@ -167,7 +164,7 @@ BOOST_AUTO_TEST_CASE(get_version)
 	Handle h;
 
 	std::string str;
-	ASSERT_IF(h.loader.getEngineVersion(h.context, str), CSRE_ERROR_NONE);
+	h.loader.getEngineVersion(h.context, str);
 	ASSERT_IF(str.empty(), false);
 
 	EXCEPTION_GUARD_END
@@ -180,7 +177,7 @@ BOOST_AUTO_TEST_CASE(get_data_version)
 	Handle h;
 
 	std::string str;
-	ASSERT_IF(h.loader.getEngineDataVersion(h.context, str), CSRE_ERROR_NONE);
+	h.loader.getEngineDataVersion(h.context, str);
 	ASSERT_IF(str.empty(), false);
 
 	EXCEPTION_GUARD_END
@@ -193,8 +190,7 @@ BOOST_AUTO_TEST_CASE(get_latest_update_time)
 	Handle h;
 
 	time_t time = 0;
-	ASSERT_IF(h.loader.getEngineLatestUpdateTime(h.context, &time),
-			  CSRE_ERROR_NONE);
+	h.loader.getEngineLatestUpdateTime(h.context, &time);
 
 	EXCEPTION_GUARD_END
 }
@@ -206,7 +202,7 @@ BOOST_AUTO_TEST_CASE(get_engine_activated)
 	Handle h;
 
 	csre_wp_activated_e activated;
-	ASSERT_IF(h.loader.getEngineActivated(h.context, &activated), CSRE_ERROR_NONE);
+	h.loader.getEngineActivated(h.context, &activated);
 
 	EXCEPTION_GUARD_END
 }
@@ -218,7 +214,7 @@ BOOST_AUTO_TEST_CASE(get_api_version)
 	Handle h;
 
 	std::string str;
-	ASSERT_IF(h.loader.getEngineApiVersion(h.context, str), CSRE_ERROR_NONE);
+	h.loader.getEngineApiVersion(h.context, str);
 	ASSERT_IF(str == CSRE_CS_API_VERSION, true);
 
 	EXCEPTION_GUARD_END

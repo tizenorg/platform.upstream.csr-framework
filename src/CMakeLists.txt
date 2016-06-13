@@ -51,9 +51,9 @@ SET(${TARGET_CSR_SERVER}_SRCS
 	framework/service/fs-utils.cpp
 	framework/service/file-system.cpp
 	framework/service/app-deleter.cpp
+	framework/service/iloader.cpp
 	framework/service/cs-loader.cpp
 	framework/service/wp-loader.cpp
-	framework/service/engine-error-converter.cpp
 	framework/service/dir-blacklist.cpp
 	framework/ui/askuser.cpp
 

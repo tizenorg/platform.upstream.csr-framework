@@ -609,17 +609,10 @@ BOOST_AUTO_TEST_CASE(scan_cancel_positiive)
 	Test::touch_file(TEST_FILE_HIGH);
 
 	ASSERT_SUCCESS(csr_cs_scan_dirs_async(context, dirs, 1, &testCtx));
-
-	// TODO: check the reason
-	// Without sleep, sometimes the first run of this TC fails with core dump.
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
 	ASSERT_SUCCESS(csr_cs_cancel_scanning(context));
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
 	//scanned, detected, completed, cancelled, error
-	ASSERT_CALLBACK(testCtx, -1, 0, 0, 1, 0);
+	ASSERT_CALLBACK(testCtx, -1, -1, 0, 1, 0);
 
 	EXCEPTION_GUARD_END
 }

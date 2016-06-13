@@ -29,6 +29,7 @@
 #include "client/async-logic.h"
 #include "client/canonicalize.h"
 #include "common/macros.h"
+#include "common/exception.h"
 #include "common/types.h"
 #include "common/cs-context.h"
 #include "common/cs-detected.h"
@@ -392,12 +393,9 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 		auto ret = hExt->dispatch<std::pair<int, std::shared_ptr<StrSet>>>(
 					CommandId::CANONICALIZE_PATHS, *fileSet);
 
-		if (ret.first != CSR_ERROR_NONE) {
-			if (hExt->m_cb.onError)
-				hExt->m_cb.onError(ret.first, user_data);
-
-			return;
-		}
+		if (ret.first != CSR_ERROR_NONE)
+			ThrowExc(ret.first, "Error on getting canonicalized paths in subthread. "
+					 "ret: " << ret.first);
 
 		std::shared_ptr<StrSet> canonicalizedFiles;
 
@@ -494,12 +492,9 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 		auto ret = hExt->dispatch<std::pair<int, std::shared_ptr<StrSet>>>(
 					CommandId::CANONICALIZE_PATHS, *dirSet);
 
-		if (ret.first != CSR_ERROR_NONE) {
-			if (hExt->m_cb.onError)
-				hExt->m_cb.onError(ret.first, user_data);
-
-			return;
-		}
+		if (ret.first != CSR_ERROR_NONE)
+			ThrowExc(ret.first, "Error on getting canonicalized paths in subthread. "
+					 "ret: " << ret.first);
 
 		std::shared_ptr<StrSet> canonicalizedDirs;
 

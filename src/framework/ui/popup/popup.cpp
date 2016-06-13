@@ -55,7 +55,9 @@ Popup::Popup(int buttonN)
 	// Wrap objects with box.
 	m_box = elm_box_add(m_popup);
 	evas_object_size_hint_weight_set(m_box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_align_set(m_header, EVAS_HINT_FILL, EVAS_HINT_FILL);
 	elm_box_padding_set(m_box, 10, 10);
+	evas_object_show(m_box);
 
 	m_header = elm_label_add(m_box);
 	evas_object_size_hint_weight_set(m_header, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -65,6 +67,7 @@ Popup::Popup(int buttonN)
 
 	// Subbox is for icon.
 	m_subBox = elm_box_add(m_box);
+	evas_object_size_hint_weight_set(m_subBox, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	evas_object_size_hint_align_set(m_subBox, 0, 0);
 	elm_box_horizontal_set(m_subBox, EINA_TRUE);
 
@@ -84,16 +87,17 @@ Popup::Popup(int buttonN)
 	evas_object_show(m_subBox);
 
 	// This label is for linking to webview.
-	m_hypertext = elm_button_add(m_box);
-	elm_object_text_set(m_hypertext, "More information");
-	evas_object_size_hint_weight_set(m_hypertext, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	evas_object_size_hint_align_set(m_hypertext, EVAS_HINT_FILL, 0);
+	m_hypertext = elm_label_add(m_box);
+	elm_object_text_set(m_hypertext, "<a href=><color=#0000FFFF>"
+		"  More information</color></a>");
+	evas_object_size_hint_weight_set(m_hypertext, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_align_set(m_hypertext, 0, 0);
+	evas_object_size_hint_min_set(m_hypertext, 400, 80);
 	elm_box_pack_end(m_box, m_hypertext);
 	evas_object_show(m_hypertext);
-	elm_object_style_set(m_hypertext, "anchor");
-	elm_object_focus_set(m_hypertext, EINA_FALSE);
 
 	m_footer = elm_label_add(m_box);
+	evas_object_size_hint_weight_set(m_footer, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	evas_object_size_hint_align_set(m_footer, EVAS_HINT_FILL, 0);
 	elm_box_pack_end(m_box, m_footer);
 	evas_object_show(m_footer);
@@ -179,10 +183,10 @@ void Popup::callbackRegister(Evas_Object *obj, const std::string &url)
 {
 	if (url.empty())
 		evas_object_smart_callback_add(
-			obj, "clicked", hypertextClickedCb, &DEFAULT_URL);
+			obj, "anchor,clicked", hypertextClickedCb, &DEFAULT_URL);
 	else
 		evas_object_smart_callback_add(
-			obj, "clicked", hypertextClickedCb, &url);
+			obj, "anchor,clicked", hypertextClickedCb, &url);
 }
 
 void Popup::hypertextClickedCb(void *data, Evas_Object *, void *)

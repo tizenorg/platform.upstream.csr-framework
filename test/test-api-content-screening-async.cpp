@@ -109,10 +109,10 @@ void on_error(int ec, void *userdata)
 
 	BOOST_REQUIRE_MESSAGE(ctx->apiReturned,
 		"API not returned yet but error callback called with error: " <<
-		Test::capi_ec_to_string(static_cast<csr_error_e>(ec)));
+		Test::capi_ec_to_string(ec));
 
 	BOOST_MESSAGE("on_error. async request done with error: " <<
-				  Test::capi_ec_to_string(static_cast<csr_error_e>(ec)));
+				  Test::capi_ec_to_string(ec));
 
 	ctx->errorCnt++;
 	ctx->errorCode = ec;

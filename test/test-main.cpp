@@ -29,6 +29,8 @@
 
 #include <csr-engine-manager.h>
 
+#include "test-common.h"
+
 namespace {
 
 csr_state_e setEngineState(csr_engine_id_e id, csr_state_e state)
@@ -36,27 +38,37 @@ csr_state_e setEngineState(csr_engine_id_e id, csr_state_e state)
 	csr_engine_h handle;
 	auto ret = csr_get_current_engine(id, &handle);
 	if (ret == CSR_ERROR_ENGINE_NOT_EXIST) {
-		std::cerr << "Engine not exist! engine id: " << static_cast<int>(id) << std::endl;
+		BOOST_MESSAGE("engine not exist! engine id: " << static_cast<int>(id));
+
 		return CSR_STATE_DISABLE;
 	} else if (ret != CSR_ERROR_NONE) {
-		throw std::logic_error("Failed to csr_get_current_engine.");
+		BOOST_MESSAGE(
+			"Failed to csr_get_current_engine with ret: " <<
+			Test::capi_ec_to_string(ret));
+
+		return CSR_STATE_DISABLE;
 	}
 
-	csr_state_e current;
+	csr_state_e current = CSR_STATE_DISABLE;
 	ret = csr_engine_get_state(handle, &current);
 	if (ret == CSR_ERROR_ENGINE_NOT_EXIST) {
-		std::cerr << "Engine not exist! engine id: " << static_cast<int>(id) << std::endl;
+		BOOST_MESSAGE("Engine not exist! engine id: " << static_cast<int>(id));
 		return CSR_STATE_DISABLE;
 	} else if (ret != CSR_ERROR_NONE) {
-		throw std::logic_error("Failed to csr_get_state.");
+		BOOST_MESSAGE(
+			"Failed to csr_engine_get_state with ret: " <<
+			Test::capi_ec_to_string(ret));
+
+		return CSR_STATE_DISABLE;
 	}
 
 	if (current == state)
 		return current;
 
 	ret = csr_engine_set_state(handle, state);
-	if (ret != CSR_ERROR_NONE)
-		throw std::logic_error("Failed to csr_engine_set_state.");
+	BOOST_WARN_MESSAGE(ret != CSR_ERROR_NONE,
+		"Failed to csr_engine_set_state with ret: " <<
+		Test::capi_ec_to_string(ret));
 
 	return current;
 }

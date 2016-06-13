@@ -183,6 +183,7 @@ void _assert<char *, std::string>(char * const &value,
 void exceptionGuard(const std::function<void()> &);
 
 std::string capi_ec_to_string(csr_error_e ec);
+std::string capi_ec_to_string(int ec);
 
 void make_dir(const char *dir);
 void make_dir_assert(const char *dir);

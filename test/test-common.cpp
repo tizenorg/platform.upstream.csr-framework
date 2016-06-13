@@ -135,6 +135,11 @@ std::string capi_ec_to_string(csr_error_e ec)
 }
 #undef ERRORDESCRIBE
 
+std::string capi_ec_to_string(int ec)
+{
+	return capi_ec_to_string(static_cast<csr_error_e>(ec));
+}
+
 template <>
 void _assert<csr_error_e, csr_error_e>(const csr_error_e &value,
 									   const csr_error_e &expected,
@@ -169,14 +174,12 @@ void _assert<csr_error_e, int>(const csr_error_e &value,
 		BOOST_REQUIRE_MESSAGE(value == expected,
 							  "[" << filename << " > " << funcname << " : " << line <<
 							  "] returned[" << capi_ec_to_string(value) << "] expected[" <<
-							  capi_ec_to_string(static_cast<csr_error_e>(expected)) <<
-							  "] " << msg);
+							  capi_ec_to_string(expected) << "] " << msg);
 	else
 		BOOST_WARN_MESSAGE(value == expected,
 							  "[" << filename << " > " << funcname << " : " << line <<
 							  "] returned[" << capi_ec_to_string(value) << "] expected[" <<
-							  capi_ec_to_string(static_cast<csr_error_e>(expected)) <<
-							  "] " << msg);
+							  capi_ec_to_string(expected) << "] " << msg);
 }
 
 template <>
@@ -191,11 +194,11 @@ void _assert<int, csr_error_e>(const int &value,
 	if (isAssert)
 		BOOST_REQUIRE_MESSAGE(value == expected,
 							  "[" << filename << " > " << funcname << " : " << line <<
-							  "] returned[" << capi_ec_to_string(static_cast<csr_error_e>(value)) <<
+							  "] returned[" << capi_ec_to_string(value) <<
 							  "] expected[" << capi_ec_to_string(expected) << "] " << msg);
 		BOOST_WARN_MESSAGE(value == expected,
 						   "[" << filename << " > " << funcname << " : " << line <<
-						   "] returned[" << capi_ec_to_string(static_cast<csr_error_e>(value)) <<
+						   "] returned[" << capi_ec_to_string(value) <<
 						   "] expected[" << capi_ec_to_string(expected) << "] " << msg);
 }
 

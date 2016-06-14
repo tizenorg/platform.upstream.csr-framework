@@ -28,6 +28,8 @@
 
 namespace Csr {
 
+bool isReadable(const std::string &target);
+
 uid_t getUid(const std::string &username);
 
 std::unique_ptr<struct stat> getStat(const std::string &target);

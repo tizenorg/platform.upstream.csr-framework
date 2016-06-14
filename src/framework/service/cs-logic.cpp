@@ -186,6 +186,9 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 	detected.isApp = true;
 	detected.pkgId = pkgId;
 
+	this->m_db->insertName(pkgPath);
+	this->m_db->insertDetectedCloud(detected, pkgId, pkgPath, this->m_dataVersion);
+
 	return this->handleAskUser(context, detected);
 }
 
@@ -499,7 +502,7 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 
 	if (lastScanTime != -1) {
 		// for case: scan history exist and not modified.
-		for (auto &row : this->m_db->getDetectedByNameOnDir(File::getPkgPath(dir))) {
+		for (auto &row : this->m_db->getDetectedAllByNameOnDir(File::getPkgPath(dir))) {
 			try {
 				auto fileptr = File::create(row->targetName);
 
@@ -563,13 +566,22 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 
 	auto history = this->m_db->getDetectedByNameOnPath(targetName);
 
+	bool isCloudHistory = false;
+
 	if (!history) {
-		ERROR("Target to be judged doesn't exist in db. name: " << targetName);
-		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
+		history = this->m_db->getDetectedCloudByNameOnPath(targetName);
+
+		if (!history) {
+			ERROR("Target to be judged doesn't exist in db. name: " << targetName);
+			return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
+		}
+
+		isCloudHistory = true;
 	}
 
 	// file create based on fileInAppPath(for app target, it is worst detected)
-	if (File::createIfModified(history->fileInAppPath, static_cast<time_t>(history->ts)))
+	if (!isCloudHistory && File::createIfModified(history->fileInAppPath,
+												  static_cast<time_t>(history->ts)))
 		ThrowExc(CSR_ERROR_FILE_CHANGED,
 				 "File[" << history->fileInAppPath << "] modified since db delta inserted."
 				 " Don't refresh detected history to know that it's changed since the"
@@ -611,6 +623,8 @@ RawBuffer CsLogic::getDetected(const std::string &filepath)
 	}
 
 	auto row = this->m_db->getDetectedByNameOnPath(target);
+	if (!row)
+		row = this->m_db->getDetectedCloudByNameOnPath(target);
 
 	if (row && !row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -626,8 +640,8 @@ RawBuffer CsLogic::getDetectedList(const StrSet &_dirSet)
 
 	Db::RowShPtrs rows;
 	for (const auto &dir : dirSet) {
-		for (auto &row : this->m_db->getDetectedByNameOnDir(dir)) {
-			if (!isReadable(row->targetName)) {
+		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir)) {
+			if (!row->fileInAppPath.empty() && !isReadable(row->targetName)) {
 				WARN("Exclude not-accessable malware detected file from the list: " <<
 					 row->targetName);
 				this->m_db->deleteDetectedByNameOnPath(row->targetName);
@@ -656,6 +670,8 @@ RawBuffer CsLogic::getIgnored(const std::string &filepath)
 	}
 
 	auto row = this->m_db->getDetectedByNameOnPath(target);
+	if (!row)
+		row = this->m_db->getDetectedCloudByNameOnPath(target);
 
 	if (row && row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -671,8 +687,8 @@ RawBuffer CsLogic::getIgnoredList(const StrSet &_dirSet)
 
 	Db::RowShPtrs rows;
 	for (const auto &dir : dirSet) {
-		for (auto &row : this->m_db->getDetectedByNameOnDir(dir)) {
-			if (!isReadable(row->targetName)) {
+		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir)) {
+			if (!row->fileInAppPath.empty() && !isReadable(row->targetName)) {
 				WARN("Exclude not-accessable malware detected file from the list: " <<
 					 row->targetName);
 				this->m_db->deleteDetectedByNameOnPath(row->targetName);

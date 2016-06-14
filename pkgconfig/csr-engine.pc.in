@@ -1,0 +1,13 @@
+# Package Information for pkg-config
+
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=%{prefix}
+libdir=@LIB_INSTALL_DIR@
+includedir=@INCLUDE_INSTALL_DIR@
+
+Name: @SERVICE_NAME@-engine
+Description: @PACKAGE_DESCRIPTION@
+Version: @VERSION@
+Requires:
+Libs: -L${libdir}
+Cflags: -I${includedir}/csre

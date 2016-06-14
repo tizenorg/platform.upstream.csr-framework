@@ -1,0 +1,14 @@
+[Unit]
+Description=Csr web protection socket
+Wants=@SERVICE_NAME@.service
+Before=@SERVICE_NAME@.service
+
+[Socket]
+ListenStream=/tmp/.@SERVICE_NAME@-wp.socket
+Service=@SERVICE_NAME@.service
+SocketMode=0777
+SmackLabelIPIn=*
+SmackLabelIPOut=@
+
+[Install]
+WantedBy=sockets.target

@@ -1,0 +1,34 @@
+<manifest>
+	<define>
+		<domain name="@SERVICE_NAME@-test" />
+		<request>
+			<smack request="device::sys_logging" type="rw" />
+			<smack request="device::app_logging" type="rw" />
+			<smack request="sys-assert::core" type="rwxat" />
+			<smack request="systemd" type="rx" />
+			<smack request="tizen::vconf::setting::admin" type="rl" />
+			<smack request="@SERVICE_NAME@" type="rwxat" />
+			<smack request="sdbd" type="rx" />
+			<smack request="pkgmgr::db" type="rwx" />
+			<smack request="pkgmgr::svc" type="r" />
+
+			<smack request="csr::csapi" type="w" />
+			<smack request="csr::wpapi" type="w" />
+			<smack request="csr::adminapi" type="w" />
+
+			<smack request="system::media" type="rwxat" />
+			<smack request="system::homedir" type="rwxat" />
+			<smack request="_" type="rwx" />
+		</request>
+		<permit>
+			<smack permit="_" type="rx" />
+			<smack permit="pkgmgr" type="rx" />
+			<smack permit="pkgmgr-server" type="rx" />
+			<smack permit="wrt-installer" type="rx" />
+			<smack permit="@SERVICE_NAME@" type="rwxat" />
+		</permit>
+	</define>
+	<request>
+		<domain name="@SERVICE_NAME@-test" />
+	</request>
+</manifest>

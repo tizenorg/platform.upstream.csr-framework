@@ -1,0 +1,9 @@
+<manifest>
+	<request>
+		<domain name="_" />
+	</request>
+	<assign>
+		<filesystem path="@BIN_DIR@/@SERVICE_NAME@-test" exec_label="@SMACK_DOMAIN_NAME@" />
+		<filesystem path="@TEST_DIR@" label="@SMACK_DOMAIN_NAME@" type="transmutable" />
+	</assign>
+</manifest>

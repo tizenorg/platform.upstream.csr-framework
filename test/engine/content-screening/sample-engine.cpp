@@ -445,7 +445,6 @@ int csre_cs_scan_app_on_cloud(csre_cs_context_h handle,
 	if (handle == nullptr || app_root_dir == nullptr || pdetected == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
 
-	int ret;
 	csre_cs_detected_h detected = nullptr;
 	csre_cs_detected_h most_detected = nullptr;
 	csre_cs_severity_level_e most = CSRE_CS_SEVERITY_LOW;
@@ -453,8 +452,12 @@ int csre_cs_scan_app_on_cloud(csre_cs_context_h handle,
 	std::unique_ptr<DIR, std::function<int(DIR *)>> dirp(opendir(app_root_dir),
 			closedir);
 
-	if (!dirp)
-		return CSRE_ERROR_FILE_NOT_FOUND;
+	if (!dirp) {
+		// silently skip the subdirectory in app_root_dir that unable to open because of
+		// having no permission
+		*pdetected = nullptr;
+		return CSRE_ERROR_NONE;
+	}
 
 	struct dirent entry;
 	struct dirent *result;
@@ -464,6 +467,8 @@ int csre_cs_scan_app_on_cloud(csre_cs_context_h handle,
 		std::string filename(entry.d_name);
 		fullpath += "/";
 		fullpath += filename;
+
+		int ret = CSRE_ERROR_NONE;
 
 		if (entry.d_type & (DT_REG | DT_LNK))
 			ret = csre_cs_scan_file(handle, fullpath.c_str(), &detected);
@@ -492,9 +497,9 @@ int csre_cs_scan_app_on_cloud(csre_cs_context_h handle,
 		}
 	}
 
-	*pdetected = reinterpret_cast<csre_cs_detected_h>(detected);
+	*pdetected = detected;
 
-	return ret;
+	return CSRE_ERROR_NONE;
 }
 
 //==============================================================================

@@ -788,17 +788,23 @@ BOOST_AUTO_TEST_CASE(delta_scan_changed_after_scan)
 	// scanned, detected, completed, cancelled, error
 	ASSERT_CALLBACK(testRescanCtx, -1, -1, 1, 0, 0);
 
-	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList,
-		TEST_WGT_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
-	ASSERT_DETECTED_IN_LIST_EXT(testRescanCtx.detectedList, TEST_WGT_APP_ROOT(), true, TEST_WGT_PKG_ID);
+	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList, TEST_WGT_APP_ROOT(),
+							MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+							MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED_IN_LIST_EXT(testRescanCtx.detectedList, TEST_WGT_APP_ROOT(), true,
+								TEST_WGT_PKG_ID);
 
-	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList,
-		TEST_TPK_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
-	ASSERT_DETECTED_IN_LIST_EXT(testRescanCtx.detectedList, TEST_TPK_APP_ROOT(), true, TEST_TPK_PKG_ID);
+	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList, TEST_TPK_APP_ROOT(),
+							MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+							MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED_IN_LIST_EXT(testRescanCtx.detectedList, TEST_TPK_APP_ROOT(), true,
+								TEST_TPK_PKG_ID);
 
-	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList,
-		TEST_FAKE_APP_FILE(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
-	ASSERT_DETECTED_IN_LIST_EXT(testRescanCtx.detectedList, TEST_FAKE_APP_FILE(), false, "");
+	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList, TEST_FAKE_APP_FILE(),
+							MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+							MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED_IN_LIST_EXT(testRescanCtx.detectedList, TEST_FAKE_APP_FILE(), false,
+								"");
 
 	uninstall_test_apps();
 
@@ -991,6 +997,51 @@ BOOST_AUTO_TEST_CASE(async_api_returning_and_callback_race)
 	std::unique_lock<std::mutex> l(testCtx.m);
 	testCtx.cv.wait(l);
 	l.unlock();
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
+{
+	EXCEPTION_GUARD_START
+
+	BOOST_MESSAGE("Only valid for engines which supports scan on cloud feature");
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	install_test_files();
+	install_test_apps();
+
+	set_default_callback(context);
+	ASSERT_SUCCESS(csr_cs_set_scan_on_cloud(context, true));
+
+	AsyncTestContext testCtx;
+
+	ASSERT_SUCCESS(csr_cs_scan_dir_async(context, TEST_DIR_APPS(), &testCtx));
+
+	std::unique_lock<std::mutex> l(testCtx.m);
+	testCtx.cv.wait(l);
+	l.unlock();
+
+	ASSERT_CALLBACK(testCtx, -1, -1, 1, 0, 0);
+
+	ASSERT_DETECTED_IN_LIST(testCtx.detectedList, TEST_WGT_APP_ROOT(),
+							MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+							MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED_IN_LIST_EXT(testCtx.detectedList, TEST_WGT_APP_ROOT(), true,
+								TEST_WGT_PKG_ID);
+
+	ASSERT_DETECTED_IN_LIST(testCtx.detectedList, TEST_TPK_APP_ROOT(),
+							MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+							MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED_IN_LIST_EXT(testCtx.detectedList, TEST_TPK_APP_ROOT(), true,
+								TEST_TPK_PKG_ID);
+
+	ASSERT_DETECTED_IN_LIST(testCtx.detectedList, TEST_FAKE_APP_FILE(),
+							MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+							MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED_IN_LIST_EXT(testCtx.detectedList, TEST_FAKE_APP_FILE(), false, "");
 
 	EXCEPTION_GUARD_END
 }

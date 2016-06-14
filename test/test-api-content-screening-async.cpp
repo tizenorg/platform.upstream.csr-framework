@@ -954,4 +954,32 @@ BOOST_AUTO_TEST_CASE(async_api_returning_and_callback_race)
 	EXCEPTION_GUARD_END
 }
 
+BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
+{
+	EXCEPTION_GUARD_START
+
+	BOOST_MESSAGE("Only valid for engines which supports scan on cloud feature");
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	install_test_files();
+	install_test_apps();
+
+	set_default_callback(context);
+	ASSERT_SUCCESS(csr_cs_set_scan_on_cloud(context, true));
+
+	AsyncTestContext testCtx;
+
+	ASSERT_SUCCESS(csr_cs_scan_dir_async(context, "/opt/home", &testCtx));
+
+	std::unique_lock<std::mutex> l(testCtx.m);
+	testCtx.cv.wait(l);
+	l.unlock();
+
+	ASSERT_CALLBACK(testCtx, -1, -1, 1, 0, 0);
+
+	EXCEPTION_GUARD_END
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -35,6 +35,18 @@
 
 namespace Csr {
 
+bool isReadable(const std::string &target)
+{
+	FILE *f = ::fopen(target.c_str(), "rb");
+
+	if (f == nullptr) {
+		return false;
+	} else {
+		::fclose(f);
+		return true;
+	}
+}
+
 uid_t getUid(const std::string &username)
 {
 	auto bufsize = ::sysconf(_SC_GETPW_R_SIZE_MAX);
@@ -76,10 +88,10 @@ std::unique_ptr<struct stat> getStat(const std::string &target)
 	}
 
 	// if no permission to read, return nullptr
-	if (::access(target.c_str(), R_OK) != 0)
-		return nullptr;
-	else
+	if (isReadable(target))
 		return statptr;
+	else
+		return nullptr;
 }
 
 }

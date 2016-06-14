@@ -59,7 +59,7 @@ void __assertFile(const File &file, const std::string &path,
 
 void __createFile(const std::string &path)
 {
-	if (access(path.c_str(), R_OK | W_OK) == 0)
+	if (::access(path.c_str(), R_OK | W_OK) == 0)
 		return; // already exist
 
 	int fd = creat(path.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);

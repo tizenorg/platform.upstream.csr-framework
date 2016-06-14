@@ -26,13 +26,15 @@
 #include <cerrno>
 #include <unistd.h>
 
+#include <csr-error.h>
+
 #include "common/audit/logger.h"
 #include "common/exception.h"
 #include "service/type-converter.h"
 #include "service/core-usage.h"
 #include "service/dir-blacklist.h"
+#include "service/fs-utils.h"
 #include "ui/askuser.h"
-#include <csr-error.h>
 
 namespace Csr {
 
@@ -110,7 +112,7 @@ std::string canonicalizePath(const std::string &path, bool checkAccess)
 	auto resolved = resolvePath(path);
 	auto target = File::getPkgPath(resolved);
 
-	if (checkAccess && ::access(target.c_str(), R_OK) != 0) {
+	if (checkAccess && !isReadable(path)) {
 		const int err = errno;
 		if (err == ENOENT)
 			ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "File do not exist: " << target);
@@ -639,8 +641,7 @@ RawBuffer CsLogic::getDetectedList(const StrSet &_dirSet)
 	Db::RowShPtrs rows;
 	for (const auto &dir : dirSet) {
 		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir)) {
-			if (!row->fileInAppPath.empty() &&
-				::access(row->targetName.c_str(), R_OK) != 0) {
+			if (!row->fileInAppPath.empty() && !isReadable(row->targetName)) {
 				WARN("Exclude not-accessable malware detected file from the list: " <<
 					 row->targetName);
 				this->m_db->deleteDetectedByNameOnPath(row->targetName);
@@ -687,8 +688,7 @@ RawBuffer CsLogic::getIgnoredList(const StrSet &_dirSet)
 	Db::RowShPtrs rows;
 	for (const auto &dir : dirSet) {
 		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir)) {
-			if (!row->fileInAppPath.empty() &&
-				::access(row->targetName.c_str(), R_OK) != 0) {
+			if (!row->fileInAppPath.empty() && !isReadable(row->targetName)) {
 				WARN("Exclude not-accessable malware detected file from the list: " <<
 					 row->targetName);
 				this->m_db->deleteDetectedByNameOnPath(row->targetName);

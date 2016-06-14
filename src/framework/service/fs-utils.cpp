@@ -21,18 +21,46 @@
  */
 #include "service/fs-utils.h"
 
+#include <vector>
 #include <cstring>
 #include <cerrno>
 #include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
+#include <csr-error.h>
+
+#include "common/exception.h"
 #include "common/audit/logger.h"
 
 namespace Csr {
 
+uid_t getUid(const std::string &username)
+{
+	auto bufsize = ::sysconf(_SC_GETPW_R_SIZE_MAX);
+	bufsize = (bufsize == -1) ? 16384 : bufsize;
+
+	std::vector<char> buf(bufsize, 0);
+
+	struct passwd pwd;
+	struct passwd *result = nullptr;
+
+	auto ret = ::getpwnam_r(username.c_str(), &pwd, buf.data(), buf.size(), &result);
+
+	if (result == nullptr) {
+		if (ret == 0)
+			ThrowExc(CSR_ERROR_SERVER, "Uid not found by username: " << username);
+		else
+			ThrowExc(CSR_ERROR_SERVER, "Failed to getpwnam_r with errno: " << errno);
+	}
+
+	return pwd.pw_uid;
+}
+
 std::unique_ptr<struct stat> getStat(const std::string &target)
 {
 	std::unique_ptr<struct stat> statptr(new struct stat);
-	memset(statptr.get(), 0x00, sizeof(struct stat));
+	::memset(statptr.get(), 0x00, sizeof(struct stat));
 
 	if (::stat(target.c_str(), statptr.get()) != 0) {
 		const int err = errno;

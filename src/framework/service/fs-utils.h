@@ -23,9 +23,12 @@
 
 #include <memory>
 #include <string>
+#include <sys/types.h>
 #include <sys/stat.h>
 
 namespace Csr {
+
+uid_t getUid(const std::string &username);
 
 std::unique_ptr<struct stat> getStat(const std::string &target);
 

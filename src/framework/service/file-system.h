@@ -65,7 +65,7 @@ private:
 
 	static FilePtr createInternal(const std::string &fpath, time_t modifiedSince,
 								  bool isModifiedOnly);
-	static int getPkgTypes(const std::string &pkgid);
+	static int getPkgTypes(const std::string &user, const std::string &pkgid);
 
 	explicit File(const std::string &fpath, int type);
 

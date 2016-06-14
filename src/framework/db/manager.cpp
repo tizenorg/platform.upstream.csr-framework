@@ -65,6 +65,24 @@ RowShPtr extractRow(Statement &stmt)
 	return row;
 }
 
+RowShPtr extractRowCloud(Statement &stmt)
+{
+	RowShPtr row = std::make_shared<Row>();
+
+	row->targetName = stmt.getText(); // name.
+	row->fileInAppPath.clear();
+	row->dataVersion = stmt.getText(); // data_version
+	row->malwareName = stmt.getText(); // malware_name
+	row->detailedUrl = stmt.getText(); // detailed_url
+	row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt()); // severity
+	row->ts = static_cast<time_t>(stmt.getInt64()); // detected_time
+	row->pkgId = stmt.getText(); // pkg_id
+	row->isApp = true;
+	row->isIgnored = static_cast<bool>(stmt.getInt());
+
+	return row;
+}
+
 } // namespace anonymous
 
 Manager::Manager(const std::string &dbfile, const std::string &scriptsDir) :
@@ -278,6 +296,17 @@ RowShPtr Manager::getDetectedByNameOnPath(const std::string &path)
 	return extractRow(stmt);
 }
 
+RowShPtr Manager::getDetectedCloudByNameOnPath(const std::string &path)
+{
+	Statement stmt(this->m_conn, Query::SEL_DETECTED_CLOUD_BY_NAME_ON_PATH);
+	stmt.bind(path);
+
+	if (!stmt.step())
+		return nullptr;
+
+	return extractRowCloud(stmt);
+}
+
 RowShPtrs Manager::getDetectedByNameOnDir(const std::string &dir)
 {
 	Statement stmt(this->m_conn, Query::SEL_DETECTED_BY_NAME_ON_DIR);
@@ -287,6 +316,47 @@ RowShPtrs Manager::getDetectedByNameOnDir(const std::string &dir)
 
 	while (stmt.step())
 		rows.emplace_back(extractRow(stmt));
+
+	return rows;
+}
+
+RowShPtrs Manager::getDetectedCloudByNameOnDir(const std::string &dir)
+{
+	Statement stmt(this->m_conn, Query::SEL_DETECTED_CLOUD_BY_NAME_ON_DIR);
+	stmt.bind(dir);
+
+	RowShPtrs rows;
+	while (stmt.step())
+		rows.emplace_back(extractRowCloud(stmt));
+
+	return rows;
+}
+
+RowShPtrs Manager::getDetectedAllByNameOnDir(const std::string &dir)
+{
+	auto normals = this->getDetectedByNameOnDir(dir);
+	auto clouds = this->getDetectedCloudByNameOnDir(dir);
+
+	if (clouds.empty())
+		return normals;
+
+	RowShPtrs rows;
+
+	for (const auto &cloud : clouds) {
+		bool found = false;
+		for (const auto &normal : normals) {
+			if (normal->targetName == cloud->targetName) {
+				found = true;
+				break;
+			}
+		}
+
+		if (!found)
+			rows.push_back(cloud);
+	}
+
+	for (auto &&normal : normals)
+		rows.emplace_back(std::move(normal));
 
 	return rows;
 }
@@ -342,6 +412,21 @@ void Manager::insertDetected(const CsDetected &d, const std::string &filepath,
 
 	stmt.bind(filepath);
 	stmt.bind(d.targetName);
+	stmt.bind(dataVersion);
+	stmt.bind(d.malwareName);
+	stmt.bind(d.detailedUrl);
+	stmt.bind(static_cast<int>(d.severity));
+	stmt.bind(static_cast<sqlite3_int64>(d.ts));
+	stmt.exec();
+}
+
+void Manager::insertDetectedCloud(const CsDetected &d, const std::string &pkgId,
+								  const std::string &name, const std::string &dataVersion)
+{
+	Statement stmt(this->m_conn, Query::INS_DETECTED_CLOUD);
+
+	stmt.bind(name);
+	stmt.bind(pkgId);
 	stmt.bind(dataVersion);
 	stmt.bind(d.malwareName);
 	stmt.bind(d.detailedUrl);

@@ -35,8 +35,17 @@ void ILoader::toException(int ee, bool internalErrorToString)
 	case CSRE_ERROR_NONE:
 		return;
 
+	case CSRE_ERROR_INVALID_PARAMETER:
+		ThrowExc(CSR_ERROR_ENGINE_INTERNAL, "CSRE_ERROR_INVALID_PARAMETER!");
+
 	case CSRE_ERROR_OUT_OF_MEMORY:
 		throw std::bad_alloc();
+
+	case CSRE_ERROR_INVALID_HANDLE:
+		ThrowExc(CSR_ERROR_ENGINE_INTERNAL, "CSRE_ERROR_INVALID_HANDLE!");
+
+	case CSRE_ERROR_ENGINE_NOT_ACTIVATED:
+		ThrowExc(CSR_ERROR_ENGINE_NOT_ACTIVATED, "engine is not activated yet");
 
 	case CSRE_ERROR_PERMISSION_DENIED:
 		ThrowExc(CSR_ERROR_ENGINE_PERMISSION, "access denied related to engine");
@@ -44,8 +53,11 @@ void ILoader::toException(int ee, bool internalErrorToString)
 	case CSRE_ERROR_FILE_NOT_FOUND:
 		ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "file not found.");
 
-	case CSRE_ERROR_ENGINE_NOT_ACTIVATED:
-		ThrowExc(CSR_ERROR_ENGINE_NOT_ACTIVATED, "engine is not activated yet");
+	case CSRE_ERROR_NO_DATA:
+		ThrowExc(CSR_ERROR_ENGINE_INTERNAL, "CSRE_ERROR_NO_DATA!");
+
+	case CSRE_ERROR_UNKNOWN:
+		ThrowExc(CSR_ERROR_ENGINE_INTERNAL, "CSRE_ERROR_UNKNOWN!");
 
 	default:
 		if (internalErrorToString) {

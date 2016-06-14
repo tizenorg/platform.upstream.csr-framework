@@ -62,13 +62,18 @@ public:
 
 	// DETECTED_MALWARE_FILE & USER_RESPONSE
 	RowShPtr getDetectedByNameOnPath(const std::string &path);
+	RowShPtr getDetectedCloudByNameOnPath(const std::string &path);
 	RowShPtrs getDetectedByNameOnDir(const std::string &dir);
+	RowShPtrs getDetectedCloudByNameOnDir(const std::string &dir);
+	RowShPtrs getDetectedAllByNameOnDir(const std::string &dir);
 	RowShPtrs getDetectedByFilepathOnDir(const std::string &dir);
 	RowShPtr getWorstByPkgPath(const std::string &pkgPath);
 
 	void insertName(const std::string &name);
-	void insertDetected(const CsDetected &, const std::string &filename,
+	void insertDetected(const CsDetected &d, const std::string &filename,
 						const std::string &dataVersion);
+	void insertDetectedCloud(const CsDetected &d, const std::string &pkgId,
+							 const std::string &name, const std::string &dataVersion);
 	void insertWorst(const std::string &pkgId, const std::string &name,
 					 const std::string &filepath);
 

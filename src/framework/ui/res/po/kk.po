@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "Ашу"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "Тоқтату"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "Жою"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "Файлдың жолы: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "Қосымша ақпарат"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "Нұсқа:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "Жою"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "Көру"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "Зиянды веб-бетті бұғаттау"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "Қауіп деңгейі:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "Төмен"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "Орташа"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "Жоғары"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "Веб-бетке бәрібір өту үшін, “Көру” түймесін түртіңіз."
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "Телефоныңызды қорғау мақсатында бұл веб-бет көрсетілмейді."
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "Бұғаттау"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "Зиянды бағдарлама анықталды"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "Келесі элемент телефоныңызға зақым келтіруі мүмкін:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "Файлдың атауы: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "Вирус жұққан файлды жойып, телефоныңызды қорғау үшін, “Жою” түймесін түртіңіз."
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "Элементті тек осы жолы ғана ашу үшін, “Ашу” түймесін түртіңіз. Осы қалқымалы терезені жауып, элементті ашпау үшін, “Бас тарту” түймесін түртіңіз."
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "Вирус жұққан қолданбаны жойып, телефоныңызды қорғау үшін, %s түймесін түртіңіз."
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "Қолданбаның атауы:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "Келесі веб-бет телефоныңызға зақым келтіруі мүмкін:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "OK"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

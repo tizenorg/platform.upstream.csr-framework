@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "उघडा"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "रद्द"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "हटवा"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "फाइल पाथ: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "अधिक माहिती"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "आवृत्ती:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "अनइन्स्टॉल करा"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "पहा"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "दुर्भावयुक्त वेबपृष्ठे अवरोधित करा"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "धोका:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "निम्न"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "मध्यम"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "उच्च"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "वेबपृष्‍ठावर कसेही जाण्यासाठी “दृश्य” टॅप करा."
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "आपला फोन संरक्षित करण्यासाठी, हे वेबपृष्‍ठ पाहू शकत नाही."
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "अवरोधित करा"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "मालवेअर आढळले"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "खालील आयटम आपल्या फोनला हानी पोहोचवू शकतो:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "फाइल नाव: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "दूषित फाइल हटवण्यासाठी “हटवा”टॅप करा आणि आपला फोन संरक्षित करा."
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "केवळ यावेळी आयटम उघडण्यासाठी “उघडा” टॅप करा. हा पॉप-अप बंद करण्यासाठी आणि आयटम न उघडण्यासाठी “रद्द करा” टॅप करा."
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "दूषित अनुप्रयोग अनइन्स्टॉल करण्यासाठी “%s” टॅप करा आणि आपला फोन संरक्षित करा."
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "अनुप्रयोग नाव:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "खालील वेबपृष्‍ठ आपल्या फोनला हानी पोहोचवू शकतो:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "ठीक"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

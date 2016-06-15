@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "Բացել"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "Չեղարկել"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "Վերացնել"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "Ֆայլի ուղին՝ %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "Այլ տեղեկություններ"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "Տարբերակ՝"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "Ապատեղդրլ"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "Դիտել"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "Արգելափակել վնասաբեր կայքէջը"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL. %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "Ռիսկ՝"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "Ցածր"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "Միջին"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "Բարձր"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "Կայքէջն այնուամենայնիվ գնալու համար թակեք «Դիտել»:"
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "Հնարավոր չէ դիտել այս կայքէջը, որպեսզի հեռախոսը պաշտպանված լինի:"
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "Արգելափակել"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "Վնասարար ծրագրակազմ է հայտնաբերվել"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "Հետևյալ տարրը կարող է վնասել Ձեր հեռախոսը՝"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "Ֆայլի անունը՝ %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "Թակեք «Վերացնել»՝ վարակված ֆայլը վերացնելու և հեռախոսը պաշտպանելու համար:"
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "Թակեք «Բացել»՝ տարրը միայն այս անգամ բացելու համար: Թակեք «Դադարեցնել»՝ այս ելնող պատուհանը փակելու և տարրը չբացելու համար:"
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "Թակեք %s՝ վարակված ծրագիրն ապատեղադրելու և հեռախոսը պաշտպանելու համար:"
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "Ծրագրի անվանումը՝"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "Հետևյալ կայքէջը կարող է վնասել Ձեր հեռախոսը՝"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "OK"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

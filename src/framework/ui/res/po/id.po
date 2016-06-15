@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "Buka"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "Batal"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "Hapus"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "Jalur file: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "Info lainnya"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "Versi:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "Hps instl"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "Lihat"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "Blokir halaman web berbahaya"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "Risiko:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "Rendah"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "Sedang"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "Tinggi"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "Ketuk Lihat untuk tetap membuka halaman web."
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "Untuk melindungi ponsel Anda, halaman web ini tidak dapat dilihat."
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "Blokir"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "Malware terdeteksi"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "Item berikut dapat membahayakan ponsel:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "Nama file: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "Ketuk Hapus untuk menghapus file terinfeksi dan melindungi ponsel Anda."
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "Ketuk Buka untuk membuka item hanya kali ini saja. Ketuk Batal untuk menutup pop-up ini dan tidak membuka item."
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "Ketuk %s untuk menghapus instalasi aplikasi terinfeksi dan melindungi ponsel Anda."
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "Nama aplikasi:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "Halaman web berikut ini dapat membahayakan ponsel:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "OK"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Abaikan"
+

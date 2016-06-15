@@ -21,6 +21,7 @@
  * @brief
  */
 #include "popup.h"
+#include "popup-string.h"
 
 #include <package-info.h>
 #include <app_control.h>
@@ -87,8 +88,8 @@ Popup::Popup(int buttonN)
 	// This label is for linking to webview.
 	m_hypertext = elm_label_add(m_box);
 	setDefaultProperties(m_hypertext);
-	setText(m_hypertext, "<a href=><color=#0000FFFF>"
-		"More information</color></a>");
+	setText(m_hypertext, FORMAT("<a href=><color=#0000FFFF>"
+		<< LABEL_MORE_INFO << "</color></a>"));
 	elm_box_pack_end(m_box, m_hypertext);
 	evas_object_show(m_hypertext);
 

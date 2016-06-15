@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "Кушодан"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "Бекор кардан"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "Нест кардан"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "Масири файл: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "Маълумоти бештар"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "Версия:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "Нест к-н"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "Намоиш ддн"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "Мамнуъ кардани саҳифаи зиёновар"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "Хавф:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "Паст"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "Миёна"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "Баланд"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "Барои ба саҳифаи веб ба ҳар ҳол гузаштан, Намоиш доданро зарба занед."
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "Барои муҳофизат кардани телефони шумо, кушодани ин саҳифа ғайриимкон аст."
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "Мамнуъ к-н"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "Нармафзори зиёновар ошкор карда шуд"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "Ҷузъи зерин метавонад ба телефони шумо зарар расонад:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "Номи файл: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "Барои файли гирифторшударо нест карда, телефони худро муҳофизат кардан, Нест карданро зарба кунед."
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "Барои ин ҷузъро танҳо ин дафъа кушодан, Кушоданро зарба занед. Барои ин равзанаи зоҳиршавандаро пӯшидан ва ҷузъро накушодан, Бекор карданро зарба занед."
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "Барои барномаи гирифторшударо нест карда, телефони худро муҳофизат кардан, %s-ро зарба занед."
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "Номи барнома:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "Саҳифаи зерин метавонад ба телефони шумо зарар расонад:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "OK"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

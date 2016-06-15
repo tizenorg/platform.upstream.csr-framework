@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "Ачуу"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "Артка"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "Өчүрүү"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "Файлдын жолу: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "Дагы маалымат"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "Нуска:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "Өчүрүү"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "Көрүү"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "Зыяндуу веб-баракты камоо"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "Коркунуч:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "Төмөн"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "Орточо"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "Жогору"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "Баары бир веб-баракка баруу үчүн, Көрүүнү басыңыз."
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "Телефонуңузду коргоо үчүн, бул веб-баракты көрүүгө болбойт."
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "Камоо"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "Зыяндуу программалар аныкталды"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "Төмөнкү нерсе телефонуңузга зыян келтириши мүмкүн:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "Файлдын аты: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "Зыяндуу файлды өчүрүүгө жана телефонуңузду коргоого, Өчүрүүнү басыңыз."
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "Нерсени бул жолу гана ачууга, Ачууну басыңыз. Бул калкып чыкманы жабуу жана нерсени ачпоо үчүн, Токтотууну басыңыз."
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "Зыянга учураган колдонмону өчүрүүгө, жана телефонуңузду коргоого, %s басыңыз."
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "Колдонмонун аты:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "Төмөнкү веб-барак телефонуңузга зыян келтириши мүмкүн:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "ОК"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

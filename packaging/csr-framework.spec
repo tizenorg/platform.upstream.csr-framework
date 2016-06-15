@@ -18,7 +18,7 @@
 %define with_detailed_base_url 0
 %define detailed_base_url %nil
 
-%define with_sample_engine 0
+%define with_sample_engine 1
 
 Summary: A general purpose content screening and reputation solution
 Name: csr-framework
@@ -256,7 +256,7 @@ chsmack -a "_" %{test_dir}/test_dir/dir1
 %manifest %{service_name}.manifest
 %{ro_data_dir}/license/%{name}
 %{ro_data_dir}/license/%{name}.BSL-1.0
-%{bin_dir}/%{service_name}-server
+%caps(cap_dac_override=eip) %{bin_dir}/%{service_name}-server
 %{bin_dir}/%{service_name}-popup
 %{_unitdir}/%{service_name}.service
 %{_unitdir}/sockets.target.wants/%{service_name}-cs.socket

@@ -109,9 +109,8 @@ void ASSERT_DETECTED_IN_LIST(const std::vector<csr_cs_malware_h> &detectedList,
 	csr_cs_severity_level_e a_severity;
 	Test::ScopedCstr a_file_name, a_name, a_detailed_url;
 
-	std::vector<csr_cs_malware_h>::iterator iter;
 	for (auto &d : detectedList) {
-		ASSERT_IF(csr_cs_malware_get_file_name(d, &a_file_name.ptr), CSR_ERROR_NONE);
+		ASSERT_SUCCESS(csr_cs_malware_get_file_name(d, &a_file_name.ptr));
 		if (file_name != a_file_name.ptr)
 			continue;
 

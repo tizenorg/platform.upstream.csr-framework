@@ -66,12 +66,14 @@ file contents and checking url to prevent malicious items.
 %if "%{?tizen_version}" == "3.0"
 %global service_user                 security_fw
 %global service_group                security_fw
+%global test_user                    owner
 %global popup_service_env_file_path  /run/tizen-system-env
 %global smack_domain_name            System
 %global popup_unitdir                %{_unitdir_user}
 %else
 %global service_user                 system
 %global service_group                system
+%global test_user                    system
 %global smack_domain_name            %{service_name}
 %global popup_service_env_file_path  /run/tizen-mobile-env
 %global popup_unitdir                %{_unitdir}
@@ -316,17 +318,17 @@ fi
 %{ro_data_dir}/license/%{name}-test
 %{ro_data_dir}/license/%{name}-test.BSL-1.0
 %{_libdir}/lib%{service_name}-test-common.so
-%attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-test
-%attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-internal-test
-%attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-popup-test
-%attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-threadpool-test
+%attr(-, %{test_user}, %{service_group}) %{bin_dir}/%{service_name}-test
+%attr(-, %{test_user}, %{service_group}) %{bin_dir}/%{service_name}-internal-test
+%attr(-, %{test_user}, %{service_group}) %{bin_dir}/%{service_name}-popup-test
+%attr(-, %{test_user}, %{service_group}) %{bin_dir}/%{service_name}-threadpool-test
 
 # test resources
-%dir %attr(-, %{service_user}, %{service_group}) %{test_dir}
-%attr(-, %{service_user}, %{service_group}) %{test_dir}/*
+%dir %attr(777, %{test_user}, %{service_group}) %{test_dir}
+%attr(777, %{test_user}, %{service_group}) %{test_dir}/*
 
-%dir %attr(-, %{service_user}, %{service_group}) %{test_res_dir}
-%attr(-, %{service_user}, %{service_group}) %{test_res_dir}/*
+%dir %attr(777, %{test_user}, %{service_group}) %{test_res_dir}
+%attr(777, %{test_user}, %{service_group}) %{test_res_dir}/*
 
 # sample engine related files
 %if 0%{?with_sample_engine}

@@ -304,10 +304,10 @@ RowShPtrs Manager::getDetectedByFilepathOnDir(const std::string &dir)
 	return rows;
 }
 
-RowShPtr Manager::getWorstByPkgId(const std::string &pkgId)
+RowShPtr Manager::getWorstByPkgPath(const std::string &pkgPath)
 {
-	Statement stmt(this->m_conn, Query::SEL_WORST_BY_PKGID);
-	stmt.bind(pkgId);
+	Statement stmt(this->m_conn, Query::SEL_WORST_BY_PKGPATH);
+	stmt.bind(pkgPath);
 
 	if (!stmt.step())
 		return nullptr;
@@ -321,7 +321,7 @@ RowShPtr Manager::getWorstByPkgId(const std::string &pkgId)
 	row->detailedUrl = stmt.getText(); // detailed_url
 	row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt()); // severity
 	row->ts = static_cast<time_t>(stmt.getInt64()); // detected_time
-	row->pkgId = pkgId;
+	row->pkgId = stmt.getText(); // pkg_id
 	row->isApp = true;
 
 	return row;

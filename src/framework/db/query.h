@@ -68,11 +68,11 @@ const std::string SEL_DETECTED_BY_FILEPATH_ON_DIR =
 	" from join_detecteds_by_file_path"
 	" where file_path like ? || '%'";
 
-const std::string SEL_WORST_BY_PKGID =
+const std::string SEL_WORST_BY_PKGPATH =
 	"select name, file_path, data_version, malware_name, detailed_url, severity,"
-	"       detected_time"
+	"       detected_time, pkg_id"
 	" from join_p_d"
-	" where pkg_id = ?";
+	" where name = ?";
 
 const std::string INS_NAME =
 	"insert or replace into NAMES(name) values(?)";

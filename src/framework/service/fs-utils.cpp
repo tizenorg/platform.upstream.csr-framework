@@ -26,6 +26,7 @@
 #include <cerrno>
 #include <unistd.h>
 #include <sys/types.h>
+#include <dirent.h>
 #include <pwd.h>
 
 #include <csr-error.h>
@@ -33,18 +34,55 @@
 #include "common/exception.h"
 #include "common/audit/logger.h"
 
-namespace Csr {
+namespace {
 
-bool isReadable(const std::string &target)
+std::unique_ptr<struct stat> getStatInternal(const std::string &target)
 {
-	FILE *f = ::fopen(target.c_str(), "rb");
+	std::unique_ptr<struct stat> statptr(new struct stat);
+	::memset(statptr.get(), 0x00, sizeof(struct stat));
 
+	if (::stat(target.c_str(), statptr.get()) != 0) {
+		const int err = errno;
+
+		if (err == ENOENT)
+			WARN("target not exist: " << target);
+		else if (err == EACCES)
+			WARN("no permission to read path: " << target);
+		else
+			ERROR("stat() failed on target: " << target << " errno: " << err);
+
+		return nullptr;
+	}
+
+	return statptr;
+}
+
+bool isFileReadable(const std::string &filepath)
+{
+	FILE *f = ::fopen(filepath.c_str(), "rb");
 	if (f == nullptr) {
 		return false;
 	} else {
 		::fclose(f);
 		return true;
 	}
+}
+
+} // namespace anonymous
+
+namespace Csr {
+
+bool isReadable(const std::string &target)
+{
+	auto s = ::getStatInternal(target);
+
+	if (s == nullptr)
+		return false;
+
+	if (S_ISDIR(s->st_mode))
+		return true;
+
+	return ::isFileReadable(target);
 }
 
 uid_t getUid(const std::string &username)
@@ -71,25 +109,17 @@ uid_t getUid(const std::string &username)
 
 std::unique_ptr<struct stat> getStat(const std::string &target)
 {
-	std::unique_ptr<struct stat> statptr(new struct stat);
-	::memset(statptr.get(), 0x00, sizeof(struct stat));
-
-	if (::stat(target.c_str(), statptr.get()) != 0) {
-		const int err = errno;
-
-		if (err == ENOENT)
-			WARN("target not exist: " << target);
-		else if (err == EACCES)
-			WARN("no permission to read path: " << target);
-		else
-			ERROR("stat() failed on target: " << target << " errno: " << err);
-
-		return nullptr;
-	}
+	auto s = ::getStatInternal(target);
 
 	// if no permission to read, return nullptr
-	if (isReadable(target))
-		return statptr;
+	if (s == nullptr)
+		return nullptr;
+
+	if (S_ISDIR(s->st_mode))
+		return s;
+
+	if (::isFileReadable(target))
+		return s;
 	else
 		return nullptr;
 }

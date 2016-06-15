@@ -265,14 +265,14 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
 		return this->scanAppOnCloud(context, pkgPath, pkgId);
 
 	// old history
-	auto history = this->m_db->getWorstByPkgId(pkgId);
+	auto history = this->m_db->getWorstByPkgPath(pkgPath);
 	// riskiest detected among newly scanned files
 	std::string riskiestPath;
 	auto riskiest = this->scanAppDelta(pkgPath, pkgId, riskiestPath);
 	// history after delta scan. if worst file is changed, it's rescanned in scanAppDelta
 	// and deleted from db if it's cured. if history != nullptr && after == nullptr,
 	// it means worst detected item is cured anyway.
-	auto after = this->m_db->getWorstByPkgId(pkgId);
+	auto after = this->m_db->getWorstByPkgPath(pkgPath);
 	if (history && after && riskiest) {
 		if (*history < *riskiest) {
 			INFO("worst case is remained but the more worst newly detected. on pkg[" <<

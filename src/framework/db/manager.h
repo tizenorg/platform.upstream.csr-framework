@@ -64,7 +64,7 @@ public:
 	RowShPtr getDetectedByNameOnPath(const std::string &path);
 	RowShPtrs getDetectedByNameOnDir(const std::string &dir);
 	RowShPtrs getDetectedByFilepathOnDir(const std::string &dir);
-	RowShPtr getWorstByPkgId(const std::string &pkgId);
+	RowShPtr getWorstByPkgPath(const std::string &pkgPath);
 
 	void insertName(const std::string &name);
 	void insertDetected(const CsDetected &, const std::string &filename,

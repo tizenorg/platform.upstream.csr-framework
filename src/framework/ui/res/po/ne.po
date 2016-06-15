@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "खोल्नुहोस्"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "रद्द"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "मेटाउनुहोस्"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "फाइलको पाथ: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "थप जानकारी"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "संस्‍करण:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "स्थापना रद्द"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "हेर्नुहोस्"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "खराब वेबपृष्ठलाई ब्लक गर्नुहोस्"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "जोखिम:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "न्यून"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "मध्यम"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "उच्च"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "जसरी पनि वेबपृष्ठमा जानका लागि “हेर्नुहोस्” ट्याप गर्नुहोस्।"
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "तपाईको फोनलाई सुरक्षित गर्नका लागि, यो वेबपृष्ठ खोल्न सकिँदैन।"
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "रोक्नुहोस्"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "मालवेयर पत्ता लाग्यो"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "निम्न वस्तुले तपाईको फोनमा नोक्सान पुर्याउन सक्छ:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "फाइलको नाम: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "दूषित फाइललाई मेटाउन र आफ्नो फोनलाई सुरक्षित गर्न “मेटाउनुहोस्” ट्याप गर्नुहोस्।"
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "वस्तुलाई यस बेला मात्र खोल्नका लागि “खोल्नुहोस्” ट्याप गर्नुहोस्। यो पप-अपलाई बन्द गर्न र वस्तुलाई नखोल्न “रद्द गर्नुहोस्” ट्याप गर्नुहोस्।"
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "दूषित एपलाई मेटाउन र आफ्नो फोनलाई सुरक्षित गर्न “%s” मा ट्याप गर्नुहोस्।"
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "एपको नाम:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "निम्न वेबपृष्ठले तपाईको फोनमा नोक्सान पुर्याउन सक्छ:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "ठीक छ"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

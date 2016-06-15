@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "Aç"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "Ləğv et"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "Sil"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "Fayl cığırı: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "Əlavə məlumat"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "Versiyası:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "Poz"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "Bax"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "Zərərli vebsəhifələri blokla"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "Risk:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "Aşağı"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "Orta"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "Yüksək"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "Vebsəhifəyə keçmək üçün Bax vurun."
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "Telefonu qorumaq üçün bu vebsəhifə açıla bilər."
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "Blokla"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "Təhlükəli proqram aşkarlandı"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "Aşağıdakı element telefona ziyan vura bilər:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "Faylın adı: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "Zədəli faylı silmək və telefonu qorumaq üçün sil vurun."
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "Yalnız bu dəfə elementi açmaq üçün Aç vurun. Bu ani pəncərəni bağlamaq və elementi açmamaq üçün Ləğv et vurun."
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "Zədəli proqramı quraşdırmaq və telefonu qorumaq üçün %s vurun."
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "Proqramın adı:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "Aşağıdakı vebsəhifə telefona ziyan vura bilər:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "OK"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

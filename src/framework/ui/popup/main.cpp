@@ -31,6 +31,26 @@
 
 namespace {
 
+void updateLanguage(void)
+{
+	char *lang;
+	char *ret;
+
+	lang = vconf_get_str(VCONFKEY_LANGSET);
+	if (lang) {
+		setenv("LANG", lang, 1);
+		setenv("LC_MESSAGES", lang, 1);
+		ret = setlocale(LC_ALL, "");
+		INFO("Set language environment : " << lang);
+
+		if (!ret)
+			ret = setlocale(LC_ALL, vconf_get_str(VCONFKEY_LANGSET));
+		DEBUG("setlocale() ret : " << ret);
+		free(ret);
+	}
+	free(lang);
+}
+
 struct ElmRaii {
 	ElmRaii(int argc, char **argv)
 	{
@@ -60,7 +80,7 @@ int main(int argc, char **argv)
 		/* init/shutdown elm automatically */
 		ElmRaii elmRaii(argc, argv);
 
-		setlocale(LC_ALL, vconf_get_str(VCONFKEY_LANGSET));
+		updateLanguage();
 
 		Csr::Ui::PopupService service;
 

@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "திறக்கவும்"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "ரத்து"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "நீக்குக"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "கோப்புப் பாதை: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "மேலும் விவரம்"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "பதிப்பு:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "நிறுவல் நீக்கவும்"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "காண்க"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "தீங்கிழைக்கும் வலைப் பக்கத்தை தடைசெய்யவும்"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "ஆபத்து:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "குறைவு"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "நடுத்தரம்"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "அதிகம்"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "எப்படியாயினும் வலைப் பக்கத்திற்கு செல்வதற்கு “காண்க” என்பதைத் தேர்வுசெய்க."
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "உங்கள் ஃபோனை பாதுகாப்பதற்காக, இந்த வலைப் பக்கத்தை பார்க்க இயலாது."
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "தடுப்பு."
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "மால்வேர் கண்டறியப்பட்டது"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "பின்வரும் உருப்படி உங்கள் ஃபோனை பாதிக்கலாம்:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "கோப்புப் பெயர்: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "பாதிப்படைந்த கோப்பை நீக்க மற்றும் உங்கள் ஃபோனை பாதுகாக்க “நீக்கவும்” என்பதை டேப் செய்க."
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "இந்த நேரத்தில் மட்டும் உருப்படியைத் திறக்க “திறக்கவும்” என்பதை டேப் செய்க. இந்த பாப்-அப்பை மூடி, உருப்படியை திறக்காமல் இருக்க “ரத்துசெய்க” என்பதை டேப் செய்யவும்."
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "பாதிப்படைந்த பயன்பாட்டை நீக்க மற்றும் உங்கள் ஃபோனை பாதுகாக்க “%s” என்பதை டேப் செய்க."
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "பயன்பாட்டு பெயர்:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "பின்வரும் வலைப் பக்கம் உங்கள் ஃபோனை பாதிக்கலாம்:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "சரி"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

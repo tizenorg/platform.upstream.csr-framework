@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "ತೆರೆಯಿರಿ"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "ರದ್ದು"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "ಅಳಿಸಿ"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "ಫೈಲ್ ಪಥ: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "ಹೆಚ್ಚು ಮಾಹಿತಿ"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "ಆವೃತ್ತಿ:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "ಅಸ್ಥಾಪಿಸಿ"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "ವೀಕ್ಷಿಸಿ"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "ದುರುದ್ದೇಶಪೂರಿತ ವೆಬ್‍ಪುಟವನ್ನು ನಿರ್ಬಂಧಿಸಿ"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "ಅಪಾಯ:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "ಕಡಿಮೆ"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "ಮಧ್ಯಮ"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "ಅಧಿಕ"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "ಹೇಗಾದರೂ ವೆಬ್‌ಪುಟಕ್ಕೆ ಹೋಗಲು “ವೀಕ್ಷಿಸು” ತಟ್ಟಿ."
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "ನಿಮ್ಮ ಫೋನ್ ಸಂರಕ್ಷಿಸಲು, ಈ ವೆಬ್‍ಪುಟನ್ನು ವೀಕ್ಷಿಸಲು ಸಾಧ್ಯವಾಗುವುದಿಲ್ಲ."
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "ನಿರ್ಬಂಧಿಸಿ"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "ಮಾಲ್‌ವೇರ್ ಕಂಡುಬಂದಿದೆ"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "ಈ ಮುಂದಿನ ಅಂಶವು ನಿಮ್ಮ ಫೋನ್ ಅನ್ನು ಹಾನಿಗೊಳಿಸಬಹುದು:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "ಫೈಲ್ ಹೆಸರು: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "ಸೋಂಕಿತ ಫೈಲ್ ಅಳಿಸಲು “ಅಳಿಸು” ತಟ್ಟಿ ಮತ್ತು ನಿಮ್ಮ ಫೋನ್ ಸಂರಕ್ಷಿಸಿ."
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "ಈ ಸಲ ಮಾತ್ರ ಅಂಶವನ್ನು ತೆರೆಯಲು “ತೆರೆಯಿರಿ” ತಟ್ಟಿ. ಈ ಪಾಪ್ ಅಪ್ ಮುಚ್ಚಲು ಹಾಗೂ ಅಂಶವನ್ನು ತೆರೆಯುವುದನ್ನು ರದ್ದುಗೊಳಿಸಲು “ರದ್ದು” ತಟ್ಟಿ."
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "ಸೋಂಕಿತ ಫೈಲ್ ಅಸ್ಥಾಪಿಸಲು “%s” ತಟ್ಟಿ ಮತ್ತು ನಿಮ್ಮ ಫೋನ್ ಸಂರಕ್ಷಿಸಿ."
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "ಅನ್ವಯಿಸುವಿಕೆ ಹೆಸರು:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "ಈ ಮುಂದಿನ ವೆಬ್‍ಪುಟ ನಿಮ್ಮ ಫೋನ್ ಅನ್ನು ಹಾನಿಗೊಳಿಸಬಹುದು:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "ಸರಿ"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

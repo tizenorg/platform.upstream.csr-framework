@@ -29,6 +29,7 @@ License: Apache-2.0 and BSL-1.0
 Group: Security/Service
 URL: http://tizen.org
 BuildRequires: cmake
+BuildRequires: gettext-tools
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(libsystemd-daemon)
 BuildRequires: pkgconfig(vconf)
@@ -38,6 +39,7 @@ BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(libsmack)
 BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(elementary)
+BuildRequires: pkgconfig(icu-i18n)
 %if "%{?tizen_version}" == "3.0"
 BuildRequires: pkgconfig(cynara-client)
 %else
@@ -161,6 +163,7 @@ test program of csr-framework
     -DRO_DBSPACE:PATH=%{ro_db_dir} \
     -DRW_DBSPACE:PATH=%{rw_db_dir} \
     -DRO_RES_DIR:PATH=%{ro_res_dir} \
+    -DRO_DATA_DIR:PATH=%{ro_data_dir} \
     -DSERVICE_IDLE_TIMEOUT_TIME=%{service_idle_timeout_time} \
     -DPOPUP_SERVICE_IDLE_TIMEOUT_TIME=%{popup_service_idle_timeout_time} \
     -DENGINE_RW_WORKING_DIR:PATH=%{engine_rw_working_dir} \
@@ -264,6 +267,7 @@ fi
 %{popup_unitdir}/%{service_name}-popup.socket
 %{popup_unitdir}/sockets.target.wants/%{service_name}-popup.socket
 %{popup_unitdir}/%{service_name}-popup.service
+%{ro_data_dir}/locale/*
 %{ro_res_dir}/default-icon.png
 
 %dir %{ro_data_dir}/%{service_name}

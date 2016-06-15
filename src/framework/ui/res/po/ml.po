@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "ഓപ്പണ്‍"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "റദ്ദാക്കുക"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "ഇല്ലാതാക്കുക"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "ഫയൽ പാത്ത്: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "കൂടുതല്‍ വിവരം"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "പതിപ്പ്:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "അൺഇൻസ്റ്റാൾ ചെയ്യുക"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "കാണുക"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "ക്ഷുദ്ര വെബ്‌പേജ് തടയുക"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "അപകട സാധ്യത:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "താഴ്ന്നത്"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "ഇടത്തരം"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "ഉയർന്നത്"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "എന്തായാലും വെബ്‌പേജിലേക്ക് പോകുന്നതിന് “കാണുക” എന്നതിൽ സ്പർശിക്കുക."
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "നിങ്ങളുടെ ഫോൺ സംരക്ഷിക്കാൻ, ഈ വെബ്‌പേജ് കാണാനാകില്ല."
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "തടയുക"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "ക്ഷുദ്രവെയറിനെ കണ്ടെത്തി"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "ഇനിപ്പറയുന്ന ഇനം നിങ്ങളുടെ ഫോണിന് ഹാനികരമാകാം:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "ഫയൽ പേര്: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "ദുഷിച്ച ഫയൽ ഇല്ലാതാക്കി നിങ്ങളുടെ ഫോണിനെ സംരക്ഷിക്കുന്നതിന് “ഇല്ലാതാക്കുക” എന്നതിൽ സ്പർശിക്കുക."
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "ഇത്തവണ മാത്രം ഇനങ്ങൾ തുറക്കാൻ “തുറക്കുക” സ്പർശിക്കുക. ഈ പോപ്-അപ്പ് അടയ്ക്കാനും ഇനം തുറക്കാതിരിക്കാനും “റദ്ദാക്കുക” സ്പർശിക്കുക."
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "ബാധിക്കപ്പെട്ട ഫയലുകൾ അൺഇൻസ്റ്റാൾ ചെയ്യാനും നിങ്ങളുടെ ഫോണിനെ സംരക്ഷിക്കുന്നതിനും “%s” എന്നതിൽ സ്പർശിക്കുക."
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "ആപ്ലിക്കേഷൻ പേര്:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "ഇനിപ്പറയുന്ന വെബ്‌പേജ് നിങ്ങളുടെ ഫോണിന് ഹാനികരമാകാം:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "ശരി"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

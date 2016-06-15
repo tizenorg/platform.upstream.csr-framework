@@ -13,9 +13,7 @@
 #    limitations under the License.
 #
 # @file        CMakeLists.txt
-# @author      Kyungwook Tak (k.tak@samsung.com)
+# @author      Sangwan Kwon (sangwan.kwon@samsung.com)
 # @brief
 #
-ADD_SUBDIRECTORY(popup)
-ADD_SUBDIRECTORY(res)
-INSTALL(FILES res/default-icon.png DESTINATION ${RO_RES_DIR})
+ADD_SUBDIRECTORY(po)

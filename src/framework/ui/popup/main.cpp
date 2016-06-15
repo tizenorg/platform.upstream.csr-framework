@@ -25,11 +25,27 @@
 #include <vconf.h>
 #include <Elementary.h>
 #include <Ecore.h>
+#include <memory>
 
 #include "common/audit/logger.h"
 #include "popup-service.h"
 
 namespace {
+
+void updateLanguage(void)
+{
+	std::unique_ptr<char> lang(new char);
+
+	lang.reset(vconf_get_str(VCONFKEY_LANGSET));
+	if (!lang) {
+		WARN("Cannot get language_set.");
+	} else {
+		setenv("LANG", lang.get(), 1);
+		setenv("LC_MESSAGES", lang.get(), 1);
+	}
+
+	setlocale(LC_ALL, "");
+}
 
 struct ElmRaii {
 	ElmRaii(int argc, char **argv)
@@ -60,7 +76,7 @@ int main(int argc, char **argv)
 		/* init/shutdown elm automatically */
 		ElmRaii elmRaii(argc, argv);
 
-		setlocale(LC_ALL, vconf_get_str(VCONFKEY_LANGSET));
+		updateLanguage();
 
 		Csr::Ui::PopupService service;
 

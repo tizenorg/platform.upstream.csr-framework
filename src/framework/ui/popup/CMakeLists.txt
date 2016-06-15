@@ -24,6 +24,7 @@ PKG_CHECK_MODULES(${TARGET_CSR_POPUP}_DEP
 	vconf
 	pkgmgr-info
 	capi-appfw-application
+	icu-i18n
 )
 
 INCLUDE_DIRECTORIES(

@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "खोलें"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "रद्द"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "हटाएँ"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "फाइल पथ: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "अधिक जानकारी"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "संस्करण:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "अस्थापित करें"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "देखें"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "दुर्भावनापूर्ण वेबपेज अवरुद्ध करें"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "जोखिम:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "कम"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "मध्यम"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "अधिक"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "फिर भी वेबपेज पर जाने के लिए “देखें” पर टैप करें।"
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "आपके फोन की सुरक्षा करने के लिए, यह वेबपेज देखा नहीं जा सकता है।"
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "अवरुद्ध करें"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "मालवेयर का पता चला"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "निम्न मद आपके फोन को हानि पहुँचा सकती है:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "फाइल नाम: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "दूषित फाइल को हटाने के लिए “हटाएँ” पर टैप करें और अपने फोन को सुरक्षित करें।"
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "केवल इस बार मद खोलने के लिए “खोलें” पर टैप करें। यह पॉप-अप बंद करने और मद नहीं खोलने के लिए “रद्द करें” पर टैप करें।"
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "दूषित एप को हटाने के लिए “%s” पर टैप करें और अपने फोन को सुरक्षित करें।"
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "एप नाम:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "निम्न वेबपेज आपके फोन को हानि पहुँचा सकता है:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "ओके"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "తెరువు"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "రద్దు"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "తొలగించు"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "ఫైల్ పథం: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "మరింత సమాచారం"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "వెర్షన్:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "అన్ఇన్‌స్టాల్ చేయి"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "వీక్షించు"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "హానికరమైన వెబ్‌పేజీలను నిరోధించు"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "ప్రమాదం:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "తక్కువ"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "మధ్యస్థం"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "అధిక"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "ఏదేమైనా వెబ్‌పేజీకి వెళ్లడానికి “వీక్షించు” ట్యాప్ చేయండి."
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "మీ ఫోన్‌ను రక్షించడానికి, ఈ వెబ్‌పేజీని వీక్షించలేరు."
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "నిరోధించు"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "మాల్వేర్ గుర్తించబడింది"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "కింది అంశం మీ ఫోన్‌కు హాని కలిగించవచ్చు:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "ఫైల్ పేరు: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "పాడైన ఫైల్‌ను తొలగించి, మీ ఫోన్‌ను రక్షించడానికి “తొలగించు” ట్యాప్ చేయండి."
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "ఈ సమయంలో మాత్రమే అంశాన్ని తెరవడానికి “తెరువు” ట్యాప్ చేయండి. ఈ పాప్-అప్‌ను మూసివేసి, అంశం తెరవబడకుండా ఉండటానికి “రద్దు చేయి” ట్యాప్ చేయండి."
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "పాడైన అప్లికేషన్ వ్యవస్థాపనను తీసివేసి, మీ ఫోన్‌ను రక్షించడానికి “%s” ట్యాప్ చేయండి."
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "అప్లికేషన్ పేరు:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "కింది వెబ్‌పేజీ మీ ఫోన్‌కు హాని కలిగించవచ్చు:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "సరే"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

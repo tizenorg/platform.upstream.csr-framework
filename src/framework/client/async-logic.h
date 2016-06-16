@@ -35,8 +35,7 @@ namespace Client {
 
 class AsyncLogic {
 public:
-	AsyncLogic(HandleExt *handle, void *userdata,
-			   const std::function<bool()> &isStopped);
+	AsyncLogic(HandleExt *handle, void *userdata);
 	virtual ~AsyncLogic();
 
 	void scanFiles(const StrSet &files);
@@ -49,14 +48,13 @@ private:
 	template<typename T>
 	void copyKvp(CsContext::Key);
 
-	Handle *m_handle; // for registering results for auto-release
+	HandleExt *m_handle; // for registering results for auto-release
 
 	ContextPtr m_ctx;
 	std::vector<ResultPtr> m_results;
 
 	Callback m_cb;
 	void *m_userdata;
-	std::function<bool()> m_isStopped;
 
 	std::unique_ptr<Dispatcher> m_dispatcher;
 };
@@ -66,8 +64,8 @@ void AsyncLogic::copyKvp(CsContext::Key key)
 {
 	T value;
 
-	m_handle->getContext()->get(static_cast<int>(key), value);
-	m_ctx->set(static_cast<int>(key), value);
+	this->m_handle->getContext()->get(static_cast<int>(key), value);
+	this->m_ctx->set(static_cast<int>(key), value);
 }
 
 }

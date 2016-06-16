@@ -758,6 +758,8 @@ RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fi
 			else if (e.error() == CSR_ERROR_FILE_SYSTEM)
 				WARN("File type is changed, considered as different file: " <<
 					 d.targetName);
+			else if (e.error() == CSR_ERROR_REMOVE_FAILED)
+				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, d).pop();
 			else
 				throw;
 		}

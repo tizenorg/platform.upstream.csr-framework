@@ -1294,4 +1294,29 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares_after_file_changed)
 	EXCEPTION_GUARD_END
 }
 
+// TODO: below test case needs response from UI. It'll be turned on as default after
+// write code of popup service stub
+#if 0
+BOOST_AUTO_TEST_CASE(remove_failed_returns_detected_handle)
+{
+	EXCEPTION_GUARD_START
+
+	auto start_time = ::time(nullptr);
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	csr_cs_malware_h malware = nullptr;
+
+	ASSERT_SUCCESS(csr_cs_set_ask_user(context, CSR_CS_ASK_USER_YES));
+	ASSERT_IF(csr_cs_scan_file(context, TEST_FILE_UNREMOVABLE, &malware), CSR_ERROR_REMOVE_FAILED);
+	CHECK_IS_NOT_NULL(malware);
+	ASSERT_DETECTED(malware, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+					MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED_EXT(malware, start_time, TEST_FILE_UNREMOVABLE, false, "");
+
+	EXCEPTION_GUARD_END
+}
+#endif
+
 BOOST_AUTO_TEST_SUITE_END()

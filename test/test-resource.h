@@ -39,6 +39,7 @@ const char *TEST_FILE_MEDIA();
 #define TEST_FILE_TMP_IN_DIR_MALWARES TEST_DIR_MALWARES "/tmp_malware_file"
 #define TEST_FILE_TMP                 TEST_DIR_TMP "/test_malware_file"
 #define TEST_FILE_NO_EXIST            TEST_DIR_TMP "/not_existing_file"
+#define TEST_FILE_UNREMOVABLE         TEST_DIR_MALWARES "/dir1/unremovable_file"
 
 #define TEST_WGT_PKG_ID    "hFhcNcbE6K"
 #define TEST_WGT_TYPE      "wgt"

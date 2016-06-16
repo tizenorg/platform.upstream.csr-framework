@@ -204,7 +204,6 @@ cp LICENSE %{buildroot}%{ro_data_dir}/license/lib%{name}-common
 cp LICENSE %{buildroot}%{ro_data_dir}/license/%{name}-test
 cp LICENSE.BSL-1.0 %{buildroot}%{ro_data_dir}/license/%{name}-test.BSL-1.0
 
-
 mkdir -p %{buildroot}%{rw_db_dir}
 mkdir -p %{buildroot}%{ro_db_dir}
 cp data/scripts/*.sql %{buildroot}%{ro_db_dir}
@@ -248,6 +247,9 @@ fi
 %post -n lib%{name}-client -p %{sbin_dir}/ldconfig
 %postun -n lib%{name}-common -p %{sbin_dir}/ldconfig
 %postun -n lib%{name}-client -p %{sbin_dir}/ldconfig
+
+%post -n %{name}-test
+chsmack -a "_" %{test_dir}/test_dir/dir1
 
 %files
 %defattr(-,root,root,-)

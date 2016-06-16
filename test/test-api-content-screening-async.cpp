@@ -701,7 +701,10 @@ BOOST_AUTO_TEST_CASE(delta_scan_basic)
 	lRescan.unlock();
 
 	// scanned, detected, completed, cancelled, error
-	ASSERT_CALLBACK(testRescanCtx, 0, -1, 1, 0, 0);
+	ASSERT_CALLBACK(testRescanCtx, -1, -1, 1, 0, 0);
+	BOOST_REQUIRE_MESSAGE(testBaseCtx.scannedCnt > testRescanCtx.scannedCnt,
+			"Scan count of the base[" << testBaseCtx.scannedCnt <<
+			"] should be bigger than the delta-scan[" << testRescanCtx.scannedCnt << "]");
 
 	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList, TEST_WGT_APP_ROOT(),
 							MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
@@ -731,7 +734,7 @@ BOOST_AUTO_TEST_CASE(delta_scan_basic)
 	lRescanSub.unlock();
 
 	// scanned, detected, completed, cancelled, error
-	ASSERT_CALLBACK(testRescanSubCtx, 0, -1, 1, 0, 0);
+	ASSERT_CALLBACK(testRescanSubCtx, 0, 1, 1, 0, 0);
 
 	ASSERT_DETECTED_IN_LIST(testRescanSubCtx.detectedList, TEST_WGT_APP_ROOT(),
 							MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
@@ -787,6 +790,8 @@ BOOST_AUTO_TEST_CASE(delta_scan_changed_after_scan)
 
 	// scanned, detected, completed, cancelled, error
 	ASSERT_CALLBACK(testRescanCtx, -1, -1, 1, 0, 0);
+	BOOST_REQUIRE_MESSAGE(testRescanCtx.scannedCnt >= 1,
+			"reinstalled app(non-malicious wgt) should be counted in scanned.");
 
 	ASSERT_DETECTED_IN_LIST(testRescanCtx.detectedList,
 		TEST_WGT_APP_ROOT(), MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);

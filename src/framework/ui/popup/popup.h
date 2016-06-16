@@ -83,6 +83,8 @@ public:
 	std::vector<int> m_types;
 
 private:
+	void setDefaultProperties(Evas_Object *obj) noexcept;
+
 	Evas_Object *m_win;
 	Evas_Object *m_popup;
 	Evas_Object *m_box;
@@ -97,6 +99,9 @@ private:
 	std::string m_hypertextUrl;
 
 	static int response;
+
+	int m_winW;
+	int m_winH;
 };
 
 } // namespace Ui

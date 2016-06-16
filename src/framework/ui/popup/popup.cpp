@@ -46,31 +46,30 @@ Popup::Popup(int buttonN)
 	elm_win_indicator_opacity_set(m_win, ELM_WIN_INDICATOR_TRANSLUCENT);
 	elm_win_borderless_set(m_win, EINA_TRUE);
 	elm_win_alpha_set(m_win, EINA_TRUE);
+	elm_win_screen_size_get(m_win, NULL, NULL, &m_winW, &m_winH);
+	evas_object_size_hint_max_set(m_win, m_winW, m_winH);
+	evas_object_size_hint_min_set(m_win, m_winW, m_winH / 4);
 
 	// Set popup properties.
 	m_popup = elm_popup_add(m_win);
-	elm_popup_align_set(m_popup, ELM_NOTIFY_ALIGN_FILL, 1.0);
-	evas_object_size_hint_weight_set(m_popup, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	setDefaultProperties(m_popup);
 
 	// Wrap objects with box.
 	m_box = elm_box_add(m_popup);
-	evas_object_size_hint_weight_set(m_box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(m_header, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_box_padding_set(m_box, 10, 10);
+	setDefaultProperties(m_box);
+	elm_box_padding_set(m_box, 0, 20);
 	evas_object_show(m_box);
 
 	m_header = elm_label_add(m_box);
-	evas_object_size_hint_weight_set(m_header, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(m_header, EVAS_HINT_FILL, 0);
+	setDefaultProperties(m_header);
 	elm_box_pack_end(m_box, m_header);
 	evas_object_show(m_header);
 
 	// Subbox is for icon.
 	m_subBox = elm_box_add(m_box);
-	evas_object_size_hint_weight_set(m_subBox, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(m_subBox, 0, 0);
+	setDefaultProperties(m_subBox);
 	elm_box_horizontal_set(m_subBox, EINA_TRUE);
-
+	elm_box_padding_set(m_subBox, 20, 0);
 	// If icon is not set, it doesn't appear.
 	m_icon = elm_icon_add(m_subBox);
 	elm_image_resizable_set(m_icon, EINA_FALSE, EINA_FALSE);
@@ -78,8 +77,7 @@ Popup::Popup(int buttonN)
 	evas_object_show(m_icon);
 
 	m_body = elm_label_add(m_subBox);
-	evas_object_size_hint_weight_set(m_body, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(m_body, EVAS_HINT_FILL, 0);
+	setDefaultProperties(m_body);
 	elm_box_pack_end(m_subBox, m_body);
 	evas_object_show(m_body);
 
@@ -88,17 +86,14 @@ Popup::Popup(int buttonN)
 
 	// This label is for linking to webview.
 	m_hypertext = elm_label_add(m_box);
-	elm_object_text_set(m_hypertext, "<a href=><color=#0000FFFF>"
-		"  More information</color></a>");
-	evas_object_size_hint_weight_set(m_hypertext, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(m_hypertext, 0, 0);
-	evas_object_size_hint_min_set(m_hypertext, 400, 80);
+	setDefaultProperties(m_hypertext);
+	setText(m_hypertext, "<a href=><color=#0000FFFF>"
+		"More information</color></a>");
 	elm_box_pack_end(m_box, m_hypertext);
 	evas_object_show(m_hypertext);
 
 	m_footer = elm_label_add(m_box);
-	evas_object_size_hint_weight_set(m_footer, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(m_footer, EVAS_HINT_FILL, 0);
+	setDefaultProperties(m_footer);
 	elm_box_pack_end(m_box, m_footer);
 	evas_object_show(m_footer);
 
@@ -126,17 +121,17 @@ Popup::~Popup()
 
 void Popup::setHeader(const std::string &header) noexcept
 {
-	setText(m_header, "<wrap = word>" + header + "</wrap>");
+	setText(m_header, header);
 }
 
 void Popup::setBody(const std::string &body) noexcept
 {
-	setText(m_body, "<wrap = word>" + body + "</wrap>");
+	setText(m_body, body);
 }
 
 void Popup::setFooter(const std::string &footer) noexcept
 {
-	setText(m_footer, "<br>""<wrap = word>" + footer + "</wrap>");
+	setText(m_footer, footer);
 }
 
 void Popup::setMessage(const std::string &msg) noexcept
@@ -169,8 +164,18 @@ void Popup::setTitle(const std::string &title) noexcept
 	elm_object_part_text_set(m_popup, "title,text", title.c_str());
 }
 
+void Popup::setDefaultProperties(Evas_Object *obj) noexcept
+{
+	// Set width as maximum, height as minimum.
+	evas_object_size_hint_weight_set(obj, EVAS_HINT_EXPAND, 0);
+	// Set width as fill parent, height as center.
+	evas_object_size_hint_align_set(obj, EVAS_HINT_FILL, 0.5);
+}
+
 void Popup::setText(Evas_Object *obj, const std::string &text) noexcept
 {
+	// Eable text line-break automatically.
+	elm_label_line_wrap_set(obj, ELM_WRAP_WORD);
 	elm_object_text_set(obj, text.c_str());
 }
 

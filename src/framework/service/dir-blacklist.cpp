@@ -25,12 +25,15 @@
 
 namespace {
 
-const size_t DIR_BLACK_LIST_SIZE = 4;
+const size_t DIR_BLACK_LIST_SIZE = 7;
 const char *DIR_BLACK_LIST[DIR_BLACK_LIST_SIZE] = {
 	"/proc",
 	"/sys",
 	"/usr",
-	"/smack"
+	"/smack",
+	"/run",
+	"/sbin",
+	"/etc"
 };
 
 } // namespace anonymous

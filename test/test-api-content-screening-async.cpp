@@ -67,13 +67,21 @@ struct AsyncTestContext {
 	int errorCode;
 	bool apiReturned;
 
-	AsyncTestContext(bool raceTest = false) :
+	AsyncTestContext(bool raceTest) :
 		scannedCnt(0),
 		detectedCnt(0),
 		completedCnt(0),
 		cancelledCnt(0),
 		errorCnt(0),
 		apiReturned(!raceTest) {}
+
+	AsyncTestContext() :
+		scannedCnt(0),
+		detectedCnt(0),
+		completedCnt(0),
+		cancelledCnt(0),
+		errorCnt(0),
+		apiReturned(true) {}
 
 	bool isDone(void) const {
 		return this->completedCnt != 0 || this->cancelledCnt != 0 || this->errorCnt != 0;
@@ -1021,6 +1029,84 @@ BOOST_AUTO_TEST_CASE(scan_app_on_cloud)
 	ASSERT_DETECTED_IN_LIST(malware_vec, TEST_FAKE_APP_FILE(), MALWARE_HIGH_NAME,
 							MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_IN_LIST_EXT(malware_vec, TEST_FAKE_APP_FILE(), false, "");
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(scan_async_multiple)
+{
+	EXCEPTION_GUARD_START
+
+	constexpr size_t NUM = 3;
+
+	install_test_files();
+	install_test_apps();
+
+	std::vector<Test::Context<csr_cs_context_h>> cs(NUM);
+	std::vector<csr_cs_context_h> contexts(NUM);
+	std::vector<AsyncTestContext> testCtxs(NUM);
+
+	for (size_t i = 0; i < NUM; ++i) {
+		contexts[i] = cs[i].get();
+
+		set_default_callback(contexts[i]);
+
+		ASSERT_SUCCESS(csr_cs_scan_dir_async(contexts[i], TEST_DIR_ROOT, &testCtxs[i]));
+	}
+
+	for (size_t i = 0; i < NUM; ++i)
+		ASSERT_CALLBACK(testCtxs[i], -1, -1, 1, 0, 0);
+
+	std::string homeDirPrefix;
+#ifdef PLATFORM_VERSION_3
+	// "/home" is symlinked of "/opt/home" so in root directory scanning,
+	// user directory prefix("/opt") is additionally needed to check file_name field
+	// in malware handle
+	homeDirPrefix = "/opt";
+#endif
+
+	for (size_t i = 0; i < NUM; ++i) {
+		ASSERT_DETECTED_IN_LIST(testCtxs[i].detectedList, TEST_FILE_HIGH, MALWARE_HIGH_NAME,
+								MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+		ASSERT_DETECTED_IN_LIST_EXT(testCtxs[i].detectedList, TEST_FILE_HIGH, false, "");
+
+		ASSERT_DETECTED_IN_LIST(testCtxs[i].detectedList, homeDirPrefix + TEST_FILE_MEDIA(),
+								MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+								MALWARE_HIGH_DETAILED_URL);
+		ASSERT_DETECTED_IN_LIST_EXT(testCtxs[i].detectedList, homeDirPrefix + TEST_FILE_MEDIA(),
+									false, "");
+
+		ASSERT_DETECTED_IN_LIST(testCtxs[i].detectedList, TEST_FILE_TMP, MALWARE_HIGH_NAME,
+								MALWARE_HIGH_SEVERITY, MALWARE_HIGH_DETAILED_URL);
+		ASSERT_DETECTED_IN_LIST_EXT(testCtxs[i].detectedList, TEST_FILE_TMP, false, "");
+
+		ASSERT_DETECTED_IN_LIST(testCtxs[i].detectedList, homeDirPrefix + TEST_WGT_APP_ROOT(),
+								MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+								MALWARE_HIGH_DETAILED_URL);
+		ASSERT_DETECTED_IN_LIST_EXT(testCtxs[i].detectedList, homeDirPrefix + TEST_WGT_APP_ROOT(),
+									true, TEST_WGT_PKG_ID);
+
+		ASSERT_DETECTED_IN_LIST(testCtxs[i].detectedList, homeDirPrefix + TEST_TPK_APP_ROOT(),
+								MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+								MALWARE_HIGH_DETAILED_URL);
+		ASSERT_DETECTED_IN_LIST_EXT(testCtxs[i].detectedList, homeDirPrefix + TEST_TPK_APP_ROOT(),
+									true, TEST_TPK_PKG_ID);
+
+		ASSERT_DETECTED_IN_LIST(testCtxs[i].detectedList, homeDirPrefix + TEST_FAKE_APP_FILE(),
+								MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+								MALWARE_HIGH_DETAILED_URL);
+		ASSERT_DETECTED_IN_LIST_EXT(testCtxs[i].detectedList, homeDirPrefix + TEST_FAKE_APP_FILE(),
+									false, "");
+
+		ASSERT_DETECTED_IN_LIST(testCtxs[i].detectedList, TEST_FILE_MEDIUM, MALWARE_MEDIUM_NAME,
+								MALWARE_MEDIUM_SEVERITY, MALWARE_MEDIUM_DETAILED_URL);
+		ASSERT_DETECTED_IN_LIST_EXT(testCtxs[i].detectedList, TEST_FILE_MEDIUM, false, "");
+
+		ASSERT_DETECTED_IN_LIST(testCtxs[i].detectedList, TEST_FILE_LOW, MALWARE_LOW_NAME,
+								MALWARE_LOW_SEVERITY, MALWARE_LOW_DETAILED_URL);
+		ASSERT_DETECTED_IN_LIST_EXT(testCtxs[i].detectedList, TEST_FILE_LOW, false, "");
+
+	}
 
 	EXCEPTION_GUARD_END
 }

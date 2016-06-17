@@ -27,7 +27,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <functional>
-#include <map>
+#include <vector>
 #include <queue>
 
 namespace Csr {
@@ -35,7 +35,7 @@ namespace Csr {
 class ThreadPool {
 public:
 	// worker thread dynamically created / joined from min to max
-	explicit ThreadPool(size_t min, size_t max);
+	explicit ThreadPool(size_t threads);
 	virtual ~ThreadPool();
 
 	ThreadPool(const ThreadPool &) = delete;
@@ -46,20 +46,13 @@ public:
 	// submit task to thread pool
 	void submit(std::function<void()> &&task);
 
-	// get workers size in thread pool
-	size_t size(void) const;
-
 	// check whether there's running task by worker.
 	bool isTaskRunning(void) const;
 
 private:
-	void add(void);
-
-	const size_t m_min;
-	const size_t m_max;
-	std::atomic<bool> m_stop;
+	bool m_stop;
 	std::atomic<size_t> m_runningWorkersNum;
-	std::map<std::thread::id, std::thread> m_workers;
+	std::vector<std::thread> m_workers;
 	std::queue<std::function<void()>> m_tasks;
 	std::mutex m_mutex;
 	std::condition_variable m_cv;

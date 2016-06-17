@@ -83,9 +83,7 @@ inline CommandId extractCommandId(BinaryQueue &q)
 
 }
 
-ServerService::ServerService() :
-	Service(),
-	m_workqueue(2, 10)
+ServerService::ServerService() : Service(), m_workqueue(5)
 {
 	this->m_db = std::make_shared<Db::Manager>(RW_DBSPACE "/.csr.db", RO_DBSPACE);
 

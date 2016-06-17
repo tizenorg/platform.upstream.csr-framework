@@ -303,7 +303,11 @@ BOOST_AUTO_TEST_CASE(scan_dir_positive)
 	ASSERT_SUCCESS(csr_cs_scan_dir_async(context, TEST_DIR_MALWARES, &testCtx));
 
 	//scanned, detected, completed, cancelled, error
-	ASSERT_CALLBACK(testCtx, -1, 0, 1, 0, 0);
+	ASSERT_CALLBACK(testCtx, -1, -1, 1, 0, 0);
+	ASSERT_DETECTED_IN_LIST(testCtx.detectedList, TEST_FILE_UNREMOVABLE,
+							MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+							MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED_IN_LIST_EXT(testCtx.detectedList, TEST_FILE_UNREMOVABLE, false, "");
 
 	EXCEPTION_GUARD_END
 }
@@ -560,7 +564,11 @@ BOOST_AUTO_TEST_CASE(scan_dirs_positive)
 	ASSERT_SUCCESS(csr_cs_scan_dirs_async(context, dirs, 1, &testCtx));
 
 	//scanned, detected, completed, cancelled, error
-	ASSERT_CALLBACK(testCtx, -1, 0, 1, 0, 0);
+	ASSERT_CALLBACK(testCtx, -1, -1, 1, 0, 0);
+	ASSERT_DETECTED_IN_LIST(testCtx.detectedList, TEST_FILE_UNREMOVABLE,
+							MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
+							MALWARE_HIGH_DETAILED_URL);
+	ASSERT_DETECTED_IN_LIST_EXT(testCtx.detectedList, TEST_FILE_UNREMOVABLE, false, "");
 
 	EXCEPTION_GUARD_END
 }

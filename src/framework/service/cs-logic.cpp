@@ -186,8 +186,7 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 	detected.isApp = true;
 	detected.pkgId = pkgId;
 
-	this->m_db->insertName(pkgPath);
-	this->m_db->insertDetectedCloud(detected, pkgId, pkgPath, this->m_dataVersion);
+	this->m_db->insertDetectedAppByCloud(pkgPath, pkgId, detected, this->m_dataVersion);
 
 	return this->handleAskUser(context, detected);
 }
@@ -228,8 +227,8 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 		candidate.isApp = true;
 		candidate.pkgId = pkgId;
 
-		this->m_db->insertName(pkgPath);
-		this->m_db->insertDetected(candidate, file->getPath(), this->m_dataVersion);
+		this->m_db->insertDetectedFileInApp(pkgPath, file->getPath(), candidate,
+											this->m_dataVersion);
 
 		if (!riskiest) {
 			riskiest.reset(new CsDetected(std::move(candidate)));
@@ -399,8 +398,7 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 
 	auto d = this->convert(result, filepath, timestamp);
 
-	this->m_db->insertName(d.targetName);
-	this->m_db->insertDetected(d, d.targetName, this->m_dataVersion);
+	this->m_db->insertDetectedFile(d.targetName, d, this->m_dataVersion);
 
 	return this->handleAskUser(context, d, std::forward<FilePtr>(fileptr));
 }
@@ -564,19 +562,13 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 
 	const auto &targetName = (file->isInApp() ? file->getAppPkgPath() : filepath);
 
-	auto history = this->m_db->getDetectedByNameOnPath(targetName);
-
 	bool isCloudHistory = false;
 
+	auto history = this->m_db->getDetectedAllByNameOnPath(targetName, &isCloudHistory);
+
 	if (!history) {
-		history = this->m_db->getDetectedCloudByNameOnPath(targetName);
-
-		if (!history) {
-			ERROR("Target to be judged doesn't exist in db. name: " << targetName);
-			return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
-		}
-
-		isCloudHistory = true;
+		ERROR("Target to be judged doesn't exist in db. name: " << targetName);
+		return BinaryQueue::Serialize(CSR_ERROR_INVALID_PARAMETER).pop();
 	}
 
 	// file create based on fileInAppPath(for app target, it is worst detected)
@@ -622,9 +614,7 @@ RawBuffer CsLogic::getDetected(const std::string &filepath)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 	}
 
-	auto row = this->m_db->getDetectedByNameOnPath(target);
-	if (!row)
-		row = this->m_db->getDetectedCloudByNameOnPath(target);
+	auto row = this->m_db->getDetectedAllByNameOnPath(target);
 
 	if (row && !row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -670,8 +660,6 @@ RawBuffer CsLogic::getIgnored(const std::string &filepath)
 	}
 
 	auto row = this->m_db->getDetectedByNameOnPath(target);
-	if (!row)
-		row = this->m_db->getDetectedCloudByNameOnPath(target);
 
 	if (row && row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();

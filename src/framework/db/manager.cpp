@@ -193,34 +193,42 @@ void Manager::setSchemaVersion(int sv)
 //===========================================================================
 csr_state_e Manager::getEngineState(csr_engine_id_e id)
 {
-	std::lock_guard<std::mutex> l(this->m_mutex);
+	std::lock_guard<std::mutex> ll(this->m_mutex);
 
-	if (this->m_stateMap.size() == 0) {
-		Statement stmt(this->m_conn, Query::SEL_ENGINE_STATE_ALL);
+	{
+		std::lock_guard<std::mutex> l(this->m_stateMutex);
 
-		while (stmt.step()) {
-			auto _id = static_cast<csr_engine_id_e>(stmt.getInt());
-			auto _state = static_cast<csr_state_e>(stmt.getInt());
+		if (this->m_stateMap.size() == 0) {
+			Statement stmt(this->m_conn, Query::SEL_ENGINE_STATE_ALL);
 
-			this->m_stateMap[_id] = _state;
+			while (stmt.step()) {
+				auto _id = static_cast<csr_engine_id_e>(stmt.getInt());
+				auto _state = static_cast<csr_state_e>(stmt.getInt());
+
+				this->m_stateMap[_id] = _state;
+			}
 		}
-	}
 
-	return (this->m_stateMap.count(id) == 0) ? CSR_STATE_ENABLE : this->m_stateMap[id];
+		return (this->m_stateMap.count(id) == 0) ? CSR_STATE_ENABLE : this->m_stateMap[id];
+	}
 }
 
 void Manager::setEngineState(csr_engine_id_e id, csr_state_e state)
 {
-	std::lock_guard<std::mutex> l(this->m_mutex);
+	std::lock_guard<std::mutex> ll(this->m_mutex);
 
-	Statement stmt(this->m_conn, Query::INS_ENGINE_STATE);
+	{
+		std::lock_guard<std::mutex> l(this->m_stateMutex);
 
-	stmt.bind(static_cast<int>(id));
-	stmt.bind(static_cast<int>(state));
+		Statement stmt(this->m_conn, Query::INS_ENGINE_STATE);
 
-	stmt.exec();
+		stmt.bind(static_cast<int>(id));
+		stmt.bind(static_cast<int>(state));
 
-	this->m_stateMap[id] = state;
+		stmt.exec();
+
+		this->m_stateMap[id] = state;
+	}
 }
 
 //===========================================================================
@@ -230,6 +238,8 @@ void Manager::setEngineState(csr_engine_id_e id, csr_state_e state)
 time_t Manager::getLastScanTime(const std::string &dir,
 								const std::string &dataVersion)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	time_t latest = -1;
 	std::string current = dir;
 	Statement stmt(this->m_conn, Query::SEL_SCAN_REQUEST);
@@ -259,6 +269,8 @@ time_t Manager::getLastScanTime(const std::string &dir,
 void Manager::insertLastScanTime(const std::string &dir, time_t scanTime,
 								 const std::string &dataVersion)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	Statement stmt(this->m_conn, Query::INS_SCAN_REQUEST);
 
 	stmt.bind(dir);
@@ -269,6 +281,8 @@ void Manager::insertLastScanTime(const std::string &dir, time_t scanTime,
 
 void Manager::deleteLastScanTime(const std::string &dir)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	Statement stmt(this->m_conn, Query::DEL_SCAN_REQUEST_BY_DIR);
 
 	stmt.bind(dir);
@@ -277,6 +291,8 @@ void Manager::deleteLastScanTime(const std::string &dir)
 
 void Manager::cleanLastScanTime()
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	Statement stmt(this->m_conn, Query::DEL_SCAN_REQUEST);
 
 	stmt.exec();
@@ -287,6 +303,8 @@ void Manager::cleanLastScanTime()
 //===========================================================================
 RowShPtr Manager::getDetectedByNameOnPath(const std::string &path)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	Statement stmt(this->m_conn, Query::SEL_DETECTED_BY_NAME_ON_PATH);
 	stmt.bind(path);
 
@@ -298,6 +316,8 @@ RowShPtr Manager::getDetectedByNameOnPath(const std::string &path)
 
 RowShPtr Manager::getDetectedCloudByNameOnPath(const std::string &path)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	Statement stmt(this->m_conn, Query::SEL_DETECTED_CLOUD_BY_NAME_ON_PATH);
 	stmt.bind(path);
 
@@ -305,6 +325,31 @@ RowShPtr Manager::getDetectedCloudByNameOnPath(const std::string &path)
 		return nullptr;
 
 	return extractRowCloud(stmt);
+}
+
+RowShPtr Manager::getDetectedAllByNameOnPath(const std::string &path, bool *isByCloud)
+{
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
+	Statement stmt(this->m_conn, Query::SEL_DETECTED_BY_NAME_ON_PATH);
+	stmt.bind(path);
+
+	if (stmt.step()) {
+		if (isByCloud)
+			*isByCloud = false;
+		return extractRow(stmt);
+	}
+
+	Statement stmt2(this->m_conn, Query::SEL_DETECTED_CLOUD_BY_NAME_ON_PATH);
+	stmt.bind(path);
+
+	if (stmt2.step()) {
+		if (isByCloud)
+			*isByCloud = true;
+		return extractRow(stmt);
+	}
+
+	return nullptr;
 }
 
 RowShPtrs Manager::getDetectedByNameOnDir(const std::string &dir)
@@ -334,8 +379,14 @@ RowShPtrs Manager::getDetectedCloudByNameOnDir(const std::string &dir)
 
 RowShPtrs Manager::getDetectedAllByNameOnDir(const std::string &dir)
 {
-	auto normals = this->getDetectedByNameOnDir(dir);
-	auto clouds = this->getDetectedCloudByNameOnDir(dir);
+	RowShPtrs normals;
+	RowShPtrs clouds;
+
+	{
+		std::lock_guard<std::mutex> l(this->m_mutex);
+		normals = this->getDetectedByNameOnDir(dir);
+		clouds = this->getDetectedCloudByNameOnDir(dir);
+	}
 
 	if (clouds.empty())
 		return normals;
@@ -369,6 +420,8 @@ RowShPtrs Manager::getDetectedAllByNameOnDir(const std::string &dir)
 
 RowShPtrs Manager::getDetectedByFilepathOnDir(const std::string &dir)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	Statement stmt(this->m_conn, Query::SEL_DETECTED_BY_FILEPATH_ON_DIR);
 	stmt.bind(dir);
 
@@ -382,6 +435,8 @@ RowShPtrs Manager::getDetectedByFilepathOnDir(const std::string &dir)
 
 RowShPtr Manager::getWorstByPkgPath(const std::string &pkgPath)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	Statement stmt(this->m_conn, Query::SEL_WORST_BY_PKGPATH);
 	stmt.bind(pkgPath);
 
@@ -401,6 +456,33 @@ RowShPtr Manager::getWorstByPkgPath(const std::string &pkgPath)
 	row->isApp = true;
 
 	return row;
+}
+
+void Manager::insertDetectedFile(const std::string &filepath, const CsDetected &d,
+								 const std::string &dataVersion)
+{
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
+	this->insertName(filepath);
+	this->insertDetected(d, filepath, dataVersion);
+}
+
+void Manager::insertDetectedFileInApp(const std::string &pkgpath, const std::string &filepath,
+									  const CsDetected &d, const std::string &dataVersion)
+{
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
+	this->insertName(pkgpath);
+	this->insertDetected(d, filepath, dataVersion);
+}
+
+void Manager::insertDetectedAppByCloud(const std::string &name, const std::string &pkgId,
+									   const CsDetected &d, const std::string &dataVersion)
+{
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
+	this->insertName(name);
+	this->insertDetectedCloud(d, pkgId, name, dataVersion);
 }
 
 void Manager::insertName(const std::string &name)
@@ -444,6 +526,8 @@ void Manager::insertDetectedCloud(const CsDetected &d, const std::string &pkgId,
 void Manager::insertWorst(const std::string &pkgId, const std::string &name,
 						  const std::string &filepath)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	Statement stmt(this->m_conn, Query::INS_WORST);
 
 	stmt.bind(pkgId);
@@ -454,6 +538,8 @@ void Manager::insertWorst(const std::string &pkgId, const std::string &name,
 
 void Manager::updateIgnoreFlag(const std::string &name, bool flag)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	Statement stmt(this->m_conn, Query::UPD_IGNORE);
 
 	stmt.bind((flag ? 1 : 0));
@@ -463,6 +549,8 @@ void Manager::updateIgnoreFlag(const std::string &name, bool flag)
 
 void Manager::deleteDetectedByNameOnPath(const std::string &path)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	Statement stmt(this->m_conn, Query::DEL_DETECTED_BY_NAME_ON_PATH);
 
 	stmt.bind(path);
@@ -471,6 +559,8 @@ void Manager::deleteDetectedByNameOnPath(const std::string &path)
 
 void Manager::deleteDetectedByFilepathOnPath(const std::string &path)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	Statement stmt(this->m_conn, Query::DEL_DETECTED_BY_FILEPATH_ON_PATH);
 
 	stmt.bind(path);
@@ -480,6 +570,8 @@ void Manager::deleteDetectedByFilepathOnPath(const std::string &path)
 void Manager::deleteDetectedDeprecatedOnDir(const std::string &dir,
 											const std::string &dataVersion)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	Statement stmt(this->m_conn, Query::DEL_DETECTED_DEPRECATED_ON_DIR);
 
 	stmt.bind(dir);

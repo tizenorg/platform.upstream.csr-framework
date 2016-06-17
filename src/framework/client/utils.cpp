@@ -49,6 +49,9 @@ int exceptionGuard(const std::function<int()> &func)
 	} catch (const std::bad_alloc &e) {
 		ERROR("memory allocation failed: " << e.what());
 		return CSR_ERROR_OUT_OF_MEMORY;
+	} catch (const std::length_error &e) {
+		ERROR("std::length_error: " << e.what());
+		return CSR_ERROR_SYSTEM;
 	} catch (const std::exception &e) {
 		ERROR("std exception: " << e.what());
 		return CSR_ERROR_SYSTEM;
@@ -83,6 +86,10 @@ void exceptionGuardAsync(const Callback &callbacks, void *userdata,
 		ERROR("memory allocation failed: " << e.what());
 		if (callbacks.onError != nullptr)
 			callbacks.onError(CSR_ERROR_OUT_OF_MEMORY, userdata);
+	} catch (const std::length_error &e) {
+		ERROR("std::length_error: " << e.what());
+		if (callbacks.onError != nullptr)
+			callbacks.onError(CSR_ERROR_SYSTEM, userdata);
 	} catch (const std::exception &e) {
 		ERROR("std exception: " << e.what());
 		if (callbacks.onError != nullptr)

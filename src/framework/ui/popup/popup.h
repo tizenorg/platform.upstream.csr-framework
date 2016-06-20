@@ -77,6 +77,7 @@ public:
 	void callbackRegister(Evas_Object *obj, const std::string &url);
 	static void btnClickedCb(void *data, Evas_Object *, void *);
 	static void hypertextClickedCb(void *data, Evas_Object *, void *);
+	static void rotationChangedCb(void *data, Evas_Object *, void *);
 
 	std::vector<Evas_Object *> m_buttons;
 	Evas_Object *m_hypertext;
@@ -84,6 +85,7 @@ public:
 
 private:
 	void setDefaultProperties(Evas_Object *obj) noexcept;
+	void setRotationToWin(Evas_Object *obj) noexcept;
 
 	Evas_Object *m_win;
 	Evas_Object *m_popup;

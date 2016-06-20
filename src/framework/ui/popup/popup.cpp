@@ -50,6 +50,7 @@ Popup::Popup(int buttonN)
 	elm_win_screen_size_get(m_win, NULL, NULL, &m_winW, &m_winH);
 	evas_object_size_hint_max_set(m_win, m_winW, m_winH);
 	evas_object_size_hint_min_set(m_win, m_winW, m_winH / 4);
+	setRotationToWin(m_win);
 
 	// Set popup properties.
 	m_popup = elm_popup_add(m_win);
@@ -173,6 +174,20 @@ void Popup::setDefaultProperties(Evas_Object *obj) noexcept
 	evas_object_size_hint_align_set(obj, EVAS_HINT_FILL, 0.5);
 }
 
+void Popup::setRotationToWin(Evas_Object *win) noexcept
+{
+	if (!elm_win_wm_rotation_supported_get(win)) {
+		DEBUG("Window manager doesn't support rotation.");
+		return;
+	}
+
+	int rots[4] = { 0, 90, 180, 270 };
+	elm_win_wm_rotation_available_rotations_set(win,
+		reinterpret_cast<const int *>(&rots), 4);
+	evas_object_smart_callback_add(win, "rotation,changed",
+		rotationChangedCb, m_popup);
+}
+
 void Popup::setText(Evas_Object *obj, const std::string &text) noexcept
 {
 	// Eable text line-break automatically.
@@ -193,6 +208,30 @@ void Popup::callbackRegister(Evas_Object *obj, const std::string &url)
 	else
 		evas_object_smart_callback_add(
 			obj, "anchor,clicked", hypertextClickedCb, &url);
+}
+
+void Popup::rotationChangedCb(void *data, Evas_Object *, void *)
+{
+	DEBUG("Window rotation change event caught.");
+	auto popup = reinterpret_cast<Evas_Object *>(data);
+	auto win = elm_object_top_widget_get(popup);
+	auto pos = elm_win_rotation_get(win);
+	Evas_Coord w, h;
+	elm_win_screen_size_get(win, NULL, NULL, &w, &h);
+
+	switch (pos) {
+	case 0:
+	case 180:
+		evas_object_move(popup, (w / 2), h);
+		return;
+	case 90:
+	case 270:
+		evas_object_move(popup, (h / 2), w);
+		return;
+	default:
+		DEBUG("Invalid pos value : " << pos);
+		return;
+	}
 }
 
 void Popup::hypertextClickedCb(void *data, Evas_Object *, void *)

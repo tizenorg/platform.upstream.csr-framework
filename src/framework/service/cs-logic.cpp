@@ -22,6 +22,7 @@
 #include "service/cs-logic.h"
 
 #include <utility>
+#include <cstdlib>
 #include <climits>
 #include <cerrno>
 #include <unistd.h>
@@ -39,6 +40,18 @@
 namespace Csr {
 
 namespace {
+
+int readEc(const RawBuffer &buf)
+{
+	if (buf.size() < sizeof(int))
+		ThrowExc(CSR_ERROR_SERVER, "Failed to read error code from buf");
+
+	int ec = -1;
+
+	::memcpy(&ec, buf.data(), sizeof(int));
+
+	return ec;
+}
 
 void setCoreUsage(const csr_cs_core_usage_e &cu)
 {
@@ -403,13 +416,8 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 	return this->handleAskUser(context, d, std::forward<FilePtr>(fileptr));
 }
 
-RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepath)
+RawBuffer CsLogic::scanFileInternal(const CsContext &context, const std::string &filepath)
 {
-	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
-		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
-
-	setCoreUsage(context.coreUsage);
-
 	auto target = canonicalizePath(filepath, true);
 
 	if (File::isInApp(target))
@@ -449,6 +457,16 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
 	return this->handleAskUser(context, *history);
+}
+
+RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepath)
+{
+	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
+		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
+
+	setCoreUsage(context.coreUsage);
+
+	return this->scanFileInternal(context, filepath);
 }
 
 // Application in input param directory will be treated as one item.
@@ -517,6 +535,46 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
+}
+
+RawBuffer CsLogic::scanFilesAsync(const ConnShPtr &conn, const CsContext &context, StrSet &paths)
+{
+	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
+		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
+
+	StrSet canonicalized;
+
+	for (const auto &path : paths) {
+		auto target = canonicalizePath(path, true);
+
+		if (canonicalized.find(target) == canonicalized.end()) {
+			INFO("Insert to canonicalized list: " << target);
+			canonicalized.emplace(std::move(target));
+		}
+	}
+
+	conn->send(BinaryQueue::Serialize(CSR_ERROR_NONE).pop());
+
+	for (const auto &path : canonicalized) {
+		auto out = this->scanFileInternal(context, path);
+		int retcode = readEc(out);
+		bool isMalwareDetected = out.data() > sizeof(int);
+
+		if (retcode == CSR_ERROR_NONE) {
+			if (isMalwareDetected || context.isScannedCbRegistered)
+				conn->send(out);
+		} else {
+			return BinaryQueue::Serialize(out).pop(); // to trigger error cb on client
+		}
+	}
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+}
+
+RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context, StrSet &paths)
+{
+	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
+		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
 }
 
 RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)

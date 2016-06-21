@@ -278,6 +278,7 @@ int csr_cs_set_file_scanned_cb(csr_cs_context_h handle, csr_cs_file_scanned_cb c
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
 	hExt->m_cb.onScanned = callback;
+	hExt->getContext()->set(static_cast<int>(CsContext::Key::ScannedCbRegistered), true);
 
 	return CSR_ERROR_NONE;
 

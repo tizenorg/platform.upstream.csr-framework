@@ -29,7 +29,8 @@ namespace Csr {
 CsContext::CsContext() noexcept :
 	askUser(CSR_CS_ASK_USER_NO),
 	coreUsage(CSR_CS_CORE_USAGE_DEFAULT),
-	isScanOnCloud(false)
+	isScanOnCloud(false),
+	isScannedCbRegistered(false)
 {
 }
 
@@ -38,7 +39,8 @@ CsContext::CsContext(IStream &stream)
 	int intAskUser;
 	int intCoreUsage;
 	Deserializer<std::string, int, int, bool>::Deserialize(stream,
-			this->popupMessage, intAskUser, intCoreUsage, this->isScanOnCloud);
+			this->popupMessage, intAskUser, intCoreUsage, this->isScanOnCloud,
+			this->isScannedCbRegistered);
 
 	this->askUser = static_cast<csr_cs_ask_user_e>(intAskUser);
 	this->coreUsage = static_cast<csr_cs_core_usage_e>(intCoreUsage);
@@ -48,7 +50,8 @@ void CsContext::Serialize(IStream &stream) const
 {
 	Serializer<std::string, int, int, bool>::Serialize(stream,
 			this->popupMessage, static_cast<int>(this->askUser),
-			static_cast<int>(this->coreUsage), this->isScanOnCloud);
+			static_cast<int>(this->coreUsage), this->isScanOnCloud,
+			this->isScannedCbRegistered);
 }
 
 void CsContext::set(int key, int value)
@@ -96,6 +99,10 @@ void CsContext::set(int key, bool value)
 	switch (static_cast<Key>(key)) {
 	case Key::ScanOnCloud:
 		this->isScanOnCloud = value;
+		break;
+
+	case Key::ScannedCbRegistered:
+		this->isScannedCbRegistered = value;
 		break;
 
 	default:
@@ -151,6 +158,10 @@ void CsContext::get(int key, bool &value) const
 	switch (static_cast<Key>(key)) {
 	case Key::ScanOnCloud:
 		value = this->isScanOnCloud;
+		break;
+
+	case Key::ScannedCbRegistered:
+		value = this->isScannedCbRegistered;
 		break;
 
 	default:

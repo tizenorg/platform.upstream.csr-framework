@@ -278,8 +278,10 @@ Eina_Bool Popup::keyDownCb(void *, int , void *ev)
 	DEBUG("Key down event caught.");
 	auto event = reinterpret_cast<Ecore_Event_Key *>(ev);
 
-	if(event->key == HOME_KEY)
+	if(event->key == HOME_KEY) {
+		response = -1;
 		elm_exit();
+	}
 
 	// Let the event continue to other callbacks.
 	return ECORE_CALLBACK_PASS_ON;

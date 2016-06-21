@@ -519,6 +519,14 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
 }
 
+RawBuffer CsLogic::scanFilesAsync(const ConnShPtr &conn, const CsContext &context, StrSet &paths)
+{
+}
+
+RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context, StrSet &paths)
+{
+}
+
 RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
 {
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)

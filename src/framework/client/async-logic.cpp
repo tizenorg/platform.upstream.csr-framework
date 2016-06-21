@@ -92,45 +92,43 @@ void AsyncLogic::scanDir(const std::string &dir)
 
 void AsyncLogic::scanFiles(const StrSet &fileSet)
 {
-	for (const auto &file : fileSet) {
-		if (this->m_handle->isStopped())
-			ThrowExc(-999, "Async op cancelled!");
+	auto ret = this->m_dispatcher->methodCall<int>(
+				CommandId::SCAN_FILES_ASYNC, this->m_ctx, fileSet);
 
-		auto ret = this->m_dispatcher->methodCall<std::pair<int, CsDetected *>>(
-					   CommandId::SCAN_FILE, this->m_ctx, file);
+	if (ret != CSR_ERROR_NONE)
+		ThrowExc(ret, "Error on async scan. ret: " << ret);
 
-		// for auto memory deleting in case of exception
-		ResultPtr resultPtr(ret.second);
+	while (true) {
+		auto retpair = this->m_dispatcher->receiveEvent<std::pair<int, CsDetected *>>();
 
-		// ignore all file-system related error in async operation.
-		if (ret.first == CSR_ERROR_FILE_DO_NOT_EXIST ||
-			ret.first == CSR_ERROR_FILE_CHANGED ||
-			ret.first == CSR_ERROR_FILE_SYSTEM) {
-			WARN("File system related error code returned when scan files async."
-				 " Ignore all file-system related error in async operation because"
-				 " scan file list has been provided by server."
-				 " file: " << file << " ret: " << ret.first);
-			continue;
+		ResultPtr resultPtr(retpair.second);
+
+		if (retpair.first != CSR_ERROR_NONE)
+			ThrowExc(retpair, "Error on async scan. ret: " << retpair.first);
+
+		if (retpair.second == nullptr) {
+			INFO("scan files async completed!");
+			break;
 		}
 
-		if (ret.first != CSR_ERROR_NONE)
-			ThrowExc(ret.first, "Error on async scan. ret: " << ret.first <<
-					 " while scan file: " << file);
+		if (retpair.second->malwareName.empty()) {
+			DEBUG("[Scanned] file[" <<  << "]");
 
-		if (ret.second) {
-			INFO("[Detected] file[" << file << "]");
+			if (this->m_cb.onScanned != nullptr)
+				this->m_cb.onScanned(retpair.second->malwareName.c_str(), this->m_userdata);
+		} else {
+			INFO("[Detected] file[" << retpair.second->targetName << "]");
 			this->m_results.emplace_back(std::move(resultPtr));
 
 			if (this->m_cb.onDetected != nullptr)
-				this->m_cb.onDetected(reinterpret_cast<csr_cs_malware_h>(ret.second),
+				this->m_cb.onDetected(reinterpret_cast<csr_cs_malware_h>(retpair.second),
 									  this->m_userdata);
-		} else {
-			DEBUG("[Scanned] file[" << file << "]");
-
-			if (this->m_cb.onScanned != nullptr)
-				this->m_cb.onScanned(file.c_str(), this->m_userdata);
 		}
+
+		if (this->m_handle->isStopped())
+			ThrowExc(-999, "Async op cancelled!");
 	}
+
 }
 
 } // namespace Client

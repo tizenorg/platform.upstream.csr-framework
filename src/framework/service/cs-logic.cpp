@@ -728,7 +728,13 @@ RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fi
 	}
 
 	Ui::AskUser askUser;
-	d.response = askUser.cs(cid, c.popupMessage, d);
+	auto r = askUser.cs(cid, c.popupMessage, d);
+	if (r == -1) {
+		ERROR("Failed to get user response by popup service for target: " << d.targetName);
+		return BinaryQueue::Serialize(CSR_ERROR_USER_RESPONSE_FAILED, d).pop();
+	}
+
+	d.response = r;
 
 	if (d.response == CSR_CS_USER_RESPONSE_REMOVE && !d.targetName.empty()) {
 		try {

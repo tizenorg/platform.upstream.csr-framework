@@ -78,6 +78,7 @@ public:
 	static void btnClickedCb(void *data, Evas_Object *, void *);
 	static void hypertextClickedCb(void *data, Evas_Object *, void *);
 	static void rotationChangedCb(void *data, Evas_Object *, void *);
+	static Eina_Bool keyDownCb(void *, int, void *);
 
 	std::vector<Evas_Object *> m_buttons;
 	Evas_Object *m_hypertext;

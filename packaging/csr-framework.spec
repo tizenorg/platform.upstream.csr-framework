@@ -39,6 +39,7 @@ BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(libsmack)
 BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(elementary)
+BuildRequires: pkgconfig(efl-extension)
 BuildRequires: pkgconfig(icu-i18n)
 %if "%{?tizen_version}" == "3.0"
 BuildRequires: pkgconfig(cynara-client)

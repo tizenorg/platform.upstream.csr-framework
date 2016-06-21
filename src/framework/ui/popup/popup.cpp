@@ -25,6 +25,7 @@
 
 #include <package-info.h>
 #include <app_control.h>
+#include <efl_extension.h>
 
 namespace Csr {
 namespace Ui {
@@ -38,6 +39,8 @@ namespace {
 	};
 
 	const std::string DEFAULT_URL("https://developer.tizen.org/");
+	const std::string HOME_KEY("XF86Home");
+
 }
 
 Popup::Popup(int buttonN)
@@ -51,6 +54,9 @@ Popup::Popup(int buttonN)
 	evas_object_size_hint_max_set(m_win, m_winW, m_winH);
 	evas_object_size_hint_min_set(m_win, m_winW, m_winH / 4);
 	setRotationToWin(m_win);
+
+	eext_win_keygrab_set(m_win, HOME_KEY.c_str());
+	ecore_event_handler_add(ECORE_EVENT_KEY_DOWN, keyDownCb, NULL);
 
 	// Set popup properties.
 	m_popup = elm_popup_add(m_win);
@@ -265,5 +271,19 @@ void Popup::btnClickedCb(void *data, Evas_Object *, void *)
 	response = *(reinterpret_cast<int *>(data));
 	elm_exit();
 }
+
+
+Eina_Bool Popup::keyDownCb(void *, int , void *ev)
+{
+	DEBUG("Key down event caught.");
+	auto event = reinterpret_cast<Ecore_Event_Key *>(ev);
+
+	if(event->key == HOME_KEY)
+		elm_exit();
+
+	// Let the event continue to other callbacks.
+	return ECORE_CALLBACK_PASS_ON;
+}
+
 } // namespace Ui
 } // namespace Csr

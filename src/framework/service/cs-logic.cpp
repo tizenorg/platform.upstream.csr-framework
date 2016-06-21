@@ -519,6 +519,43 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
 }
 
+RawBuffer CsLogic::scanFilesAsync(const ConnShPtr &conn, const CsContext &context, StrSet &paths)
+{
+	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
+		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
+
+	StrSet canonicalized;
+
+	for (const auto &path : paths) {
+		auto target = canonicalizePath(path, true);
+
+		if (canonicalized.find(target) == canonicalized.end()) {
+			INFO("Insert to canonicalized list: " << target);
+			canonicalized.emplace(std::move(target));
+		}
+	}
+
+	for (const auto &path : canonicalized) {
+		auto out = this->scanFile(context, path);
+		if (retcode == CSR_ERROR_NONE && malware == nullptr && isScannedCallbackRegistered) {
+			writeOutToConn(conn); // to trigger scanned callback on client
+		} else if (retcode == CSR_ERROR_NONE && malware != nullptr) {
+			writeOutToConn(conn); // to trigger detected callback on client
+		} else if (retcode != CSR_ERROR_NONE) {
+			writeOutToConn(conn); // to trigger error callback on client
+			ThrowExc(retcode, "exception on scanFilesAsync with ec: " << retcode);
+		}
+	}
+
+	writeOutToConn(conn); // to trigger completed callback & done
+}
+
+RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context, StrSet &paths)
+{
+	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
+		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
+}
+
 RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
 {
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)

@@ -219,24 +219,34 @@ mkdir -p %{buildroot}%{engine_rw_working_dir}
 rm -f %{rw_db_dir}/.%{service_name}.db*
 
 systemctl daemon-reload
+if [ $1 = 1 ]; then
+    systemctl start %{service_name}-cs.socket
+    systemctl start %{service_name}-wp.socket
+    systemctl start %{service_name}-admin.socket
+    systemctl start %{service_name}-popup.socket
+    systemctl start %{service_name}.service
+fi
 
-systemctl start %{service_name}-cs.socket
-systemctl start %{service_name}-wp.socket
-systemctl start %{service_name}-admin.socket
-systemctl start %{service_name}-popup.socket
-systemctl start %{service_name}.service
+if [ $1 = 2 ]; then
+    systemctl restart %{service_name}-cs.socket
+    systemctl restart %{service_name}-wp.socket
+    systemctl restart %{service_name}-admin.socket
+    systemctl restart %{service_name}-popup.socket
+    systemctl restart %{service_name}.service
+fi
 
 %preun
-systemctl stop %{service_name}-popup.service
-systemctl stop %{service_name}.service
-systemctl stop %{service_name}-cs.socket
-systemctl stop %{service_name}-wp.socket
-systemctl stop %{service_name}-admin.socket
-systemctl stop %{service_name}-popup.socket
+if [ $1 = 0 ]; then
+    systemctl stop %{service_name}-popup.service
+    systemctl stop %{service_name}.service
+    systemctl stop %{service_name}-cs.socket
+    systemctl stop %{service_name}-wp.socket
+    systemctl stop %{service_name}-admin.socket
+    systemctl stop %{service_name}-popup.socket
+fi
 
 %postun
 if [ $1 = 0 ]; then
-    # uninstall
     systemctl daemon-reload
 fi
 

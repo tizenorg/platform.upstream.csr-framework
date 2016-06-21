@@ -90,15 +90,19 @@ public:
 
 	// throws FileNotExist and FileSystemError
 	static FsVisitorPtr create(const std::string &dirpath, time_t modifiedSince = -1);
+	static FsVisitorPtr createTargets(const std::string &dirpath, time_t modifiedSince = -1);
 
 private:
 	using DirPtr = std::unique_ptr<DIR, int(*)(DIR *)>;
 
+	static FsVisitorPtr createInternal(const std::string &dirpath, bool isTargets, time_t modifiedSince);
+
 	static DirPtr openDir(const std::string &);
 
-	FsVisitor(const std::string &dirpath, time_t modifiedSince = -1);
+	FsVisitor(const std::string &dirpath, bool isTargets, time_t modifiedSince = -1);
 
 	time_t m_since;
+	bool m_isTargets;
 	std::queue<std::string> m_dirs;
 	DirPtr m_dirptr;
 	struct dirent *m_entryBuf;

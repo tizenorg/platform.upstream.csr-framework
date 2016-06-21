@@ -40,6 +40,9 @@ public:
 	template<typename Type, typename ...Args>
 	Type dispatch(Args &&...);
 
+	template<typename Type>
+	Type revent(void);
+
 	virtual void add(ResultPtr &&);
 	virtual void add(ResultListPtr &&);
 
@@ -59,10 +62,16 @@ private:
 template<typename Type, typename ...Args>
 Type Handle::dispatch(Args &&...args)
 {
-	if (m_dispatcher == nullptr)
-		m_dispatcher.reset(new Dispatcher(m_sockId));
+	if (this->m_dispatcher == nullptr)
+		this->m_dispatcher.reset(new Dispatcher(m_sockId));
 
-	return m_dispatcher->methodCall<Type>(std::forward<Args>(args)...);
+	return this->m_dispatcher->methodCall<Type>(std::forward<Args>(args)...);
+}
+
+template<typename Type>
+Type Handle::revent()
+{
+	return this->m_dispatcher->receiveEvent<Type>();
 }
 
 } // namespace Client

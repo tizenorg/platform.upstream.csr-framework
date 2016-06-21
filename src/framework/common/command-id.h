@@ -28,14 +28,13 @@ enum class CommandId : int {
 	// scanning
 	SCAN_DATA           = 0x1001,
 	SCAN_FILE           = 0x1002,
+	SCAN_FILES_ASYNC    = 0x1003,
+	SCAN_DIRS_ASYNC     = 0x1004,
 	// delta, history
 	GET_DETECTED        = 0x1101,
 	GET_DETECTED_LIST   = 0x1102,
 	GET_IGNORED         = 0x1103,
 	GET_IGNORED_LIST    = 0x1104,
-	GET_SCANNABLE_FILES = 0x1105,
-	CANONICALIZE_PATHS  = 0x1106,
-	SET_DIR_TIMESTAMP   = 0x1107,
 	// handle result
 	JUDGE_STATUS        = 0x1201,
 

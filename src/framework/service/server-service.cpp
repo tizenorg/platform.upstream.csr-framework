@@ -81,7 +81,7 @@ inline CommandId extractCommandId(BinaryQueue &q)
 	return id;
 }
 
-}
+} // namespace anonymous
 
 ServerService::ServerService() : Service(), m_workqueue(5)
 {
@@ -152,32 +152,24 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		return this->m_cslogic->scanFile(*cptr, filepath);
 	}
 
-	case CommandId::GET_SCANNABLE_FILES: {
+	case CommandId::SCAN_FILES_ASYNC: {
 		hasPermission(conn);
 
-		std::string dir;
-		q.Deserialize(dir);
-
-		return this->m_cslogic->getScannableFiles(dir);
-	}
-
-	case CommandId::CANONICALIZE_PATHS: {
-		hasPermission(conn);
-
+		CsContextShPtr cptr;
 		StrSet paths;
-		q.Deserialize(paths);
+		q.Deserialize(cptr, paths);
 
-		return this->m_cslogic->canonicalizePaths(paths);
+		return this->m_cslogic->scanFilesAsync(conn, *cptr, paths);
 	}
 
-	case CommandId::SET_DIR_TIMESTAMP: {
+	case CommandId::SCAN_DIRS_ASYNC: {
 		hasPermission(conn);
 
-		std::string dir;
-		int64_t ts64 = 0;
-		q.Deserialize(dir, ts64);
+		CsContextShPtr cptr;
+		StrSet paths;
+		q.Deserialize(cptr, paths);
 
-		return this->m_cslogic->setDirTimestamp(dir, static_cast<time_t>(ts64));
+		return this->m_cslogic->scanDirsAsync(conn, *cptr, paths);
 	}
 
 	case CommandId::JUDGE_STATUS: {

@@ -36,6 +36,15 @@ CsDetected::CsDetected() noexcept :
 {
 }
 
+CsDetected::CsDetected(const std::string &_targetName) :
+	targetName(_targetName),
+	severity(-1),
+	response(CSR_CS_USER_RESPONSE_USER_NOT_ASKED),
+	isApp(false),
+	ts(-1)
+{
+}
+
 CsDetected::CsDetected(IStream &stream)
 {
 	Deserializer<std::string, std::string, std::string, std::string>::Deserialize(

@@ -36,6 +36,7 @@ using CsDetectedPtr = std::unique_ptr<CsDetected>;
 
 struct API CsDetected : public IResult {
 	CsDetected() noexcept;
+	CsDetected(const std::string &targetName);
 	virtual ~CsDetected() = default;
 
 	CsDetected(IStream &);

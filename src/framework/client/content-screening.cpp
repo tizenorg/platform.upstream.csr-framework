@@ -228,10 +228,14 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data,
 				   hExt->getContext(),
 				   RawBuffer(data, data + length));
 
-	if (ret.second)
-		hExt->add(ResultPtr(ret.second));
+	ResultPtr resultPtr(ret.second);
 
-	*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	if (ret.second && !ret.second->malwareName.empty()) {
+		hExt->add(std::move(resultPtr));
+		*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	} else {
+		*malware = nullptr;
+	}
 
 	return ret.first;
 
@@ -255,10 +259,14 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 				   hExt->getContext(),
 				   Client::getAbsolutePath(file_path));
 
-	if (ret.second)
-		hExt->add(ResultPtr(ret.second));
+	ResultPtr resultPtr(ret.second);
 
-	*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	if (ret.second && !ret.second->malwareName.empty()) {
+		hExt->add(ResultPtr(ret.second));
+		*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	} else {
+		*malware = nullptr;
+	}
 
 	return ret.first;
 
@@ -278,6 +286,7 @@ int csr_cs_set_file_scanned_cb(csr_cs_context_h handle, csr_cs_file_scanned_cb c
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
 	hExt->m_cb.onScanned = callback;
+	hExt->getContext()->set(static_cast<int>(CsContext::Key::ScannedCbRegistered), true);
 
 	return CSR_ERROR_NONE;
 
@@ -390,23 +399,9 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 	auto task = std::make_shared<Task>([hExt, user_data, fileSet] {
 		EXCEPTION_ASYNC_SAFE_START(hExt->m_cb, user_data)
 
-		auto ret = hExt->dispatch<std::pair<int, std::shared_ptr<StrSet>>>(
-					CommandId::CANONICALIZE_PATHS, *fileSet);
-
-		if (ret.first != CSR_ERROR_NONE)
-			ThrowExc(ret.first, "Error on getting canonicalized paths in subthread. "
-					 "ret: " << ret.first);
-
-		std::shared_ptr<StrSet> canonicalizedFiles;
-
-		if (ret.second == nullptr)
-			canonicalizedFiles = std::make_shared<StrSet>();
-		else
-			canonicalizedFiles = std::move(ret.second);
-
 		Client::AsyncLogic l(hExt, user_data);
 
-		l.scanFiles(*canonicalizedFiles);
+		l.scanFiles(fileSet);
 
 		EXCEPTION_SAFE_END
 	});

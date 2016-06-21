@@ -152,6 +152,26 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		return this->m_cslogic->scanFile(*cptr, filepath);
 	}
 
+	case CommandId::SCAN_FILES_ASYNC: {
+		hasPermission(conn);
+
+		CsContextShPtr cptr;
+		StrSet paths;
+		q.Deserialize(cptr, paths);
+
+		return this->m_cslogic->scanFilesAsync(conn, *cptr, paths);
+	}
+
+	case CommandId::SCAN_DIRS_ASYNC: {
+		hasPermission(conn);
+
+		CsContextShPtr cptr;
+		StrSet paths;
+		q.Deserialize(cptr, paths);
+
+		return this->m_cslogic->scanDirsAsync(conn, *cptr, paths);
+	}
+
 	case CommandId::GET_SCANNABLE_FILES: {
 		hasPermission(conn);
 

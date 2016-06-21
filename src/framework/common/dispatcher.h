@@ -26,6 +26,7 @@
 #include "common/macros.h"
 #include "common/connection.h"
 #include "common/binary-queue.h"
+#include "common/exception.h"
 
 namespace Csr {
 
@@ -42,6 +43,9 @@ public:
 	template<typename Type, typename ...Args>
 	Type methodCall(Args &&...args);
 
+	template <typename Type>
+	Type receiveEvent(void);
+
 private:
 	bool isConnected(void) const noexcept;
 	void connect(void);
@@ -49,6 +53,18 @@ private:
 	SockId m_sockId;
 	ConnShPtr m_connection;
 };
+
+template<typename Type>
+Type Dispatcher::receiveEvent()
+{
+	BinaryQueue q;
+	q.push(this->m_connection->receive());
+
+	Type response;
+	q.Deserialize(response);
+
+	return response;
+}
 
 template<typename Type, typename ...Args>
 Type Dispatcher::methodCall(Args &&...args)
@@ -58,13 +74,7 @@ Type Dispatcher::methodCall(Args &&...args)
 
 	this->m_connection->send(BinaryQueue::Serialize(std::forward<Args>(args)...).pop());
 
-	BinaryQueue q;
-	q.push(this->m_connection->receive());
-
-	Type response;
-	q.Deserialize(response);
-
-	return response;
+	return this->receiveEvent();
 }
 
 }

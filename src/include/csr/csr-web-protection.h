@@ -162,6 +162,8 @@ int csr_wp_set_popup_message(csr_wp_context_h handle, const char *message);
  * @retval #CSR_ERROR_INVALID_PARAMETER     @a url or @a result is invalid
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_USER_RESPONSE_FAILED  Getting user response is failed.
+ *                                          @a result will be allocated on this error
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated

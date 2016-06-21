@@ -220,6 +220,8 @@ int csr_cs_set_scan_on_cloud(csr_cs_context_h handle, bool scan_on_cloud);
  * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
+ * @retval #CSR_ERROR_USER_RESPONSE_FAILED  Getting user response is failed.
+ *                                          @a malware will be allocated on this error
  * @retval #CSR_ERROR_ENGINE_NOT_EXIST      No engine exists
  * @retval #CSR_ERROR_ENGINE_DISABLED       Engine is in disabled state
  * @retval #CSR_ERROR_ENGINE_NOT_ACTIVATED  Engine is not activated
@@ -260,9 +262,11 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data, size_t 
  * @retval #CSR_ERROR_PERMISSION_DENIED     Access denied
  * @retval #CSR_ERROR_NOT_SUPPORTED         Device needed to run API is not supported
  * @retval #CSR_ERROR_DB                    DB transaction error
- * @retval #CSR_ERROR_REMOVE_FAILED         File remove failed when malware exist and
- *                                          user select to remove by popup. @a malware
- *                                          will be allocated on this error unlike others.
+ * @retval #CSR_ERROR_REMOVE_FAILED         Removing file or application is failed when
+ *                                          malware exist and user select to remove by popup.
+ *                                          @a malware will be allocated on this error
+ * @retval #CSR_ERROR_USER_RESPONSE_FAILED  Getting user response is failed.
+ *                                          @a malware will be allocated on this error
  * @retval #CSR_ERROR_FILE_DO_NOT_EXIST     File not found
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
@@ -814,6 +818,7 @@ int csr_cs_malware_get_pkg_id(csr_cs_malware_h malware, char **pkg_id);
  * @retval #CSR_ERROR_SOCKET                Socket error between client and server
  * @retval #CSR_ERROR_SERVER                Server has been failed for some reason
  * @retval #CSR_ERROR_DB                    DB transaction error
+ * @retval #CSR_ERROR_REMOVE_FAILED         Removing file or application is failed
  * @retval #CSR_ERROR_SYSTEM                System error
  */
 int csr_cs_judge_detected_malware(csr_cs_context_h handle, csr_cs_malware_h malware,

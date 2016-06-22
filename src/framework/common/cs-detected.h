@@ -41,6 +41,9 @@ struct API CsDetected : public IResult {
 	CsDetected(IStream &);
 	virtual void Serialize(IStream &) const override;
 
+	CsDetected(const CsDetected &) noexcept;
+	CsDetected &operator=(const CsDetected &) = delete;
+
 	CsDetected(CsDetected &&) noexcept;
 	CsDetected &operator=(CsDetected &&) noexcept;
 

@@ -29,6 +29,7 @@
 
 #include "db/connection.h"
 #include "db/row.h"
+#include "db/cache.h"
 #include "common/cs-detected.h"
 
 #include <csr-engine-manager.h>
@@ -55,6 +56,7 @@ public:
 
 	// SCAN_REQUEST
 	time_t getLastScanTime(const std::string &dir, const std::string &dataVersion);
+	void insertCache(const Cache &c);
 	void insertLastScanTime(const std::string &dir, time_t scanTime,
 							const std::string &dataVersion);
 	void deleteLastScanTime(const std::string &dir);
@@ -70,8 +72,6 @@ public:
 
 	void insertDetectedFile(const std::string &filepath, const CsDetected &d,
 							const std::string &dataVersion);
-	void insertDetectedFileInApp(const std::string &pkgpath, const std::string &filepath,
-								 const CsDetected &d, const std::string &dataVersion);
 	void insertDetectedAppByCloud(const std::string &name, const std::string &pkgId,
 							 const CsDetected &d, const std::string &dataVersion);
 	void insertWorst(const std::string &pkgId, const std::string &name,
@@ -92,6 +92,8 @@ private:
 						const std::string &dataVersion);
 	void insertDetectedCloud(const CsDetected &d, const std::string &pkgId,
 							 const std::string &name, const std::string &dataVersion);
+	void insertDetectedFileInApp(const std::string &pkgpath, const std::string &filepath,
+								 const CsDetected &d, const std::string &dataVersion);
 
 	void resetDatabase();
 	bool isTableExist(const std::string &name);

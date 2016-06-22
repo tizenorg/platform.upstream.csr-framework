@@ -63,6 +63,18 @@ void CsDetected::Serialize(IStream &stream) const
 		this->isApp, ts64);
 }
 
+CsDetected::CsDetected(const CsDetected &other) noexcept :
+	targetName(other.targetName),
+	malwareName(other.malwareName),
+	detailedUrl(other.detailedUrl),
+	pkgId(other.pkgId),
+	severity(other.severity),
+	response(other.response),
+	isApp(other.isApp),
+	ts(other.ts)
+{
+}
+
 CsDetected::CsDetected(CsDetected &&other) noexcept :
 	targetName(std::move(other.targetName)),
 	malwareName(std::move(other.malwareName)),

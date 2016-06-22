@@ -29,6 +29,7 @@
 
 #include "db/connection.h"
 #include "db/row.h"
+#include "db/cache.h"
 #include "common/cs-detected.h"
 
 #include <csr-engine-manager.h>
@@ -66,10 +67,9 @@ public:
 	RowShPtrs getDetectedByFilepathOnDir(const std::string &dir, time_t since);
 	RowShPtr getWorstByPkgPath(const std::string &pkgPath, time_t since);
 
+	void insertCache(const Cache &c);
 	void insertDetectedFile(const std::string &filepath, const CsDetected &d,
 							const std::string &dataVersion);
-	void insertDetectedFileInApp(const std::string &pkgpath, const std::string &filepath,
-								 const CsDetected &d, const std::string &dataVersion);
 	void insertDetectedAppByCloud(const std::string &name, const std::string &pkgId,
 							 const CsDetected &d, const std::string &dataVersion);
 	void insertWorst(const std::string &pkgId, const std::string &name,
@@ -91,6 +91,8 @@ private:
 						const std::string &dataVersion);
 	void insertDetectedCloud(const CsDetected &d, const std::string &pkgId,
 							 const std::string &name, const std::string &dataVersion);
+	void insertDetectedFileInApp(const std::string &pkgpath, const std::string &filepath,
+								 const CsDetected &d, const std::string &dataVersion);
 
 	void resetDatabase();
 	bool isTableExist(const std::string &name);

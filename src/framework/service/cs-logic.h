@@ -30,6 +30,7 @@
 #include "common/cs-context.h"
 #include "common/cs-detected.h"
 #include "db/manager.h"
+#include "db/cache.h"
 #include "service/cs-loader.h"
 #include "service/file-system.h"
 #include "service/logic.h"
@@ -59,8 +60,7 @@ private:
 	RawBuffer scanApp(const CsContext &context, const std::string &pkgPath);
 	RawBuffer scanAppOnCloud(const CsContext &context, const std::string &pkgPath,
 							 const std::string &pkgId);
-	CsDetectedPtr scanAppDelta(const std::string &pkgPath, const std::string &pkgId,
-							   std::string &riskiestPath);
+	Db::Cache scanAppDelta(const std::string &pkgPath, const std::string &pkgId);
 
 	RawBuffer scanFileWithoutDelta(const CsContext &context, const std::string &filepath,
 								   FilePtr &&fileptr);

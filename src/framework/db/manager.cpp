@@ -469,8 +469,6 @@ void Manager::insertDetectedFile(const std::string &filepath, const CsDetected &
 void Manager::insertDetectedFileInApp(const std::string &pkgpath, const std::string &filepath,
 									  const CsDetected &d, const std::string &dataVersion)
 {
-	std::lock_guard<std::mutex> l(this->m_mutex);
-
 	this->insertName(pkgpath);
 	this->insertDetected(d, filepath, dataVersion);
 }
@@ -482,6 +480,15 @@ void Manager::insertDetectedAppByCloud(const std::string &name, const std::strin
 
 	this->insertName(name);
 	this->insertDetectedCloud(d, pkgId, name, dataVersion);
+}
+
+void Manager::insertCache(const Cache &c)
+{
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
+	for(std::vector<int>::size_type i = 0; i < c.detecteds.size(); i++)
+		this->insertDetectedFileInApp(
+			c.pkgPath, c.filePaths[i], c.detecteds[i], c.dataVersion);
 }
 
 void Manager::insertName(const std::string &name)

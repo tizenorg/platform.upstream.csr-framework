@@ -63,6 +63,35 @@ void CsDetected::Serialize(IStream &stream) const
 		this->isApp, ts64);
 }
 
+CsDetected::CsDetected(const CsDetected &other) noexcept :
+	targetName(other.targetName),
+	malwareName(other.malwareName),
+	detailedUrl(other.detailedUrl),
+	pkgId(other.pkgId),
+	severity(other.severity),
+	response(other.response),
+	isApp(other.isApp),
+	ts(other.ts)
+{
+}
+
+CsDetected &CsDetected::operator=(const CsDetected &other) noexcept
+{
+	if (this == &other)
+		return *this;
+
+	this->targetName = other.targetName;
+	this->malwareName = other.malwareName;
+	this->detailedUrl = other.detailedUrl;
+	this->pkgId = other.pkgId;
+	this->severity = other.severity;
+	this->response = other.response;
+	this->isApp = other.isApp;
+	this->ts = other.ts;
+
+	return *this;
+}
+
 CsDetected::CsDetected(CsDetected &&other) noexcept :
 	targetName(std::move(other.targetName)),
 	malwareName(std::move(other.malwareName)),

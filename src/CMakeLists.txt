@@ -63,6 +63,7 @@ SET(${TARGET_CSR_SERVER}_SRCS
 	framework/db/connection.cpp
 	framework/db/statement.cpp
 	framework/db/manager.cpp
+	framework/db/cache.cpp
 
 	${AC_BACKEND_SRCS}
 )

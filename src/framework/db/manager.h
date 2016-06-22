@@ -29,6 +29,7 @@
 
 #include "db/connection.h"
 #include "db/row.h"
+#include "db/cache.h"
 #include "common/cs-detected.h"
 
 #include <csr-engine-manager.h>
@@ -55,6 +56,7 @@ public:
 
 	// SCAN_REQUEST
 	time_t getLastScanTime(const std::string &dir, const std::string &dataVersion);
+	void insertCache(const Cache &c, bool isIgnored);
 	void insertLastScanTime(const std::string &dir, time_t scanTime,
 							const std::string &dataVersion);
 	void deleteLastScanTime(const std::string &dir);

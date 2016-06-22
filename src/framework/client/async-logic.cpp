@@ -94,7 +94,7 @@ void AsyncLogic::scanFiles(const StrSet &fileSet)
 {
 	for (const auto &file : fileSet) {
 		if (this->m_handle->isStopped())
-			ThrowExc(-999, "Async op cancelled!");
+			ThrowExcInfo(-999, "Async op cancelled!");
 
 		auto ret = this->m_dispatcher->methodCall<std::pair<int, CsDetected *>>(
 					   CommandId::SCAN_FILE, this->m_ctx, file);

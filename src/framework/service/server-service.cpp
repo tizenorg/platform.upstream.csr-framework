@@ -91,16 +91,16 @@ ServerService::ServerService() : Service(), m_workqueue(5)
 		this->m_cs = std::make_shared<CsLoader>(CS_ENGINE_PATH, ENGINE_DIR,
 												ENGINE_RW_WORKING_DIR);
 	} catch (const Exception &e) {
-		ERROR("Excetpion in content screening loader: " << e.what() <<
-			  " error: " << e.error() << " treat it as ENGINE_NOT_EXIST.");
+		WARN("Excetpion in content screening loader: " << e.what() <<
+			 " error: " << e.error() << " treat it as ENGINE_NOT_EXIST.");
 	}
 
 	try {
 		this->m_wp = std::make_shared<WpLoader>(WP_ENGINE_PATH, ENGINE_DIR,
 												ENGINE_RW_WORKING_DIR);
 	} catch (const Exception &e) {
-		ERROR("Exception in web protection loader: " << e.what() <<
-			  " error: " << e.error() << " treat it as ENGINE_NOT_EXIST.");
+		WARN("Exception in web protection loader: " << e.what() <<
+			 " error: " << e.error() << " treat it as ENGINE_NOT_EXIST.");
 	}
 
 	this->m_cslogic.reset(new CsLogic(this->m_cs, this->m_db));

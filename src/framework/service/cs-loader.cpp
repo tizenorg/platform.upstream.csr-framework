@@ -254,8 +254,8 @@ void CsLoader::init(const std::string &enginePath, const std::string &roResDir,
 	void *handle = dlopen(enginePath.c_str(), RTLD_LAZY);
 
 	if (handle == nullptr)
-		ThrowExc(CSR_ERROR_ENGINE_NOT_EXIST, "engine dlopen error. path: " << enginePath <<
-				 " errno: " << errno);
+		ThrowExcWarn(CSR_ERROR_ENGINE_NOT_EXIST, "engine dlopen error. path: " <<
+					 enginePath << " errno: " << errno);
 
 	this->m_pc.dlhandle = handle;
 

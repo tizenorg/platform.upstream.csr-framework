@@ -252,7 +252,8 @@ FilePtr File::createInternal(const std::string &fpath, time_t modifiedSince,
 	auto statptr = getStat(fpath);
 
 	if (statptr == nullptr)
-		ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "file not exist or no permission: " << fpath);
+		ThrowExcWarn(CSR_ERROR_FILE_DO_NOT_EXIST, "file not exist or no permission: " <<
+					 fpath);
 	else if (!S_ISREG(statptr->st_mode) && !S_ISDIR(statptr->st_mode))
 		ThrowExc(CSR_ERROR_FILE_SYSTEM, "file type is not reguler or dir: " << fpath);
 
@@ -278,7 +279,8 @@ FsVisitorPtr FsVisitor::create(const std::string &dirpath, time_t modifiedSince)
 {
 	auto statptr = getStat(dirpath);
 	if (statptr == nullptr)
-		ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "directory not exist or no permission: " << dirpath);
+		ThrowExcWarn(CSR_ERROR_FILE_DO_NOT_EXIST, "directory not exist or no "
+					 "permission: " << dirpath);
 	else if (!S_ISDIR(statptr->st_mode))
 		ThrowExc(CSR_ERROR_FILE_SYSTEM, "file type is not directory: " << dirpath);
 	else

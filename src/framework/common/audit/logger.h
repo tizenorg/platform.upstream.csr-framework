@@ -62,17 +62,16 @@ public:
 #define FORMAT(ITEMS) \
 	(static_cast<std::ostringstream &>(std::ostringstream() << ITEMS)).str()
 
-#define LOG(LEVEL, MESSAGE) Csr::Audit::Logger::log(                   \
-		Csr::Audit::LogLevel::LEVEL, __FILENAME__, __LINE__, __func__, \
-		FORMAT(MESSAGE))
+#define LOG(LEVEL, MESSAGE) Csr::Audit::Logger::log(              \
+		LEVEL, __FILENAME__, __LINE__, __func__, FORMAT(MESSAGE)) \
 
-#define ERROR(MESSAGE) LOG(Error, MESSAGE)
-#define WARN(MESSAGE)  LOG(Warning, MESSAGE)
-#define INFO(MESSAGE)  LOG(Info, MESSAGE)
+#define ERROR(MESSAGE) LOG(Csr::Audit::LogLevel::Error, MESSAGE)
+#define WARN(MESSAGE)  LOG(Csr::Audit::LogLevel::Warning, MESSAGE)
+#define INFO(MESSAGE)  LOG(Csr::Audit::LogLevel::Info, MESSAGE)
 
 #if !defined(NDEBUG)
-#define DEBUG(MESSAGE) LOG(Debug, MESSAGE)
-#define TRACE(MESSAGE) LOG(Trace, MESSAGE)
+#define DEBUG(MESSAGE) LOG(Csr::Audit::LogLevel::Debug, MESSAGE)
+#define TRACE(MESSAGE) LOG(Csr::Audit::LogLevel::Trace, MESSAGE)
 #else
 #define DEBUG(MESSAGE) do {} while (false)
 #define TRACE(MESSAGE) do {} while (false)

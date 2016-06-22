@@ -115,7 +115,7 @@ std::string canonicalizePath(const std::string &path, bool checkAccess)
 	if (checkAccess && !isReadable(path)) {
 		const int err = errno;
 		if (err == ENOENT)
-			ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "File do not exist: " << target);
+			ThrowExcWarn(CSR_ERROR_FILE_DO_NOT_EXIST, "File do not exist: " << target);
 		else if (err == EACCES)
 			ThrowExc(CSR_ERROR_PERMISSION_DENIED,
 					 "Perm denied to get real path: " << target);

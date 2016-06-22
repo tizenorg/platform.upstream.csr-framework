@@ -65,8 +65,13 @@ public:
 	bool request(const std::string &user, const std::string &client,
 				 const std::string &session, const std::string &privilege)
 	{
-		auto ret = cynara_check(this->m_cynara, client.c_str(), session.c_str(),
-								user.c_str(), privilege.c_str());
+		int ret = CYNARA_API_ACCESS_DENIED;
+
+		{
+			std::lock_guard<std::mutex> l(this->m_mutex);
+			ret = cynara_check(this->m_cynara, client.c_str(), session.c_str(),
+							   user.c_str(), privilege.c_str());
+		}
 
 		switch (ret) {
 		case CYNARA_API_ACCESS_ALLOWED: return true;

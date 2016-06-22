@@ -59,8 +59,9 @@ private:
 	enum class Type : int {
 		Modified  = (1 << 0),
 		Package   = (1 << 1),
-		File      = (1 << 2),
-		Directory = (1 << 3),
+		PreLoaded = (1 << 2),
+		File      = (1 << 3),
+		Directory = (1 << 4)
 	};
 
 	static FilePtr createInternal(const std::string &fpath, time_t modifiedSince,

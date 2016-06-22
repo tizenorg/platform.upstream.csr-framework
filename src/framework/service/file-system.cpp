@@ -86,6 +86,15 @@ int File::getPkgTypes(const std::string &user, const std::string &pkgid)
 
 	auto type = static_cast<int>(Type::Package);
 
+	bool isPreloaded = false;
+	ret = ::pkgmgrinfo_pkginfo_is_preload(handle, &isPreloaded);
+
+	if (ret != PMINFO_R_OK)
+		ERROR("Failed to ::pkgmgrinfo_pkginfo_is_preload: " << ret);
+
+	if (isPreloaded)
+		type |= static_cast<int>(Type::PreLoaded);
+
 	::pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
 
 	return type;
@@ -111,7 +120,10 @@ bool File::isInApp(const std::string &path)
 			continue;
 		}
 
-		return File::getPkgTypes(pkgUser, pkgId) != 0;
+		auto type = File::getPkgTypes(pkgUser, pkgId);
+
+		return (type & static_cast<int>(Type::Package)) &&
+			   (!(type & static_cast<int>(Type::PreLoaded)));
 	}
 
 	return false;
@@ -140,7 +152,10 @@ std::string File::getPkgPath(const std::string &path)
 			continue;
 		}
 
-		return File::getPkgTypes(pkgUser, pkgId) != 0 ? pkgPath : path;
+		auto type = File::getPkgTypes(pkgUser, pkgId);
+
+		return ((type & static_cast<int>(Type::Package)) &&
+			   (!(type & static_cast<int>(Type::PreLoaded)))) ? pkgPath : path;
 	}
 
 	return path;
@@ -179,7 +194,8 @@ const std::string &File::getPath() const noexcept
 
 bool File::isInApp() const noexcept
 {
-	return this->m_type & static_cast<int>(Type::Package);
+	return (this->m_type & static_cast<int>(Type::Package)) &&
+		   (!(this->m_type & static_cast<int>(Type::PreLoaded)));
 }
 
 bool File::isDir() const noexcept

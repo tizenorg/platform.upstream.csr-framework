@@ -191,8 +191,8 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 	return this->handleAskUser(context, detected);
 }
 
-CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::string &pkgId,
-									std::string &riskiestPath)
+Db::Cache CsLogic::scanAppDelta(const std::string &pkgPath,
+								const std::string &pkgId)
 {
 	auto starttime = ::time(nullptr);
 
@@ -203,8 +203,7 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 
 	// traverse files in app and take which is more danger than riskiest
 	auto visitor = FsVisitor::create(pkgPath, lastScanTime);
-
-	CsDetectedPtr riskiest;
+	Db::Cache cache(pkgPath, pkgId);
 
 	while (auto file = visitor->next()) {
 		DEBUG("Scan file by engine: " << file->getPath());
@@ -216,6 +215,7 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 
 		if (!result) {
 			if (lastScanTime != -1)
+				//TODO Check to use cache.
 				this->m_db->deleteDetectedByFilepathOnPath(file->getPath());
 
 			continue;
@@ -227,9 +227,10 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 		candidate.isApp = true;
 		candidate.pkgId = pkgId;
 
-		this->m_db->insertDetectedFileInApp(pkgPath, file->getPath(), candidate,
-											this->m_dataVersion);
+		cache.setDetectedFile(file->getPath(), candidate);
 
+		auto riskiest = cache.getRiskiest();
+		std::string riskiestPath;
 		if (!riskiest) {
 			riskiest.reset(new CsDetected(std::move(candidate)));
 			riskiestPath = file->getPath();
@@ -237,11 +238,14 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 			*riskiest = std::move(candidate);
 			riskiestPath = file->getPath();
 		}
+		cache.setRiskiest(riskiest);
+		cache.setRiskiestPath(riskiestPath);
 	}
 
-	this->m_db->insertLastScanTime(pkgPath, starttime, this->m_dataVersion);
+	cache.setLastScanTime(starttime);
+	cache.setDataVersion(this->m_dataVersion);
 
-	return riskiest;
+	return cache;
 }
 
 RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
@@ -270,19 +274,23 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
 	auto history = this->m_db->getWorstByPkgPath(pkgPath);
 	// riskiest detected among newly scanned files
 	std::string riskiestPath;
-	auto riskiest = this->scanAppDelta(pkgPath, pkgId, riskiestPath);
+	auto cache = this->scanAppDelta(pkgPath, pkgId);
+	auto riskiest = cache.getRiskiest();
 	// history after delta scan. if worst file is changed, it's rescanned in scanAppDelta
 	// and deleted from db if it's cured. if history != nullptr && after == nullptr,
 	// it means worst detected item is cured anyway.
 	auto after = this->m_db->getWorstByPkgPath(pkgPath);
 	if (history && after && riskiest) {
 		if (*history < *riskiest) {
+			//TODO transaction start
 			INFO("worst case is remained but the more worst newly detected. on pkg[" <<
 				 pkgPath << "]");
 			if (history->isIgnored)
 				this->m_db->updateIgnoreFlag(pkgPath, false);
 
 			this->m_db->insertWorst(pkgId, pkgPath, riskiestPath);
+			this->m_db->insertCache(cache);
+			//TODO transaction end
 
 			return this->handleAskUser(context, *riskiest);
 		} else {

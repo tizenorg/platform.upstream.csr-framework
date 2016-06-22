@@ -266,6 +266,13 @@ time_t Manager::getLastScanTime(const std::string &dir,
 	return latest;
 }
 
+void Manager::insertCache(Cache c)
+{
+	this->insertDectectedFileInApp();
+	this->insertLastScanTime();
+	this->insertWorst();
+}
+
 void Manager::insertLastScanTime(const std::string &dir, time_t scanTime,
 								 const std::string &dataVersion)
 {

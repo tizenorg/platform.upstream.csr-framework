@@ -270,6 +270,33 @@ time_t Manager::getLastScanTime(const std::string &dir,
 	return latest;
 }
 
+void Manager::insertCacheInternal(const Cache &c)
+{
+	for(std::vector<int>::size_type i = 0; i < c.detecteds.size(); i++)
+		this->insertDetectedFileInApp(
+			c.pkgPath, c.filePaths[i], c.detecteds[i], c.dataVersion);
+
+	this->insertLastScanTime(c.pkgPath, c.scanTime, c.dataVersion);
+}
+
+void Manager::insertCache(const Cache &c, bool isIgnored,
+						   const std::string &filePath)
+{
+	// TODO Apply database transaction.
+	this->insertCacheInternal(c);
+
+	if(isIgnored)
+		this->updateIgnoreFlag(c.pkgPath, false);
+
+	this->insertWorst(c.pkgId, c.pkgPath, filePath);
+}
+
+void Manager::insertCache(const Cache &c)
+{
+	// TODO Apply database transaction.
+	this->insertCacheInternal(c);
+}
+
 void Manager::insertLastScanTime(const std::string &dir, time_t scanTime,
 								 const std::string &dataVersion)
 {

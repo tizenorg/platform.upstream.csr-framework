@@ -29,6 +29,7 @@
 
 #include "db/connection.h"
 #include "db/row.h"
+#include "db/cache.h"
 #include "common/cs-detected.h"
 
 #include <csr-engine-manager.h>
@@ -55,6 +56,8 @@ public:
 
 	// SCAN_REQUEST
 	time_t getLastScanTime(const std::string &dir, const std::string &dataVersion);
+	void insertCache(const Cache &c, bool isIgnored, const std::string &filePath);
+	void insertCache(const Cache &c);
 	void insertLastScanTime(const std::string &dir, time_t scanTime,
 							const std::string &dataVersion);
 	void deleteLastScanTime(const std::string &dir);
@@ -87,6 +90,7 @@ private:
 	RowShPtrs getDetectedByNameOnDir(const std::string &dir);
 	RowShPtrs getDetectedCloudByNameOnDir(const std::string &dir);
 
+	void insertCacheInternal(const Cache &c);
 	void insertName(const std::string &name);
 	void insertDetected(const CsDetected &d, const std::string &filename,
 						const std::string &dataVersion);

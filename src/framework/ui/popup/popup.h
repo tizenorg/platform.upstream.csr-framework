@@ -77,12 +77,17 @@ public:
 	void callbackRegister(Evas_Object *obj, const std::string &url);
 	static void btnClickedCb(void *data, Evas_Object *, void *);
 	static void hypertextClickedCb(void *data, Evas_Object *, void *);
+	static void rotationChangedCb(void *data, Evas_Object *, void *);
+	static Eina_Bool keyDownCb(void *, int, void *);
 
 	std::vector<Evas_Object *> m_buttons;
 	Evas_Object *m_hypertext;
 	std::vector<int> m_types;
 
 private:
+	void setDefaultProperties(Evas_Object *obj) noexcept;
+	void setRotationToWin(Evas_Object *obj) noexcept;
+
 	Evas_Object *m_win;
 	Evas_Object *m_popup;
 	Evas_Object *m_box;
@@ -97,6 +102,9 @@ private:
 	std::string m_hypertextUrl;
 
 	static int response;
+
+	int m_winW;
+	int m_winH;
 };
 
 } // namespace Ui

@@ -61,14 +61,19 @@ public:
 	void cleanLastScanTime();
 
 	// DETECTED_MALWARE_FILE & USER_RESPONSE
+	RowShPtr getDetectedAllByNameOnPath(const std::string &path, bool *isByCloud = nullptr);
 	RowShPtr getDetectedByNameOnPath(const std::string &path);
-	RowShPtrs getDetectedByNameOnDir(const std::string &dir);
+	RowShPtr getDetectedCloudByNameOnPath(const std::string &path);
+	RowShPtrs getDetectedAllByNameOnDir(const std::string &dir);
 	RowShPtrs getDetectedByFilepathOnDir(const std::string &dir);
-	RowShPtr getWorstByPkgId(const std::string &pkgId);
+	RowShPtr getWorstByPkgPath(const std::string &pkgPath);
 
-	void insertName(const std::string &name);
-	void insertDetected(const CsDetected &, const std::string &filename,
-						const std::string &dataVersion);
+	void insertDetectedFile(const std::string &filepath, const CsDetected &d,
+							const std::string &dataVersion);
+	void insertDetectedFileInApp(const std::string &pkgpath, const std::string &filepath,
+								 const CsDetected &d, const std::string &dataVersion);
+	void insertDetectedAppByCloud(const std::string &name, const std::string &pkgId,
+							 const CsDetected &d, const std::string &dataVersion);
 	void insertWorst(const std::string &pkgId, const std::string &name,
 					 const std::string &filepath);
 
@@ -79,6 +84,15 @@ public:
 									   const std::string &dataVersion);
 
 private:
+	RowShPtrs getDetectedByNameOnDir(const std::string &dir);
+	RowShPtrs getDetectedCloudByNameOnDir(const std::string &dir);
+
+	void insertName(const std::string &name);
+	void insertDetected(const CsDetected &d, const std::string &filename,
+						const std::string &dataVersion);
+	void insertDetectedCloud(const CsDetected &d, const std::string &pkgId,
+							 const std::string &name, const std::string &dataVersion);
+
 	void resetDatabase();
 	bool isTableExist(const std::string &name);
 	std::string getScript(const std::string &scriptName);
@@ -90,6 +104,8 @@ private:
 	std::string m_scriptsDir;
 
 	std::map<csr_engine_id_e, csr_state_e> m_stateMap;
+	std::mutex m_stateMutex;
+
 	std::mutex m_mutex;
 };
 

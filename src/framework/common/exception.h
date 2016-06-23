@@ -35,7 +35,7 @@ namespace Csr {
 class API Exception : public std::exception {
 public:
 	Exception(int ec, const char *file, const char *function, unsigned int line,
-			  const std::string &message) noexcept;
+			  Audit::LogLevel level, const std::string &message) noexcept;
 	virtual ~Exception() = default;
 	virtual const char *what() const noexcept final;
 
@@ -48,5 +48,11 @@ protected:
 
 } // namespace Csr
 
-#define ThrowExc(ec, MESSAGE) \
-	throw Csr::Exception(ec, __FILE__, __FUNCTION__, __LINE__, FORMAT(MESSAGE))
+#define __CSR_THROW(ec, LEVEL, MESSAGE)                                \
+	throw Csr::Exception(ec, __FILE__, __FUNCTION__, __LINE__,         \
+						 Csr::Audit::LogLevel::LEVEL, FORMAT(MESSAGE))
+
+#define ThrowExc(ec, MESSAGE)      __CSR_THROW(ec, Error, MESSAGE)
+#define ThrowExcWarn(ec, MESSAGE)  __CSR_THROW(ec, Warning, MESSAGE)
+#define ThrowExcInfo(ec, MESSAGE)  __CSR_THROW(ec, Info, MESSAGE)
+#define ThrowExcDebug(ec, MESSAGE) __CSR_THROW(ec, Debug, MESSAGE)

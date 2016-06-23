@@ -17,8 +17,8 @@
 #define __TIZEN_CORE_CSR_FRAMEWORK_DOC_H__
 /**
  * @ingroup CAPI_SECURITY_FRAMEWORK
- * @defgroup CAPI_CSR_FRAMEWORK_MODULE CSR Framework
- * @brief    The CSR (Content Screening & Reputation) framework is an anti malware framework. It provides Content Screening Service and Web Protection Service to protect a device and an user.
+ * @defgroup CAPI_CSR_FRAMEWORK_MODULE CSR
+ * @brief    The CSR (Content Screening & Reputation) is an anti malware module. It provides Content Screening Service and Web Protection Service to protect a device and an user.
  *
  * @section CAPI_CSR_FRAMEWORK_MODULE_OVERVIEW Overview
  * <table>
@@ -37,7 +37,7 @@
  *   </tr>
  * </table>
  *
- * The CSR (Content Screening & Reputation) framework is an anti malware framework. It provides Content Screening Service and Web Protection Service to protect a device and an user
+ * The CSR (Content Screening & Reputation) is an anti malware moodule. It provides Content Screening Service and Web Protection Service to protect a device and an user
  * The Content Screening Service enables caller modules and applications to scan the content for data, files, and directories.
  * The Web Protection Service enables caller modules and applications to check if a URL they want to access is risky or not.
  *

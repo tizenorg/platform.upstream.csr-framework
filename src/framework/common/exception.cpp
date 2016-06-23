@@ -26,11 +26,11 @@
 namespace Csr {
 
 Exception::Exception(int ec, const char *file, const char *function, unsigned int line,
-					 const std::string &message) noexcept :
+					 Audit::LogLevel level, const std::string &message) noexcept :
 	m_ec(ec),
 	m_message(FORMAT("[" << file << ":" << line << " " << function << "()]" << message))
 {
-	ERROR(this->m_message);
+	LOG(level, this->m_message);
 }
 
 const char *Exception::what() const noexcept

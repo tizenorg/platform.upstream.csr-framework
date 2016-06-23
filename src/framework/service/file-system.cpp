@@ -49,6 +49,7 @@ std::vector<std::regex> g_regexprs{
 #ifdef PLATFORM_VERSION_3
 	makeRegexpr("^(/opt/usr/apps/([^/]+))"),               // /opt/usr/apps/{pkgid}/
 	makeRegexpr("^(/home/([^/]+)/apps_rw/([^/]+))"),       // /home/{user}/apps_rw/{pkgid}/
+	makeRegexpr("^(/opt/home/([^/]+)/apps_rw/([^/]+))"),   // /opt/home/{user}/apps_rw/{pkgid}/
 	makeRegexpr("^(/sdcard/app2sd/([^/]+)/([^/]+))"),      // /sdcard/app2sd/{user}/{pkgid}/
 	makeRegexpr("^(/sdcard/app2sd/([^/]+))"),              // /sdcard/app2sd/{pkgid}/
 	makeRegexpr("^(/sdcard/apps/([^/]+)/apps_rw/([^/]+))") // /sdcard/apps/{user}/apps_rw/{pkgid}/
@@ -62,14 +63,37 @@ std::vector<std::regex> g_regexprs{
 
 } // namespace anonymous
 
-int File::getPkgTypes(const std::string &pkgid)
+int File::getPkgTypes(const std::string &user, const std::string &pkgid)
 {
 	pkgmgrinfo_pkginfo_h handle;
+
+#ifdef PLATFORM_VERSION_3
+	int ret = -1;
+	if (user.empty())
+		ret = ::pkgmgrinfo_pkginfo_get_pkginfo(pkgid.c_str(), &handle);
+	else
+		ret = ::pkgmgrinfo_pkginfo_get_usr_pkginfo(pkgid.c_str(), getUid(user), &handle);
+#else
+	(void) user;
 	auto ret = ::pkgmgrinfo_pkginfo_get_pkginfo(pkgid.c_str(), &handle);
-	if (ret != PMINFO_R_OK)
+#endif
+
+	if (ret != PMINFO_R_OK) {
+		INFO("Extracted pkgid[" << pkgid << "] from filepath isn't pkg id. "
+			 "It's not package.");
 		return 0;
+	}
 
 	auto type = static_cast<int>(Type::Package);
+
+	bool isPreloaded = false;
+	ret = ::pkgmgrinfo_pkginfo_is_preload(handle, &isPreloaded);
+
+	if (ret != PMINFO_R_OK)
+		ERROR("Failed to ::pkgmgrinfo_pkginfo_is_preload: " << ret);
+
+	if (isPreloaded)
+		type |= static_cast<int>(Type::PreLoaded);
 
 	::pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
 
@@ -84,16 +108,22 @@ bool File::isInApp(const std::string &path)
 		if (!std::regex_search(path, matched, rege))
 			continue;
 
+		std::string pkgUser;
 		std::string pkgId;
 
-		if (matched.size() == 3)
+		if (matched.size() == 3) {
 			pkgId = matched[2];
-		else if (matched.size() == 4)
+		} else if (matched.size() == 4) {
+			pkgUser = matched[2];
 			pkgId = matched[3];
-		else
+		} else {
 			continue;
+		}
 
-		return File::getPkgTypes(pkgId) != 0;
+		auto type = File::getPkgTypes(pkgUser, pkgId);
+
+		return (type & static_cast<int>(Type::Package)) &&
+			   (!(type & static_cast<int>(Type::PreLoaded)));
 	}
 
 	return false;
@@ -108,6 +138,7 @@ std::string File::getPkgPath(const std::string &path)
 			continue;
 
 		std::string pkgPath;
+		std::string pkgUser;
 		std::string pkgId;
 
 		if (matched.size() == 3) {
@@ -115,12 +146,16 @@ std::string File::getPkgPath(const std::string &path)
 			pkgId = matched[2];
 		} else if (matched.size() == 4) {
 			pkgPath = matched[1];
+			pkgUser = matched[2];
 			pkgId = matched[3];
 		} else {
 			continue;
 		}
 
-		return File::getPkgTypes(pkgId) != 0 ? pkgPath : path;
+		auto type = File::getPkgTypes(pkgUser, pkgId);
+
+		return ((type & static_cast<int>(Type::Package)) &&
+			   (!(type & static_cast<int>(Type::PreLoaded)))) ? pkgPath : path;
 	}
 
 	return path;
@@ -137,6 +172,7 @@ File::File(const std::string &fpath, int type) : m_path(fpath), m_type(type)
 		if (matched.size() == 3) {
 			this->m_appPkgPath = matched[1];
 			this->m_appPkgId = matched[2];
+			this->m_appUser.clear();
 		} else if (matched.size() == 4) {
 			this->m_appPkgPath = matched[1];
 			this->m_appUser = matched[2];
@@ -145,7 +181,7 @@ File::File(const std::string &fpath, int type) : m_path(fpath), m_type(type)
 			continue;
 		}
 
-		this->m_type |= File::getPkgTypes(this->m_appPkgId);
+		this->m_type |= File::getPkgTypes(this->m_appUser, this->m_appPkgId);
 
 		break;
 	}
@@ -158,7 +194,8 @@ const std::string &File::getPath() const noexcept
 
 bool File::isInApp() const noexcept
 {
-	return this->m_type & static_cast<int>(Type::Package);
+	return (this->m_type & static_cast<int>(Type::Package)) &&
+		   (!(this->m_type & static_cast<int>(Type::PreLoaded)));
 }
 
 bool File::isDir() const noexcept
@@ -215,7 +252,8 @@ FilePtr File::createInternal(const std::string &fpath, time_t modifiedSince,
 	auto statptr = getStat(fpath);
 
 	if (statptr == nullptr)
-		ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "file not exist or no permission: " << fpath);
+		ThrowExcWarn(CSR_ERROR_FILE_DO_NOT_EXIST, "file not exist or no permission: " <<
+					 fpath);
 	else if (!S_ISREG(statptr->st_mode) && !S_ISDIR(statptr->st_mode))
 		ThrowExc(CSR_ERROR_FILE_SYSTEM, "file type is not reguler or dir: " << fpath);
 
@@ -241,7 +279,8 @@ FsVisitorPtr FsVisitor::create(const std::string &dirpath, time_t modifiedSince)
 {
 	auto statptr = getStat(dirpath);
 	if (statptr == nullptr)
-		ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "directory not exist or no permission: " << dirpath);
+		ThrowExcWarn(CSR_ERROR_FILE_DO_NOT_EXIST, "directory not exist or no "
+					 "permission: " << dirpath);
 	else if (!S_ISDIR(statptr->st_mode))
 		ThrowExc(CSR_ERROR_FILE_SYSTEM, "file type is not directory: " << dirpath);
 	else
@@ -256,6 +295,7 @@ FsVisitor::FsVisitor(const std::string &dirpath, time_t modifiedSince) :
 	if (!this->m_dirptr)
 		ThrowExc(CSR_ERROR_SERVER, "Failed to open dir: " << dirpath);
 
+	DEBUG("dir opened: " << dirpath);
 	this->m_dirs.push((dirpath.back() == '/') ? dirpath : (dirpath + '/'));
 }
 
@@ -291,8 +331,9 @@ FilePtr FsVisitor::next()
 
 			if (this->m_dirs.empty())
 				return nullptr;
-			else
-				continue;
+
+			DEBUG("dir opened: " << this->m_dirs.front());
+			continue;
 		}
 
 		auto &dir = this->m_dirs.front();
@@ -308,6 +349,7 @@ FilePtr FsVisitor::next()
 			else if (name_size == 2 && ::strcmp(name, "..") == 0)
 				continue;
 
+			DEBUG("push dir to dirs: " << (dir + name + '/'));
 			this->m_dirs.emplace(dir + name + '/');
 		} else if (result->d_type == DT_REG) {
 			try {

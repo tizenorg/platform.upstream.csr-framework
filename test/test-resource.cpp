@@ -30,10 +30,18 @@
 
 namespace {
 
-std::string s_wgtAppRootCache;
-std::string s_wgtMalFileCache;
-std::string s_tpkAppRootCache;
-std::string s_tpkMalFileCache;
+std::string s_testDirMedia;
+std::string s_testDirApps;
+
+std::string s_testFileMedia;
+std::string s_testFileInDirMalwares;
+
+std::string s_wgtAppRoot;
+std::string s_wgtMalFile;
+std::string s_tpkAppRoot;
+std::string s_tpkMalFile;
+std::string s_fakeAppRoot;
+std::string s_fakeAppFile;
 
 #ifdef PLATFORM_VERSION_3
 std::string getUsername(void)
@@ -56,42 +64,82 @@ std::string getUsername(void)
 
 } // namespace anonymous
 
-const std::string &TEST_WGT_APP_ROOT(void)
+const char *TEST_DIR_MEDIA(void)
 {
-	if (s_wgtAppRootCache.empty())
+	if (s_testDirMedia.empty())
 #ifdef PLATFORM_VERSION_3
-		s_wgtAppRootCache = "/home/" + ::getUsername() + "/apps_rw/" TEST_WGT_PKG_ID;
+		s_testDirMedia = "/home/" + ::getUsername() + "/content";
 #else
-		s_wgtAppRootCache = TEST_DIR_APPS "/" TEST_WGT_PKG_ID;
+		s_testDirMedia = "/opt/usr/media";
 #endif
 
-	return s_wgtAppRootCache;
+	return s_testDirMedia.c_str();
 }
 
-const std::string &TEST_WGT_MAL_FILE(void)
+const char *TEST_DIR_APPS(void)
 {
-	if (s_wgtMalFileCache.empty())
-		s_wgtMalFileCache = TEST_WGT_APP_ROOT() + "/res/wgt/data/malicious.txt";
-
-	return s_wgtMalFileCache;
-}
-
-const std::string &TEST_TPK_APP_ROOT(void)
-{
-	if (s_tpkAppRootCache.empty())
+	if (s_testDirApps.empty())
 #ifdef PLATFORM_VERSION_3
-		s_tpkAppRootCache = "/home/" + ::getUsername() + "/apps_rw/" TEST_TPK_PKG_ID;
+		s_testDirApps = "/home/" + ::getUsername() + "/apps_rw";
 #else
-		s_tpkAppRootCache = TEST_DIR_APPS "/" TEST_TPK_PKG_ID;
+		s_testDirApps = "/opt/usr/apps";
 #endif
 
-	return s_tpkAppRootCache;
+	return s_testDirApps.c_str();
 }
 
-const std::string &TEST_TPK_MAL_FILE(void)
+const char *TEST_FILE_MEDIA(void)
 {
-	if (s_tpkMalFileCache.empty())
-		s_tpkMalFileCache = TEST_TPK_APP_ROOT() + "/shared/res/malicious.txt";
+	if (s_testFileMedia.empty())
+		s_testFileMedia = std::string(TEST_DIR_MEDIA()) + "/test_malware_file";
 
-	return s_tpkMalFileCache;
+	return s_testFileMedia.c_str();
+}
+
+const char *TEST_WGT_APP_ROOT(void)
+{
+	if (s_wgtAppRoot.empty())
+		s_wgtAppRoot = std::string(TEST_DIR_APPS()) + "/" TEST_WGT_PKG_ID;
+
+	return s_wgtAppRoot.c_str();
+}
+
+const char *TEST_WGT_MAL_FILE(void)
+{
+	if (s_wgtMalFile.empty())
+		s_wgtMalFile = std::string(TEST_WGT_APP_ROOT()) + "/res/wgt/data/eicar.txt";
+
+	return s_wgtMalFile.c_str();
+}
+
+const char *TEST_TPK_APP_ROOT(void)
+{
+	if (s_tpkAppRoot.empty())
+		s_tpkAppRoot = std::string(TEST_DIR_APPS()) + "/" TEST_TPK_PKG_ID;
+
+	return s_tpkAppRoot.c_str();
+}
+
+const char *TEST_TPK_MAL_FILE(void)
+{
+	if (s_tpkMalFile.empty())
+		s_tpkMalFile = std::string(TEST_TPK_APP_ROOT()) + "/shared/res/eicar.txt";
+
+	return s_tpkMalFile.c_str();
+}
+
+const char *TEST_FAKE_APP_ROOT(void)
+{
+	if (s_fakeAppRoot.empty())
+		s_fakeAppRoot = std::string(TEST_DIR_APPS()) + "/fake_app";
+
+	return s_fakeAppRoot.c_str();
+}
+
+const char *TEST_FAKE_APP_FILE(void)
+{
+	if (s_fakeAppFile.empty())
+		s_fakeAppFile = std::string(TEST_FAKE_APP_ROOT()) + "/malicious.txt";
+
+	return s_fakeAppFile.c_str();
 }

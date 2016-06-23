@@ -26,13 +26,15 @@
 #include <cerrno>
 #include <unistd.h>
 
+#include <csr-error.h>
+
 #include "common/audit/logger.h"
 #include "common/exception.h"
 #include "service/type-converter.h"
 #include "service/core-usage.h"
 #include "service/dir-blacklist.h"
+#include "service/fs-utils.h"
 #include "ui/askuser.h"
-#include <csr-error.h>
 
 namespace Csr {
 
@@ -110,10 +112,10 @@ std::string canonicalizePath(const std::string &path, bool checkAccess)
 	auto resolved = resolvePath(path);
 	auto target = File::getPkgPath(resolved);
 
-	if (checkAccess && ::access(target.c_str(), R_OK) != 0) {
+	if (checkAccess && !isReadable(path)) {
 		const int err = errno;
 		if (err == ENOENT)
-			ThrowExc(CSR_ERROR_FILE_DO_NOT_EXIST, "File do not exist: " << target);
+			ThrowExcWarn(CSR_ERROR_FILE_DO_NOT_EXIST, "File do not exist: " << target);
 		else if (err == EACCES)
 			ThrowExc(CSR_ERROR_PERMISSION_DENIED,
 					 "Perm denied to get real path: " << target);
@@ -184,6 +186,8 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 	detected.isApp = true;
 	detected.pkgId = pkgId;
 
+	this->m_db->insertDetectedAppByCloud(pkgPath, pkgId, detected, this->m_dataVersion);
+
 	return this->handleAskUser(context, detected);
 }
 
@@ -223,8 +227,8 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 		candidate.isApp = true;
 		candidate.pkgId = pkgId;
 
-		this->m_db->insertName(pkgPath);
-		this->m_db->insertDetected(candidate, file->getPath(), this->m_dataVersion);
+		this->m_db->insertDetectedFileInApp(pkgPath, file->getPath(), candidate,
+											this->m_dataVersion);
 
 		if (!riskiest) {
 			riskiest.reset(new CsDetected(std::move(candidate)));
@@ -263,14 +267,14 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
 		return this->scanAppOnCloud(context, pkgPath, pkgId);
 
 	// old history
-	auto history = this->m_db->getWorstByPkgId(pkgId);
+	auto history = this->m_db->getWorstByPkgPath(pkgPath);
 	// riskiest detected among newly scanned files
 	std::string riskiestPath;
 	auto riskiest = this->scanAppDelta(pkgPath, pkgId, riskiestPath);
 	// history after delta scan. if worst file is changed, it's rescanned in scanAppDelta
 	// and deleted from db if it's cured. if history != nullptr && after == nullptr,
 	// it means worst detected item is cured anyway.
-	auto after = this->m_db->getWorstByPkgId(pkgId);
+	auto after = this->m_db->getWorstByPkgPath(pkgPath);
 	if (history && after && riskiest) {
 		if (*history < *riskiest) {
 			INFO("worst case is remained but the more worst newly detected. on pkg[" <<
@@ -394,8 +398,7 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 
 	auto d = this->convert(result, filepath, timestamp);
 
-	this->m_db->insertName(d.targetName);
-	this->m_db->insertDetected(d, d.targetName, this->m_dataVersion);
+	this->m_db->insertDetectedFile(d.targetName, d, this->m_dataVersion);
 
 	return this->handleAskUser(context, d, std::forward<FilePtr>(fileptr));
 }
@@ -497,7 +500,7 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 
 	if (lastScanTime != -1) {
 		// for case: scan history exist and not modified.
-		for (auto &row : this->m_db->getDetectedByNameOnDir(File::getPkgPath(dir))) {
+		for (auto &row : this->m_db->getDetectedAllByNameOnDir(File::getPkgPath(dir))) {
 			try {
 				auto fileptr = File::create(row->targetName);
 
@@ -559,7 +562,9 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 
 	const auto &targetName = (file->isInApp() ? file->getAppPkgPath() : filepath);
 
-	auto history = this->m_db->getDetectedByNameOnPath(targetName);
+	bool isCloudHistory = false;
+
+	auto history = this->m_db->getDetectedAllByNameOnPath(targetName, &isCloudHistory);
 
 	if (!history) {
 		ERROR("Target to be judged doesn't exist in db. name: " << targetName);
@@ -567,7 +572,8 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 	}
 
 	// file create based on fileInAppPath(for app target, it is worst detected)
-	if (File::createIfModified(history->fileInAppPath, static_cast<time_t>(history->ts)))
+	if (!isCloudHistory && File::createIfModified(history->fileInAppPath,
+												  static_cast<time_t>(history->ts)))
 		ThrowExc(CSR_ERROR_FILE_CHANGED,
 				 "File[" << history->fileInAppPath << "] modified since db delta inserted."
 				 " Don't refresh detected history to know that it's changed since the"
@@ -608,7 +614,7 @@ RawBuffer CsLogic::getDetected(const std::string &filepath)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 	}
 
-	auto row = this->m_db->getDetectedByNameOnPath(target);
+	auto row = this->m_db->getDetectedAllByNameOnPath(target);
 
 	if (row && !row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -624,8 +630,8 @@ RawBuffer CsLogic::getDetectedList(const StrSet &_dirSet)
 
 	Db::RowShPtrs rows;
 	for (const auto &dir : dirSet) {
-		for (auto &row : this->m_db->getDetectedByNameOnDir(dir)) {
-			if (::access(row->targetName.c_str(), R_OK) != 0) {
+		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir)) {
+			if (!row->fileInAppPath.empty() && !isReadable(row->targetName)) {
 				WARN("Exclude not-accessable malware detected file from the list: " <<
 					 row->targetName);
 				this->m_db->deleteDetectedByNameOnPath(row->targetName);
@@ -669,8 +675,8 @@ RawBuffer CsLogic::getIgnoredList(const StrSet &_dirSet)
 
 	Db::RowShPtrs rows;
 	for (const auto &dir : dirSet) {
-		for (auto &row : this->m_db->getDetectedByNameOnDir(dir)) {
-			if (::access(row->targetName.c_str(), R_OK) != 0) {
+		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir)) {
+			if (!row->fileInAppPath.empty() && !isReadable(row->targetName)) {
 				WARN("Exclude not-accessable malware detected file from the list: " <<
 					 row->targetName);
 				this->m_db->deleteDetectedByNameOnPath(row->targetName);
@@ -722,7 +728,13 @@ RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fi
 	}
 
 	Ui::AskUser askUser;
-	d.response = askUser.cs(cid, c.popupMessage, d);
+	auto r = askUser.cs(cid, c.popupMessage, d);
+	if (r == -1) {
+		ERROR("Failed to get user response by popup service for target: " << d.targetName);
+		return BinaryQueue::Serialize(CSR_ERROR_USER_RESPONSE_FAILED, d).pop();
+	}
+
+	d.response = r;
 
 	if (d.response == CSR_CS_USER_RESPONSE_REMOVE && !d.targetName.empty()) {
 		try {
@@ -740,6 +752,8 @@ RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fi
 			else if (e.error() == CSR_ERROR_FILE_SYSTEM)
 				WARN("File type is changed, considered as different file: " <<
 					 d.targetName);
+			else if (e.error() == CSR_ERROR_REMOVE_FAILED)
+				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, d).pop();
 			else
 				throw;
 		}

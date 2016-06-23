@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "খোলক"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "বাতিল"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "বিলোপ কৰক"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "ফাইলৰ পথ: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "অধিক তথ্য"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "সংস্কৰণ:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "আনইনষ্টল"
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "দৰ্শন"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "দূষিত ৱেবপৃষ্ঠা অৱৰোধ কৰক"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "বিপদ:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "নিম্ন"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "মধ্যম"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "উচ্চ"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "যিকোনো প্ৰকাৰে ৱেবপৃষ্ঠালৈ যাবলৈ “দৰ্শন” টিপক।"
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "আপোনাৰ ফোন সুৰক্ষিত কৰিবলৈ, এই ৱেবপৃষ্ঠা দৰ্শন কৰিব নোৱাৰি।"
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "অৱৰোধ"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "মালৱেৰ চিনাক্ত হৈছে"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "নিম্নলিখিত আইটেমে আপোনাৰ ফোন ক্ষতি কৰিব পাৰে:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "ফাইলৰ নাম: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "সংক্ৰমিত ফাইল বিলোপ কৰিবলৈ “বিলোপ” টিপক আৰু আপোনাৰ ফোন সুৰক্ষিত কৰক।"
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "এই সময়ত কেৱল আইটেম খুলিবলৈ “খোলক” টিপক। এই প'প-আপ বন্ধ আৰু আইটেম নুখুলিবলৈ “বাতিল” টিপক।"
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "সংক্ৰমিত এপ আনইনষ্টল কৰিবলৈ “%s” টিপক আৰু আপোনাৰ ফোন সুৰক্ষিত কৰক।"
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "এপৰ নাম:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "নিম্নলিখিত ৱেবপৃষ্ঠাই আপোনাৰ ফোন ক্ষতি কৰিব পাৰে:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "ঠিক"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

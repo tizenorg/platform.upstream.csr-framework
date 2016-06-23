@@ -20,10 +20,12 @@
 PKG_CHECK_MODULES(${TARGET_CSR_POPUP}_DEP
 	REQUIRED
 	elementary
+	efl-extension
 	libsystemd-daemon
 	vconf
 	pkgmgr-info
 	capi-appfw-application
+	icu-i18n
 )
 
 INCLUDE_DIRECTORIES(

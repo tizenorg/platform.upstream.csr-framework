@@ -404,7 +404,7 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 		else
 			canonicalizedFiles = std::move(ret.second);
 
-		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
+		Client::AsyncLogic l(hExt, user_data);
 
 		l.scanFiles(*canonicalizedFiles);
 
@@ -443,7 +443,7 @@ int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path,
 	auto task = std::make_shared<Task>([hExt, user_data, dir] {
 		EXCEPTION_ASYNC_SAFE_START(hExt->m_cb, user_data)
 
-		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
+		Client::AsyncLogic l(hExt, user_data);
 
 		l.scanDir(*dir);
 
@@ -505,7 +505,7 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 
 		Client::eraseSubdirectories(*canonicalizedDirs);
 
-		Client::AsyncLogic l(hExt, user_data, [&hExt] { return hExt->isStopped(); });
+		Client::AsyncLogic l(hExt, user_data);
 
 		l.scanDirs(*canonicalizedDirs);
 

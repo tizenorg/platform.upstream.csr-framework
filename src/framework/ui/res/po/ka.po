@@ -1,0 +1,81 @@
+msgid "IDS_ST_BUTTON_OPEN"
+msgstr "გახსნა"
+
+msgid "IDS_ST_BUTTON_CANCEL"
+msgstr "გაუქმება"
+
+msgid "IDS_ST_BUTTON_DELETE_ABB3"
+msgstr "წაშლა"
+
+msgid "IDS_ST_POP_FILE_PATH_C_PS"
+msgstr "ფაილის მისამართი: %s"
+
+msgid "IDS_ST_BUTTON_MORE_INFO"
+msgstr "ვრცლად"
+
+msgid "IDS_ST_POP_VERSION_C"
+msgstr "ვერსია:"
+
+msgid "IDS_ST_BUTTON_UNINSTALL_ABB5"
+msgstr "დეინსტალ."
+
+msgid "IDS_ST_BUTTON_VIEW_ABB5"
+msgstr "ნახვა"
+
+msgid "IDS_ST_HEADER_BLOCK_MALICIOUS_WEBPAGE"
+msgstr "საზიანო ვებგვერდის დაბლოკვა"
+
+msgid "IDS_ST_POP_URL_C_PS"
+msgstr "URL: %s"
+
+msgid "IDS_ST_POP_RISK_C"
+msgstr "რისკი:"
+
+msgid "IDS_ST_POP_LOW_M_RISK_LEVEL"
+msgstr "დაბალი"
+
+msgid "IDS_ST_POP_MEDIUM_M_RISK_LEVEL"
+msgstr "საშუალო"
+
+msgid "IDS_ST_POP_HIGH_M_RISK_LEVEL"
+msgstr "მაღალი"
+
+msgid "IDS_ST_POP_TAP_VIEW_TO_GO_TO_THE_WEBPAGE_ANYWAY"
+msgstr "შეეხეთ „ნახვა“-ს, რომ მაინც გადახვიდეთ ვებგვერდზე."
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_WEBPAGE_CANT_BE_VIEWED"
+msgstr "ტელეფონის დაცვის მიზნით, ეს ვებგვერდი არ გაიხსნება."
+
+msgid "IDS_ST_BUTTON_BLOCK_ABB4"
+msgstr "დაბლოკვა"
+
+msgid "IDS_ST_HEADER_MALWARE_DETECTED"
+msgstr "ნაპოვნია მავნე პროგრამა"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_ITEM_MAY_HARM_YOUR_PHONE_C"
+msgstr "შესაძლოა, შემდეგმა ელემენტმა დააზიანოს ტელეფონი:"
+
+msgid "IDS_ST_POP_FILE_NAME_C_PS"
+msgstr "ფაილის სახელი: %s"
+
+msgid "IDS_ST_POP_TAP_DELETE_TO_DELETE_THE_INFECTED_FILE_AND_PROTECT_YOUR_PHONE"
+msgstr "ინფიცირებული ფაილის წასაშლელად და ტელეფონის დასაცავად, შეეხეთ „წაშლა“-ს."
+
+msgid "IDS_ST_POP_TAP_OPEN_TO_OPEN_THE_ITEM_THIS_TIME_ONLY_TAP_CANCEL_TO_CLOSE_THIS_POP_UP_AND_NOT_OPEN_THE_ITEM"
+msgstr "შეეხეთ „გახსნა“-ს, რომ მხოლოდ ამ ჯერზე გახსნათ. შეეხეთ „გაუქმებას“, რომ დაიხუროს ეს სარკმელი და არ გაიხსნას ელემენტი."
+
+msgid "IDS_ST_POP_TAP_PS_TO_UNINSTALL_THE_INFECTED_APP_AND_PROTECT_YOUR_PHONE"
+msgstr "ინფიცირებული აპლიკაციის ინსტალაციის გასაუქმებლად და ტელეფონის დასაცავად, შეხებით აირჩიეთ %s."
+
+msgid "IDS_ST_POP_APP_NAME_C"
+msgstr "აპლიკაციის სახელი:"
+
+msgid "IDS_ST_POP_THE_FOLLOWING_WEBPAGE_MAY_HARM_YOUR_PHONE_C"
+msgstr "შესაძლოა, შემდეგმა ვებგვერდმა დააზიანოს ტელეფონი:"
+
+msgid "IDS_ST_BUTTON_OK_ABB6"
+msgstr "OK"
+
+msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
+msgstr "Ignore"
+

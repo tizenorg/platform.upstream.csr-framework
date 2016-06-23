@@ -31,13 +31,11 @@
 namespace Csr {
 namespace Client {
 
-AsyncLogic::AsyncLogic(HandleExt *handle, void *userdata,
-					   const std::function<bool()> &isStopped) :
+AsyncLogic::AsyncLogic(HandleExt *handle, void *userdata) :
 	m_handle(handle),
 	m_ctx(new CsContext),
 	m_cb(handle->m_cb),
 	m_userdata(userdata),
-	m_isStopped(isStopped),
 	m_dispatcher(new Dispatcher(SockId::CS))
 {
 	// disable ask user option for async request for now
@@ -95,8 +93,8 @@ void AsyncLogic::scanDir(const std::string &dir)
 void AsyncLogic::scanFiles(const StrSet &fileSet)
 {
 	for (const auto &file : fileSet) {
-		if (this->m_isStopped())
-			ThrowExc(-999, "Async op cancelled!");
+		if (this->m_handle->isStopped())
+			ThrowExcInfo(-999, "Async op cancelled!");
 
 		auto ret = this->m_dispatcher->methodCall<std::pair<int, CsDetected *>>(
 					   CommandId::SCAN_FILE, this->m_ctx, file);

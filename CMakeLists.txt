@@ -71,6 +71,8 @@ SET(TARGET_CSR_WP_ENGINE ${SERVICE_NAME}-wp-engine)
 ADD_DEFINITIONS("-DCS_ENGINE_PATH=\"${ENGINE_DIR}/lib${TARGET_CSR_CS_ENGINE}.so\"")
 ADD_DEFINITIONS("-DWP_ENGINE_PATH=\"${ENGINE_DIR}/lib${TARGET_CSR_WP_ENGINE}.so\"")
 
+SET(LOCALEDIR "${RO_DATA_DIR}/locale")
+
 CONFIGURE_FILE(packaging/${SERVICE_NAME}-client.manifest.in ${SERVICE_NAME}-client.manifest @ONLY)
 CONFIGURE_FILE(packaging/${SERVICE_NAME}-common.manifest.in ${SERVICE_NAME}-common.manifest @ONLY)
 

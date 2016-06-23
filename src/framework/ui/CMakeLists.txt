@@ -17,4 +17,5 @@
 # @brief
 #
 ADD_SUBDIRECTORY(popup)
+ADD_SUBDIRECTORY(res)
 INSTALL(FILES res/default-icon.png DESTINATION ${RO_RES_DIR})

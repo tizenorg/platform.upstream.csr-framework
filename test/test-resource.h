@@ -31,20 +31,21 @@
 
 #define TEST_DIR_MALWARES  TEST_DIR "/test_dir"
 #define TEST_DIR_ROOT      "/"
-#define TEST_DIR_MEDIA     "/opt/usr/media"
 #define TEST_DIR_TMP       "/tmp"
-#define TEST_DIR_APPS      "/opt/usr/apps"
+const char *TEST_DIR_MEDIA();
+const char *TEST_DIR_APPS();
 
-#define TEST_FILE_MEDIA               TEST_DIR_MEDIA "/test_malware_file"
+const char *TEST_FILE_MEDIA();
 #define TEST_FILE_TMP_IN_DIR_MALWARES TEST_DIR_MALWARES "/tmp_malware_file"
 #define TEST_FILE_TMP                 TEST_DIR_TMP "/test_malware_file"
 #define TEST_FILE_NO_EXIST            TEST_DIR_TMP "/not_existing_file"
+#define TEST_FILE_UNREMOVABLE         TEST_DIR_MALWARES "/dir1/unremovable_file"
 
 #define TEST_WGT_PKG_ID    "hFhcNcbE6K"
 #define TEST_WGT_TYPE      "wgt"
 #define TEST_WGT_PATH      TEST_RES_DIR "/" TEST_TARGET "/MaliciousWgt.wgt"
-const std::string &TEST_WGT_APP_ROOT();
-const std::string &TEST_WGT_MAL_FILE();
+const char *TEST_WGT_APP_ROOT();
+const char *TEST_WGT_MAL_FILE();
 
 #define TEST_SAFE_WGT_PKG_ID   "q3JfX6RA5q"
 #define TEST_SAFE_WGT_TYPE     "wgt"
@@ -53,11 +54,11 @@ const std::string &TEST_WGT_MAL_FILE();
 #define TEST_TPK_PKG_ID    "org.example.malicioustpk"
 #define TEST_TPK_TYPE      "tpk"
 #define TEST_TPK_PATH      TEST_RES_DIR "/" TEST_TARGET "/MaliciousTpk.tpk"
-const std::string &TEST_TPK_APP_ROOT();
-const std::string &TEST_TPK_MAL_FILE();
+const char *TEST_TPK_APP_ROOT();
+const char *TEST_TPK_MAL_FILE();
 
-#define TEST_FAKE_APP_ROOT TEST_DIR_APPS "/fake_app"
-#define TEST_FAKE_APP_FILE TEST_FAKE_APP_ROOT "/malicious.txt"
+const char *TEST_FAKE_APP_ROOT();
+const char *TEST_FAKE_APP_FILE();
 
 #define MALWARE_HIGH_NAME            "test_malware"
 #define MALWARE_HIGH_SEVERITY        CSR_CS_SEVERITY_HIGH

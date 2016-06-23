@@ -313,29 +313,43 @@ void exceptionGuard(const std::function<void()> &f)
 	}
 }
 
-void copy_file_assert(const char *src_file, const char *dest_file)
+void copy_file_assert(const char *src_file, const char *dst_file)
 {
 	try {
-		std::ifstream srce(src_file, std::ios::binary);
-		std::ofstream dest(dest_file, std::ios::binary);
-		dest << srce.rdbuf();
+		std::ifstream src;
+		std::ofstream dst;
+
+		src.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		dst.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+		src.open(src_file, std::ios::binary);
+		dst.open(dst_file, std::ios::binary);
+
+		dst << src.rdbuf();
 	} catch (const std::exception &e) {
 		BOOST_REQUIRE_MESSAGE(false,
 			"Failed to copy file from src[" << src_file <<
-			"] to dst[" << dest_file << "]: " << e.what());
+			"] to dst[" << dst_file << "]: " << e.what());
 	}
 }
 
-void copy_file(const char *src_file, const char *dest_file)
+void copy_file(const char *src_file, const char *dst_file)
 {
 	try {
-		std::ifstream srce(src_file, std::ios::binary);
-		std::ofstream dest(dest_file, std::ios::binary);
-		dest << srce.rdbuf();
+		std::ifstream src;
+		std::ofstream dst;
+
+		src.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		dst.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+		src.open(src_file, std::ios::binary);
+		dst.open(dst_file, std::ios::binary);
+
+		dst << src.rdbuf();
 	} catch (const std::exception &e) {
 		BOOST_WARN_MESSAGE(false,
 			"Failed to copy file from src[" << src_file <<
-			"] to dst[" << dest_file << "]: " << e.what());
+			"] to dst[" << dst_file << "]: " << e.what());
 	}
 }
 

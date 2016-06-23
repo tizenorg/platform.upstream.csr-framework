@@ -21,9 +21,11 @@
  * @brief
  */
 #include "popup.h"
+#include "popup-string.h"
 
 #include <package-info.h>
 #include <app_control.h>
+#include <efl_extension.h>
 
 namespace Csr {
 namespace Ui {
@@ -37,6 +39,8 @@ namespace {
 	};
 
 	const std::string DEFAULT_URL("https://developer.tizen.org/");
+	const std::string HOME_KEY("XF86Home");
+
 }
 
 Popup::Popup(int buttonN)
@@ -46,31 +50,34 @@ Popup::Popup(int buttonN)
 	elm_win_indicator_opacity_set(m_win, ELM_WIN_INDICATOR_TRANSLUCENT);
 	elm_win_borderless_set(m_win, EINA_TRUE);
 	elm_win_alpha_set(m_win, EINA_TRUE);
+	elm_win_screen_size_get(m_win, NULL, NULL, &m_winW, &m_winH);
+	evas_object_size_hint_max_set(m_win, m_winW, m_winH);
+	evas_object_size_hint_min_set(m_win, m_winW, m_winH / 4);
+	setRotationToWin(m_win);
+
+	eext_win_keygrab_set(m_win, HOME_KEY.c_str());
+	ecore_event_handler_add(ECORE_EVENT_KEY_DOWN, keyDownCb, NULL);
 
 	// Set popup properties.
 	m_popup = elm_popup_add(m_win);
-	elm_popup_align_set(m_popup, ELM_NOTIFY_ALIGN_FILL, 1.0);
-	evas_object_size_hint_weight_set(m_popup, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	setDefaultProperties(m_popup);
 
 	// Wrap objects with box.
 	m_box = elm_box_add(m_popup);
-	evas_object_size_hint_weight_set(m_box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(m_header, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_box_padding_set(m_box, 10, 10);
+	setDefaultProperties(m_box);
+	elm_box_padding_set(m_box, 0, 20);
 	evas_object_show(m_box);
 
 	m_header = elm_label_add(m_box);
-	evas_object_size_hint_weight_set(m_header, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(m_header, EVAS_HINT_FILL, 0);
+	setDefaultProperties(m_header);
 	elm_box_pack_end(m_box, m_header);
 	evas_object_show(m_header);
 
 	// Subbox is for icon.
 	m_subBox = elm_box_add(m_box);
-	evas_object_size_hint_weight_set(m_subBox, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(m_subBox, 0, 0);
+	setDefaultProperties(m_subBox);
 	elm_box_horizontal_set(m_subBox, EINA_TRUE);
-
+	elm_box_padding_set(m_subBox, 20, 0);
 	// If icon is not set, it doesn't appear.
 	m_icon = elm_icon_add(m_subBox);
 	elm_image_resizable_set(m_icon, EINA_FALSE, EINA_FALSE);
@@ -78,8 +85,7 @@ Popup::Popup(int buttonN)
 	evas_object_show(m_icon);
 
 	m_body = elm_label_add(m_subBox);
-	evas_object_size_hint_weight_set(m_body, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(m_body, EVAS_HINT_FILL, 0);
+	setDefaultProperties(m_body);
 	elm_box_pack_end(m_subBox, m_body);
 	evas_object_show(m_body);
 
@@ -88,17 +94,14 @@ Popup::Popup(int buttonN)
 
 	// This label is for linking to webview.
 	m_hypertext = elm_label_add(m_box);
-	elm_object_text_set(m_hypertext, "<a href=><color=#0000FFFF>"
-		"  More information</color></a>");
-	evas_object_size_hint_weight_set(m_hypertext, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(m_hypertext, 0, 0);
-	evas_object_size_hint_min_set(m_hypertext, 400, 80);
+	setDefaultProperties(m_hypertext);
+	setText(m_hypertext, FORMAT("<a href=><color=#0000FFFF>"
+		<< LABEL_MORE_INFO << "</color></a>"));
 	elm_box_pack_end(m_box, m_hypertext);
 	evas_object_show(m_hypertext);
 
 	m_footer = elm_label_add(m_box);
-	evas_object_size_hint_weight_set(m_footer, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(m_footer, EVAS_HINT_FILL, 0);
+	setDefaultProperties(m_footer);
 	elm_box_pack_end(m_box, m_footer);
 	evas_object_show(m_footer);
 
@@ -126,17 +129,17 @@ Popup::~Popup()
 
 void Popup::setHeader(const std::string &header) noexcept
 {
-	setText(m_header, "<wrap = word>" + header + "</wrap>");
+	setText(m_header, header);
 }
 
 void Popup::setBody(const std::string &body) noexcept
 {
-	setText(m_body, "<wrap = word>" + body + "</wrap>");
+	setText(m_body, body);
 }
 
 void Popup::setFooter(const std::string &footer) noexcept
 {
-	setText(m_footer, "<br>""<wrap = word>" + footer + "</wrap>");
+	setText(m_footer, footer);
 }
 
 void Popup::setMessage(const std::string &msg) noexcept
@@ -169,8 +172,32 @@ void Popup::setTitle(const std::string &title) noexcept
 	elm_object_part_text_set(m_popup, "title,text", title.c_str());
 }
 
+void Popup::setDefaultProperties(Evas_Object *obj) noexcept
+{
+	// Set width as maximum, height as minimum.
+	evas_object_size_hint_weight_set(obj, EVAS_HINT_EXPAND, 0);
+	// Set width as fill parent, height as center.
+	evas_object_size_hint_align_set(obj, EVAS_HINT_FILL, 0.5);
+}
+
+void Popup::setRotationToWin(Evas_Object *win) noexcept
+{
+	if (!elm_win_wm_rotation_supported_get(win)) {
+		DEBUG("Window manager doesn't support rotation.");
+		return;
+	}
+
+	int rots[4] = { 0, 90, 180, 270 };
+	elm_win_wm_rotation_available_rotations_set(win,
+		reinterpret_cast<const int *>(&rots), 4);
+	evas_object_smart_callback_add(win, "rotation,changed",
+		rotationChangedCb, m_popup);
+}
+
 void Popup::setText(Evas_Object *obj, const std::string &text) noexcept
 {
+	// Eable text line-break automatically.
+	elm_label_line_wrap_set(obj, ELM_WRAP_WORD);
 	elm_object_text_set(obj, text.c_str());
 }
 
@@ -187,6 +214,30 @@ void Popup::callbackRegister(Evas_Object *obj, const std::string &url)
 	else
 		evas_object_smart_callback_add(
 			obj, "anchor,clicked", hypertextClickedCb, &url);
+}
+
+void Popup::rotationChangedCb(void *data, Evas_Object *, void *)
+{
+	DEBUG("Window rotation change event caught.");
+	auto popup = reinterpret_cast<Evas_Object *>(data);
+	auto win = elm_object_top_widget_get(popup);
+	auto pos = elm_win_rotation_get(win);
+	Evas_Coord w, h;
+	elm_win_screen_size_get(win, NULL, NULL, &w, &h);
+
+	switch (pos) {
+	case 0:
+	case 180:
+		evas_object_move(popup, (w / 2), h);
+		return;
+	case 90:
+	case 270:
+		evas_object_move(popup, (h / 2), w);
+		return;
+	default:
+		DEBUG("Invalid pos value : " << pos);
+		return;
+	}
 }
 
 void Popup::hypertextClickedCb(void *data, Evas_Object *, void *)
@@ -220,5 +271,21 @@ void Popup::btnClickedCb(void *data, Evas_Object *, void *)
 	response = *(reinterpret_cast<int *>(data));
 	elm_exit();
 }
+
+
+Eina_Bool Popup::keyDownCb(void *, int , void *ev)
+{
+	DEBUG("Key down event caught.");
+	auto event = reinterpret_cast<Ecore_Event_Key *>(ev);
+
+	if(event->key == HOME_KEY) {
+		response = -1;
+		elm_exit();
+	}
+
+	// Let the event continue to other callbacks.
+	return ECORE_CALLBACK_PASS_ON;
+}
+
 } // namespace Ui
 } // namespace Csr

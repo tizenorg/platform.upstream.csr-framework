@@ -50,11 +50,23 @@ const std::string DEL_SCAN_REQUEST_BY_DIR =
 const std::string DEL_SCAN_REQUEST =
 	"delete from SCAN_REQUEST";
 
+const std::string SEL_DETECTED_CLOUD_BY_NAME_ON_PATH =
+	"select name, data_version, malware_name, detailed_url, severity, detected_time,"
+	"       pkg_id, is_ignored"
+	" from join_detecteds_cloud_by_name"
+	" where name = ?";
+
 const std::string SEL_DETECTED_BY_NAME_ON_PATH =
 	"select name, file_path, data_version, malware_name, detailed_url, severity,"
 	"       detected_time, pkg_id, is_ignored"
 	" from join_detecteds_by_name"
 	" where name = ?";
+
+const std::string SEL_DETECTED_CLOUD_BY_NAME_ON_DIR =
+	"select name, data_version, malware_name, detailed_url, severity, detected_time,"
+	"       pkg_id, is_ignored"
+	" from join_detecteds_cloud_by_name"
+	" where name like ? || '%'";
 
 const std::string SEL_DETECTED_BY_NAME_ON_DIR =
 	"select name, file_path, data_version, malware_name, detailed_url, severity,"
@@ -68,14 +80,20 @@ const std::string SEL_DETECTED_BY_FILEPATH_ON_DIR =
 	" from join_detecteds_by_file_path"
 	" where file_path like ? || '%'";
 
-const std::string SEL_WORST_BY_PKGID =
+const std::string SEL_WORST_BY_PKGPATH =
 	"select name, file_path, data_version, malware_name, detailed_url, severity,"
-	"       detected_time"
+	"       detected_time, pkg_id"
 	" from join_p_d"
-	" where pkg_id = ?";
+	" where name = ?";
 
 const std::string INS_NAME =
 	"insert or replace into NAMES(name) values(?)";
+
+const std::string INS_DETECTED_CLOUD =
+	"insert or replace into DETECTED_MALWARE_CLOUD(idx, pkg_id, data_version,"
+	"                                              malware_name, detailed_url, severity,"
+	"                                              detected_time)"
+	" values((select idx from NAMES where name = ?), ?, ?, ?, ?, ?, ?)";
 
 const std::string INS_DETECTED =
 	"insert or replace into DETECTED_MALWARE(file_path, idx, data_version, malware_name,"

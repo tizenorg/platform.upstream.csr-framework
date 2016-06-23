@@ -22,13 +22,14 @@
 
 Summary: A general purpose content screening and reputation solution
 Name: csr-framework
-Version: 2.0.0
+Version: 2.1.0
 Release: 0
 Source: %{name}-%{version}.tar.gz
 License: Apache-2.0 and BSL-1.0
 Group: Security/Service
 URL: http://tizen.org
 BuildRequires: cmake
+BuildRequires: gettext-tools
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(libsystemd-daemon)
 BuildRequires: pkgconfig(vconf)
@@ -38,6 +39,8 @@ BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(libsmack)
 BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(elementary)
+BuildRequires: pkgconfig(efl-extension)
+BuildRequires: pkgconfig(icu-i18n)
 %if "%{?tizen_version}" == "3.0"
 BuildRequires: pkgconfig(cynara-client)
 %else
@@ -66,12 +69,14 @@ file contents and checking url to prevent malicious items.
 %if "%{?tizen_version}" == "3.0"
 %global service_user                 security_fw
 %global service_group                security_fw
+%global test_user                    owner
 %global popup_service_env_file_path  /run/tizen-system-env
 %global smack_domain_name            System
 %global popup_unitdir                %{_unitdir_user}
 %else
 %global service_user                 system
 %global service_group                system
+%global test_user                    system
 %global smack_domain_name            %{service_name}
 %global popup_service_env_file_path  /run/tizen-mobile-env
 %global popup_unitdir                %{_unitdir}
@@ -161,6 +166,7 @@ test program of csr-framework
     -DRO_DBSPACE:PATH=%{ro_db_dir} \
     -DRW_DBSPACE:PATH=%{rw_db_dir} \
     -DRO_RES_DIR:PATH=%{ro_res_dir} \
+    -DRO_DATA_DIR:PATH=%{ro_data_dir} \
     -DSERVICE_IDLE_TIMEOUT_TIME=%{service_idle_timeout_time} \
     -DPOPUP_SERVICE_IDLE_TIMEOUT_TIME=%{popup_service_idle_timeout_time} \
     -DENGINE_RW_WORKING_DIR:PATH=%{engine_rw_working_dir} \
@@ -202,7 +208,6 @@ cp LICENSE %{buildroot}%{ro_data_dir}/license/lib%{name}-common
 cp LICENSE %{buildroot}%{ro_data_dir}/license/%{name}-test
 cp LICENSE.BSL-1.0 %{buildroot}%{ro_data_dir}/license/%{name}-test.BSL-1.0
 
-
 mkdir -p %{buildroot}%{rw_db_dir}
 mkdir -p %{buildroot}%{ro_db_dir}
 cp data/scripts/*.sql %{buildroot}%{ro_db_dir}
@@ -211,25 +216,35 @@ mkdir -p %{buildroot}%{engine_dir}
 mkdir -p %{buildroot}%{engine_rw_working_dir}
 
 %post
+rm -f %{rw_db_dir}/.%{service_name}.db*
+
 systemctl daemon-reload
 if [ $1 = 1 ]; then
     systemctl start %{service_name}-cs.socket
     systemctl start %{service_name}-wp.socket
     systemctl start %{service_name}-admin.socket
     systemctl start %{service_name}-popup.socket
+
     systemctl start %{service_name}.service
+    systemctl start %{service_name}-popup.service
 fi
 
 if [ $1 = 2 ]; then
-    systemctl restart %{service_name}-cs.socket
-    systemctl restart %{service_name}-wp.socket
-    systemctl restart %{service_name}-admin.socket
-    systemctl restart %{service_name}-popup.socket
+    systemctl stop %{service_name}-cs.socket
+    systemctl stop %{service_name}-wp.socket
+    systemctl stop %{service_name}-admin.socket
+    systemctl stop %{service_name}-popup.socket
+
+    systemctl stop %{service_name}-popup.service
+    systemctl stop %{service_name}.service
+
     systemctl restart %{service_name}.service
+    systemctl restart %{service_name}-popup.service
 fi
 
 %preun
 if [ $1 = 0 ]; then
+    systemctl stop %{service_name}-popup.service
     systemctl stop %{service_name}.service
     systemctl stop %{service_name}-cs.socket
     systemctl stop %{service_name}-wp.socket
@@ -246,6 +261,9 @@ fi
 %post -n lib%{name}-client -p %{sbin_dir}/ldconfig
 %postun -n lib%{name}-common -p %{sbin_dir}/ldconfig
 %postun -n lib%{name}-client -p %{sbin_dir}/ldconfig
+
+%post -n %{name}-test
+chsmack -a "_" %{test_dir}/test_dir/dir1
 
 %files
 %defattr(-,root,root,-)
@@ -264,6 +282,7 @@ fi
 %{popup_unitdir}/%{service_name}-popup.socket
 %{popup_unitdir}/sockets.target.wants/%{service_name}-popup.socket
 %{popup_unitdir}/%{service_name}-popup.service
+%{ro_data_dir}/locale/*
 %{ro_res_dir}/default-icon.png
 
 %dir %{ro_data_dir}/%{service_name}
@@ -316,17 +335,17 @@ fi
 %{ro_data_dir}/license/%{name}-test
 %{ro_data_dir}/license/%{name}-test.BSL-1.0
 %{_libdir}/lib%{service_name}-test-common.so
-%attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-test
-%attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-internal-test
-%attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-popup-test
-%attr(-, %{service_user}, %{service_group}) %{bin_dir}/%{service_name}-threadpool-test
+%attr(-, %{test_user}, %{service_group}) %{bin_dir}/%{service_name}-test
+%attr(-, %{test_user}, %{service_group}) %{bin_dir}/%{service_name}-internal-test
+%attr(-, %{test_user}, %{service_group}) %{bin_dir}/%{service_name}-popup-test
+%attr(-, %{test_user}, %{service_group}) %{bin_dir}/%{service_name}-threadpool-test
 
 # test resources
-%dir %attr(-, %{service_user}, %{service_group}) %{test_dir}
-%attr(-, %{service_user}, %{service_group}) %{test_dir}/*
+%dir %attr(777, %{test_user}, %{service_group}) %{test_dir}
+%attr(777, %{test_user}, %{service_group}) %{test_dir}/*
 
-%dir %attr(-, %{service_user}, %{service_group}) %{test_res_dir}
-%attr(-, %{service_user}, %{service_group}) %{test_res_dir}/*
+%dir %attr(777, %{test_user}, %{service_group}) %{test_res_dir}
+%attr(777, %{test_user}, %{service_group}) %{test_res_dir}/*
 
 # sample engine related files
 %if 0%{?with_sample_engine}

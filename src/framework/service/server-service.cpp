@@ -56,6 +56,7 @@ std::string cidToString(const CommandId &cid)
 	CID_TOSTRING(GET_SCANNABLE_FILES);
 	CID_TOSTRING(CANONICALIZE_PATHS);
 	CID_TOSTRING(SET_DIR_TIMESTAMP);
+	CID_TOSTRING(CANCEL_OPERATION);
 	CID_TOSTRING(JUDGE_STATUS);
 
 	CID_TOSTRING(CHECK_URL);
@@ -158,7 +159,38 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		std::string dir;
 		q.Deserialize(dir);
 
-		return this->m_cslogic->getScannableFiles(dir);
+		auto fd = conn->getFd();
+
+		{
+			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
+			if (this->m_isCancelled.count(fd) == 1 && this->m_isCancelled[fd])
+				ThrowExcInfo(-999, "operation already cancelled on fd: " << fd);
+
+			this->m_isCancelled[fd] = false;
+			INFO("Turn off cancelled flag before scannable files start on fd: " << fd);
+		}
+
+		Closer closer([this, fd]() {
+			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
+			this->m_isCancelled.erase(fd);
+			INFO("Erase cancelled flag in closer on fd: " << fd);
+		});
+
+		return this->m_cslogic->getScannableFiles(dir, [this, fd]() {
+			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
+			if (this->m_isCancelled.count(fd) == 1 && this->m_isCancelled[fd])
+				ThrowExcInfo(-999, "operation cancelled on fd: " << fd);
+		});
+	}
+
+	case CommandId::CANCEL_OPERATION: {
+		{
+			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
+			this->m_isCancelled[conn->getFd()] = true;
+			INFO("Trun on cancelled flag of fd: " << conn->getFd());
+		}
+
+		return RawBuffer();
 	}
 
 	case CommandId::CANONICALIZE_PATHS: {
@@ -382,7 +414,8 @@ void ServerService::onMessageProcess(const ConnShPtr &connection)
 
 			CpuUsageManager::reset();
 
-			connection->send(outbuf);
+			if (!outbuf.empty())
+				connection->send(outbuf);
 		} catch (const std::exception &e) {
 			ERROR("exception on workqueue task: " << e.what());
 			try {

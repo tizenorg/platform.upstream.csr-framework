@@ -18,7 +18,7 @@
 %define with_detailed_base_url 0
 %define detailed_base_url %nil
 
-%define with_sample_engine 0
+%define with_sample_engine 1
 
 Summary: A general purpose content screening and reputation solution
 Name: csr-framework

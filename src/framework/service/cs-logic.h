@@ -23,6 +23,7 @@
 
 #include <memory>
 #include <string>
+#include <functional>
 #include <ctime>
 
 #include "common/types.h"
@@ -45,7 +46,7 @@ public:
 
 	RawBuffer scanData(const CsContext &context, const RawBuffer &data);
 	RawBuffer scanFile(const CsContext &context, const std::string &filepath);
-	RawBuffer getScannableFiles(const std::string &dir);
+	RawBuffer getScannableFiles(const std::string &dir, const std::function<void()> &isCancelled);
 	RawBuffer canonicalizePaths(const StrSet &paths);
 	RawBuffer setDirTimestamp(const std::string &dir, time_t ts);
 	RawBuffer judgeStatus(const std::string &filepath, csr_cs_action_e action);

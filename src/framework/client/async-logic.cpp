@@ -35,8 +35,7 @@ AsyncLogic::AsyncLogic(HandleExt *handle, void *userdata) :
 	m_handle(handle),
 	m_ctx(new CsContext),
 	m_cb(handle->m_cb),
-	m_userdata(userdata),
-	m_dispatcher(new Dispatcher(SockId::CS))
+	m_userdata(userdata)
 {
 	// disable ask user option for async request for now
 	copyKvp<int>(CsContext::Key::CoreUsage);
@@ -62,12 +61,15 @@ void AsyncLogic::scanDir(const std::string &dir)
 
 	// Already scanned files are included in history. it'll be skipped later
 	// on server side by every single scan_file request.
-	auto retFiles = this->m_dispatcher->methodCall<std::pair<int, std::shared_ptr<StrSet>>>(
+	auto retFiles = this->m_handle->dispatch<std::pair<int, std::shared_ptr<StrSet>>>(
 						CommandId::GET_SCANNABLE_FILES, dir);
 
-	if (retFiles.first != CSR_ERROR_NONE)
+	if (retFiles.first == -999) {
+		ThrowExcInfo(-999, "Async op cancelled!");
+	} else if (retFiles.first != CSR_ERROR_NONE) {
 		ThrowExc(retFiles.first, "Error to get scannalbe files. "
 				 "dir: " << dir << " ret: " << retFiles.first);
+	}
 
 #ifdef TIZEN_DEBUG_ENABLE
 	DEBUG("scannable file list in dir[" << dir <<
@@ -82,7 +84,7 @@ void AsyncLogic::scanDir(const std::string &dir)
 
 	auto ts64 = static_cast<int64_t>(startTime);
 
-	auto ret = this->m_dispatcher->methodCall<int>(CommandId::SET_DIR_TIMESTAMP, dir, ts64);
+	auto ret = this->m_handle->dispatch<int>(CommandId::SET_DIR_TIMESTAMP, dir, ts64);
 	if (ret != CSR_ERROR_NONE)
 		ERROR("Failed to set dir timestamp after scan dir[" << dir << "] with "
 			  "ec[" << ret << "] This is server error and not affects to "
@@ -96,7 +98,7 @@ void AsyncLogic::scanFiles(const StrSet &fileSet)
 		if (this->m_handle->isStopped())
 			ThrowExcInfo(-999, "Async op cancelled!");
 
-		auto ret = this->m_dispatcher->methodCall<std::pair<int, CsDetected *>>(
+		auto ret = this->m_handle->dispatch<std::pair<int, CsDetected *>>(
 					   CommandId::SCAN_FILE, this->m_ctx, file);
 
 		// for auto memory deleting in case of exception

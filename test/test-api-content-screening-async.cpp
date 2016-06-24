@@ -599,7 +599,7 @@ BOOST_AUTO_TEST_CASE(scan_dirs_negative)
 }
 
 
-BOOST_AUTO_TEST_CASE(scan_cancel_positiive)
+BOOST_AUTO_TEST_CASE(scan_cancel_positive)
 {
 	EXCEPTION_GUARD_START
 

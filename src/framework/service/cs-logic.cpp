@@ -477,7 +477,7 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 //           4) /opt/usr/apps/org.tizen.message  (app base directory path)
 //           5) /opt/usr/apps/org.tizen.flash    (app base directory path)
 //           % items which has detected history is included in list as well.
-RawBuffer CsLogic::getScannableFiles(const std::string &dir)
+RawBuffer CsLogic::getScannableFiles(const std::string &dir, const std::function<void()> &isCancelled)
 {
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
 		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
@@ -486,9 +486,13 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir)
 
 	auto visitor = FsVisitor::create(dir, lastScanTime);
 
+	isCancelled();
+
 	StrSet fileset;
 
 	while (auto file = visitor->next()) {
+		isCancelled();
+
 		if (file->isInApp()) {
 			DEBUG("Scannable app: " << file->getAppPkgPath());
 			fileset.insert(file->getAppPkgPath());

@@ -36,6 +36,7 @@ enum class CommandId : int {
 	GET_SCANNABLE_FILES = 0x1105,
 	CANONICALIZE_PATHS  = 0x1106,
 	SET_DIR_TIMESTAMP   = 0x1107,
+	CANCEL_OPERATION    = 0x1108,
 	// handle result
 	JUDGE_STATUS        = 0x1201,
 

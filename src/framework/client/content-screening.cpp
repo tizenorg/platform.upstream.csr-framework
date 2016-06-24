@@ -534,6 +534,10 @@ int csr_cs_cancel_scanning(csr_cs_context_h handle)
 	if (!hExt->isRunning() || hExt->isStopped())
 		return CSR_ERROR_NO_TASK;
 
+	hExt->turnOnStopFlagOnly();
+
+	hExt->ping(CommandId::CANCEL_OPERATION);
+
 	hExt->stop();
 
 	return CSR_ERROR_NONE;

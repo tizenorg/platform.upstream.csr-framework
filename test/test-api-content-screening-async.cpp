@@ -39,16 +39,18 @@
 			actual.cv.wait(l);                                                          \
 			l.unlock();                                                                 \
 		}                                                                               \
-		if (scan >= 0)                                                                  \
-			ASSERT_IF_MSG(actual.scannedCnt, scan, "scanned count mismatch.");          \
-		if (detect >= 0)                                                                \
-			ASSERT_IF_MSG(actual.detectedCnt, detect, "detected count mismatch.");      \
 		if (complete >= 0)                                                              \
-			ASSERT_IF_MSG(actual.completedCnt, complete, "completed count mismatch.");  \
+			ASSERT_IF_MSG(actual.completedCnt, complete,                                \
+						  "completed count mismatch! "                                  \
+						  "Async isn't successfully completed!");                       \
 		if (cancel >= 0)                                                                \
 			ASSERT_IF_MSG(actual.cancelledCnt, cancel, "cancelled count mismatch.");    \
 		if (error >= 0)                                                                 \
 			ASSERT_IF_MSG(actual.errorCnt, error, "error count mismatch.");             \
+		if (detect >= 0)                                                                \
+			ASSERT_IF_MSG(actual.detectedCnt, detect, "detected count mismatch.");      \
+		if (scan >= 0)                                                                  \
+			ASSERT_IF_MSG(actual.scannedCnt, scan, "scanned count mismatch.");          \
 		break;                                                                          \
 	} while (false)
 

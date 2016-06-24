@@ -505,6 +505,8 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir, const std::function
 	if (lastScanTime != -1) {
 		// for case: scan history exist and not modified.
 		for (auto &row : this->m_db->getDetectedAllByNameOnDir(File::getPkgPath(dir))) {
+			isCancelled();
+
 			try {
 				auto fileptr = File::create(row->targetName);
 

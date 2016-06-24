@@ -277,34 +277,42 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
 	auto &riskiest = cache.riskiest;
 	INFO("start to judge scan stage on pkg[" << pkgPath << "]");
 	switch (this->judgeScanStage(history, after, riskiest,
-				jWorse, jHistory, since)) {
+			jWorse, jHistory, since)) {
 	case CsLogic::ScanStage::NEW_RISKIEST :
+		this->m_db->transactionBegin();
 		this->m_db->insertCache(cache);
 		this->m_db->insertWorst(pkgId, pkgPath, cache.riskiestPath);
 		this->m_db->updateIgnoreFlag(pkgPath, false);
 		this->m_db->insertLastScanTime(pkgPath, cache.dataVersion, cache.scanTime);
+		this->m_db->transactionEnd();
 		return this->handleAskUser(context, *riskiest);
 
 	case CsLogic::ScanStage::NEW_RISKIEST_KEEP_FLAG :
+		this->m_db->transactionBegin();
 		this->m_db->insertCache(cache);
 		this->m_db->insertWorst(pkgId, pkgPath, cache.riskiestPath);
 		this->m_db->insertLastScanTime(pkgPath, cache.dataVersion, cache.scanTime);
+		this->m_db->transactionEnd();
 		if (jWorse->isIgnored)
 			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
 		return this->handleAskUser(context, *riskiest);
 
 	case CsLogic::ScanStage::HISTORY_RISKIEST :
+		this->m_db->transactionBegin();
 		this->m_db->insertCache(cache);
 		this->m_db->insertLastScanTime(pkgPath, cache.dataVersion, cache.scanTime);
+		this->m_db->transactionEnd();
 		if (jHistory->isIgnored)
 			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 		return this->handleAskUser(context, *jHistory);
 
 	case CsLogic::ScanStage::WORSE_RISKIEST :
+		this->m_db->transactionBegin();
 		this->m_db->insertCache(cache);
 		this->m_db->insertWorst(pkgId, pkgPath, jWorse->fileInAppPath);
 		this->m_db->insertLastScanTime(pkgPath, cache.dataVersion, cache.scanTime);
+		this->m_db->transactionEnd();
 		if (jWorse->isIgnored)
 			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 		return this->handleAskUser(context, *jWorse);

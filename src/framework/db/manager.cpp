@@ -588,5 +588,15 @@ void Manager::deleteDetectedDeprecated(time_t since)
 	stmt2.exec();
 }
 
+void Manager::transactionBegin()
+{
+	this->m_conn.transactionBegin();
+}
+
+void Manager::transactionEnd()
+{
+	this->m_conn.transactionEnd();
+}
+
 } // namespace Db
 } // namespace Csr

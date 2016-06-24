@@ -246,18 +246,10 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 
 RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
 {
-	FilePtr fileptr;
-	try {
-		fileptr = File::create(pkgPath);
-	} catch (const Exception &e) {
-		if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST)
-			WARN("Package path of file[" << pkgPath << "] doesn't exist or perm denied.");
-		else if (e.error() == CSR_ERROR_FILE_SYSTEM)
-			WARN("Package path of file[" << pkgPath << "] type isn't regular file or dir.");
-		else
-			throw;
-	}
+	auto fileptr = File::create(pkgPath);
 
+	if (!fileptr)
+		ThrowExc(CSR_ERROR_SERVER, "fileptr shouldn't be empty because didn't check modified");
 	if (!fileptr->isInApp())
 		ThrowExc(CSR_ERROR_SERVER, "fileptr should be in app.");
 

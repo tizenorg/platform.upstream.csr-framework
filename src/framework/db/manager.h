@@ -80,6 +80,9 @@ public:
 	void deleteDetectedByFilepathOnPath(const std::string &path);
 	void deleteDetectedDeprecated(time_t since);
 
+	void transactionBegin();
+	void transactionEnd();
+
 private:
 	RowShPtr getDetectedByNameOnPath(const std::string &path, time_t since);
 	RowShPtr getDetectedCloudByNameOnPath(const std::string &path, time_t since);

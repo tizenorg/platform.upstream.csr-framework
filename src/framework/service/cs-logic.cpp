@@ -281,20 +281,26 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
 	INFO("start to judge scan stage on pkg[" << pkgPath << "]");
 	switch (this->judgeScanStage(history, after, riskiest, worse, jHistory)) {
 	case ScanStage::NEW_RISKIEST :
+		this->m_db->transactionBegin();
 		this->m_db->insertCache(cache);
 		this->m_db->insertWorst(pkgId, pkgPath, cache.riskiestPath);
 		this->m_db->updateIgnoreFlag(pkgPath, false);
+		this->m_db->transactionEnd();
 		return this->handleAskUser(context, *riskiest);
 
 	case ScanStage::HISTORY_RISKIEST :
+		this->m_db->transactionBegin();
 		this->m_db->insertCache(cache);
+		this->m_db->transactionEnd();
 		if (jHistory->isIgnored)
 			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 		return this->handleAskUser(context, *jHistory);
 
 	case ScanStage::WORSE_RISKIEST :
+		this->m_db->transactionBegin();
 		this->m_db->insertCache(cache);
 		this->m_db->insertWorst(pkgId, pkgPath, worse->fileInAppPath);
+		this->m_db->transactionEnd();
 		if (worse->isIgnored)
 			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 		return this->handleAskUser(context, *worse);

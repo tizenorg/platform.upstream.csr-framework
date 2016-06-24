@@ -258,6 +258,8 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
 			throw;
 	}
 
+	if (!fileptr)
+		ThrowExc(CSR_ERROR_SERVER, "fileptr shouldn't be empty because didn't check modified");
 	if (!fileptr->isInApp())
 		ThrowExc(CSR_ERROR_SERVER, "fileptr should be in app.");
 

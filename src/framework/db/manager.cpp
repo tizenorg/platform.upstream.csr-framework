@@ -95,26 +95,30 @@ Manager::Manager(const std::string &dbfile, const std::string &scriptsDir) :
 	// run migration if old database is present
 	auto sv = this->getSchemaVersion();
 
-	if (sv < SchemaVersion::NOT_EXIST || sv > SchemaVersion::LATEST) {
-		ERROR("Database corrupted! invalid db version returned! : " << sv);
-		this->resetDatabase();
-		return;
-	} else if (sv == SchemaVersion::LATEST) {
+	switch (sv) {
+	case SchemaVersion::LATEST:
 		DEBUG("Database version is latest");
-		return;
-	}
+		break;
 
-	if (sv == SchemaVersion::NOT_EXIST) {
+	case SchemaVersion::NOT_EXIST:
 		INFO("Database initializing!");
 		this->resetDatabase();
-	} else if (sv < SchemaVersion::LATEST) {
-		INFO("Database migration! from[" << sv <<
-			 "] to[" << SchemaVersion::LATEST << "]");
+		break;
 
-		for (int vi = sv; vi < SchemaVersion::LATEST; ++vi)
-			this->m_conn.exec(this->getMigrationScript(vi).c_str());
+	default:
+		if (sv < SchemaVersion::NOT_EXIST || sv > SchemaVersion::LATEST) {
+			ERROR("Database corrupted! invalid db version returned! : " << sv);
+			this->resetDatabase();
+		} else {
+			INFO("Database migration! from[" << sv <<
+				 "] to[" << SchemaVersion::LATEST << "]");
 
-		this->setSchemaVersion(SchemaVersion::LATEST);
+			for (int vi = sv; vi < SchemaVersion::LATEST; ++vi)
+				this->m_conn.exec(this->getMigrationScript(vi).c_str());
+
+			this->setSchemaVersion(SchemaVersion::LATEST);
+		}
+		break;
 	}
 
 	this->m_conn.exec("VACUUM;");

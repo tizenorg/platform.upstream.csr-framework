@@ -79,3 +79,9 @@ msgstr "확인"
 msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
 msgstr "무시"
 
+msgid "IDS_ST_POP_THE_FOLLOWING_MALWARE_HAS_BEEN_DETECTED_C"
+msgstr "다음 악성 소프트웨어를 감지하였습니다."
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_CANT_BE_VIEWED"
+msgstr "휴대전화 보호를 위해 이 항목은 볼 수 없습니다."
+

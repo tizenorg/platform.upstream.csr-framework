@@ -79,3 +79,9 @@ msgstr "ঠিক আছে"
 msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
 msgstr "Ignore"
 
+msgid "IDS_ST_POP_THE_FOLLOWING_MALWARE_HAS_BEEN_DETECTED_C"
+msgstr "নিম্নলিখিত ম্যালওয়্যার শনাক্ত হয়েছে:"
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_CANT_BE_VIEWED"
+msgstr "আপনার ফোনকে সুরক্ষিত রাখতে, এটি দেখা যাবে না৷"
+

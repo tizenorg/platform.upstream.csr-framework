@@ -355,16 +355,18 @@ void copy_file(const char *src_file, const char *dst_file)
 
 void make_dir_assert(const char *dir)
 {
-	BOOST_REQUIRE_MESSAGE(
-		::mkdir(dir, S_IRWXU | S_IRWXG | S_IRWXO) == 0,
-		"Failed to mkdir[" << dir << "] with errno: " << errno);
+	if (!std::ifstream(dir)) // Check to exist.
+		BOOST_REQUIRE_MESSAGE(
+			::mkdir(dir, S_IRWXU | S_IRWXG | S_IRWXO) == 0,
+			"Failed to mkdir[" << dir << "] with errno: " << errno);
 }
 
 void make_dir(const char *dir)
 {
-	BOOST_WARN_MESSAGE(
-		::mkdir(dir, S_IRWXU | S_IRWXG | S_IRWXO) == 0,
-		"Failed to mkdir[" << dir << "] with errno: " << errno);
+	if (!std::ifstream(dir)) // Check to exist.
+		BOOST_WARN_MESSAGE(
+			::mkdir(dir, S_IRWXU | S_IRWXG | S_IRWXO) == 0,
+			"Failed to mkdir[" << dir << "] with errno: " << errno);
 }
 
 void touch_file_assert(const char *file)

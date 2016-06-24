@@ -79,3 +79,9 @@ msgstr "ਓਕੇ"
 msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
 msgstr "Ignore"
 
+msgid "IDS_ST_POP_THE_FOLLOWING_MALWARE_HAS_BEEN_DETECTED_C"
+msgstr "ਨਿਮਨਲਿਖਤ ਮਾਲਵੇਅਰ ਦਾ ਪਤਾ ਲੱਗਿਆ ਹੈ:"
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_CANT_BE_VIEWED"
+msgstr "ਆਪਣੇ ਫ਼ੋਨ ਨੂੰ ਸੁਰੱਖਿਅਤ ਰੱਖਣ ਲਈ, ਇਸ ਨੂੰ ਦੇਖਿਆ ਨਹੀਂ ਜਾ ਸਕਦਾ।"
+

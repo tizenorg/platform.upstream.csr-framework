@@ -22,6 +22,7 @@
 #pragma once
 
 #include <string>
+#include <mutex>
 
 #include "common/macros.h"
 #include "common/connection.h"
@@ -42,19 +43,21 @@ public:
 	template<typename Type, typename ...Args>
 	Type methodCall(Args &&...args);
 
+	template<typename ...Args>
+	void methodPing(Args &&...args);
+
 private:
-	bool isConnected(void) const noexcept;
 	void connect(void);
 
 	SockId m_sockId;
 	ConnShPtr m_connection;
+	std::mutex m_connMutex;
 };
 
 template<typename Type, typename ...Args>
 Type Dispatcher::methodCall(Args &&...args)
 {
-	if (!this->isConnected())
-		this->connect();
+	this->connect();
 
 	this->m_connection->send(BinaryQueue::Serialize(std::forward<Args>(args)...).pop());
 
@@ -65,6 +68,14 @@ Type Dispatcher::methodCall(Args &&...args)
 	q.Deserialize(response);
 
 	return response;
+}
+
+template<typename ...Args>
+void Dispatcher::methodPing(Args &&...args)
+{
+	this->connect();
+
+	this->m_connection->send(BinaryQueue::Serialize(std::forward<Args>(args)...).pop());
 }
 
 }

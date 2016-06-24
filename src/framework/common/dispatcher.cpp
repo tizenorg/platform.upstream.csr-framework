@@ -33,13 +33,10 @@ Dispatcher::Dispatcher(SockId sockId) noexcept : m_sockId(sockId)
 
 void Dispatcher::connect()
 {
-	this->m_connection = std::make_shared<Connection>(
-			Socket::create(this->m_sockId, Socket::Type::CLIENT));
-}
-
-bool Dispatcher::isConnected() const noexcept
-{
-	return this->m_connection ? true : false;
+	std::lock_guard<std::mutex> l(this->m_connMutex);
+	if (this->m_connection == nullptr)
+		this->m_connection = std::make_shared<Connection>(
+				Socket::create(this->m_sockId, Socket::Type::CLIENT));
 }
 
 } // namespace Csr

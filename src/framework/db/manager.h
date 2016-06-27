@@ -26,7 +26,6 @@
 #include <memory>
 #include <map>
 #include <mutex>
-#include <ctime>
 
 #include "db/connection.h"
 #include "db/row.h"
@@ -56,39 +55,42 @@ public:
 
 	// SCAN_REQUEST
 	time_t getLastScanTime(const std::string &dir, time_t since);
-	void insertLastScanTime(const std::string &dir, time_t scanTime);
+	void insertLastScanTime(const std::string &dir, const std::string &dataVersion,
+							time_t scanTime);
 	void deleteLastScanTime(const std::string &dir);
 	void cleanLastScanTime();
 
 	// DETECTED_MALWARE_FILE & USER_RESPONSE
-	RowShPtr getDetectedAllByNameOnPath(const std::string &path, bool *isByCloud = nullptr);
-	RowShPtr getDetectedByNameOnPath(const std::string &path);
-	RowShPtr getDetectedCloudByNameOnPath(const std::string &path);
-	RowShPtrs getDetectedAllByNameOnDir(const std::string &dir);
-	RowShPtrs getDetectedByFilepathOnDir(const std::string &dir);
-	RowShPtr getWorstByPkgPath(const std::string &pkgPath);
+	RowShPtr getDetectedAllByNameOnPath(const std::string &path, time_t since, bool *isByCloud = nullptr);
+	RowShPtrs getDetectedAllByNameOnDir(const std::string &dir, time_t since);
+	RowShPtrs getDetectedByFilepathOnDir(const std::string &dir, time_t since);
+	RowShPtr getWorstByPkgPath(const std::string &pkgPath, time_t since);
 
-	void insertDetectedFile(const std::string &filepath, const CsDetected &d);
+	void insertDetectedFile(const std::string &filepath, const CsDetected &d,
+							const std::string &dataVersion);
 	void insertDetectedFileInApp(const std::string &pkgpath, const std::string &filepath,
-								 const CsDetected &d);
+								 const CsDetected &d, const std::string &dataVersion);
 	void insertDetectedAppByCloud(const std::string &name, const std::string &pkgId,
-							 const CsDetected &d);
+							 const CsDetected &d, const std::string &dataVersion);
 	void insertWorst(const std::string &pkgId, const std::string &name,
 					 const std::string &filepath);
 
 	void updateIgnoreFlag(const std::string &name, bool flag);
 	void deleteDetectedByNameOnPath(const std::string &path);
 	void deleteDetectedByFilepathOnPath(const std::string &path);
-	void deleteDetectedDeprecated(time_t t);
+	void deleteDetectedDeprecated(time_t since);
 
 private:
-	RowShPtrs getDetectedByNameOnDir(const std::string &dir);
-	RowShPtrs getDetectedCloudByNameOnDir(const std::string &dir);
+	RowShPtr getDetectedByNameOnPath(const std::string &path, time_t since);
+	RowShPtr getDetectedCloudByNameOnPath(const std::string &path, time_t since);
+	RowShPtrs getDetectedByNameOnDir(const std::string &dir, time_t since);
+	RowShPtrs getDetectedCloudByNameOnDir(const std::string &dir, time_t since);
 
 	void insertName(const std::string &name);
-	void insertDetected(const CsDetected &d, const std::string &filename);
+	void insertDetected(const CsDetected &d, const std::string &filename,
+						const std::string &dataVersion);
 	void insertDetectedCloud(const CsDetected &d, const std::string &pkgId,
-							 const std::string &name);
+							 const std::string &name, const std::string &dataVersion);
 
 	void resetDatabase();
 	bool isTableExist(const std::string &name);

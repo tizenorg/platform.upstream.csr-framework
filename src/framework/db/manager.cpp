@@ -457,21 +457,20 @@ RowShPtr Manager::getWorstByPkgPath(const std::string &pkgPath, time_t since)
 	return row;
 }
 
-void Manager::insertDetectedFile(const std::string &filepath, const CsDetected &d,
-								 const std::string &dataVersion)
+void Manager::insertDetectedFile(const CsDetected &d, const std::string &dataVersion)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
-	this->insertName(filepath);
-	this->insertDetected(d, filepath, dataVersion);
+	this->insertName(d.targetName);
+	this->insertDetected(d, d.targetName, dataVersion);
 }
 
-void Manager::insertDetectedFileInApp(const std::string &pkgpath, const std::string &filepath,
+void Manager::insertDetectedFileInApp(const std::string &filepath,
 									  const CsDetected &d, const std::string &dataVersion)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
-	this->insertName(pkgpath);
+	this->insertName(d.targetName);
 	this->insertDetected(d, filepath, dataVersion);
 }
 

@@ -66,9 +66,8 @@ public:
 	RowShPtrs getDetectedByFilepathOnDir(const std::string &dir, time_t since);
 	RowShPtr getWorstByPkgPath(const std::string &pkgPath, time_t since);
 
-	void insertDetectedFile(const std::string &filepath, const CsDetected &d,
-							const std::string &dataVersion);
-	void insertDetectedFileInApp(const std::string &pkgpath, const std::string &filepath,
+	void insertDetectedFile(const CsDetected &d, const std::string &dataVersion);
+	void insertDetectedFileInApp(const std::string &filepath,
 								 const CsDetected &d, const std::string &dataVersion);
 	void insertDetectedAppByCloud(const std::string &name, const std::string &pkgId,
 							 const CsDetected &d, const std::string &dataVersion);

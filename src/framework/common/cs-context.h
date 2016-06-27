@@ -43,6 +43,7 @@ struct API CsContext : public IContext {
 		CoreUsage    = 0x11, // int
 
 		ScanOnCloud  = 0x20, // bool
+		ScannedCbRegistered = 0x21,
 	};
 
 	CsContext() noexcept;
@@ -70,6 +71,7 @@ struct API CsContext : public IContext {
 	csr_cs_ask_user_e askUser;
 	csr_cs_core_usage_e coreUsage;
 	bool isScanOnCloud;
+	bool isScannedCbRegistered;
 };
 
 }

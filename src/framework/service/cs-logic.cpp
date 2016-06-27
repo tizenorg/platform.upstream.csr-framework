@@ -138,7 +138,9 @@ CsLogic::CsLogic(const std::shared_ptr<CsLoader> &loader,
 
 	if (this->m_loader) {
 		CsEngineContext csEngineContext(this->m_loader);
-		this->m_loader->getEngineDataVersion(csEngineContext.get(), this->m_dataVersion);
+		auto t = this->m_loader->getEngineLatestUpdateTime(csEngineContext.get());
+
+		this->m_db->deleteDetectedDeprecated(t);
 	}
 }
 
@@ -186,7 +188,7 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 	detected.isApp = true;
 	detected.pkgId = pkgId;
 
-	this->m_db->insertDetectedAppByCloud(pkgPath, pkgId, detected, this->m_dataVersion);
+	this->m_db->insertDetectedAppByCloud(pkgPath, pkgId, detected);
 
 	return this->handleAskUser(context, detected);
 }
@@ -199,7 +201,8 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 	CsEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
-	auto lastScanTime = this->m_db->getLastScanTime(pkgPath, this->m_dataVersion);
+	auto t = this->m_loader->getEngineLatestUpdateTime(c);
+	auto lastScanTime = this->m_db->getLastScanTime(pkgPath, t);
 
 	// traverse files in app and take which is more danger than riskiest
 	auto visitor = FsVisitor::create(pkgPath, lastScanTime);
@@ -227,8 +230,7 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 		candidate.isApp = true;
 		candidate.pkgId = pkgId;
 
-		this->m_db->insertDetectedFileInApp(pkgPath, file->getPath(), candidate,
-											this->m_dataVersion);
+		this->m_db->insertDetectedFileInApp(pkgPath, file->getPath(), candidate);
 
 		if (!riskiest) {
 			riskiest.reset(new CsDetected(std::move(candidate)));
@@ -239,7 +241,7 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 		}
 	}
 
-	this->m_db->insertLastScanTime(pkgPath, starttime, this->m_dataVersion);
+	this->m_db->insertLastScanTime(pkgPath, starttime);
 
 	return riskiest;
 }
@@ -390,7 +392,7 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 
 	auto d = this->convert(result, filepath, timestamp);
 
-	this->m_db->insertDetectedFile(d.targetName, d, this->m_dataVersion);
+	this->m_db->insertDetectedFile(d.targetName, d);
 
 	return this->handleAskUser(context, d, std::forward<FilePtr>(fileptr));
 }
@@ -415,10 +417,16 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 
 	// if history exist, fileptr can be null because of modified since value
 	// from history.
-	if (history)
-		fileptr = File::createIfModified(target, static_cast<time_t>(history->ts));
-	else
+	if (history) {
+		CsEngineContext engineContext(this->m_loader);
+		auto t = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
+		if (t < history->ts)
+			fileptr = File::createIfModified(target, history->ts);
+		else
+			fileptr = File::create(target);
+	} else {
 		fileptr = File::create(target);
+	}
 
 	// non-null fileptr means the file is modified since the last history
 	// OR there's no history at all.
@@ -474,7 +482,10 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir, const std::function
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
 		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
 
-	auto lastScanTime = this->m_db->getLastScanTime(dir, this->m_dataVersion);
+	CsEngineContext engineContext(this->m_loader);
+
+	auto t = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
+	auto lastScanTime = this->m_db->getLastScanTime(dir, t);
 
 	auto visitor = FsVisitor::create(dir, lastScanTime);
 
@@ -538,7 +549,7 @@ RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
 
 RawBuffer CsLogic::setDirTimestamp(const std::string &dir, time_t ts)
 {
-	this->m_db->insertLastScanTime(dir, ts, this->m_dataVersion);
+	this->m_db->insertLastScanTime(dir, ts);
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 }

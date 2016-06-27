@@ -30,6 +30,8 @@
 #include <fstream>
 #include <iostream>
 #include <climits>
+#include <ctime>
+#include <cstring>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -88,8 +90,8 @@ enum csret_cs_internal_error_e {
 //==============================================================================
 // static variables
 //==============================================================================
-static std::string g_resdir;
-static std::string g_workingdir;
+static std::string g_private_db_path;
+static std::string g_private_logo_path;
 static std::list<csret_cs_malware_s> g_virus_sig;
 
 //==============================================================================
@@ -126,7 +128,7 @@ int csret_cs_read_virus_signatures(const std::string &path)
 	// threat_type=RISKY
 	// detailed_url=http://medium.malware.com
 	// signature=RISKY_MALWARE
-	std::ifstream f(path.c_str());
+	std::ifstream f(path.c_str(), std::ifstream::in);
 
 	if (!f.is_open())
 		return CSRET_CS_ERROR_NO_SIGNATURE_FILE;
@@ -243,7 +245,7 @@ int csret_cs_init_engine(csret_cs_engine_s **pengine)
 	ptr->engineVersion = ENGINE_VERSION;
 	ptr->dataVersion = ENGINE_VERSION;
 
-	int ret = csret_cs_read_binary(g_resdir + "/" PRIVATE_LOGO_FILE, ptr->logoImage);
+	int ret = csret_cs_read_binary(g_private_logo_path, ptr->logoImage);
 
 	if (ret != CSRE_ERROR_NONE) {
 		delete ptr;
@@ -251,8 +253,12 @@ int csret_cs_init_engine(csret_cs_engine_s **pengine)
 	}
 
 	struct stat attrib;
-
-	stat(PRIVATE_DB_NAME, &attrib);
+	::memset(&attrib, 0x00, sizeof(attrib));
+	ret = ::stat(g_private_db_path.c_str(), &attrib);
+	if (ret != 0) {
+		delete ptr;
+		return CSRET_CS_ERROR_NO_SIGNATURE_FILE;
+	}
 
 	ptr->latestUpdate = attrib.st_mtime;
 
@@ -323,12 +329,12 @@ int csre_cs_global_initialize(const char *ro_res_dir, const char *rw_working_dir
 	if (ro_res_dir == nullptr || rw_working_dir == nullptr)
 		return CSRE_ERROR_INVALID_PARAMETER;
 
-	g_resdir = ro_res_dir;
-	g_workingdir = rw_working_dir;
+	g_private_db_path = std::string(rw_working_dir) + "/" PRIVATE_DB_NAME;
+	g_private_logo_path = std::string(ro_res_dir) + "/" PRIVATE_LOGO_FILE;
 
 	g_virus_sig.clear();
 
-	return csret_cs_read_virus_signatures(g_workingdir + "/" PRIVATE_DB_NAME);
+	return csret_cs_read_virus_signatures(g_private_db_path);
 }
 
 API

@@ -158,12 +158,16 @@ void WpLoader::getEngineDataVersion(csre_wp_context_h c, std::string &value)
 	}));
 }
 
-void WpLoader::getEngineLatestUpdateTime(csre_wp_context_h c, time_t *ptime)
+time_t WpLoader::getEngineLatestUpdateTime(csre_wp_context_h c)
 {
-	if (c == nullptr || ptime == nullptr)
+	if (c == nullptr)
 		ThrowExc(CSR_ERROR_INVALID_PARAMETER, "wp loader get latest update time");
 
-	this->toException(this->m_pc.fpGetEngineLatestUpdateTime(c, ptime));
+	time_t t;
+
+	this->toException(this->m_pc.fpGetEngineLatestUpdateTime(c, &t));
+
+	return t;
 }
 
 void WpLoader::getEngineActivated(csre_wp_context_h c, csre_wp_activated_e *pactivated)

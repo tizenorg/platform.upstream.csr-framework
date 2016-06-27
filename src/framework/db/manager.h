@@ -26,6 +26,7 @@
 #include <memory>
 #include <map>
 #include <mutex>
+#include <ctime>
 
 #include "db/connection.h"
 #include "db/row.h"
@@ -54,9 +55,8 @@ public:
 	void setEngineState(csr_engine_id_e, csr_state_e);
 
 	// SCAN_REQUEST
-	time_t getLastScanTime(const std::string &dir, const std::string &dataVersion);
-	void insertLastScanTime(const std::string &dir, time_t scanTime,
-							const std::string &dataVersion);
+	time_t getLastScanTime(const std::string &dir, time_t since);
+	void insertLastScanTime(const std::string &dir, time_t scanTime);
 	void deleteLastScanTime(const std::string &dir);
 	void cleanLastScanTime();
 
@@ -68,30 +68,27 @@ public:
 	RowShPtrs getDetectedByFilepathOnDir(const std::string &dir);
 	RowShPtr getWorstByPkgPath(const std::string &pkgPath);
 
-	void insertDetectedFile(const std::string &filepath, const CsDetected &d,
-							const std::string &dataVersion);
+	void insertDetectedFile(const std::string &filepath, const CsDetected &d);
 	void insertDetectedFileInApp(const std::string &pkgpath, const std::string &filepath,
-								 const CsDetected &d, const std::string &dataVersion);
+								 const CsDetected &d);
 	void insertDetectedAppByCloud(const std::string &name, const std::string &pkgId,
-							 const CsDetected &d, const std::string &dataVersion);
+							 const CsDetected &d);
 	void insertWorst(const std::string &pkgId, const std::string &name,
 					 const std::string &filepath);
 
 	void updateIgnoreFlag(const std::string &name, bool flag);
 	void deleteDetectedByNameOnPath(const std::string &path);
 	void deleteDetectedByFilepathOnPath(const std::string &path);
-	void deleteDetectedDeprecatedOnDir(const std::string &dir,
-									   const std::string &dataVersion);
+	void deleteDetectedDeprecated(time_t t);
 
 private:
 	RowShPtrs getDetectedByNameOnDir(const std::string &dir);
 	RowShPtrs getDetectedCloudByNameOnDir(const std::string &dir);
 
 	void insertName(const std::string &name);
-	void insertDetected(const CsDetected &d, const std::string &filename,
-						const std::string &dataVersion);
+	void insertDetected(const CsDetected &d, const std::string &filename);
 	void insertDetectedCloud(const CsDetected &d, const std::string &pkgId,
-							 const std::string &name, const std::string &dataVersion);
+							 const std::string &name);
 
 	void resetDatabase();
 	bool isTableExist(const std::string &name);

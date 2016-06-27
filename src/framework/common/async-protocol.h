@@ -14,37 +14,22 @@
  *  limitations under the License
  */
 /*
- * @file        async-logic.h
+ * @file        async-protocol.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
  * @version     1.0
- * @brief
+ * @brief       Protocol for asynchronous scanning operations
  */
 #pragma once
 
-#include "common/types.h"
-#include "common/command-id.h"
-#include "client/handle-ext.h"
-
 namespace Csr {
-namespace Client {
 
-class AsyncLogic {
-public:
-	AsyncLogic(HandleExt *handle, void *userdata);
-	virtual ~AsyncLogic();
+// should be positive values not to be conflicted with error code in csr-error.h
+typedef enum {
+	ASYNC_EVENT_START            = 0x10, // operation started
+	ASYNC_EVENT_COMPLETE         = 0x20, // operation completed
+	ASYNC_EVENT_CANCEL           = 0x30, // operation cancelled
+	ASYNC_EVENT_MALWARE_NONE     = 0x40, // target scanned and no malware detected
+	ASYNC_EVENT_MALWARE_DETECTED = 0x50, // target scanned and malware detected
+} async_op_protocol_e;
 
-	void scanFiles(const StrSet &files);
-	void scanDirs(const StrSet &dirs);
-
-	void stop(void);
-
-private:
-	void scanHelper(const CommandId &id, const StrSet &s);
-
-	HandleExt *m_handle; // for registering results for auto-release
-
-	void *m_userdata;
-};
-
-}
 }

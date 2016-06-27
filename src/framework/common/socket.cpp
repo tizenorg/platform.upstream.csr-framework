@@ -161,11 +161,10 @@ RawBuffer Socket::read(void) const
 	size_t total = 0;
 	size_t size = 0;
 
-	DEBUG("Read data from stream on socket fd[" << this->m_fd << "]");
-
 	auto bytes = ::read(this->m_fd, &size, sizeof(size));
 	if (bytes < 0)
-		ThrowExc(CSR_ERROR_SOCKET, "Socket data size read failed with errno: " << errno);
+		ThrowExc(CSR_ERROR_SOCKET, "Socket data size read failed on fd[" << this->m_fd <<
+				 "] with errno: " << errno);
 
 	RawBuffer data(size, 0);
 	auto buf = reinterpret_cast<char *>(data.data());
@@ -199,11 +198,10 @@ void Socket::write(const RawBuffer &data) const
 	auto buf = reinterpret_cast<const char *>(data.data());
 	auto size = data.size();
 
-	DEBUG("Write data to stream on socket fd[" << this->m_fd << "]");
-
 	auto bytes = ::write(this->m_fd, &size, sizeof(size));
 	if (bytes < 0)
-		ThrowExc(CSR_ERROR_SOCKET, "Socket data size write failed with errno: " << errno);
+		ThrowExc(CSR_ERROR_SOCKET, "Socket data size write failed on fd[" << this->m_fd <<
+				 "] with errno: " << errno);
 
 	while (total < size) {
 		bytes = ::write(this->m_fd, buf + total, size - total);

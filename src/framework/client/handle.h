@@ -43,6 +43,9 @@ public:
 	template<typename ...Args>
 	void ping(Args &&...);
 
+	template<typename Type>
+	Type revent(void);
+
 	virtual void add(ResultPtr &&);
 	virtual void add(ResultListPtr &&);
 
@@ -69,6 +72,12 @@ template<typename ...Args>
 void Handle::ping(Args &&...args)
 {
 	this->m_dispatcher->methodPing(std::forward<Args>(args)...);
+}
+
+template<typename Type>
+Type Handle::revent()
+{
+	return this->m_dispatcher->receiveEvent<Type>();
 }
 
 } // namespace Client

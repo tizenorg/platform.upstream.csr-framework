@@ -155,14 +155,14 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	auto detectedList = db.getDetectedAllByNameOnDir("/opt", 0);
 	ASSERT_IF(detectedList.empty(), true);
 
-	db.insertDetectedFile(malware1.targetName, malware1, initDataVersion);
+	db.insertDetectedFile(malware1, initDataVersion);
 	detected = db.getDetectedAllByNameOnPath(malware1.targetName, 0);
 	CHECK_IS_NOT_NULL(detected);
 	checkSameMalware(malware1, *detected);
 	ASSERT_IF(detected->dataVersion, initDataVersion);
 	ASSERT_IF(detected->isIgnored, false);
 
-	db.insertDetectedFile(malware2.targetName, malware2, initDataVersion);
+	db.insertDetectedFile(malware2, initDataVersion);
 	db.updateIgnoreFlag(malware2.targetName, true);
 	detected = db.getDetectedAllByNameOnPath(malware2.targetName, 0);
 	CHECK_IS_NOT_NULL(detected);
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	ASSERT_IF(detected->dataVersion, initDataVersion);
 	ASSERT_IF(detected->isIgnored, true);
 
-	db.insertDetectedFile(malware3.targetName, malware3, initDataVersion);
+	db.insertDetectedFile(malware3, initDataVersion);
 	db.updateIgnoreFlag(malware3.targetName, true);
 	detected = db.getDetectedAllByNameOnPath(malware3.targetName, 0);
 	CHECK_IS_NOT_NULL(detected);
@@ -200,7 +200,7 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	ASSERT_IF(detected->isIgnored, true);
 
 	// deleteDeprecatedDetectedMalwares test
-	db.insertDetectedFile(malware4.targetName, malware4, changedDataVersion);
+	db.insertDetectedFile(malware4, changedDataVersion);
 	db.deleteDetectedDeprecated(3);
 	detected = db.getDetectedAllByNameOnPath(malware4.targetName, 0);
 	CHECK_IS_NOT_NULL(detected);

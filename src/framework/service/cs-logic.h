@@ -46,9 +46,10 @@ public:
 
 	RawBuffer scanData(const CsContext &context, const RawBuffer &data);
 	RawBuffer scanFile(const CsContext &context, const std::string &filepath);
-	RawBuffer getScannableFiles(const std::string &dir, const std::function<void()> &isCancelled);
-	RawBuffer canonicalizePaths(const StrSet &paths);
-	RawBuffer setDirTimestamp(const std::string &dir, time_t ts);
+	RawBuffer scanFilesAsync(const ConnShPtr &conn, const CsContext &context,
+							 StrSet &paths, const std::function<void()> &isCancelled);
+	RawBuffer scanDirsAsync(const ConnShPtr &conn, const CsContext &context,
+							StrSet &paths, const std::function<void()> &isCancelled);
 	RawBuffer judgeStatus(const std::string &filepath, csr_cs_action_e action);
 	RawBuffer getDetected(const std::string &filepath);
 	RawBuffer getDetectedList(const StrSet &dirSet);
@@ -56,16 +57,14 @@ public:
 	RawBuffer getIgnoredList(const StrSet &dirSet);
 
 private:
-	RawBuffer scanApp(const CsContext &context, const FilePtr &pkgPtr);
-	RawBuffer scanAppOnCloud(const CsContext &context, const std::string &pkgPath,
-							 const std::string &pkgId);
-	CsDetectedPtr scanAppDelta(const std::string &pkgPath, const std::string &pkgId,
-							   std::string &riskiestPath);
+	int scanFileInternal(const CsContext &context, const FilePtr &target, CsDetectedPtr &malware);
+	int scanApp(const CsContext &context, const FilePtr &pkgPtr, CsDetectedPtr &malware);
+	int scanAppOnCloud(const CsContext &context, const FilePtr &pkgPtr, CsDetectedPtr &malware);
+	CsDetectedPtr scanAppDelta(const FilePtr &pkgPtr, std::string &riskiestPath);
 
-	CsDetected convert(csre_cs_detected_h &result, const std::string &targetName,
+	CsDetectedPtr convert(csre_cs_detected_h &result, const std::string &targetName,
 					   time_t timestamp);
-	RawBuffer handleAskUser(const CsContext &c, CsDetected &d,
-							FilePtr &&fileptr = nullptr);
+	int handleAskUser(const CsContext &c, CsDetected &d, const FilePtr &fileptr = nullptr);
 
 	std::shared_ptr<CsLoader> m_loader;
 	std::shared_ptr<Db::Manager> m_db;

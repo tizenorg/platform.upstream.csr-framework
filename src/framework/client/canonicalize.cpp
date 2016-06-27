@@ -55,32 +55,5 @@ std::string getAbsolutePath(const std::string &path)
 	return apath;
 }
 
-void eraseSubdirectories(StrSet &dirset)
-{
-	if (dirset.size() < 2)
-		return;
-
-	for (auto it = dirset.begin(); it != dirset.end(); ++it) {
-		auto itsub = it;
-		++itsub;
-		while (true) {
-			if (itsub == dirset.end())
-				break;
-
-			auto itl = it->length();
-			auto itsubl = itsub->length();
-
-			if (itl + 1 >= itsubl || // to short to be sub-directory
-				itsub->compare(0, itl, *it) != 0 || // prefix isn't matched
-				(*it != "/" && itsub->at(itl) != '/')) { // has '/' at the end of prefix
-				++itsub;
-				continue;
-			}
-
-			itsub = dirset.erase(itsub);
-		}
-	}
-}
-
 }
 }

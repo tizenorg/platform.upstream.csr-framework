@@ -321,8 +321,8 @@ BOOST_AUTO_TEST_CASE(get_latest_update_time)
 
 	Handle h;
 
-	time_t time = 0;
-	h.loader.getEngineLatestUpdateTime(h.context, &time);
+	auto time = h.loader.getEngineLatestUpdateTime(h.context);
+	BOOST_MESSAGE("engine latest update time: " << time);
 
 	EXCEPTION_GUARD_END
 }

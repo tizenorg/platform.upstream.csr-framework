@@ -89,13 +89,13 @@ BOOST_AUTO_TEST_CASE(scan_time)
 	std::string dataVersion = "1.0.0";
 
 	db.cleanLastScanTime();
-	ASSERT_IF(db.getLastScanTime(dir, dataVersion), -1);
-	db.insertLastScanTime(dir, scantime, dataVersion);
+	ASSERT_IF(db.getLastScanTime(dir, -1), -1);
+	db.insertLastScanTime(dir, scantime);
 
-	db.insertLastScanTime("/opt/data", scantime + 100, dataVersion);
-	db.insertLastScanTime("/opt/data/etc", scantime + 200, dataVersion);
+	db.insertLastScanTime("/opt/data", scantime + 100);
+	db.insertLastScanTime("/opt/data/etc", scantime + 200);
 
-	ASSERT_IF(db.getLastScanTime(dir, dataVersion), scantime);
+	ASSERT_IF(db.getLastScanTime(dir, -1), scantime);
 	db.cleanLastScanTime();
 
 	EXCEPTION_GUARD_END
@@ -110,27 +110,29 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	std::string initDataVersion = "1.0.0";
 	std::string changedDataVersion = "2.0.0";
 
+	auto starttime = ::time(nullptr);
+
 	// insert
 	CsDetected malware1;
 	malware1.targetName = "/opt/testmalware1";
 	malware1.severity = CSR_CS_SEVERITY_MEDIUM;
 	malware1.malwareName = "testmalware1";
 	malware1.detailedUrl = "http://detailed.malware.com";
-	malware1.ts = 100;
+	malware1.ts = 1;
 
 	CsDetected malware2;
 	malware2.targetName = "/opt/testmalware2";
 	malware2.severity = CSR_CS_SEVERITY_HIGH;
 	malware2.malwareName = "testmalware2";
 	malware2.detailedUrl = "http://detailed2.malware.com";
-	malware2.ts = 210;
+	malware2.ts = 2;
 
 	CsDetected malware3;
 	malware3.targetName = "/opt/testmalware3";
 	malware3.severity = CSR_CS_SEVERITY_LOW;
 	malware3.malwareName = "testmalware3";
 	malware3.detailedUrl = "http://detailed3.malware.com";
-	malware3.ts = 310;
+	malware3.ts = starttime;
 
 	// select test with vacant data
 	auto detected = db.getDetectedByNameOnPath(malware1.targetName);
@@ -139,17 +141,15 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	auto detectedList = db.getDetectedAllByNameOnDir("/opt");
 	ASSERT_IF(detectedList.empty(), true);
 
-	db.insertDetectedFile(malware1.targetName, malware1, initDataVersion);
+	db.insertDetectedFile(malware1.targetName, malware1);
 	detected = db.getDetectedByNameOnPath(malware1.targetName);
 	checkSameMalware(malware1, *detected);
-	ASSERT_IF(detected->dataVersion, initDataVersion);
 	ASSERT_IF(detected->isIgnored, false);
 
-	db.insertDetectedFile(malware2.targetName, malware2, initDataVersion);
+	db.insertDetectedFile(malware2.targetName, malware2);
 	db.updateIgnoreFlag(malware2.targetName, true);
 	detected = db.getDetectedByNameOnPath(malware2.targetName);
 	checkSameMalware(malware2, *detected);
-	ASSERT_IF(detected->dataVersion, initDataVersion);
 	ASSERT_IF(detected->isIgnored, true);
 
 	// getDetectedMalwares test
@@ -172,11 +172,10 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	ASSERT_IF(detected->isIgnored, true);
 
 	// deleteDeprecatedDetectedMalwares test
-	db.insertDetectedFile(malware3.targetName, malware3, changedDataVersion);
-	db.deleteDetectedDeprecatedOnDir("/opt", changedDataVersion);
+	db.insertDetectedFile(malware3.targetName, malware3);
+	db.deleteDetectedDeprecated(3);
 	detected = db.getDetectedByNameOnPath(malware3.targetName);
 	checkSameMalware(malware3, *detected);
-	ASSERT_IF(detected->dataVersion, changedDataVersion);
 	ASSERT_IF(detected->isIgnored, false);
 
 	CHECK_IS_NULL(db.getDetectedByNameOnPath(malware1.targetName));

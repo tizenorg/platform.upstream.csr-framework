@@ -36,7 +36,6 @@ CREATE TABLE IF NOT EXISTS ENGINE_STATE (
 CREATE TABLE IF NOT EXISTS SCAN_REQUEST (
 	dir TEXT NOT NULL,
 	last_scan INTEGER NOT NULL,
-	data_version TEXT NOT NULL,
 
 	PRIMARY KEY(dir)
 );
@@ -53,7 +52,6 @@ CREATE TABLE IF NOT EXISTS DETECTED_MALWARE (
 	filepath_idx INTEGER PRIMARY KEY AUTOINCREMENT,
 	file_path TEXT NOT NULL,
 	idx INTEGER NOT NULL,
-	data_version TEXT NOT NULL,
 	malware_name TEXT NOT NULL,
 	detailed_url TEXT NOT NULL,
 	severity INTEGER NOT NULL,
@@ -66,7 +64,6 @@ CREATE TABLE IF NOT EXISTS DETECTED_MALWARE (
 CREATE TABLE IF NOT EXISTS DETECTED_MALWARE_CLOUD (
 	idx INTEGER NOT NULL,
 	pkg_id TEXT NOT NULL,
-	data_version TEXT NOT NULL,
 	malware_name TEXT NOT NULL,
 	detailed_url TEXT NOT NULL,
 	severity INTEGER NOT NULL,
@@ -86,32 +83,32 @@ CREATE TABLE IF NOT EXISTS PACKAGE_INFO (
 );
 
 CREATE VIEW IF NOT EXISTS [join_detecteds_cloud_by_name] AS
-	SELECT N.name, D.data_version, D.malware_name, D.detailed_url, D.severity,
+	SELECT N.name, D.malware_name, D.detailed_url, D.severity,
 			D.detected_time, D.pkg_id, N.is_ignored
 		FROM NAMES AS N INNER JOIN DETECTED_MALWARE_CLOUD AS D ON N.idx = D.idx;
 
 CREATE VIEW IF NOT EXISTS [join_p_d] AS
-	SELECT N.idx, N.name, D.file_path, D.data_version, D.malware_name, D.detailed_url,
+	SELECT N.idx, N.name, D.file_path, D.malware_name, D.detailed_url,
 			D.severity, D.detected_time, P.pkg_id
 		FROM (PACKAGE_INFO AS P INNER JOIN DETECTED_MALWARE AS D ON P.worst_filepath_idx = D.filepath_idx)
 			AS J INNER JOIN NAMES AS N ON J.idx = N.idx;
 
 CREATE VIEW IF NOT EXISTS [join_detecteds_by_name] AS
-	SELECT N.name, J.file_path, J.data_version, J.malware_name, J.detailed_url,
+	SELECT N.name, J.file_path, J.malware_name, J.detailed_url,
 			J.severity, J.detected_time, J.pkg_id, N.is_ignored
 		FROM (
-			SELECT D.idx, D.file_path, D.data_version, D.malware_name, D.detailed_url,
+			SELECT D.idx, D.file_path, D.malware_name, D.detailed_url,
 					D.severity, D.detected_time, P.pkg_id
 				FROM DETECTED_MALWARE AS D LEFT JOIN PACKAGE_INFO AS P ON D.idx = P.idx
 				WHERE NOT EXISTS (SELECT * FROM join_p_d WHERE idx = D.idx)
 			UNION
-			SELECT idx, file_path, data_version, malware_name, detailed_url,
+			SELECT idx, file_path, malware_name, detailed_url,
 					severity, detected_time, pkg_id
 				FROM join_p_d)
 			AS J INNER JOIN NAMES AS N ON J.idx = N.idx;
 
 CREATE VIEW IF NOT EXISTS [join_detecteds_by_file_path] AS
-	SELECT N.name, D.file_path, D.data_version, D.malware_name, D.detailed_url,
+	SELECT N.name, D.file_path, D.malware_name, D.detailed_url,
 			D.severity, D.detected_time, P.pkg_id, N.is_ignored
 		FROM (DETECTED_MALWARE AS D LEFT JOIN PACKAGE_INFO AS P ON D.idx = P.idx)
 			AS J INNER JOIN NAMES AS N ON J.idx = N.idx;

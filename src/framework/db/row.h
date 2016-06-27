@@ -34,7 +34,6 @@ using RowShPtrs = std::vector<RowShPtr>;
 
 struct Row : public Csr::CsDetected {
 	std::string fileInAppPath; // for case of file in app
-	std::string dataVersion; // engine's data version
 	bool isIgnored;
 
 	Row() : isIgnored(false) {}

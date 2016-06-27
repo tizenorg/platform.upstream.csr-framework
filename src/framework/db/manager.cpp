@@ -53,7 +53,6 @@ RowShPtr extractRow(Statement &stmt)
 
 	row->targetName = stmt.getText(); // name.
 	row->fileInAppPath = stmt.getText(); // file_path
-	row->dataVersion = stmt.getText(); // data_version
 	row->malwareName = stmt.getText(); // malware_name
 	row->detailedUrl = stmt.getText(); // detailed_url
 	row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt()); // severity
@@ -71,7 +70,6 @@ RowShPtr extractRowCloud(Statement &stmt)
 
 	row->targetName = stmt.getText(); // name.
 	row->fileInAppPath.clear();
-	row->dataVersion = stmt.getText(); // data_version
 	row->malwareName = stmt.getText(); // malware_name
 	row->detailedUrl = stmt.getText(); // detailed_url
 	row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt()); // severity
@@ -239,8 +237,7 @@ void Manager::setEngineState(csr_engine_id_e id, csr_state_e state)
 // SCAN_REQUEST table
 //===========================================================================
 
-time_t Manager::getLastScanTime(const std::string &dir,
-								const std::string &dataVersion)
+time_t Manager::getLastScanTime(const std::string &dir, time_t since)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
@@ -250,11 +247,10 @@ time_t Manager::getLastScanTime(const std::string &dir,
 
 	while (true) {
 		stmt.bind(current);
-		stmt.bind(dataVersion);
 
 		if (stmt.step()) {
 			auto candidate = static_cast<time_t>(stmt.getInt64());
-			if (latest < candidate)
+			if ((since < 0 || since < candidate) && latest < candidate)
 				latest = candidate;
 		}
 
@@ -270,8 +266,7 @@ time_t Manager::getLastScanTime(const std::string &dir,
 	return latest;
 }
 
-void Manager::insertLastScanTime(const std::string &dir, time_t scanTime,
-								 const std::string &dataVersion)
+void Manager::insertLastScanTime(const std::string &dir, time_t scanTime)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
@@ -279,7 +274,6 @@ void Manager::insertLastScanTime(const std::string &dir, time_t scanTime,
 
 	stmt.bind(dir);
 	stmt.bind(static_cast<sqlite3_int64>(scanTime));
-	stmt.bind(dataVersion);
 	stmt.exec();
 }
 
@@ -451,7 +445,6 @@ RowShPtr Manager::getWorstByPkgPath(const std::string &pkgPath)
 
 	row->targetName = stmt.getText(); // name
 	row->fileInAppPath = stmt.getText(); // file_path
-	row->dataVersion = stmt.getText(); // data_version
 	row->malwareName = stmt.getText(); // malware_name
 	row->detailedUrl = stmt.getText(); // detailed_url
 	row->severity = static_cast<csr_cs_severity_level_e>(stmt.getInt()); // severity
@@ -462,31 +455,30 @@ RowShPtr Manager::getWorstByPkgPath(const std::string &pkgPath)
 	return row;
 }
 
-void Manager::insertDetectedFile(const std::string &filepath, const CsDetected &d,
-								 const std::string &dataVersion)
+void Manager::insertDetectedFile(const std::string &filepath, const CsDetected &d)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
 	this->insertName(filepath);
-	this->insertDetected(d, filepath, dataVersion);
+	this->insertDetected(d, filepath);
 }
 
 void Manager::insertDetectedFileInApp(const std::string &pkgpath, const std::string &filepath,
-									  const CsDetected &d, const std::string &dataVersion)
+									  const CsDetected &d)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
 	this->insertName(pkgpath);
-	this->insertDetected(d, filepath, dataVersion);
+	this->insertDetected(d, filepath);
 }
 
 void Manager::insertDetectedAppByCloud(const std::string &name, const std::string &pkgId,
-									   const CsDetected &d, const std::string &dataVersion)
+									   const CsDetected &d)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
 	this->insertName(name);
-	this->insertDetectedCloud(d, pkgId, name, dataVersion);
+	this->insertDetectedCloud(d, pkgId, name);
 }
 
 void Manager::insertName(const std::string &name)
@@ -497,14 +489,12 @@ void Manager::insertName(const std::string &name)
 	stmt.exec();
 }
 
-void Manager::insertDetected(const CsDetected &d, const std::string &filepath,
-							 const std::string &dataVersion)
+void Manager::insertDetected(const CsDetected &d, const std::string &filepath)
 {
 	Statement stmt(this->m_conn, Query::INS_DETECTED);
 
 	stmt.bind(filepath);
 	stmt.bind(d.targetName);
-	stmt.bind(dataVersion);
 	stmt.bind(d.malwareName);
 	stmt.bind(d.detailedUrl);
 	stmt.bind(static_cast<int>(d.severity));
@@ -513,13 +503,12 @@ void Manager::insertDetected(const CsDetected &d, const std::string &filepath,
 }
 
 void Manager::insertDetectedCloud(const CsDetected &d, const std::string &pkgId,
-								  const std::string &name, const std::string &dataVersion)
+								  const std::string &name)
 {
 	Statement stmt(this->m_conn, Query::INS_DETECTED_CLOUD);
 
 	stmt.bind(name);
 	stmt.bind(pkgId);
-	stmt.bind(dataVersion);
 	stmt.bind(d.malwareName);
 	stmt.bind(d.detailedUrl);
 	stmt.bind(static_cast<int>(d.severity));
@@ -571,16 +560,19 @@ void Manager::deleteDetectedByFilepathOnPath(const std::string &path)
 	stmt.exec();
 }
 
-void Manager::deleteDetectedDeprecatedOnDir(const std::string &dir,
-											const std::string &dataVersion)
+void Manager::deleteDetectedDeprecated(time_t t)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
-	Statement stmt(this->m_conn, Query::DEL_DETECTED_DEPRECATED_ON_DIR);
+	Statement stmt(this->m_conn, Query::DEL_DETECTED_DEPRECATED);
 
-	stmt.bind(dir);
-	stmt.bind(dataVersion);
+	stmt.bind(static_cast<sqlite3_int64>(t));
 	stmt.exec();
+
+	Statement stmt2(this->m_conn, Query::DEL_DETECTED_DEPRECATED_CLOUD);
+
+	stmt2.bind(static_cast<sqlite3_int64>(t));
+	stmt2.exec();
 }
 
 } // namespace Db

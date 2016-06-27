@@ -157,20 +157,14 @@ RawBuffer EmLogic::getEngineUpdatedTime(const EmContext &context)
 		CsEngineContext engineContext(this->m_cs);
 		auto &c = engineContext.get();
 
-		time_t value;
-		this->m_cs->getEngineLatestUpdateTime(c, &value);
-
-		int64_t ts64 = static_cast<int64_t>(value);
+		auto ts64 = static_cast<int64_t>(this->m_cs->getEngineLatestUpdateTime(c));
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, ts64).pop();
 	} else {
 		WpEngineContext engineContext(this->m_wp);
 		auto &c = engineContext.get();
 
-		time_t value;
-		this->m_wp->getEngineLatestUpdateTime(c, &value);
-
-		int64_t ts64 = static_cast<int64_t>(value);
+		auto ts64 = static_cast<int64_t>(this->m_wp->getEngineLatestUpdateTime(c));
 
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, ts64).pop();
 	}

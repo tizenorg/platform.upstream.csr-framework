@@ -957,8 +957,8 @@ BOOST_AUTO_TEST_CASE(get_malware_after_async)
 	set_default_callback(context);
 
 	const char *dirs[4] = {
-		"/opt/usr/media/",
-		"/opt/usr/apps/",
+		TEST_DIR_MEDIA(),
+		TEST_DIR_APPS(),
 		"/tmp/",
 		"/sdcard/"
 	};

@@ -341,7 +341,10 @@ void FsVisitor::run()
 
 	INFO("Visiting files start from dir: " << this->m_path);
 
-	this->run(dirptr, currentdir);
+	if (this->m_isBasedOnName && currentdir->isInApp())
+		this->m_targetHandler(currentdir);
+	else
+		this->run(dirptr, currentdir);
 }
 
 } // namespace Csr

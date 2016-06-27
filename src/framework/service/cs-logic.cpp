@@ -22,6 +22,7 @@
 #include "service/cs-logic.h"
 
 #include <utility>
+#include <cstdlib>
 #include <climits>
 #include <cerrno>
 #include <unistd.h>
@@ -39,6 +40,18 @@
 namespace Csr {
 
 namespace {
+
+int readEc(const RawBuffer &buf)
+{
+	if (buf.size() < sizeof(int))
+		ThrowExc(CSR_ERROR_SERVER, "Failed to read error code from buf");
+
+	int ec = -1;
+
+	::memcpy(&ec, buf.data(), sizeof(int));
+
+	return ec;
+}
 
 void setCoreUsage(const csr_cs_core_usage_e &cu)
 {
@@ -140,6 +153,33 @@ FilePtr canonicalizePathWithFile(const std::string &path)
 	return fileptr;
 }
 
+void eraseSubdirectories(StrSet &dirset)
+{
+	if (dirset.size() < 2)
+		return;
+
+	for (auto it = dirset.begin(); it != dirset.end(); ++it) {
+		auto itsub = it;
+		++itsub;
+		while (true) {
+			if (itsub == dirset.end())
+				break;
+
+			auto itl = it->length();
+			auto itsubl = itsub->length();
+
+			if (itl + 1 >= itsubl || // to short to be sub-directory
+				itsub->compare(0, itl, *it) != 0 || // prefix isn't matched
+				(*it != "/" && itsub->at(itl) != '/')) { // has '/' at the end of prefix
+				++itsub;
+				continue;
+			}
+
+			itsub = dirset.erase(itsub);
+		}
+	}
+}
+
 } // namespace anonymous
 
 CsLogic::CsLogic(const std::shared_ptr<CsLoader> &loader,
@@ -181,10 +221,11 @@ RawBuffer CsLogic::scanData(const CsContext &context, const RawBuffer &data)
 	return this->handleAskUser(context, d);
 }
 
-RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
-								  const std::string &pkgPath,
-								  const std::string &pkgId)
+RawBuffer CsLogic::scanAppOnCloud(const CsContext &context, const FilePtr &pkgPtr)
 {
+	const auto &pkgPath = pkgPtr->getName();
+	const auto &pkgId = pkgPtr->getAppPkgId();
+
 	CsEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
@@ -202,12 +243,14 @@ RawBuffer CsLogic::scanAppOnCloud(const CsContext &context,
 
 	this->m_db->insertDetectedAppByCloud(pkgPath, pkgId, detected, this->m_dataVersion);
 
-	return this->handleAskUser(context, detected);
+	return this->handleAskUser(context, detected, pkgPtr);
 }
 
-CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::string &pkgId,
-									std::string &riskiestPath)
+CsDetectedPtr CsLogic::scanAppDelta(const FilePtr &pkgPtr, std::string &riskiestPath)
 {
+	const auto &pkgPath = pkgPtr->getName();
+	const auto &pkgId = pkgPtr->getAppPkgId();
+
 	auto starttime = ::time(nullptr);
 
 	CsEngineContext engineContext(this->m_loader);
@@ -264,7 +307,7 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr)
 	const auto &pkgId = pkgPtr->getAppPkgId();
 
 	if (context.isScanOnCloud && this->m_loader->scanAppOnCloudSupported())
-		return this->scanAppOnCloud(context, pkgPath, pkgId);
+		return this->scanAppOnCloud(context, pkgPtr);
 
 	CsEngineContext engineContext(this->m_loader);
 	auto since = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
@@ -273,7 +316,7 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr)
 	auto history = this->m_db->getWorstByPkgPath(pkgPath, since);
 	// riskiest detected among newly scanned files
 	std::string riskiestPath;
-	auto riskiest = this->scanAppDelta(pkgPath, pkgId, riskiestPath);
+	auto riskiest = this->scanAppDelta(pkgPtr, riskiestPath);
 	// history after delta scan. if worst file is changed, it's rescanned in scanAppDelta
 	// and deleted from db if it's cured. if history != nullptr && after == nullptr,
 	// it means worst detected item is cured anyway.
@@ -381,15 +424,8 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr)
 	}
 }
 
-RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepath)
+RawBuffer CsLogic::scanFileInternal(const CsContext &context, const FilePtr &target)
 {
-	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
-		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
-
-	setCoreUsage(context.coreUsage);
-
-	auto target = canonicalizePathWithFile(filepath);
-
 	if (target->isInApp())
 		return this->scanApp(context, target);
 
@@ -428,69 +464,160 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 	if (history != nullptr && history->isIgnored && !(d > *history))
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 	else
-		return this->handleAskUser(context, d, std::move(target));
+		return this->handleAskUser(context, d, target);
 }
 
-// Application in input param directory will be treated as one item.
-// Application base directory path is inserted to file set.
-// e.g., input param dir : "/opt/usr" (applications in "/opt/usr/apps")
-//       ls /opt/usr/ :
-//           /opt/usr/file-not-in-app1
-//           /opt/usr/file-not-in-app2
-//           /opt/usr/apps/org.tizen.tutorial
-//           /opt/usr/apps/org.tizen.tutorial/file-in-app1
-//           /opt/usr/apps/org.tizen.tutorial/file-in-app2
-//           /opt/usr/apps/org.tizen.message/file-in-app1
-//           /opt/usr/apps/org.tizen.message/file-in-app2
-//           /opt/usr/apps/org.tizen.flash/file-in-app1
-//           /opt/usr/apps/org.tizen.flash/file-in-app2
-//
-//           and detected history exist on...
-//           /opt/usr/apps/org.tizen.message/file-in-app2
-//           /opt/usr/apps/org.tizen.flash (If target name is app base directory path,
-//                                          it's detected by scan on cloud)
-//
-//       output scannable file set will be:
-//           1) /opt/usr/file-not-in-app1
-//           2) /opt/usr/file-not-in-app2
-//           3) /opt/usr/apps/org.tizen.tutorial (app base directory path)
-//           4) /opt/usr/apps/org.tizen.message  (app base directory path)
-//           5) /opt/usr/apps/org.tizen.flash    (app base directory path)
-//           % items which has detected history is included in list as well.
-RawBuffer CsLogic::getScannableFiles(const std::string &dir, const std::function<void()> &isCancelled)
+RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepath)
 {
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
 		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
 
-	auto targetdir = canonicalizePath(dir, true);
+	setCoreUsage(context.coreUsage);
 
-	CsEngineContext csEngineContext(this->m_loader);
-	auto since = this->m_loader->getEngineLatestUpdateTime(csEngineContext.get());
+	return this->scanFileInternal(context, canonicalizePathWithFile(filepath));
+}
 
-	auto lastScanTime = this->m_db->getLastScanTime(targetdir, since);
+RawBuffer CsLogic::scanFilesAsync(const ConnShPtr &conn, const CsContext &context, StrSet &paths)
+{
+	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
+		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
 
-	StrSet fileset;
+	conn->send(BinaryQueue::Serialize(CSR_ERROR_NONE).pop());
 
-	auto visitor = FsVisitor::create([&](const FilePtr &file) {
-		isCancelled();
+	StrSet canonicalized;
 
-		DEBUG("Scannable item: " << file->getName());
-		fileset.insert(file->getName());
-	}, targetdir, true, lastScanTime);
+	for (const auto &path : paths) {
+		auto target = canonicalizePathWithFile(path);
 
-	visitor->run();
+		if (canonicalized.find(target->getName()) != canonicalized.end())
+			continue;
 
-	isCancelled();
+		INFO("Insert to canonicalized list: " << target->getName());
+		canonicalized.insert(target->getName());
 
-	if (lastScanTime != -1) {
-		// for case: scan history exist and not modified.
-		for (auto &row : this->m_db->getDetectedAllByNameOnDir(targetdir, since)) {
-			isCancelled();
+		auto out = this->scanFileInternal(context, target);
+		int retcode = readEc(out);
+		bool isMalwareDetected = out.size() > sizeof(int);
 
+		switch (retcode) {
+		case CSR_ERROR_NONE:
+		case CSR_ERROR_FILE_DO_NOT_EXIST:
+		case CSR_ERROR_FILE_CHANGED:
+		case CSR_ERROR_FILE_SYSTEM:
+			if (isMalwareDetected) {
+				conn->send(BinaryQueue::Serialize(ASYNC_EVENT_MALWARE_DETECTED).pop());
+				conn->send(out);
+			} else if (context.isScannedCbRegistered) {
+				conn->send(BinaryQueue::Serialize(ASYNC_EVENT_MALWARE_NONE).pop());
+				conn->send(BinaryQueue::Serialize(path).pop());
+			}
+
+			break;
+
+		default:
+			ERROR("Error on async scanning: " << retcode);
+			return out;
+		}
+	}
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+}
+
+RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context, StrSet &paths)
+{
+	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
+		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
+
+	StrSet dirs;
+
+	for (const auto &path : paths) {
+		auto target = canonicalizePath(File::getPkgPath(path), true);
+
+		if (dirs.find(target) == dirs.end()) {
+			INFO("Insert to canonicalized list: " << target);
+			dirs.emplace(std::move(target));
+		}
+	}
+
+	eraseSubdirectories(dirs);
+
+	DEBUG("send error none to client before starting scanning");
+
+	conn->send(BinaryQueue::Serialize(CSR_ERROR_NONE).pop());
+
+	CsEngineContext engineContext(this->m_loader);
+	auto t = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
+
+	DEBUG("Start async scanning!!!!!");
+
+	for (const auto &dir : dirs) {
+		DEBUG("Start async scanning for dir: " << dir);
+		auto startTime = ::time(nullptr);
+		auto lastScanTime = this->m_db->getLastScanTime(dir, t);
+		auto visitor = FsVisitor::create([&](const FilePtr &file) {
+			auto out = this->scanFileInternal(context, file);
+			int retcode = readEc(out);
+			bool isMalwareDetected = out.size() > sizeof(int);
+
+			DEBUG("scanFileInternal done. file: " << file->getName() <<
+				  " retcode: " << retcode);
+
+			switch (retcode) {
+			case CSR_ERROR_NONE:
+			case CSR_ERROR_FILE_DO_NOT_EXIST:
+			case CSR_ERROR_FILE_CHANGED:
+			case CSR_ERROR_FILE_SYSTEM:
+				if (isMalwareDetected) {
+					DEBUG("Malware detected!!!");
+					conn->send(BinaryQueue::Serialize(ASYNC_EVENT_MALWARE_DETECTED).pop());
+					conn->send(out);
+				} else if (context.isScannedCbRegistered) {
+					DEBUG("File scanned!!!");
+					conn->send(BinaryQueue::Serialize(ASYNC_EVENT_MALWARE_NONE).pop());
+					conn->send(BinaryQueue::Serialize(file->getName()).pop());
+				}
+
+				break;
+
+			default:
+				ThrowExc(retcode, "Error on async scanning: " << retcode);
+			}
+		}, dir, true, lastScanTime);
+
+		visitor->run();
+
+		this->m_db->insertLastScanTime(dir, this->m_dataVersion, startTime);
+
+		if (lastScanTime == -1)
+			continue;
+
+		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir, t)) {
 			try {
 				auto fileptr = File::create(row->targetName, nullptr);
 
-				fileset.insert(fileptr->getName());
+				auto out = this->scanFileInternal(context, fileptr);
+				int retcode = readEc(out);
+				bool isMalwareDetected = out.size() > sizeof(int);
+
+				switch (retcode) {
+				case CSR_ERROR_NONE:
+				case CSR_ERROR_FILE_DO_NOT_EXIST:
+				case CSR_ERROR_FILE_CHANGED:
+				case CSR_ERROR_FILE_SYSTEM:
+					if (isMalwareDetected) {
+						conn->send(BinaryQueue::Serialize(ASYNC_EVENT_MALWARE_DETECTED).pop());
+						conn->send(BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop());
+					} else if (context.isScannedCbRegistered) {
+						conn->send(BinaryQueue::Serialize(ASYNC_EVENT_MALWARE_NONE).pop());
+						conn->send(BinaryQueue::Serialize(row->targetName).pop());
+					}
+
+				default:
+					ERROR("Error on rescanning detected malwares in db: " << retcode <<
+						  " file: " << row->targetName);
+					this->m_db->deleteDetectedByNameOnPath(row->targetName);
+					return out;
+				}
 			} catch (const Exception &e) {
 				if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST ||
 					e.error() == CSR_ERROR_FILE_SYSTEM)
@@ -500,32 +627,6 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir, const std::function
 			}
 		}
 	}
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
-}
-
-RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
-{
-	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
-		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
-
-	StrSet canonicalized;
-
-	for (const auto &path : paths) {
-		auto target = canonicalizePath(path, true);
-
-		if (canonicalized.find(target) == canonicalized.end()) {
-			INFO("Insert to canonicalized list: " << target);
-			canonicalized.emplace(std::move(target));
-		}
-	}
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, canonicalized).pop();
-}
-
-RawBuffer CsLogic::setDirTimestamp(const std::string &dir, time_t ts)
-{
-	this->m_db->insertLastScanTime(dir, this->m_dataVersion, ts);
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 }
@@ -686,7 +787,7 @@ RawBuffer CsLogic::getIgnoredList(const StrSet &_dirSet)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, rows).pop();
 }
 
-RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fileptr)
+RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, const FilePtr &fileptr)
 {
 	if (c.askUser == CSR_CS_ASK_USER_NO) {
 		d.response = CSR_CS_USER_RESPONSE_USER_NOT_ASKED;
@@ -730,30 +831,27 @@ RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fi
 
 	d.response = r;
 
-	if (d.response == CSR_CS_USER_RESPONSE_REMOVE && !d.targetName.empty()) {
-		try {
-			FilePtr _fileptr;
-			if (fileptr)
-				_fileptr = std::move(fileptr);
-			else
-				_fileptr = File::create(d.targetName, nullptr);
+	if (d.response != CSR_CS_USER_RESPONSE_REMOVE || d.targetName.empty())
+		return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
 
-			_fileptr->remove();
-		} catch (const Exception &e) {
-			if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST)
-				WARN("File already removed.: " << d.targetName);
-			else if (e.error() == CSR_ERROR_FILE_SYSTEM)
-				WARN("File type is changed, considered as different file: " <<
-					 d.targetName);
-			else if (e.error() == CSR_ERROR_REMOVE_FAILED)
-				return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, d).pop();
-			else
-				throw;
-		}
-
-		this->m_db->deleteDetectedByNameOnPath(d.targetName);
+	try {
+		if (fileptr != nullptr)
+			fileptr->remove();
+		else
+			File::create(d.targetName, nullptr)->remove();
+	} catch (const Exception &e) {
+		if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST)
+			WARN("File already removed.: " << d.targetName);
+		else if (e.error() == CSR_ERROR_FILE_SYSTEM)
+			WARN("File type is changed, considered as different file: " <<
+				 d.targetName);
+		else if (e.error() == CSR_ERROR_REMOVE_FAILED)
+			return BinaryQueue::Serialize(CSR_ERROR_REMOVE_FAILED, d).pop();
+		else
+			throw;
 	}
 
+	this->m_db->deleteDetectedByNameOnPath(d.targetName);
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();
 }
 

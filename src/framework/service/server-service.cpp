@@ -53,9 +53,8 @@ std::string cidToString(const CommandId &cid)
 	CID_TOSTRING(GET_DETECTED_LIST);
 	CID_TOSTRING(GET_IGNORED);
 	CID_TOSTRING(GET_IGNORED_LIST);
-	CID_TOSTRING(GET_SCANNABLE_FILES);
-	CID_TOSTRING(CANONICALIZE_PATHS);
-	CID_TOSTRING(SET_DIR_TIMESTAMP);
+	CID_TOSTRING(SCAN_DIRS_ASYNC);
+	CID_TOSTRING(SCAN_FILES_ASYNC);
 	CID_TOSTRING(CANCEL_OPERATION);
 	CID_TOSTRING(JUDGE_STATUS);
 
@@ -82,7 +81,7 @@ inline CommandId extractCommandId(BinaryQueue &q)
 	return id;
 }
 
-}
+} // namespace anonymous
 
 ServerService::ServerService() : Service(), m_workqueue(5)
 {
@@ -155,18 +154,19 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		return this->m_cslogic->scanFile(*cptr, filepath);
 	}
 
-	case CommandId::GET_SCANNABLE_FILES: {
+	case CommandId::SCAN_FILES_ASYNC: {
 		hasPermission(conn);
 
-		std::string dir;
-		q.Deserialize(dir);
+		CsContextShPtr cptr;
+		StrSet paths;
+		q.Deserialize(cptr, paths);
 
 		auto fd = conn->getFd();
 
 		{
 			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
 			this->m_isCancelled[fd] = false;
-			INFO("Turn off cancelled flag before scannable files start on fd: " << fd);
+			INFO("Turn off cancelled flag before start async. fd: " << fd);
 		}
 
 		Closer closer([this, fd]() {
@@ -175,7 +175,35 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 			INFO("Erase cancelled flag in closer on fd: " << fd);
 		});
 
-		return this->m_cslogic->getScannableFiles(dir, [this, fd]() {
+		return this->m_cslogic->scanFilesAsync(conn, *cptr, paths, [this, fd]() {
+			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
+			if (this->m_isCancelled.count(fd) == 1 && this->m_isCancelled[fd])
+				ThrowExcInfo(-999, "operation cancelled on fd: " << fd);
+		});
+	}
+
+	case CommandId::SCAN_DIRS_ASYNC: {
+		hasPermission(conn);
+
+		CsContextShPtr cptr;
+		StrSet paths;
+		q.Deserialize(cptr, paths);
+
+		auto fd = conn->getFd();
+
+		{
+			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
+			this->m_isCancelled[fd] = false;
+			INFO("Turn off cancelled flag before start async. fd: " << fd);
+		}
+
+		Closer closer([this, fd]() {
+			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
+			this->m_isCancelled.erase(fd);
+			INFO("Erase cancelled flag in closer on fd: " << fd);
+		});
+
+		return this->m_cslogic->scanDirsAsync(conn, *cptr, paths, [this, fd]() {
 			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
 			if (this->m_isCancelled.count(fd) == 1 && this->m_isCancelled[fd])
 				ThrowExcInfo(-999, "operation cancelled on fd: " << fd);
@@ -187,45 +215,12 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		auto fd = conn->getFd();
 		if (this->m_isCancelled.count(fd) == 1) {
 			this->m_isCancelled[fd] = true;
-			INFO("Trun on cancelled flag of fd: " << fd);
+			INFO("Turn on cancelled flag of fd: " << fd);
 		} else {
-			WARN("Nothing to cancel on getting scannable list! fd: " << fd);
+			WARN("Nothing to cancel... fd: " << fd);
 		}
 
 		return RawBuffer();
-	}
-
-	case CommandId::CANONICALIZE_PATHS: {
-		hasPermission(conn);
-
-		StrSet paths;
-		q.Deserialize(paths);
-
-		auto fd = conn->getFd();
-
-		{
-			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
-			this->m_isCancelled[fd] = false;
-			INFO("Turn off cancelled flag before canonicalize paths start on fd: " << fd);
-		}
-
-		Closer closer([this, fd]() {
-			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
-			this->m_isCancelled.erase(fd);
-			INFO("Erase cancelled flag in closer of canonicalize paths on fd: " << fd);
-		});
-
-		return this->m_cslogic->canonicalizePaths(paths);
-	}
-
-	case CommandId::SET_DIR_TIMESTAMP: {
-		hasPermission(conn);
-
-		std::string dir;
-		int64_t ts64 = 0;
-		q.Deserialize(dir, ts64);
-
-		return this->m_cslogic->setDirTimestamp(dir, static_cast<time_t>(ts64));
 	}
 
 	case CommandId::JUDGE_STATUS: {

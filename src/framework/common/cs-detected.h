@@ -29,6 +29,9 @@
 #include "common/macros.h"
 #include "common/iresult.h"
 
+#define ASYNC_EVENT_MALWARE_NONE     -800
+#define ASYNC_EVENT_MALWARE_DETECTED -900
+
 namespace Csr {
 
 class CsDetected;

@@ -46,6 +46,9 @@ public:
 	template<typename ...Args>
 	void methodPing(Args &&...args);
 
+	template<typename Type>
+	Type receiveEvent(void);
+
 private:
 	void connect(void);
 
@@ -76,6 +79,20 @@ void Dispatcher::methodPing(Args &&...args)
 	this->connect();
 
 	this->m_connection->send(BinaryQueue::Serialize(std::forward<Args>(args)...).pop());
+}
+
+template<typename Type>
+Type Dispatcher::receiveEvent()
+{
+	this->connect();
+
+	BinaryQueue q;
+	q.push(this->m_connection->receive());
+
+	Type response;
+	q.Deserialize(response);
+
+	return response;
 }
 
 }

@@ -25,6 +25,8 @@
 
 #include "common/audit/logger.h"
 #include "common/exception.h"
+#include "common/async-protocol.h"
+
 #include <csr-error.h>
 
 __attribute__((constructor))
@@ -69,7 +71,7 @@ void exceptionGuardAsync(const Callback &callbacks, void *userdata,
 		if (callbacks.onCompleted != nullptr)
 			callbacks.onCompleted(userdata);
 	} catch (const Exception &e) {
-		if (e.error() == -999) {
+		if (e.error() == ASYNC_EVENT_CANCEL) {
 			INFO("Async operation cancel exception!");
 			if (callbacks.onCancelled != nullptr)
 				callbacks.onCancelled(userdata);

@@ -32,8 +32,5 @@ namespace Client {
 // based on linux function: realpath
 std::string getAbsolutePath(const std::string &path);
 
-// input directory set should contains resolved path only
-void eraseSubdirectories(StrSet &dirset);
-
 } // namespace Client
 } // namespace Csr

@@ -34,6 +34,7 @@
 #include "common/cs-context.h"
 #include "common/cs-detected.h"
 #include "common/command-id.h"
+#include "common/async-protocol.h"
 #include "common/audit/logger.h"
 
 using namespace Csr;
@@ -228,10 +229,14 @@ int csr_cs_scan_data(csr_cs_context_h handle, const unsigned char *data,
 				   hExt->getContext(),
 				   RawBuffer(data, data + length));
 
-	if (ret.second)
-		hExt->add(ResultPtr(ret.second));
+	ResultPtr resultPtr(ret.second);
 
-	*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	if (ret.second && !ret.second->malwareName.empty()) {
+		hExt->add(std::move(resultPtr));
+		*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	} else {
+		*malware = nullptr;
+	}
 
 	return ret.first;
 
@@ -255,10 +260,14 @@ int csr_cs_scan_file(csr_cs_context_h handle, const char *file_path,
 				   hExt->getContext(),
 				   Client::getAbsolutePath(file_path));
 
-	if (ret.second)
-		hExt->add(ResultPtr(ret.second));
+	ResultPtr resultPtr(ret.second);
 
-	*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	if (ret.second && !ret.second->malwareName.empty()) {
+		hExt->add(std::move(resultPtr));
+		*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	} else {
+		*malware = nullptr;
+	}
 
 	return ret.first;
 
@@ -278,6 +287,7 @@ int csr_cs_set_file_scanned_cb(csr_cs_context_h handle, csr_cs_file_scanned_cb c
 	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
 
 	hExt->m_cb.onScanned = callback;
+	hExt->getContext()->set(static_cast<int>(CsContext::Key::ScannedCbRegistered), true);
 
 	return CSR_ERROR_NONE;
 
@@ -391,25 +401,11 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 		EXCEPTION_ASYNC_SAFE_START(hExt->m_cb, user_data)
 
 		if (hExt->isStopped())
-			ThrowExcInfo(-999, "Async operation cancelled!");
-
-		auto ret = hExt->dispatch<std::pair<int, std::shared_ptr<StrSet>>>(
-					CommandId::CANONICALIZE_PATHS, *fileSet);
-
-		if (ret.first != CSR_ERROR_NONE)
-			ThrowExc(ret.first, "Error on getting canonicalized paths in subthread. "
-					 "ret: " << ret.first);
-
-		std::shared_ptr<StrSet> canonicalizedFiles;
-
-		if (ret.second == nullptr)
-			canonicalizedFiles = std::make_shared<StrSet>();
-		else
-			canonicalizedFiles = std::move(ret.second);
+			ThrowExcInfo(ASYNC_EVENT_CANCEL, "Async operation cancelled!");
 
 		Client::AsyncLogic l(hExt, user_data);
 
-		l.scanFiles(*canonicalizedFiles);
+		l.scanFiles(*fileSet);
 
 		EXCEPTION_SAFE_END
 	});
@@ -427,39 +423,9 @@ API
 int csr_cs_scan_dir_async(csr_cs_context_h handle, const char *dir_path,
 						  void *user_data)
 {
-	EXCEPTION_SAFE_START
+	const char *dir_paths[1] = { dir_path };
 
-	if (handle == nullptr)
-		return CSR_ERROR_INVALID_HANDLE;
-	else if (dir_path == nullptr || dir_path[0] == '\0')
-		return CSR_ERROR_INVALID_PARAMETER;
-
-	auto hExt = reinterpret_cast<Client::HandleExt *>(handle);
-
-	if (hExt->isRunning()) {
-		ERROR("Async scanning already running with this handle.");
-		return CSR_ERROR_BUSY;
-	}
-
-	auto dir = std::make_shared<std::string>(Client::getAbsolutePath(dir_path));
-
-	auto task = std::make_shared<Task>([hExt, user_data, dir] {
-		EXCEPTION_ASYNC_SAFE_START(hExt->m_cb, user_data)
-
-		Client::AsyncLogic l(hExt, user_data);
-
-		l.scanDir(*dir);
-
-		EXCEPTION_SAFE_END
-	});
-
-	std::lock_guard<std::mutex> l(hExt->m_dispatchMutex);
-
-	hExt->dispatchAsync(task);
-
-	return CSR_ERROR_NONE;
-
-	EXCEPTION_SAFE_END
+	return ::csr_cs_scan_dirs_async(handle, dir_paths, 1, user_data);
 }
 
 API
@@ -493,27 +459,11 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 		EXCEPTION_ASYNC_SAFE_START(hExt->m_cb, user_data)
 
 		if (hExt->isStopped())
-			ThrowExcInfo(-999, "Async operation cancelled!");
-
-		auto ret = hExt->dispatch<std::pair<int, std::shared_ptr<StrSet>>>(
-					CommandId::CANONICALIZE_PATHS, *dirSet);
-
-		if (ret.first != CSR_ERROR_NONE)
-			ThrowExc(ret.first, "Error on getting canonicalized paths in subthread. "
-					 "ret: " << ret.first);
-
-		std::shared_ptr<StrSet> canonicalizedDirs;
-
-		if (ret.second == nullptr)
-			canonicalizedDirs = std::make_shared<StrSet>();
-		else
-			canonicalizedDirs = std::move(ret.second);
-
-		Client::eraseSubdirectories(*canonicalizedDirs);
+			ThrowExcInfo(ASYNC_EVENT_CANCEL, "Async operation cancelled!");
 
 		Client::AsyncLogic l(hExt, user_data);
 
-		l.scanDirs(*canonicalizedDirs);
+		l.scanDirs(*dirSet);
 
 		EXCEPTION_SAFE_END
 	});
@@ -742,10 +692,14 @@ int csr_cs_get_detected_malware(csr_cs_context_h handle, const char *file_path,
 	auto ret = hExt->dispatch<std::pair<int, CsDetected *>>(
 				CommandId::GET_DETECTED, Client::getAbsolutePath(file_path));
 
-	if (ret.second)
-		hExt->add(ResultPtr(ret.second));
+	ResultPtr resultPtr(ret.second);
 
-	*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	if (ret.second && !ret.second->malwareName.empty()) {
+		hExt->add(std::move(resultPtr));
+		*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	} else {
+		*malware = nullptr;
+	}
 
 	return ret.first;
 
@@ -818,10 +772,14 @@ int csr_cs_get_ignored_malware(csr_cs_context_h handle, const char *file_path,
 	auto ret = hExt->dispatch<std::pair<int, CsDetected *>>(
 				CommandId::GET_IGNORED, Client::getAbsolutePath(file_path));
 
-	if (ret.second)
-		hExt->add(ResultPtr(ret.second));
+	ResultPtr resultPtr(ret.second);
 
-	*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	if (ret.second && !ret.second->malwareName.empty()) {
+		hExt->add(std::move(resultPtr));
+		*malware = reinterpret_cast<csr_cs_malware_h>(ret.second);
+	} else {
+		*malware = nullptr;
+	}
 
 	return ret.first;
 

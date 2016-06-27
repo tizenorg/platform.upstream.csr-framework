@@ -21,12 +21,8 @@
  */
 #pragma once
 
-#include <memory>
-#include <atomic>
-
 #include "common/types.h"
-#include "common/cs-context.h"
-#include "client/callback.h"
+#include "common/command-id.h"
 #include "client/handle-ext.h"
 
 namespace Csr {
@@ -38,32 +34,17 @@ public:
 	virtual ~AsyncLogic();
 
 	void scanFiles(const StrSet &files);
-	void scanDir(const std::string &dir);
 	void scanDirs(const StrSet &dirs);
 
 	void stop(void);
 
 private:
-	template<typename T>
-	void copyKvp(CsContext::Key);
+	void scanHelper(const CommandId &id, const StrSet &s);
 
 	HandleExt *m_handle; // for registering results for auto-release
 
-	ContextPtr m_ctx;
-	std::vector<ResultPtr> m_results;
-
-	Callback m_cb;
 	void *m_userdata;
 };
-
-template<typename T>
-void AsyncLogic::copyKvp(CsContext::Key key)
-{
-	T value;
-
-	this->m_handle->getContext()->get(static_cast<int>(key), value);
-	this->m_ctx->set(static_cast<int>(key), value);
-}
 
 }
 }

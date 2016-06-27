@@ -22,6 +22,7 @@
 #include "service/cs-logic.h"
 
 #include <utility>
+#include <cstdlib>
 #include <climits>
 #include <cerrno>
 #include <unistd.h>
@@ -39,6 +40,18 @@
 namespace Csr {
 
 namespace {
+
+int readEc(const RawBuffer &buf)
+{
+	if (buf.size() < sizeof(int))
+		ThrowExc(CSR_ERROR_SERVER, "Failed to read error code from buf");
+
+	int ec = -1;
+
+	::memcpy(&ec, buf.data(), sizeof(int));
+
+	return ec;
+}
 
 void setCoreUsage(const csr_cs_core_usage_e &cu)
 {
@@ -138,6 +151,33 @@ FilePtr canonicalizePathWithFile(const std::string &path)
 		ThrowExcWarn(CSR_ERROR_FILE_DO_NOT_EXIST, "File is not readable: " << fileptr->getName());
 
 	return fileptr;
+}
+
+void eraseSubdirectories(StrSet &dirset)
+{
+	if (dirset.size() < 2)
+		return;
+
+	for (auto it = dirset.begin(); it != dirset.end(); ++it) {
+		auto itsub = it;
+		++itsub;
+		while (true) {
+			if (itsub == dirset.end())
+				break;
+
+			auto itl = it->length();
+			auto itsubl = itsub->length();
+
+			if (itl + 1 >= itsubl || // to short to be sub-directory
+				itsub->compare(0, itl, *it) != 0 || // prefix isn't matched
+				(*it != "/" && itsub->at(itl) != '/')) { // has '/' at the end of prefix
+				++itsub;
+				continue;
+			}
+
+			itsub = dirset.erase(itsub);
+		}
+	}
 }
 
 } // namespace anonymous
@@ -408,13 +448,8 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 	return this->handleAskUser(context, d, std::move(fileptr));
 }
 
-RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepath)
+RawBuffer CsLogic::scanFileInternal(const CsContext &context, const std::string &filepath)
 {
-	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
-		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
-
-	setCoreUsage(context.coreUsage);
-
 	auto target = canonicalizePathWithFile(filepath);
 
 	if (target->isInApp())
@@ -449,80 +484,17 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 	return this->handleAskUser(context, *history);
 }
 
-// Application in input param directory will be treated as one item.
-// Application base directory path is inserted to file set.
-// e.g., input param dir : "/opt/usr" (applications in "/opt/usr/apps")
-//       ls /opt/usr/ :
-//           /opt/usr/file-not-in-app1
-//           /opt/usr/file-not-in-app2
-//           /opt/usr/apps/org.tizen.tutorial
-//           /opt/usr/apps/org.tizen.tutorial/file-in-app1
-//           /opt/usr/apps/org.tizen.tutorial/file-in-app2
-//           /opt/usr/apps/org.tizen.message/file-in-app1
-//           /opt/usr/apps/org.tizen.message/file-in-app2
-//           /opt/usr/apps/org.tizen.flash/file-in-app1
-//           /opt/usr/apps/org.tizen.flash/file-in-app2
-//
-//           and detected history exist on...
-//           /opt/usr/apps/org.tizen.message/file-in-app2
-//           /opt/usr/apps/org.tizen.flash (If target name is app base directory path,
-//                                          it's detected by scan on cloud)
-//
-//       output scannable file set will be:
-//           1) /opt/usr/file-not-in-app1
-//           2) /opt/usr/file-not-in-app2
-//           3) /opt/usr/apps/org.tizen.tutorial (app base directory path)
-//           4) /opt/usr/apps/org.tizen.message  (app base directory path)
-//           5) /opt/usr/apps/org.tizen.flash    (app base directory path)
-//           % items which has detected history is included in list as well.
-RawBuffer CsLogic::getScannableFiles(const std::string &dir, const std::function<void()> &isCancelled)
+RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepath)
 {
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
 		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
 
-	auto targetdir = canonicalizePath(dir, true);
+	setCoreUsage(context.coreUsage);
 
-	CsEngineContext csEngineContext(this->m_loader);
-	auto since = this->m_loader->getEngineLatestUpdateTime(csEngineContext.get());
-
-	auto lastScanTime = this->m_db->getLastScanTime(targetdir, since);
-
-	StrSet fileset;
-
-	auto visitor = FsVisitor::create([&](const FilePtr &file) {
-		isCancelled();
-
-		DEBUG("Scannable item: " << file->getName());
-		fileset.insert(file->getName());
-	}, targetdir, true, lastScanTime);
-
-	visitor->run();
-
-	isCancelled();
-
-	if (lastScanTime != -1) {
-		// for case: scan history exist and not modified.
-		for (auto &row : this->m_db->getDetectedAllByNameOnDir(targetdir, since)) {
-			isCancelled();
-
-			try {
-				auto fileptr = File::create(row->targetName, nullptr);
-
-				fileset.insert(fileptr->getName());
-			} catch (const Exception &e) {
-				if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST ||
-					e.error() == CSR_ERROR_FILE_SYSTEM)
-					this->m_db->deleteDetectedByNameOnPath(row->targetName);
-				else
-					throw;
-			}
-		}
-	}
-
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, fileset).pop();
+	return this->scanFileInternal(context, filepath);
 }
 
-RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
+RawBuffer CsLogic::scanFilesAsync(const ConnShPtr &conn, const CsContext &context, StrSet &paths)
 {
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
 		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
@@ -538,12 +510,136 @@ RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
 		}
 	}
 
-	return BinaryQueue::Serialize(CSR_ERROR_NONE, canonicalized).pop();
+	conn->send(BinaryQueue::Serialize(CSR_ERROR_NONE).pop());
+
+	for (const auto &path : canonicalized) {
+		auto out = this->scanFileInternal(context, path);
+		int retcode = readEc(out);
+		bool isMalwareDetected = out.size() > sizeof(int);
+
+		switch (retcode) {
+		case CSR_ERROR_NONE:
+		case CSR_ERROR_FILE_DO_NOT_EXIST:
+		case CSR_ERROR_FILE_CHANGED:
+		case CSR_ERROR_FILE_SYSTEM:
+			if (isMalwareDetected) {
+				conn->send(BinaryQueue::Serialize(ASYNC_EVENT_MALWARE_DETECTED).pop());
+				conn->send(out);
+			} else if (context.isScannedCbRegistered) {
+				conn->send(BinaryQueue::Serialize(ASYNC_EVENT_MALWARE_NONE).pop());
+				conn->send(BinaryQueue::Serialize(path).pop());
+			}
+
+			break;
+
+		default:
+			ERROR("Error on async scanning: " << retcode);
+			return out;
+		}
+	}
+
+	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 }
 
-RawBuffer CsLogic::setDirTimestamp(const std::string &dir, time_t ts)
+RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context, StrSet &paths)
 {
-	this->m_db->insertLastScanTime(dir, this->m_dataVersion, ts);
+	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
+		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
+
+	StrSet dirs;
+
+	for (const auto &path : paths) {
+		auto target = canonicalizePath(File::getPkgPath(path), true);
+
+		if (dirs.find(target) == dirs.end()) {
+			INFO("Insert to canonicalized list: " << target);
+			dirs.emplace(std::move(target));
+		}
+	}
+
+	eraseSubdirectories(dirs);
+
+	DEBUG("send error none to client before starting scanning");
+
+	conn->send(BinaryQueue::Serialize(CSR_ERROR_NONE).pop());
+
+	CsEngineContext engineContext(this->m_loader);
+	auto t = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
+
+	DEBUG("Start async scanning!!!!!");
+
+	for (const auto &dir : dirs) {
+		DEBUG("Start async scanning for dir: " << dir);
+		auto startTime = ::time(nullptr);
+		auto lastScanTime = this->m_db->getLastScanTime(dir, t);
+		auto visitor = FsVisitor::create([&](const FilePtr &file) {
+			auto out = this->scanFileInternal(context, file->getPath());
+			int retcode = readEc(out);
+			bool isMalwareDetected = out.size() > sizeof(int);
+
+			switch (retcode) {
+			case CSR_ERROR_NONE:
+			case CSR_ERROR_FILE_DO_NOT_EXIST:
+			case CSR_ERROR_FILE_CHANGED:
+			case CSR_ERROR_FILE_SYSTEM:
+				if (isMalwareDetected) {
+					DEBUG("Malware detected!!!");
+					conn->send(BinaryQueue::Serialize(ASYNC_EVENT_MALWARE_DETECTED).pop());
+					conn->send(out);
+				} else if (context.isScannedCbRegistered) {
+					DEBUG("File scanned!!!");
+					conn->send(BinaryQueue::Serialize(ASYNC_EVENT_MALWARE_NONE).pop());
+					conn->send(BinaryQueue::Serialize(file->getPath()).pop());
+				}
+
+				break;
+
+			default:
+				ThrowExc(retcode, "Error on async scanning: " << retcode);
+			}
+		}, dir, true, lastScanTime);
+
+		this->m_db->insertLastScanTime(dir, this->m_dataVersion, startTime);
+
+		if (lastScanTime == -1)
+			continue;
+
+		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir, t)) {
+			try {
+				auto fileptr = File::create(row->targetName, nullptr);
+
+				auto out = this->scanFileInternal(context, row->targetName);
+				int retcode = readEc(out);
+				bool isMalwareDetected = out.size() > sizeof(int);
+
+				switch (retcode) {
+				case CSR_ERROR_NONE:
+				case CSR_ERROR_FILE_DO_NOT_EXIST:
+				case CSR_ERROR_FILE_CHANGED:
+				case CSR_ERROR_FILE_SYSTEM:
+					if (isMalwareDetected) {
+						conn->send(BinaryQueue::Serialize(ASYNC_EVENT_MALWARE_DETECTED).pop());
+						conn->send(BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop());
+					} else if (context.isScannedCbRegistered) {
+						conn->send(BinaryQueue::Serialize(ASYNC_EVENT_MALWARE_NONE).pop());
+						conn->send(BinaryQueue::Serialize(row->targetName).pop());
+					}
+
+				default:
+					ERROR("Error on rescanning detected malwares in db: " << retcode <<
+						  " file: " << row->targetName);
+					this->m_db->deleteDetectedByNameOnPath(row->targetName);
+					return out;
+				}
+			} catch (const Exception &e) {
+				if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST ||
+					e.error() == CSR_ERROR_FILE_SYSTEM)
+					this->m_db->deleteDetectedByNameOnPath(row->targetName);
+				else
+					throw;
+			}
+		}
+	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 }

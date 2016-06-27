@@ -325,6 +325,15 @@ struct Deserialization {
 			object.reset(new T(stream));
 	}
 
+	template <typename T>
+	static void Deserialize(IStream &stream, std::unique_ptr<T> &object)
+	{
+		if (stream.empty())
+			object.reset();
+		else
+			object.reset(new T(stream));
+	}
+
 	// char
 	static void Deserialize(IStream &stream, char &value)
 	{
@@ -519,6 +528,20 @@ struct Deserialization {
 		}
 	}
 
+	template <typename T, typename R, typename A>
+	static void Deserialize(IStream &stream, std::unique_ptr<std::basic_string<T, R, A>> &str)
+	{
+		if (stream.empty()) {
+			str.reset();
+		} else {
+			int length;
+			stream.read(sizeof(length), &length);
+			std::vector<T> buf(length);
+			stream.read(length * sizeof(T), buf.data());
+			str.reset(new std::basic_string<T, R, A>(buf.data(), buf.data() + length));
+		}
+	}
+
 	// STL templates
 
 	// std::list
@@ -546,6 +569,16 @@ struct Deserialization {
 	}
 	template <typename T>
 	static void Deserialize(IStream &stream, std::shared_ptr<std::list<T>> &list)
+	{
+		if (stream.empty()) {
+			list.reset();
+		} else {
+			list.reset(new std::list<T>);
+			Deserialize(stream, *list);
+		}
+	}
+	template <typename T>
+	static void Deserialize(IStream &stream, std::unique_ptr<std::list<T>> &list)
 	{
 		if (stream.empty()) {
 			list.reset();
@@ -587,6 +620,16 @@ struct Deserialization {
 			Deserialize(stream, *set);
 		}
 	}
+	template <typename T>
+	static void Deserialize(IStream &stream, std::unique_ptr<std::set<T>> &set)
+	{
+		if (stream.empty()) {
+			set.reset();
+		} else {
+			set.reset(new std::set<T>);
+			Deserialize(stream, *set);
+		}
+	}
 
 	// RawBuffer
 	template <typename A>
@@ -609,6 +652,16 @@ struct Deserialization {
 	}
 	template <typename A>
 	static void Deserialize(IStream &stream, std::shared_ptr<std::vector<unsigned char, A>> &vec)
+	{
+		if (stream.empty()) {
+			vec.reset();
+		} else {
+			vec.reset(new std::vector<unsigned char, A>);
+			Deserialize(stream, *vec);
+		}
+	}
+	template <typename A>
+	static void Deserialize(IStream &stream, std::unique_ptr<std::vector<unsigned char, A>> &vec)
 	{
 		if (stream.empty()) {
 			vec.reset();

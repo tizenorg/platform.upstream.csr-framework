@@ -275,7 +275,8 @@ FsVisitor::DirPtr FsVisitor::openDir(const std::string &dir)
 	return std::unique_ptr<DIR, int(*)(DIR *)>(::opendir(dir.c_str()), ::closedir);
 }
 
-FsVisitorPtr FsVisitor::create(const std::string &dirpath, time_t modifiedSince)
+FsVisitorPtr FsVisitor::createInternal(const std::string &dirpath, bool isTargets,
+									   time_t modifiedSince)
 {
 	auto statptr = getStat(dirpath);
 	if (statptr == nullptr)
@@ -284,11 +285,21 @@ FsVisitorPtr FsVisitor::create(const std::string &dirpath, time_t modifiedSince)
 	else if (!S_ISDIR(statptr->st_mode))
 		ThrowExc(CSR_ERROR_FILE_SYSTEM, "file type is not directory: " << dirpath);
 	else
-		return FsVisitorPtr(new FsVisitor(dirpath, modifiedSince));
+		return FsVisitorPtr(new FsVisitor(dirpath, isTargets, modifiedSince));
 }
 
-FsVisitor::FsVisitor(const std::string &dirpath, time_t modifiedSince) :
-	m_since(modifiedSince), m_dirptr(openDir(dirpath)),
+FsVisitorPtr FsVisitor::create(const std::string &dirpath, time_t modifiedSince)
+{
+	return FsVisitor::createInternal(dirpath, false, modifiedSince);
+}
+
+FsVisitorPtr FsVisitor::createTargets(const std::string &dirpath, time_t modifiedSince)
+{
+	return FsVisitor::createInternal(dirpath, true, modifiedSince);
+}
+
+FsVisitor::FsVisitor(const std::string &dirpath, bool isTargets, time_t modifiedSince) :
+	m_since(modifiedSince), m_isTargets(isTargets), m_dirptr(openDir(dirpath)),
 	m_entryBuf(static_cast<struct dirent *>(::malloc(
 			offsetof(struct dirent, d_name) + NAME_MAX + 1)))
 {

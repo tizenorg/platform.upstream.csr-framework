@@ -70,10 +70,23 @@ private:
 	RawBuffer handleAskUser(const CsContext &c, CsDetected &d,
 							FilePtr &&fileptr = nullptr);
 
-	std::shared_ptr<CsLoader> m_loader;
-	std::shared_ptr<Db::Manager> m_db;
+	ScanStage judgeScanStage(const CsDetectedPtr &history,
+							 const CsDetectedPtr &after,
+							 const CsDetectedPtr &riskiest,
+							 CsDetectedPtr &result,
+							 Db::RowShPtr &jWorse);
+
+		std::shared_ptr<CsLoader> m_loader;
+		std::shared_ptr<Db::Manager> m_db;
 
 	std::string m_dataVersion;
+
+	enum class ScanStage : int {
+		NEW_RISKIEST      = 0x1001,
+		HISTORY_RISKIEST  = 0x1002,
+		WORSE_RISKIEST    = 0x1003,
+	 	NO_DETECTED       = 0x1005
+	};
 };
 
 }

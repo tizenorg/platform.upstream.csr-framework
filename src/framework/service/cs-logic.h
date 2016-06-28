@@ -16,6 +16,7 @@
 /*
  * @file        cs-logic.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
+ * @author      Sangwan Kwon (sangwan.kwon@samsung.com)
  * @version     1.0
  * @brief
  */
@@ -38,6 +39,13 @@
 #include <csr-content-screening-types.h>
 
 namespace Csr {
+
+enum class ScanStage : int {
+	NEW_RISKIEST      = 0x1001,
+	HISTORY_RISKIEST  = 0x1002,
+	WORSE_RISKIEST    = 0x1003,
+	NO_DETECTED       = 0x1004
+};
 
 class CsLogic : public Logic {
 public:
@@ -70,10 +78,18 @@ private:
 	RawBuffer handleAskUser(const CsContext &c, CsDetected &d,
 							FilePtr &&fileptr = nullptr);
 
+	Db::RowShPtr getWorseByPkgPath(const std::string &pkgPath, time_t since);
+	ScanStage judgeScanStage(const Db::RowShPtr &history,
+							 const Db::RowShPtr &after,
+							 const CsDetectedPtr &riskiest,
+							 const Db::RowShPtr &worse,
+							 Db::RowShPtr &jHistory);
+
 	std::shared_ptr<CsLoader> m_loader;
 	std::shared_ptr<Db::Manager> m_db;
 
 	std::string m_dataVersion;
+
 };
 
 }

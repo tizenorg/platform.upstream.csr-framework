@@ -56,7 +56,7 @@ public:
 	RawBuffer getIgnoredList(const StrSet &dirSet);
 
 private:
-	RawBuffer scanApp(const CsContext &context, const std::string &pkgPath);
+	RawBuffer scanApp(const CsContext &context, const FilePtr &pkgPtr);
 	RawBuffer scanAppOnCloud(const CsContext &context, const std::string &pkgPath,
 							 const std::string &pkgId);
 	CsDetectedPtr scanAppDelta(const std::string &pkgPath, const std::string &pkgId,

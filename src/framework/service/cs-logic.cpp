@@ -16,6 +16,7 @@
 /*
  * @file        cs-logic.cpp
  * @author      Kyungwook Tak (k.tak@samsung.com)
+ * @author      Sangwan Kwon (sangwan.kwon@samsung.com)
  * @version     1.0
  * @brief
  */
@@ -266,120 +267,121 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
 
 	// riskiest detected among newly scanned files
 	auto cache = this->scanAppDelta(pkgPath, pkgId);
-	this->m_db->insertLastScanTime(pkgPath, cache.dataVersion, cache.scanTime);
-	CsDetectedPtr &riskiest = cache.riskiest;
-	auto riskiestPath = cache.riskiestPath;
 
-	// history after delta scan. if worst file is changed, it's rescanned in scanAppDelta
-	// and deleted from db if it's cured. if history != nullptr && after == nullptr,
-	// it means worst detected item is cured anyway.
+	// history after delta scan.
+	// if worst file is changed, it's rescanned in scanAppDelta
 	auto after = this->m_db->getWorstByPkgPath(pkgPath, since);
-	if (history && after && riskiest) {
-		if (*history < *riskiest) {
-			INFO("worst case is remained but the more worst newly detected. on pkg[" <<
-				 pkgPath << "]");
 
-			this->m_db->insertCache(cache);
-			this->m_db->insertWorst(pkgId, pkgPath, riskiestPath);
-			this->m_db->updateIgnoreFlag(pkgPath, false);
+	Db::RowShPtr jHistory;
+	Db::RowShPtr jWorse;
+	auto &riskiest = cache.riskiest;
+	INFO("start to judge scan stage on pkg[" << pkgPath << "]");
+	switch (this->judgeScanStage(history, after, riskiest, jWorse,
+				jHistory, pkgPath, since)) {
+	case ScanStage::NEW_RISKIEST :
+		this->m_db->insertCache(cache);
+		this->m_db->insertWorst(pkgId, pkgPath, cache.riskiestPath);
+		this->m_db->updateIgnoreFlag(pkgPath, false);
+		this->m_db->insertLastScanTime(pkgPath, cache.dataVersion, cache.scanTime);
+		return this->handleAskUser(context, *riskiest);
 
-			return this->handleAskUser(context, *riskiest);
-		} else {
-			INFO("worst case is remained and can be re-used on pkg[" << pkgPath << "]");
-
-			this->m_db->insertCache(cache);
-
-			if (history->isIgnored)
-				return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-			return this->handleAskUser(context, *history);
-		}
-	} else if (history && after && !riskiest) {
-		INFO("worst case is remained and NO new detected. history can be re-used. "
-			 "on pkg[" << pkgPath << "]");
-
-		if (history->isIgnored)
+	case ScanStage::HISTORY_RISKIEST :
+		this->m_db->insertCache(cache);
+		this->m_db->insertLastScanTime(pkgPath, cache.dataVersion, cache.scanTime);
+		if (jHistory->isIgnored)
 			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+		return this->handleAskUser(context, *jHistory);
 
-		return this->handleAskUser(context, *history);
-	} else if (history && !after && riskiest) {
-		INFO("worst case is deleted but new detected. we have to find out "
-			 "worse case in db and compare it with riskiest first. on pkg[" << pkgPath <<
-			 "]");
-		Db::RowShPtr worse;
-		since = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
-		for (auto &row : this->m_db->getDetectedByFilepathOnDir(pkgPath, since))
-			if (!worse || *worse < *row)
-				worse = std::move(row);
+	case ScanStage::WORSE_RISKIEST :
+		this->m_db->insertCache(cache);
+		this->m_db->insertWorst(pkgId, pkgPath, jWorse->fileInAppPath);
+		this->m_db->insertLastScanTime(pkgPath, cache.dataVersion, cache.scanTime);
+		if (jWorse->isIgnored)
+			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+		return this->handleAskUser(context, *jWorse);
 
-		if (!worse) {
-			INFO("No detected malware found in db.... Newly detected malware is removed by "
+	case ScanStage::NO_DETECTED :
+		this->m_db->insertLastScanTime(pkgPath, cache.dataVersion, cache.scanTime);
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
+	default:
+		ThrowExc(CSR_ERROR_SERVER, "Invalid scan app status.");
+		break;
+	}
+}
+
+Db::RowShPtr CsLogic::getWorseByPkgPath(const std::string &pkgPath, time_t since)
+{
+	Db::RowShPtr worse;
+	for (auto &row : this->m_db->getDetectedByFilepathOnDir(pkgPath, since))
+		if (!worse || *worse < *row)
+			worse = std::move(row);
+
+	if (!worse)
+		return nullptr;
+	else
+		return worse;
+}
+
+CsLogic::ScanStage CsLogic::judgeScanStage(
+		const Db::RowShPtr &history,
+		const Db::RowShPtr &after,
+		const CsDetectedPtr &riskiest,
+		Db::RowShPtr &jWorse,
+		Db::RowShPtr &jHistory,
+		const std::string &pkgPath,
+		time_t since)
+{
+	if (riskiest == nullptr) {
+		if (after) {
+			INFO("no new detected. after case can be re-used.");
+			jHistory = std::move(after);
+			return ScanStage::HISTORY_RISKIEST;
+		} else if (history) {
+			INFO("no new detected. history case can be re-used.");
+			jHistory = std::move(history);
+			return ScanStage::HISTORY_RISKIEST;
+		} else {
+			INFO("no new detected and no history.");
+			return ScanStage::NO_DETECTED;
+		}
+	} else if (after != nullptr) {
+		if (*after < *riskiest) {
+			INFO("worst case is remained but the more worst newly detected.");
+			return ScanStage::NEW_RISKIEST;
+		} else {
+			INFO("worst case is remained and can be re-used.");
+			jHistory = std::move(after);
+			return ScanStage::HISTORY_RISKIEST;
+		}
+	} else if (history != nullptr) {
+
+		jWorse = this->getWorseByPkgPath(pkgPath, since);
+
+		if (jWorse == nullptr) {
+			INFO("No detected malware found in db...."
+				 "Newly detected malware is removed by "
 				 "other client. Handle it as fully clean case.");
-
-			this->m_db->insertCache(cache);
-
-			return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-		}
-
-		if (*riskiest < *worse) {
-			INFO("worse case in db is worse than riskiest. on pkg[" << pkgPath << "]");
-
-			this->m_db->insertCache(cache);
-			this->m_db->insertWorst(pkgId, pkgPath, worse->fileInAppPath);
-			this->m_db->updateIgnoreFlag(pkgPath, false);
-
-			return this->handleAskUser(context, *worse);
+			return ScanStage::NEW_RISKIEST;
 		} else {
-			INFO("worst case is deleted but newly detected malware is more risky. on pkg[" <<
-				 pkgPath << "]");
-
-			this->m_db->insertCache(cache);
-			this->m_db->insertWorst(pkgId, pkgPath, riskiestPath);
-			this->m_db->updateIgnoreFlag(pkgPath, false);
-
-			if (history->isIgnored)
-				return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-			return this->handleAskUser(context, *riskiest);
-		}
-	} else if (history && !after && !riskiest) {
-		since = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
-		auto rows = this->m_db->getDetectedByFilepathOnDir(pkgPath, since);
-
-		if (!rows.empty()) {
-			INFO("worst case is deleted cascadingly and NO new detected and "
-				 "worse case exist on pkg[" << pkgPath << "]. insert it to worst.");
-			Db::RowShPtr worse;
-			for (auto &row : rows)
-				if (!worse || *worse < *row)
-					worse = std::move(row);
-
-			if (worse) {
-				this->m_db->insertWorst(pkgId, pkgPath, worse->fileInAppPath);
-
-				if (worse->isIgnored)
-					return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-				return this->handleAskUser(context, *worse);
+			if (*riskiest < *jWorse) {
+				INFO("worse case in db is worse than riskiest.");
+				return ScanStage::WORSE_RISKIEST;
+			} else {
+				if (*history < *riskiest) {
+					INFO("worst case is deleted. but newly detected"
+						 " malware is more risky.");
+					return ScanStage::NEW_RISKIEST;
+				} else {
+					INFO("riskiest case is worse than in db."
+						 "but history is worse than riskiest.");
+					return ScanStage::WORSE_RISKIEST;
+				}
 			}
 		}
-
-		INFO("worst case is deleted cascadingly and NO new detected and "
-			 "NO worse case. the pkg[" << pkgPath << "] is clean.");
-
-		this->m_db->deleteDetectedByNameOnPath(pkgPath);
-
-		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-	} else if (!history && riskiest) {
-		INFO("no history and new detected");
-		this->m_db->insertCache(cache);
-		this->m_db->insertWorst(pkgId, pkgPath, riskiestPath);
-		this->m_db->updateIgnoreFlag(pkgPath, false);
-
-		return this->handleAskUser(context, *riskiest);
 	} else {
-		DEBUG("no history and no new detected");
-		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+		INFO("no history and no after case. insert newly detected");
+		return ScanStage::NEW_RISKIEST;
 	}
 }
 

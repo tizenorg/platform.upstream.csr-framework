@@ -61,6 +61,8 @@ void Mainloop::run(int timeout)
 
 void Mainloop::addEventSource(int fd, uint32_t event, Callback &&callback)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	if (this->m_callbacks.count(fd) != 0)
 		ThrowExc(CSR_ERROR_SERVER, "event source on fd[" << fd << "] already added!");
 
@@ -81,23 +83,29 @@ void Mainloop::addEventSource(int fd, uint32_t event, Callback &&callback)
 
 void Mainloop::removeEventSource(int fd)
 {
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
 	if (this->m_callbacks.count(fd) == 0)
 		ThrowExc(CSR_ERROR_SERVER, "event source on fd[" << fd << "] isn't added at all");
 
 	DEBUG("Remove event source on fd[" << fd << "]");
 
-	{
-		this->m_callbacks.erase(fd);
+	this->m_callbacks.erase(fd);
 
-		if (::epoll_ctl(m_pollfd, EPOLL_CTL_DEL, fd, nullptr) == -1) {
-			if (errno == ENOENT)
-				ThrowExc(CSR_ERROR_SERVER, "Tried to delete epoll item which wasn't added");
-			else
-				throw std::system_error(
-					std::error_code(errno, std::generic_category()),
-					"epoll_ctl failed to EPOLL_CTL_DEL.");
-		}
+	if (::epoll_ctl(m_pollfd, EPOLL_CTL_DEL, fd, nullptr) == -1) {
+		if (errno == ENOENT)
+			ThrowExc(CSR_ERROR_SERVER, "Tried to delete epoll item which wasn't added");
+		else
+			throw std::system_error(
+				std::error_code(errno, std::generic_category()),
+				"epoll_ctl failed to EPOLL_CTL_DEL.");
 	}
+}
+
+size_t Mainloop::countEventSource() const
+{
+	std::lock_guard<std::mutex> l(this->m_mutex);
+	return this->m_callbacks.size();
 }
 
 void Mainloop::dispatch(int timeout)

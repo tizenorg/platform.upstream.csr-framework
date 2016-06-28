@@ -38,11 +38,6 @@ Service::~Service()
 {
 }
 
-void Service::setIdleChecker(std::function<bool()> &&idleChecker)
-{
-	this->m_loop.setIdleChecker(std::move(idleChecker));
-}
-
 void Service::add(const SockId &id)
 {
 	this->m_sockIds.insert(id);

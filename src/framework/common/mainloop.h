@@ -29,7 +29,7 @@
 
 namespace Csr {
 
-class Mainloop {
+class API Mainloop {
 public:
 	using Callback = std::function<void(uint32_t event)>;
 
@@ -47,6 +47,7 @@ public:
 
 	void addEventSource(int fd, uint32_t event, Callback &&callback);
 	void removeEventSource(int fd);
+	size_t countEventSource(void) const;
 
 	void setIdleChecker(std::function<bool()> &&idleChecker);
 
@@ -55,7 +56,7 @@ private:
 
 	bool m_isTimedOut;
 	int m_pollfd;
-	std::mutex m_mutex;
+	mutable std::mutex m_mutex;
 	std::unordered_map<int, Callback> m_callbacks;
 
 	std::function<bool()> m_isIdle;

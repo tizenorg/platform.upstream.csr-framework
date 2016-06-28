@@ -113,7 +113,9 @@ ServerService::ServerService() : Service(), m_workqueue(5)
 	this->add(SockId::ADMIN);
 
 	// if task is not running in workqueue, it's idle.
-	this->setIdleChecker([this]() { return !this->m_workqueue.isTaskRunning(); });
+	this->m_loop.setIdleChecker([this]()->bool {
+		return (!this->m_workqueue.isTaskRunning() && this->m_loop.countEventSource() == 3);
+	});
 }
 
 RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)

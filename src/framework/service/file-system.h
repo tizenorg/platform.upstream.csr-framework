@@ -24,6 +24,7 @@
 #include <string>
 #include <memory>
 #include <queue>
+#include <functional>
 
 #include <cstddef>
 #include <ctime>
@@ -135,28 +136,33 @@ using FsVisitorPtr = std::unique_ptr<FsVisitor>;
 
 class FsVisitor {
 public:
+	using TargetHandler = std::function<void(FilePtr &)>;
+
 	~FsVisitor();
 
-	FilePtr next();
+	void run();
 
 	// throws FileNotExist and FileSystemError
-	static FsVisitorPtr create(const std::string &dirpath, bool isBasedOnName,
+	static FsVisitorPtr create(TargetHandler &&targetHandler,
+							   const std::string &dirpath, bool isBasedOnName,
 							   time_t modifiedSince = -1);
 
 private:
 	using DirPtr = std::unique_ptr<DIR, int(*)(DIR *)>;
 
+	void run(const DirPtr &dirptr, const FilePtr &currentdir);
+
 	static DirPtr openDir(const std::string &);
 
-	FsVisitor(const std::string &dirpath, bool isBasedOnName, time_t modifiedSince = -1);
+	FsVisitor(TargetHandler &&targetHandler, const std::string &dirpath,
+			  bool isBasedOnName, time_t modifiedSince = -1);
 
+	TargetHandler m_targetHandler;
+	std::string m_path;
 	time_t m_since;
-	std::queue<FilePtr> m_dirs;
-	DirPtr m_dirptr;
-	struct dirent *m_entryBuf;
-	FilePtr m_currentdir;
 	bool m_isDone;
 	bool m_isBasedOnName;
+	struct dirent *m_entryBuf;
 };
 
 } // namespace Csr

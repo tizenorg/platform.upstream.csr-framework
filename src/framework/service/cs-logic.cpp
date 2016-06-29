@@ -216,12 +216,9 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 	auto t = this->m_loader->getEngineLatestUpdateTime(c);
 	auto lastScanTime = this->m_db->getLastScanTime(pkgPath, t);
 
-	// traverse files in app and take which is more danger than riskiest
-	auto visitor = FsVisitor::create(pkgPath, false, lastScanTime);
-
 	CsDetectedPtr riskiest;
-
-	while (auto file = visitor->next()) {
+	// traverse files in app and take which is more danger than riskiest
+	auto visitor = FsVisitor::create([&](const FilePtr &file) {
 		DEBUG("Scan file by engine: " << file->getPath());
 
 		auto timestamp = ::time(nullptr);
@@ -233,7 +230,7 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 			if (lastScanTime != -1)
 				this->m_db->deleteDetectedByFilepathOnPath(file->getPath());
 
-			continue;
+			return;
 		}
 
 		INFO("New malware detected on file: " << file->getPath());
@@ -252,7 +249,9 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 			*riskiest = std::move(candidate);
 			riskiestPath = file->getPath();
 		}
-	}
+	}, pkgPath, false, lastScanTime);
+
+	visitor->run();
 
 	this->m_db->insertLastScanTime(pkgPath, this->m_dataVersion, starttime);
 
@@ -488,21 +487,20 @@ RawBuffer CsLogic::getScannableFiles(const std::string &dir, const std::function
 
 	auto lastScanTime = this->m_db->getLastScanTime(targetdir, since);
 
-	auto visitor = FsVisitor::create(targetdir, true, lastScanTime);
-
-	isCancelled();
-
 	StrSet fileset;
 
-	while (auto file = visitor->next()) {
+	auto visitor = FsVisitor::create([&](const FilePtr &file) {
 		isCancelled();
 
 		DEBUG("Scannable item: " << file->getName());
 		fileset.insert(file->getName());
-	}
+	}, targetdir, true, lastScanTime);
+
+	visitor->run();
+
+	isCancelled();
 
 	if (lastScanTime != -1) {
-
 		// for case: scan history exist and not modified.
 		for (auto &row : this->m_db->getDetectedAllByNameOnDir(targetdir, since)) {
 			isCancelled();

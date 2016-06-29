@@ -227,10 +227,13 @@ FilePtr File::createInternal(const std::string &fpath, const FilePtr &parentdir,
 
 FsVisitor::DirPtr FsVisitor::openDir(const std::string &dir)
 {
-	return std::unique_ptr<DIR, int(*)(DIR *)>(::opendir(dir.c_str()), ::closedir);
+	return std::unique_ptr<DIR, int(*)(DIR *)>(
+		(isInBlackList(dir) ? nullptr : ::opendir(dir.c_str())), ::closedir);
 }
 
-FsVisitorPtr FsVisitor::create(const std::string &dirpath, bool isBasedOnName, time_t modifiedSince)
+FsVisitorPtr FsVisitor::create(TargetHandler &&targetHandler,
+							   const std::string &dirpath, bool isBasedOnName,
+							   time_t modifiedSince)
 {
 	auto statptr = getStat(dirpath);
 	if (statptr == nullptr)
@@ -239,18 +242,18 @@ FsVisitorPtr FsVisitor::create(const std::string &dirpath, bool isBasedOnName, t
 	else if (!S_ISDIR(statptr->st_mode))
 		ThrowExc(CSR_ERROR_FILE_SYSTEM, "file type is not directory: " << dirpath);
 	else
-		return FsVisitorPtr(new FsVisitor(dirpath, isBasedOnName, modifiedSince));
+		return FsVisitorPtr(new FsVisitor(std::move(targetHandler), dirpath,
+										  isBasedOnName, modifiedSince));
 }
 
-FsVisitor::FsVisitor(const std::string &dirpath, bool isBasedOnName, time_t modifiedSince) :
-	m_since(modifiedSince), m_dirptr(nullptr, ::closedir),
-	m_entryBuf(static_cast<struct dirent *>(::malloc(offsetof(struct dirent, d_name) + NAME_MAX + 1))),
-	m_isDone(true), m_isBasedOnName(isBasedOnName)
+FsVisitor::FsVisitor(TargetHandler &&targetHandler,
+					 const std::string &dirpath, bool isBasedOnName, time_t modifiedSince) :
+	m_targetHandler(std::move(targetHandler)), m_path(dirpath),
+	m_since(modifiedSince), m_isDone(true), m_isBasedOnName(isBasedOnName),
+	m_entryBuf(static_cast<struct dirent *>(::malloc(offsetof(struct dirent, d_name) + NAME_MAX + 1)))
 {
 	if (this->m_entryBuf == nullptr)
 		throw std::bad_alloc();
-
-	this->m_dirs.emplace(File::create(dirpath, nullptr));
 }
 
 FsVisitor::~FsVisitor()
@@ -258,39 +261,19 @@ FsVisitor::~FsVisitor()
 	::free(this->m_entryBuf);
 }
 
-FilePtr FsVisitor::next()
+void FsVisitor::run(const DirPtr &dirptr, const FilePtr &currentdir)
 {
+	struct dirent *result = nullptr;
 	while (true) {
-		if (this->m_isDone) {
-			while (!this->m_dirs.empty() &&
-				   !(this->m_dirptr = openDir(this->m_dirs.front()->getPath())) &&
-				   isInBlackList(this->m_dirs.front()->getPath()))
-				this->m_dirs.pop();
-
-			if (this->m_dirs.empty()) {
-				this->m_currentdir.reset();
-				this->m_isDone = true;
-				return nullptr;
-			} else {
-				this->m_currentdir = std::move(this->m_dirs.front());
-				this->m_dirs.pop();
-				this->m_isDone = false;
-				DEBUG("dir opened: " << this->m_currentdir->getPath());
-			}
-		}
-
-		struct dirent *result = nullptr;
-		const auto &parent_dirpath = this->m_currentdir->getPath();
-		if (::readdir_r(this->m_dirptr.get(), this->m_entryBuf, &result) != 0) {
-			ERROR("readdir_r error on dir: " << parent_dirpath <<
-				  " with errno: " << errno << ". Silently ignore this error & dir stream"
-				  " to reduce side-effect of traversing all the other file systems.");
-			this->m_isDone = true;
-			continue;
+		auto ret = ::readdir_r(dirptr.get(), this->m_entryBuf, &result);
+		if (ret != 0) {
+			WARN("readdir_r error on dir: " << currentdir->getPath() <<
+				 " with errno: " << errno << ". Silently ignore this error & dir stream"
+				 " to reduce side-effect of traversing all the other file systems.");
+			break;
 		} else if (result == nullptr) {
-			DEBUG("End of stream of dir: " << parent_dirpath);
-			this->m_isDone = true;
-			continue;
+			DEBUG("End of stream of dir: " << currentdir->getPath());
+			break;
 		}
 
 		const auto &name = result->d_name;
@@ -299,6 +282,7 @@ FilePtr FsVisitor::next()
 		if (name_size == 0)
 			continue;
 
+		const auto &parent_dirpath = currentdir->getPath();
 		auto fullpath = (parent_dirpath.back() == '/') ?
 				(parent_dirpath + name) : (parent_dirpath + "/" + name);
 
@@ -307,9 +291,15 @@ FilePtr FsVisitor::next()
 				(name_size == 2 && name[0] == '.' && name[1] == '.'))
 				continue;
 
-			FilePtr dirptr;
+			auto ndirptr = openDir(fullpath);
+			if (ndirptr == nullptr) {
+				WARN("Failed to open dir: " << fullpath);
+				continue;
+			}
+
+			FilePtr ncurrentdir;
 			try {
-				dirptr = File::create(fullpath, this->m_currentdir);
+				ncurrentdir = File::create(fullpath, currentdir);
 			} catch (const Exception &e) {
 				if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST) {
 					WARN("Perm denied to create file on pkg path: " << fullpath);
@@ -319,18 +309,17 @@ FilePtr FsVisitor::next()
 				}
 			}
 
-			if (this->m_isBasedOnName && dirptr->isInApp())
-				return dirptr;
+			if (this->m_isBasedOnName && ncurrentdir->isInApp())
+				this->m_targetHandler(ncurrentdir);
 
-			DEBUG("push dir to dirs queue: " << fullpath);
-			this->m_dirs.emplace(std::move(dirptr));
+			DEBUG("recurse dir : " << fullpath);
+			this->run(ndirptr, ncurrentdir);
 		} else if (result->d_type == DT_REG) {
 			try {
-				auto fileptr = File::createIfModified(
-						fullpath, this->m_currentdir, this->m_since);
+				auto fileptr = File::createIfModified(fullpath, currentdir, this->m_since);
 
 				if (fileptr)
-					return fileptr;
+					this->m_targetHandler(fileptr);
 			} catch (const Exception &e) {
 				if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST)
 					WARN("file not exist: " << fullpath << " msg: " << e.what());
@@ -342,8 +331,16 @@ FilePtr FsVisitor::next()
 			}
 		}
 	}
+}
 
-	return nullptr;
+void FsVisitor::run()
+{
+	auto dirptr = openDir(this->m_path);
+	auto currentdir = File::create(this->m_path, nullptr);
+
+	INFO("Visiting files start from dir: " << this->m_path);
+
+	this->run(dirptr, currentdir);
 }
 
 } // namespace Csr

@@ -181,8 +181,8 @@ BOOST_AUTO_TEST_CASE(file_visitor_positive_modified)
 	// if modifiedSince is same to modified time in file stat,
 	// the file will be regarded as ''not modified'' no File::create returns null.
 
-	CHECK_IS_NOT_NULL(File::create(file, nullptr, beforeWrite));
-	CHECK_IS_NULL(File::create(file, nullptr, afterWrite));
+	CHECK_IS_NOT_NULL(File::createIfModified(file, nullptr, beforeWrite));
+	CHECK_IS_NULL(File::createIfModified(file, nullptr, afterWrite));
 }
 
 BOOST_AUTO_TEST_CASE(file_visitor_negative_non_existing)
@@ -194,16 +194,17 @@ BOOST_AUTO_TEST_CASE(directory_visitor_positive_existing)
 {
 	std::string dir(TEST_DIR_VISIT);
 
-	// test for existing dir
-	auto visitor = FsVisitor::create(dir, true);
-	CHECK_IS_NOT_NULL(visitor);
-
 	int cnt = 0;
 
-	while (visitor->next())
-		cnt++;
+	// test for existing dir
+	auto visitor = FsVisitor::create([&](const FilePtr &) {
+		++cnt;
+	}, dir, true);
+	CHECK_IS_NOT_NULL(visitor);
 
-	ASSERT_IF(cnt, 8);
+	visitor->run();
+
+	ASSERT_IF(cnt, 9);
 }
 
 BOOST_AUTO_TEST_CASE(directory_visitor_positive_modified)
@@ -215,24 +216,26 @@ BOOST_AUTO_TEST_CASE(directory_visitor_positive_modified)
 
 	__writeFile(file);
 
-	auto visitor = FsVisitor::create(dir, true, beforeWrite);
-	CHECK_IS_NOT_NULL(visitor);
-
 	int cnt = 0;
 
-	while (visitor->next())
-		cnt++;
+	auto visitor = FsVisitor::create([&](const FilePtr &) {
+		++cnt;
+	}, dir, true, beforeWrite);
+	CHECK_IS_NOT_NULL(visitor);
+
+	visitor->run();
 
 	ASSERT_IF(cnt, 1);
 }
 
 BOOST_AUTO_TEST_CASE(app_directory_visitor_positive)
 {
-	auto visitor = FsVisitor::create(TEST_DIR_APPS(), true);
+	auto visitor = FsVisitor::create([&](const FilePtr &file) {
+		BOOST_MESSAGE("visit target name: " << file->getPath());
+	}, TEST_DIR_APPS(), true);
 	CHECK_IS_NOT_NULL(visitor);
 
-	while (auto file = visitor->next())
-		BOOST_MESSAGE("visit target name: " << file->getPath());
+	visitor->run();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -37,6 +37,7 @@ public:
 	virtual ~HandleExt();
 
 	void dispatchAsync(const std::shared_ptr<Task> &task);
+	void turnOnStopFlagOnly(void);
 	void stop(void);
 	bool isStopped(void) const;
 	bool isRunning(void) const;

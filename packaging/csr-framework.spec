@@ -18,11 +18,11 @@
 %define with_detailed_base_url 0
 %define detailed_base_url %nil
 
-%define with_sample_engine 0
+%define with_sample_engine 1
 
 Summary: A general purpose content screening and reputation solution
 Name: csr-framework
-Version: 2.1.0
+Version: 2.1.1
 Release: 0
 Source: %{name}-%{version}.tar.gz
 License: Apache-2.0 and BSL-1.0

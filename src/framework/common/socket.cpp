@@ -177,7 +177,8 @@ RawBuffer Socket::read(void) const
 			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 				continue;
 			else
-				ThrowExc(CSR_ERROR_SOCKET, "Socket read failed with errno: " << errno);
+				ThrowExc(CSR_ERROR_SOCKET, "Socket read failed on fd[" << this->m_fd <<
+						 "] with errno: " << errno);
 		}
 
 		total += bytes;
@@ -211,7 +212,8 @@ void Socket::write(const RawBuffer &data) const
 			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 				continue;
 			else
-				ThrowExc(CSR_ERROR_SOCKET, "Socket write failed with errno: " << errno);
+				ThrowExc(CSR_ERROR_SOCKET, "Socket write failed on fd[" << this->m_fd <<
+						 "] with errno: " << errno);
 		}
 
 		total += bytes;

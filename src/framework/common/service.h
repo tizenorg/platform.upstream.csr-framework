@@ -47,7 +47,7 @@ public:
 	virtual void start(int timeout) final;
 
 protected:
-	void setIdleChecker(std::function<bool()> &&idleChecker);
+	Mainloop m_loop;
 
 private:
 	virtual void onMessageProcess(const ConnShPtr &) = 0;
@@ -57,7 +57,6 @@ private:
 
 	mutable std::mutex m_crMtx;
 	std::unordered_map<int, ConnShPtr> m_connectionRegistry;
-	Mainloop m_loop;
 
 	std::set<SockId> m_sockIds;
 };

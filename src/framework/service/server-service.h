@@ -22,6 +22,8 @@
 #pragma once
 
 #include <memory>
+#include <map>
+#include <mutex>
 
 #include "common/service.h"
 #include "common/types.h"
@@ -56,6 +58,18 @@ private:
 	std::unique_ptr<CsLogic> m_cslogic;
 	std::unique_ptr<WpLogic> m_wplogic;
 	std::unique_ptr<EmLogic> m_emlogic;
+
+	std::map<int, bool> m_isCancelled;
+	std::mutex m_cancelledMutex;
+
+	struct Closer {
+		std::function<void()> func;
+		Closer(std::function<void()> &&_func) : func(std::move(_func)) {}
+		~Closer() {
+			if (func != nullptr)
+				func();
+		}
+	};
 };
 
 }

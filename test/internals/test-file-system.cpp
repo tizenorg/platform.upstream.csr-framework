@@ -53,7 +53,7 @@ void __assertFile(const File &file, const std::string &path,
 	ASSERT_IF(file.getPath(), path);
 	ASSERT_IF(file.getAppUser(), user);
 	ASSERT_IF(file.getAppPkgId(), pkgId);
-	ASSERT_IF(file.getAppPkgPath(), pkgPath);
+	ASSERT_IF(file.getName(), pkgPath);
 	ASSERT_IF(file.isInApp(), inApp);
 }
 
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(remove_file)
 
 	__createFile(fpath);
 
-	auto file = File::create(fpath);
+	auto file = File::create(fpath, nullptr);
 	BOOST_REQUIRE_NO_THROW(file->remove());
 
 	bool isRemoved = access(fpath.c_str(), F_OK) != 0 && errno == ENOENT;
@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(remove_app)
 	Test::uninstall_app(TEST_TPK_PKG_ID);
 	ASSERT_INSTALL_APP(TEST_TPK_PATH, TEST_TPK_TYPE);
 
-	auto app = File::create(TEST_TPK_MAL_FILE());
+	auto app = File::create(TEST_TPK_MAL_FILE(), nullptr);
 	CHECK_IS_NOT_NULL(app);
 	app->remove();
 
@@ -164,7 +164,7 @@ BOOST_AUTO_TEST_CASE(remove_app)
 
 BOOST_AUTO_TEST_CASE(file_visitor_positive_existing)
 {
-	CHECK_IS_NOT_NULL(File::create(TEST_WRITE_FILE));
+	CHECK_IS_NOT_NULL(File::create(TEST_WRITE_FILE, nullptr));
 }
 
 BOOST_AUTO_TEST_CASE(file_visitor_positive_modified)
@@ -181,29 +181,30 @@ BOOST_AUTO_TEST_CASE(file_visitor_positive_modified)
 	// if modifiedSince is same to modified time in file stat,
 	// the file will be regarded as ''not modified'' no File::create returns null.
 
-	CHECK_IS_NOT_NULL(File::create(file, beforeWrite));
-	CHECK_IS_NULL(File::create(file, afterWrite));
+	CHECK_IS_NOT_NULL(File::createIfModified(file, nullptr, beforeWrite));
+	CHECK_IS_NULL(File::createIfModified(file, nullptr, afterWrite));
 }
 
 BOOST_AUTO_TEST_CASE(file_visitor_negative_non_existing)
 {
-	BOOST_REQUIRE_THROW(File::create(TEST_DIR "/non_existing_file"), Csr::Exception);
+	BOOST_REQUIRE_THROW(File::create(TEST_DIR "/non_existing_file", nullptr), Csr::Exception);
 }
 
 BOOST_AUTO_TEST_CASE(directory_visitor_positive_existing)
 {
 	std::string dir(TEST_DIR_VISIT);
 
-	// test for existing dir
-	auto visitor = FsVisitor::create(dir);
-	CHECK_IS_NOT_NULL(visitor);
-
 	int cnt = 0;
 
-	while (visitor->next())
-		cnt++;
+	// test for existing dir
+	auto visitor = FsVisitor::create([&](const FilePtr &) {
+		++cnt;
+	}, dir, true);
+	CHECK_IS_NOT_NULL(visitor);
 
-	ASSERT_IF(cnt, 8);
+	visitor->run();
+
+	ASSERT_IF(cnt, 9);
 }
 
 BOOST_AUTO_TEST_CASE(directory_visitor_positive_modified)
@@ -215,15 +216,26 @@ BOOST_AUTO_TEST_CASE(directory_visitor_positive_modified)
 
 	__writeFile(file);
 
-	auto visitor = FsVisitor::create(dir, beforeWrite);
-	CHECK_IS_NOT_NULL(visitor);
-
 	int cnt = 0;
 
-	while (visitor->next())
-		cnt++;
+	auto visitor = FsVisitor::create([&](const FilePtr &) {
+		++cnt;
+	}, dir, true, beforeWrite);
+	CHECK_IS_NOT_NULL(visitor);
+
+	visitor->run();
 
 	ASSERT_IF(cnt, 1);
+}
+
+BOOST_AUTO_TEST_CASE(app_directory_visitor_positive)
+{
+	auto visitor = FsVisitor::create([&](const FilePtr &file) {
+		BOOST_MESSAGE("visit target name: " << file->getPath());
+	}, TEST_DIR_APPS(), true);
+	CHECK_IS_NOT_NULL(visitor);
+
+	visitor->run();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

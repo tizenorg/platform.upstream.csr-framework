@@ -50,7 +50,7 @@ public:
 	void getEngineName(csre_wp_context_h, std::string &);
 	void getEngineVersion(csre_wp_context_h, std::string &);
 	void getEngineDataVersion(csre_wp_context_h, std::string &);
-	void getEngineLatestUpdateTime(csre_wp_context_h, time_t *);
+	time_t getEngineLatestUpdateTime(csre_wp_context_h);
 	void getEngineActivated(csre_wp_context_h, csre_wp_activated_e *);
 	void getEngineVendorLogo(csre_wp_context_h, std::vector<unsigned char> &);
 

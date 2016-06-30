@@ -95,26 +95,30 @@ Manager::Manager(const std::string &dbfile, const std::string &scriptsDir) :
 	// run migration if old database is present
 	auto sv = this->getSchemaVersion();
 
-	if (sv < SchemaVersion::NOT_EXIST || sv > SchemaVersion::LATEST) {
-		ERROR("Database corrupted! invalid db version returned! : " << sv);
-		this->resetDatabase();
-		return;
-	} else if (sv == SchemaVersion::LATEST) {
+	switch (sv) {
+	case SchemaVersion::LATEST:
 		DEBUG("Database version is latest");
-		return;
-	}
+		break;
 
-	if (sv == SchemaVersion::NOT_EXIST) {
+	case SchemaVersion::NOT_EXIST:
 		INFO("Database initializing!");
 		this->resetDatabase();
-	} else if (sv < SchemaVersion::LATEST) {
-		INFO("Database migration! from[" << sv <<
-			 "] to[" << SchemaVersion::LATEST << "]");
+		break;
 
-		for (int vi = sv; vi < SchemaVersion::LATEST; ++vi)
-			this->m_conn.exec(this->getMigrationScript(vi).c_str());
+	default:
+		if (sv < SchemaVersion::NOT_EXIST || sv > SchemaVersion::LATEST) {
+			ERROR("Database corrupted! invalid db version returned! : " << sv);
+			this->resetDatabase();
+		} else {
+			INFO("Database migration! from[" << sv <<
+				 "] to[" << SchemaVersion::LATEST << "]");
 
-		this->setSchemaVersion(SchemaVersion::LATEST);
+			for (int vi = sv; vi < SchemaVersion::LATEST; ++vi)
+				this->m_conn.exec(this->getMigrationScript(vi).c_str());
+
+			this->setSchemaVersion(SchemaVersion::LATEST);
+		}
+		break;
 	}
 
 	this->m_conn.exec("VACUUM;");
@@ -235,8 +239,7 @@ void Manager::setEngineState(csr_engine_id_e id, csr_state_e state)
 // SCAN_REQUEST table
 //===========================================================================
 
-time_t Manager::getLastScanTime(const std::string &dir,
-								const std::string &dataVersion)
+time_t Manager::getLastScanTime(const std::string &dir, time_t since)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
@@ -246,11 +249,10 @@ time_t Manager::getLastScanTime(const std::string &dir,
 
 	while (true) {
 		stmt.bind(current);
-		stmt.bind(dataVersion);
 
 		if (stmt.step()) {
 			auto candidate = static_cast<time_t>(stmt.getInt64());
-			if (latest < candidate)
+			if ((since < 0 || since < candidate) && latest < candidate)
 				latest = candidate;
 		}
 
@@ -266,8 +268,8 @@ time_t Manager::getLastScanTime(const std::string &dir,
 	return latest;
 }
 
-void Manager::insertLastScanTime(const std::string &dir, time_t scanTime,
-								 const std::string &dataVersion)
+void Manager::insertLastScanTime(const std::string &dir, const std::string &dataVersion,
+								 time_t scanTime)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
@@ -301,12 +303,11 @@ void Manager::cleanLastScanTime()
 //===========================================================================
 // DETECTED_MALWARE_FILE table
 //===========================================================================
-RowShPtr Manager::getDetectedByNameOnPath(const std::string &path)
+RowShPtr Manager::getDetectedByNameOnPath(const std::string &path, time_t since)
 {
-	std::lock_guard<std::mutex> l(this->m_mutex);
-
 	Statement stmt(this->m_conn, Query::SEL_DETECTED_BY_NAME_ON_PATH);
 	stmt.bind(path);
+	stmt.bind(static_cast<sqlite3_int64>(since));
 
 	if (!stmt.step())
 		return nullptr;
@@ -314,12 +315,11 @@ RowShPtr Manager::getDetectedByNameOnPath(const std::string &path)
 	return extractRow(stmt);
 }
 
-RowShPtr Manager::getDetectedCloudByNameOnPath(const std::string &path)
+RowShPtr Manager::getDetectedCloudByNameOnPath(const std::string &path, time_t since)
 {
-	std::lock_guard<std::mutex> l(this->m_mutex);
-
 	Statement stmt(this->m_conn, Query::SEL_DETECTED_CLOUD_BY_NAME_ON_PATH);
 	stmt.bind(path);
+	stmt.bind(static_cast<sqlite3_int64>(since));
 
 	if (!stmt.step())
 		return nullptr;
@@ -327,35 +327,31 @@ RowShPtr Manager::getDetectedCloudByNameOnPath(const std::string &path)
 	return extractRowCloud(stmt);
 }
 
-RowShPtr Manager::getDetectedAllByNameOnPath(const std::string &path, bool *isByCloud)
+RowShPtr Manager::getDetectedAllByNameOnPath(const std::string &path, time_t since, bool *isByCloud)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
-
-	Statement stmt(this->m_conn, Query::SEL_DETECTED_BY_NAME_ON_PATH);
-	stmt.bind(path);
-
-	if (stmt.step()) {
+	auto row = this->getDetectedByNameOnPath(path, since);
+	if (row) {
 		if (isByCloud)
 			*isByCloud = false;
-		return extractRow(stmt);
+		return row;
 	}
 
-	Statement stmt2(this->m_conn, Query::SEL_DETECTED_CLOUD_BY_NAME_ON_PATH);
-	stmt.bind(path);
-
-	if (stmt2.step()) {
+	row = this->getDetectedCloudByNameOnPath(path, since);
+	if (row) {
 		if (isByCloud)
 			*isByCloud = true;
-		return extractRow(stmt);
+		return row;
 	}
 
 	return nullptr;
 }
 
-RowShPtrs Manager::getDetectedByNameOnDir(const std::string &dir)
+RowShPtrs Manager::getDetectedByNameOnDir(const std::string &dir, time_t since)
 {
 	Statement stmt(this->m_conn, Query::SEL_DETECTED_BY_NAME_ON_DIR);
 	stmt.bind(dir);
+	stmt.bind(static_cast<sqlite3_int64>(since));
 
 	RowShPtrs rows;
 
@@ -365,10 +361,11 @@ RowShPtrs Manager::getDetectedByNameOnDir(const std::string &dir)
 	return rows;
 }
 
-RowShPtrs Manager::getDetectedCloudByNameOnDir(const std::string &dir)
+RowShPtrs Manager::getDetectedCloudByNameOnDir(const std::string &dir, time_t since)
 {
 	Statement stmt(this->m_conn, Query::SEL_DETECTED_CLOUD_BY_NAME_ON_DIR);
 	stmt.bind(dir);
+	stmt.bind(static_cast<sqlite3_int64>(since));
 
 	RowShPtrs rows;
 	while (stmt.step())
@@ -377,15 +374,15 @@ RowShPtrs Manager::getDetectedCloudByNameOnDir(const std::string &dir)
 	return rows;
 }
 
-RowShPtrs Manager::getDetectedAllByNameOnDir(const std::string &dir)
+RowShPtrs Manager::getDetectedAllByNameOnDir(const std::string &dir, time_t since)
 {
 	RowShPtrs normals;
 	RowShPtrs clouds;
 
 	{
 		std::lock_guard<std::mutex> l(this->m_mutex);
-		normals = this->getDetectedByNameOnDir(dir);
-		clouds = this->getDetectedCloudByNameOnDir(dir);
+		normals = this->getDetectedByNameOnDir(dir, since);
+		clouds = this->getDetectedCloudByNameOnDir(dir, since);
 	}
 
 	if (clouds.empty())
@@ -418,12 +415,13 @@ RowShPtrs Manager::getDetectedAllByNameOnDir(const std::string &dir)
 	return rows;
 }
 
-RowShPtrs Manager::getDetectedByFilepathOnDir(const std::string &dir)
+RowShPtrs Manager::getDetectedByFilepathOnDir(const std::string &dir, time_t since)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
 	Statement stmt(this->m_conn, Query::SEL_DETECTED_BY_FILEPATH_ON_DIR);
 	stmt.bind(dir);
+	stmt.bind(static_cast<sqlite3_int64>(since));
 
 	RowShPtrs rows;
 
@@ -433,12 +431,13 @@ RowShPtrs Manager::getDetectedByFilepathOnDir(const std::string &dir)
 	return rows;
 }
 
-RowShPtr Manager::getWorstByPkgPath(const std::string &pkgPath)
+RowShPtr Manager::getWorstByPkgPath(const std::string &pkgPath, time_t since)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
 	Statement stmt(this->m_conn, Query::SEL_WORST_BY_PKGPATH);
 	stmt.bind(pkgPath);
+	stmt.bind(static_cast<sqlite3_int64>(since));
 
 	if (!stmt.step())
 		return nullptr;
@@ -567,16 +566,19 @@ void Manager::deleteDetectedByFilepathOnPath(const std::string &path)
 	stmt.exec();
 }
 
-void Manager::deleteDetectedDeprecatedOnDir(const std::string &dir,
-											const std::string &dataVersion)
+void Manager::deleteDetectedDeprecated(time_t since)
 {
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
-	Statement stmt(this->m_conn, Query::DEL_DETECTED_DEPRECATED_ON_DIR);
+	Statement stmt(this->m_conn, Query::DEL_DETECTED_DEPRECATED);
 
-	stmt.bind(dir);
-	stmt.bind(dataVersion);
+	stmt.bind(static_cast<sqlite3_int64>(since));
 	stmt.exec();
+
+	Statement stmt2(this->m_conn, Query::DEL_DETECTED_DEPRECATED_CLOUD);
+
+	stmt2.bind(static_cast<sqlite3_int64>(since));
+	stmt2.exec();
 }
 
 } // namespace Db

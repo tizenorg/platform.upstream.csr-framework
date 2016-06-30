@@ -23,6 +23,7 @@
 
 #include <condition_variable>
 #include <thread>
+#include <chrono>
 #include <mutex>
 #include <vector>
 #include <boost/test/unit_test.hpp>
@@ -38,16 +39,18 @@
 			actual.cv.wait(l);                                                          \
 			l.unlock();                                                                 \
 		}                                                                               \
-		if (scan >= 0)                                                                  \
-			ASSERT_IF_MSG(actual.scannedCnt, scan, "scanned count mismatch.");          \
-		if (detect >= 0)                                                                \
-			ASSERT_IF_MSG(actual.detectedCnt, detect, "detected count mismatch.");      \
 		if (complete >= 0)                                                              \
-			ASSERT_IF_MSG(actual.completedCnt, complete, "completed count mismatch.");  \
+			ASSERT_IF_MSG(actual.completedCnt, complete,                                \
+						  "completed count mismatch! "                                  \
+						  "Async isn't successfully completed!");                       \
 		if (cancel >= 0)                                                                \
 			ASSERT_IF_MSG(actual.cancelledCnt, cancel, "cancelled count mismatch.");    \
 		if (error >= 0)                                                                 \
 			ASSERT_IF_MSG(actual.errorCnt, error, "error count mismatch.");             \
+		if (detect >= 0)                                                                \
+			ASSERT_IF_MSG(actual.detectedCnt, detect, "detected count mismatch.");      \
+		if (scan >= 0)                                                                  \
+			ASSERT_IF_MSG(actual.scannedCnt, scan, "scanned count mismatch.");          \
 		break;                                                                          \
 	} while (false)
 
@@ -598,8 +601,7 @@ BOOST_AUTO_TEST_CASE(scan_dirs_negative)
 	EXCEPTION_GUARD_END
 }
 
-
-BOOST_AUTO_TEST_CASE(scan_cancel_positiive)
+BOOST_AUTO_TEST_CASE(scan_cancel_positive)
 {
 	EXCEPTION_GUARD_START
 
@@ -618,6 +620,66 @@ BOOST_AUTO_TEST_CASE(scan_cancel_positiive)
 	Test::touch_file(TEST_FILE_HIGH);
 
 	ASSERT_SUCCESS(csr_cs_scan_dirs_async(context, dirs, 1, &testCtx));
+	ASSERT_SUCCESS(csr_cs_cancel_scanning(context));
+
+	//scanned, detected, completed, cancelled, error
+	ASSERT_CALLBACK(testCtx, -1, -1, 0, 1, 0);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(scan_cancel_positive_100)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	set_default_callback(context);
+
+	AsyncTestContext testCtx;
+
+	const char *dirs[1] = {
+		"/"
+	};
+
+	// touch a file : in case of no target file to scan, we cannot cancel to scan.
+	Test::touch_file(TEST_FILE_HIGH);
+
+	ASSERT_SUCCESS(csr_cs_scan_dirs_async(context, dirs, 1, &testCtx));
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+	ASSERT_SUCCESS(csr_cs_cancel_scanning(context));
+
+	//scanned, detected, completed, cancelled, error
+	ASSERT_CALLBACK(testCtx, -1, -1, 0, 1, 0);
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(scan_cancel_positive_500)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	set_default_callback(context);
+
+	AsyncTestContext testCtx;
+
+	const char *dirs[1] = {
+		"/"
+	};
+
+	// touch a file : in case of no target file to scan, we cannot cancel to scan.
+	Test::touch_file(TEST_FILE_HIGH);
+
+	ASSERT_SUCCESS(csr_cs_scan_dirs_async(context, dirs, 1, &testCtx));
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
 	ASSERT_SUCCESS(csr_cs_cancel_scanning(context));
 
 	//scanned, detected, completed, cancelled, error

@@ -30,7 +30,8 @@ namespace Csr {
 namespace Client {
 
 Handle::Handle(SockId id, ContextShPtr &&context) :
-	m_sockId(id), m_ctx(std::forward<ContextShPtr>(context))
+	m_sockId(id), m_ctx(std::forward<ContextShPtr>(context)),
+	m_dispatcher(new Dispatcher(id))
 {
 	if (!m_ctx)
 		throw std::invalid_argument("context shouldn't be null");

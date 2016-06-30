@@ -79,3 +79,9 @@ msgstr "ಸರಿ"
 msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
 msgstr "Ignore"
 
+msgid "IDS_ST_POP_THE_FOLLOWING_MALWARE_HAS_BEEN_DETECTED_C"
+msgstr "ಈ ಮುಂದಿನ ಮಾಲ್‌ವೇರ್ ಕಂಡುಬಂದಿದೆ:"
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_CANT_BE_VIEWED"
+msgstr "ನಿಮ್ಮ ಫೋನ್ ಸಂರಕ್ಷಿಸಲು, ಇದನ್ನು ವೀಕ್ಷಿಸುವಂತಿಲ್ಲ."
+

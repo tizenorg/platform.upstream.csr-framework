@@ -79,3 +79,9 @@ msgstr "OK"
 msgid "IDS_SA_BUTTON_IGNORE_ABB_CHN"
 msgstr "Abaikan"
 
+msgid "IDS_ST_POP_THE_FOLLOWING_MALWARE_HAS_BEEN_DETECTED_C"
+msgstr "Malware berikut telah terdeteksi:"
+
+msgid "IDS_ST_POP_TO_PROTECT_YOUR_PHONE_THIS_CANT_BE_VIEWED"
+msgstr "Untuk melindungi ponsel, ini tidak dapat dilihat."
+

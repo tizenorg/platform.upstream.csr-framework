@@ -22,7 +22,7 @@
 
 Summary: A general purpose content screening and reputation solution
 Name: csr-framework
-Version: 2.1.0
+Version: 2.1.1
 Release: 0
 Source: %{name}-%{version}.tar.gz
 License: Apache-2.0 and BSL-1.0

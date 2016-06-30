@@ -40,6 +40,9 @@ public:
 	template<typename Type, typename ...Args>
 	Type dispatch(Args &&...);
 
+	template<typename ...Args>
+	void ping(Args &&...);
+
 	virtual void add(ResultPtr &&);
 	virtual void add(ResultListPtr &&);
 
@@ -52,17 +55,20 @@ protected:
 
 private:
 	SockId m_sockId;
-	std::unique_ptr<Dispatcher> m_dispatcher;
 	ContextShPtr m_ctx;
+	std::unique_ptr<Dispatcher> m_dispatcher;
 };
 
 template<typename Type, typename ...Args>
 Type Handle::dispatch(Args &&...args)
 {
-	if (m_dispatcher == nullptr)
-		m_dispatcher.reset(new Dispatcher(m_sockId));
+	return this->m_dispatcher->methodCall<Type>(std::forward<Args>(args)...);
+}
 
-	return m_dispatcher->methodCall<Type>(std::forward<Args>(args)...);
+template<typename ...Args>
+void Handle::ping(Args &&...args)
+{
+	this->m_dispatcher->methodPing(std::forward<Args>(args)...);
 }
 
 } // namespace Client

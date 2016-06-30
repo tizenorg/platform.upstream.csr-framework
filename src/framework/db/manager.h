@@ -54,19 +54,17 @@ public:
 	void setEngineState(csr_engine_id_e, csr_state_e);
 
 	// SCAN_REQUEST
-	time_t getLastScanTime(const std::string &dir, const std::string &dataVersion);
-	void insertLastScanTime(const std::string &dir, time_t scanTime,
-							const std::string &dataVersion);
+	time_t getLastScanTime(const std::string &dir, time_t since);
+	void insertLastScanTime(const std::string &dir, const std::string &dataVersion,
+							time_t scanTime);
 	void deleteLastScanTime(const std::string &dir);
 	void cleanLastScanTime();
 
 	// DETECTED_MALWARE_FILE & USER_RESPONSE
-	RowShPtr getDetectedAllByNameOnPath(const std::string &path, bool *isByCloud = nullptr);
-	RowShPtr getDetectedByNameOnPath(const std::string &path);
-	RowShPtr getDetectedCloudByNameOnPath(const std::string &path);
-	RowShPtrs getDetectedAllByNameOnDir(const std::string &dir);
-	RowShPtrs getDetectedByFilepathOnDir(const std::string &dir);
-	RowShPtr getWorstByPkgPath(const std::string &pkgPath);
+	RowShPtr getDetectedAllByNameOnPath(const std::string &path, time_t since, bool *isByCloud = nullptr);
+	RowShPtrs getDetectedAllByNameOnDir(const std::string &dir, time_t since);
+	RowShPtrs getDetectedByFilepathOnDir(const std::string &dir, time_t since);
+	RowShPtr getWorstByPkgPath(const std::string &pkgPath, time_t since);
 
 	void insertDetectedFile(const std::string &filepath, const CsDetected &d,
 							const std::string &dataVersion);
@@ -80,12 +78,13 @@ public:
 	void updateIgnoreFlag(const std::string &name, bool flag);
 	void deleteDetectedByNameOnPath(const std::string &path);
 	void deleteDetectedByFilepathOnPath(const std::string &path);
-	void deleteDetectedDeprecatedOnDir(const std::string &dir,
-									   const std::string &dataVersion);
+	void deleteDetectedDeprecated(time_t since);
 
 private:
-	RowShPtrs getDetectedByNameOnDir(const std::string &dir);
-	RowShPtrs getDetectedCloudByNameOnDir(const std::string &dir);
+	RowShPtr getDetectedByNameOnPath(const std::string &path, time_t since);
+	RowShPtr getDetectedCloudByNameOnPath(const std::string &path, time_t since);
+	RowShPtrs getDetectedByNameOnDir(const std::string &dir, time_t since);
+	RowShPtrs getDetectedCloudByNameOnDir(const std::string &dir, time_t since);
 
 	void insertName(const std::string &name);
 	void insertDetected(const CsDetected &d, const std::string &filename,

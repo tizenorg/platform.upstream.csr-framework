@@ -110,6 +110,7 @@ std::string resolvePath(const std::string &_path)
 std::string canonicalizePath(const std::string &path, bool checkAccess)
 {
 	auto resolved = resolvePath(path);
+
 	auto target = File::getPkgPath(resolved);
 
 	if (checkAccess && !isReadable(path)) {
@@ -127,6 +128,18 @@ std::string canonicalizePath(const std::string &path, bool checkAccess)
 	return target;
 }
 
+FilePtr canonicalizePathWithFile(const std::string &path)
+{
+	auto resolved = resolvePath(path);
+
+	auto fileptr = File::create(path, nullptr);
+
+	if (!isReadable(fileptr->getName()))
+		ThrowExcWarn(CSR_ERROR_FILE_DO_NOT_EXIST, "File is not readable: " << fileptr->getName());
+
+	return fileptr;
+}
+
 } // namespace anonymous
 
 CsLogic::CsLogic(const std::shared_ptr<CsLoader> &loader,
@@ -139,6 +152,7 @@ CsLogic::CsLogic(const std::shared_ptr<CsLoader> &loader,
 	if (this->m_loader) {
 		CsEngineContext csEngineContext(this->m_loader);
 		this->m_loader->getEngineDataVersion(csEngineContext.get(), this->m_dataVersion);
+		this->m_db->deleteDetectedDeprecated(this->m_loader->getEngineLatestUpdateTime(csEngineContext.get()));
 	}
 }
 
@@ -199,14 +213,12 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 	CsEngineContext engineContext(this->m_loader);
 	auto &c = engineContext.get();
 
-	auto lastScanTime = this->m_db->getLastScanTime(pkgPath, this->m_dataVersion);
-
-	// traverse files in app and take which is more danger than riskiest
-	auto visitor = FsVisitor::create(pkgPath, lastScanTime);
+	auto t = this->m_loader->getEngineLatestUpdateTime(c);
+	auto lastScanTime = this->m_db->getLastScanTime(pkgPath, t);
 
 	CsDetectedPtr riskiest;
-
-	while (auto file = visitor->next()) {
+	// traverse files in app and take which is more danger than riskiest
+	auto visitor = FsVisitor::create([&](const FilePtr &file) {
 		DEBUG("Scan file by engine: " << file->getPath());
 
 		auto timestamp = ::time(nullptr);
@@ -218,7 +230,7 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 			if (lastScanTime != -1)
 				this->m_db->deleteDetectedByFilepathOnPath(file->getPath());
 
-			continue;
+			return;
 		}
 
 		INFO("New malware detected on file: " << file->getPath());
@@ -237,44 +249,35 @@ CsDetectedPtr CsLogic::scanAppDelta(const std::string &pkgPath, const std::strin
 			*riskiest = std::move(candidate);
 			riskiestPath = file->getPath();
 		}
-	}
+	}, pkgPath, false, lastScanTime);
 
-	this->m_db->insertLastScanTime(pkgPath, starttime, this->m_dataVersion);
+	visitor->run();
+
+	this->m_db->insertLastScanTime(pkgPath, this->m_dataVersion, starttime);
 
 	return riskiest;
 }
 
-RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
+RawBuffer CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr)
 {
-	FilePtr fileptr;
-	try {
-		fileptr = File::create(pkgPath);
-	} catch (const Exception &e) {
-		if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST)
-			WARN("Package path of file[" << pkgPath << "] doesn't exist or perm denied.");
-		else if (e.error() == CSR_ERROR_FILE_SYSTEM)
-			WARN("Package path of file[" << pkgPath << "] type isn't regular file or dir.");
-		else
-			throw;
-	}
-
-	if (!fileptr->isInApp())
-		ThrowExc(CSR_ERROR_SERVER, "fileptr should be in app.");
-
-	const auto &pkgId = fileptr->getAppPkgId();
+	const auto &pkgPath = pkgPtr->getName();
+	const auto &pkgId = pkgPtr->getAppPkgId();
 
 	if (context.isScanOnCloud && this->m_loader->scanAppOnCloudSupported())
 		return this->scanAppOnCloud(context, pkgPath, pkgId);
 
+	CsEngineContext engineContext(this->m_loader);
+	auto since = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
+
 	// old history
-	auto history = this->m_db->getWorstByPkgPath(pkgPath);
+	auto history = this->m_db->getWorstByPkgPath(pkgPath, since);
 	// riskiest detected among newly scanned files
 	std::string riskiestPath;
 	auto riskiest = this->scanAppDelta(pkgPath, pkgId, riskiestPath);
 	// history after delta scan. if worst file is changed, it's rescanned in scanAppDelta
 	// and deleted from db if it's cured. if history != nullptr && after == nullptr,
 	// it means worst detected item is cured anyway.
-	auto after = this->m_db->getWorstByPkgPath(pkgPath);
+	auto after = this->m_db->getWorstByPkgPath(pkgPath, since);
 	if (history && after && riskiest) {
 		if (*history < *riskiest) {
 			INFO("worst case is remained but the more worst newly detected. on pkg[" <<
@@ -304,7 +307,8 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
 			 "worse case in db and compare it with riskiest first. on pkg[" << pkgPath <<
 			 "]");
 		Db::RowShPtr worse;
-		for (auto &row : this->m_db->getDetectedByFilepathOnDir(pkgPath))
+		since = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
+		for (auto &row : this->m_db->getDetectedByFilepathOnDir(pkgPath, since))
 			if (!worse || *worse < *row)
 				worse = std::move(row);
 
@@ -340,7 +344,8 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const std::string &pkgPath)
 			return this->handleAskUser(context, *riskiest);
 		}
 	} else if (history && !after && !riskiest) {
-		auto rows = this->m_db->getDetectedByFilepathOnDir(pkgPath);
+		since = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
+		auto rows = this->m_db->getDetectedByFilepathOnDir(pkgPath, since);
 
 		if (!rows.empty()) {
 			INFO("worst case is deleted cascadingly and NO new detected and "
@@ -400,7 +405,7 @@ RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
 
 	this->m_db->insertDetectedFile(d.targetName, d, this->m_dataVersion);
 
-	return this->handleAskUser(context, d, std::forward<FilePtr>(fileptr));
+	return this->handleAskUser(context, d, std::move(fileptr));
 }
 
 RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepath)
@@ -410,40 +415,33 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 
 	setCoreUsage(context.coreUsage);
 
-	auto target = canonicalizePath(filepath, true);
+	auto target = canonicalizePathWithFile(filepath);
 
-	if (File::isInApp(target))
+	if (target->isInApp())
 		return this->scanApp(context, target);
 
-	DEBUG("Scan request on file: " << target);
+	const auto &name = target->getName();
 
-	auto history = this->m_db->getDetectedByNameOnPath(target);
+	if (target->isDir())
+		ThrowExc(CSR_ERROR_FILE_SYSTEM, "file type shouldn't be directory: " << name);
 
-	FilePtr fileptr;
+	DEBUG("Scan request on file: " << name);
 
-	// if history exist, fileptr can be null because of modified since value
-	// from history.
-	if (history)
-		fileptr = File::createIfModified(target, static_cast<time_t>(history->ts));
-	else
-		fileptr = File::create(target);
+	CsEngineContext engineContext(this->m_loader);
+	auto since = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
+	auto history = this->m_db->getDetectedAllByNameOnPath(name, since);
 
-	// non-null fileptr means the file is modified since the last history
-	// OR there's no history at all.
-	if (fileptr) {
-		if (history)
-			this->m_db->deleteDetectedByNameOnPath(target);
-
-		if (fileptr->isDir())
-			ThrowExc(CSR_ERROR_FILE_SYSTEM,
-					 "file type shouldn't be directory: " << target);
-
-		DEBUG("file[" << target << "] is modified since the detected time. "
+	if (history == nullptr) {
+		DEBUG("No history exist on target. Newly scan needed: " << name);
+		return this->scanFileWithoutDelta(context, name, std::move(target));
+	} else if (target->isModifiedSince(history->ts)) {
+		DEBUG("file[" << name << "] is modified since the detected time. "
 			  "let's remove history and re-scan");
-		return this->scanFileWithoutDelta(context, target, std::move(fileptr));
+		this->m_db->deleteDetectedByNameOnPath(name);
+		return this->scanFileWithoutDelta(context, name, std::move(target));
 	}
 
-	DEBUG("Usable scan history exist on file: " << target);
+	DEBUG("Usable scan history exist on file: " << name);
 
 	if (history->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
@@ -477,35 +475,40 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 //           4) /opt/usr/apps/org.tizen.message  (app base directory path)
 //           5) /opt/usr/apps/org.tizen.flash    (app base directory path)
 //           % items which has detected history is included in list as well.
-RawBuffer CsLogic::getScannableFiles(const std::string &dir)
+RawBuffer CsLogic::getScannableFiles(const std::string &dir, const std::function<void()> &isCancelled)
 {
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
 		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
 
-	auto lastScanTime = this->m_db->getLastScanTime(dir, this->m_dataVersion);
+	auto targetdir = canonicalizePath(dir, true);
 
-	auto visitor = FsVisitor::create(dir, lastScanTime);
+	CsEngineContext csEngineContext(this->m_loader);
+	auto since = this->m_loader->getEngineLatestUpdateTime(csEngineContext.get());
+
+	auto lastScanTime = this->m_db->getLastScanTime(targetdir, since);
 
 	StrSet fileset;
 
-	while (auto file = visitor->next()) {
-		if (file->isInApp()) {
-			DEBUG("Scannable app: " << file->getAppPkgPath());
-			fileset.insert(file->getAppPkgPath());
-		} else {
-			DEBUG("Scannable file: " << file->getPath());
-			fileset.insert(file->getPath());
-		}
-	}
+	auto visitor = FsVisitor::create([&](const FilePtr &file) {
+		isCancelled();
+
+		DEBUG("Scannable item: " << file->getName());
+		fileset.insert(file->getName());
+	}, targetdir, true, lastScanTime);
+
+	visitor->run();
+
+	isCancelled();
 
 	if (lastScanTime != -1) {
 		// for case: scan history exist and not modified.
-		for (auto &row : this->m_db->getDetectedAllByNameOnDir(File::getPkgPath(dir))) {
-			try {
-				auto fileptr = File::create(row->targetName);
+		for (auto &row : this->m_db->getDetectedAllByNameOnDir(targetdir, since)) {
+			isCancelled();
 
-				fileset.insert(fileptr->isInApp() ?
-						fileptr->getAppPkgPath() : fileptr->getPath());
+			try {
+				auto fileptr = File::create(row->targetName, nullptr);
+
+				fileset.insert(fileptr->getName());
 			} catch (const Exception &e) {
 				if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST ||
 					e.error() == CSR_ERROR_FILE_SYSTEM)
@@ -540,7 +543,7 @@ RawBuffer CsLogic::canonicalizePaths(const StrSet &paths)
 
 RawBuffer CsLogic::setDirTimestamp(const std::string &dir, time_t ts)
 {
-	this->m_db->insertLastScanTime(dir, ts, this->m_dataVersion);
+	this->m_db->insertLastScanTime(dir, this->m_dataVersion, ts);
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 }
@@ -550,7 +553,7 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 	// for file existence / status check. exception thrown.
 	FilePtr file;
 	try {
-		file = File::create(filepath);
+		file = File::create(filepath, nullptr);
 	} catch (const Exception &e) {
 		ERROR("file system related exception occured on file: " << filepath <<
 			  " This case might be file not exist or type invalid,"
@@ -560,11 +563,13 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 		throw;
 	}
 
-	const auto &targetName = (file->isInApp() ? file->getAppPkgPath() : filepath);
+	const auto &targetName = file->getName();
+
+	CsEngineContext csEngineContext(this->m_loader);
+	auto since = this->m_loader->getEngineLatestUpdateTime(csEngineContext.get());
 
 	bool isCloudHistory = false;
-
-	auto history = this->m_db->getDetectedAllByNameOnPath(targetName, &isCloudHistory);
+	auto history = this->m_db->getDetectedAllByNameOnPath(targetName, since, &isCloudHistory);
 
 	if (!history) {
 		ERROR("Target to be judged doesn't exist in db. name: " << targetName);
@@ -572,8 +577,7 @@ RawBuffer CsLogic::judgeStatus(const std::string &filepath, csr_cs_action_e acti
 	}
 
 	// file create based on fileInAppPath(for app target, it is worst detected)
-	if (!isCloudHistory && File::createIfModified(history->fileInAppPath,
-												  static_cast<time_t>(history->ts)))
+	if (!isCloudHistory && file->isModifiedSince(history->ts))
 		ThrowExc(CSR_ERROR_FILE_CHANGED,
 				 "File[" << history->fileInAppPath << "] modified since db delta inserted."
 				 " Don't refresh detected history to know that it's changed since the"
@@ -614,7 +618,9 @@ RawBuffer CsLogic::getDetected(const std::string &filepath)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 	}
 
-	auto row = this->m_db->getDetectedAllByNameOnPath(target);
+	CsEngineContext csEngineContext(this->m_loader);
+	auto row = this->m_db->getDetectedAllByNameOnPath(target,
+			this->m_loader->getEngineLatestUpdateTime(csEngineContext.get()));
 
 	if (row && !row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -628,9 +634,11 @@ RawBuffer CsLogic::getDetectedList(const StrSet &_dirSet)
 	for (const auto &dir : _dirSet)
 		dirSet.emplace(canonicalizePath(dir, false));
 
+	CsEngineContext csEngineContext(this->m_loader);
+	auto since = this->m_loader->getEngineLatestUpdateTime(csEngineContext.get());
 	Db::RowShPtrs rows;
 	for (const auto &dir : dirSet) {
-		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir)) {
+		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir, since)) {
 			if (!row->fileInAppPath.empty() && !isReadable(row->targetName)) {
 				WARN("Exclude not-accessable malware detected file from the list: " <<
 					 row->targetName);
@@ -659,7 +667,9 @@ RawBuffer CsLogic::getIgnored(const std::string &filepath)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 	}
 
-	auto row = this->m_db->getDetectedByNameOnPath(target);
+	CsEngineContext csEngineContext(this->m_loader);
+	auto row = this->m_db->getDetectedAllByNameOnPath(target,
+			this->m_loader->getEngineLatestUpdateTime(csEngineContext.get()));
 
 	if (row && row->isIgnored)
 		return BinaryQueue::Serialize(CSR_ERROR_NONE, row).pop();
@@ -673,9 +683,11 @@ RawBuffer CsLogic::getIgnoredList(const StrSet &_dirSet)
 	for (const auto &dir : _dirSet)
 		dirSet.emplace(canonicalizePath(dir, false));
 
+	CsEngineContext csEngineContext(this->m_loader);
+	auto since = this->m_loader->getEngineLatestUpdateTime(csEngineContext.get());
 	Db::RowShPtrs rows;
 	for (const auto &dir : dirSet) {
-		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir)) {
+		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir, since)) {
 			if (!row->fileInAppPath.empty() && !isReadable(row->targetName)) {
 				WARN("Exclude not-accessable malware detected file from the list: " <<
 					 row->targetName);
@@ -739,11 +751,10 @@ RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fi
 	if (d.response == CSR_CS_USER_RESPONSE_REMOVE && !d.targetName.empty()) {
 		try {
 			FilePtr _fileptr;
-
 			if (fileptr)
-				_fileptr = std::forward<FilePtr>(fileptr);
+				_fileptr = std::move(fileptr);
 			else
-				_fileptr = File::create(d.targetName);
+				_fileptr = File::create(d.targetName, nullptr);
 
 			_fileptr->remove();
 		} catch (const Exception &e) {
@@ -758,7 +769,7 @@ RawBuffer CsLogic::handleAskUser(const CsContext &c, CsDetected &d, FilePtr &&fi
 				throw;
 		}
 
-		this->m_db->deleteDetectedByNameOnPath(File::getPkgPath(d.targetName));
+		this->m_db->deleteDetectedByNameOnPath(d.targetName);
 	}
 
 	return BinaryQueue::Serialize(CSR_ERROR_NONE, d).pop();

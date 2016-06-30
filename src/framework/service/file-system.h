@@ -24,10 +24,12 @@
 #include <string>
 #include <memory>
 #include <queue>
+#include <functional>
 
 #include <cstddef>
 #include <ctime>
 #include <dirent.h>
+#include <sys/stat.h>
 
 namespace Csr {
 
@@ -38,21 +40,69 @@ class File {
 public:
 	File() = delete;
 
-	const std::string &getPath() const noexcept;
-	bool isInApp() const noexcept;
-	bool isDir() const noexcept;
-	bool isModified() const noexcept;
-	const std::string &getAppPkgId() const noexcept;
-	const std::string &getAppUser() const noexcept;
-	const std::string &getAppPkgPath() const noexcept;
+	inline bool isInApp() const noexcept
+	{
+		return this->isPackage() && !this->isPreloaded();
+	}
+
+	inline bool isPackage() const noexcept
+	{
+		return this->m_type & static_cast<int>(Type::Package);
+	}
+
+	inline bool isPreloaded() const noexcept
+	{
+		return this->m_type & static_cast<int>(Type::PreLoaded);
+	}
+
+	inline bool isModified() const noexcept
+	{
+		return this->m_type & static_cast<int>(Type::Modified);
+	}
+
+	inline bool isModifiedSince(time_t since) const noexcept
+	{
+		return this->m_statptr->st_ctime > since;
+	}
+
+	inline bool isDir() const noexcept
+	{
+		return this->m_type & static_cast<int>(Type::Directory);
+	}
+
+	inline const std::string &getName() const noexcept
+	{
+		return (this->isInApp()) ? this->m_appPkgPath : this->m_path;
+	}
+
+	inline const std::string &getPath() const noexcept
+	{
+		return this->m_path;
+	}
+
+	inline const std::string &getAppPkgId() const noexcept
+	{
+		return this->m_appPkgId;
+	}
+
+	inline const std::string &getAppUser() const noexcept
+	{
+		return this->m_appUser;
+	}
+
+	inline const std::string &getAppPkgPath() const noexcept
+	{
+		return this->m_appPkgPath;
+	}
 
 	void remove() const;
 
 	// throws FileNotExist and FileSystemError
-	static FilePtr create(const std::string &fpath, time_t modifiedSince = -1);
-	static FilePtr createIfModified(const std::string &fpath, time_t modifiedSince = -1);
+	static FilePtr create(const std::string &fpath, const FilePtr &parentdir,
+						  time_t modifiedSince = -1);
+	static FilePtr createIfModified(const std::string &fpath, const FilePtr &parentdir,
+									time_t modifiedSince = -1);
 
-	static bool isInApp(const std::string &path);
 	static std::string getPkgPath(const std::string &path);
 
 private:
@@ -64,14 +114,16 @@ private:
 		Directory = (1 << 4)
 	};
 
-	static FilePtr createInternal(const std::string &fpath, time_t modifiedSince,
-								  bool isModifiedOnly);
+	static FilePtr createInternal(const std::string &fpath, const FilePtr &parentdir,
+								  time_t modifiedSince, bool isModifiedOnly);
 	static int getPkgTypes(const std::string &user, const std::string &pkgid);
 
-	explicit File(const std::string &fpath, int type);
+	explicit File(const std::string &fpath, const FilePtr &parentdir, int type,
+				  std::unique_ptr<struct stat> &&statptr);
 
 	std::string m_path;
 	int m_type;
+	std::unique_ptr<struct stat> m_statptr;
 	std::string m_appPkgId;    // meaningful only if inApp == true
 	std::string m_appUser;     // meaningful only if inApp == true
 	std::string m_appPkgPath;  // meaningful only if inApp == true
@@ -84,23 +136,32 @@ using FsVisitorPtr = std::unique_ptr<FsVisitor>;
 
 class FsVisitor {
 public:
+	using TargetHandler = std::function<void(FilePtr &)>;
+
 	~FsVisitor();
 
-	FilePtr next();
+	void run();
 
 	// throws FileNotExist and FileSystemError
-	static FsVisitorPtr create(const std::string &dirpath, time_t modifiedSince = -1);
+	static FsVisitorPtr create(TargetHandler &&targetHandler,
+							   const std::string &dirpath, bool isBasedOnName,
+							   time_t modifiedSince = -1);
 
 private:
 	using DirPtr = std::unique_ptr<DIR, int(*)(DIR *)>;
 
+	void run(const DirPtr &dirptr, const FilePtr &currentdir);
+
 	static DirPtr openDir(const std::string &);
 
-	FsVisitor(const std::string &dirpath, time_t modifiedSince = -1);
+	FsVisitor(TargetHandler &&targetHandler, const std::string &dirpath,
+			  bool isBasedOnName, time_t modifiedSince = -1);
 
+	TargetHandler m_targetHandler;
+	std::string m_path;
 	time_t m_since;
-	std::queue<std::string> m_dirs;
-	DirPtr m_dirptr;
+	bool m_isDone;
+	bool m_isBasedOnName;
 	struct dirent *m_entryBuf;
 };
 

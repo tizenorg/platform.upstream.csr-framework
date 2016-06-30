@@ -38,7 +38,7 @@ const std::string SEL_ENGINE_STATE_ALL =
 	"select id, state from ENGINE_STATE";
 
 const std::string SEL_SCAN_REQUEST =
-	"select last_scan from SCAN_REQUEST where dir = ? and data_version = ?";
+	"select last_scan from SCAN_REQUEST where dir = ?";
 
 const std::string INS_SCAN_REQUEST =
 	"insert or replace into SCAN_REQUEST (dir, last_scan, data_version)"
@@ -54,37 +54,37 @@ const std::string SEL_DETECTED_CLOUD_BY_NAME_ON_PATH =
 	"select name, data_version, malware_name, detailed_url, severity, detected_time,"
 	"       pkg_id, is_ignored"
 	" from join_detecteds_cloud_by_name"
-	" where name = ?";
+	" where name = ? and detected_time >= ?";
 
 const std::string SEL_DETECTED_BY_NAME_ON_PATH =
 	"select name, file_path, data_version, malware_name, detailed_url, severity,"
 	"       detected_time, pkg_id, is_ignored"
 	" from join_detecteds_by_name"
-	" where name = ?";
+	" where name = ? and detected_time >= ?";
 
 const std::string SEL_DETECTED_CLOUD_BY_NAME_ON_DIR =
 	"select name, data_version, malware_name, detailed_url, severity, detected_time,"
 	"       pkg_id, is_ignored"
 	" from join_detecteds_cloud_by_name"
-	" where name like ? || '%'";
+	" where name like ? || '%' and detected_time >= ?";
 
 const std::string SEL_DETECTED_BY_NAME_ON_DIR =
 	"select name, file_path, data_version, malware_name, detailed_url, severity,"
 	"       detected_time, pkg_id, is_ignored"
 	" from join_detecteds_by_name"
-	" where name like ? || '%'";
+	" where name like ? || '%' and detected_time >= ?";
 
 const std::string SEL_DETECTED_BY_FILEPATH_ON_DIR =
 	"select name, file_path, data_version, malware_name, detailed_url, severity,"
 	"       detected_time, pkg_id, is_ignored"
 	" from join_detecteds_by_file_path"
-	" where file_path like ? || '%'";
+	" where file_path like ? || '%' and detected_time >= ?";
 
 const std::string SEL_WORST_BY_PKGPATH =
 	"select name, file_path, data_version, malware_name, detailed_url, severity,"
 	"       detected_time, pkg_id"
 	" from join_p_d"
-	" where name = ?";
+	" where name = ? and detected_time >= ?";
 
 const std::string INS_NAME =
 	"insert or replace into NAMES(name) values(?)";
@@ -115,9 +115,11 @@ const std::string DEL_DETECTED_BY_NAME_ON_PATH =
 const std::string DEL_DETECTED_BY_FILEPATH_ON_PATH =
 	"delete from DETECTED_MALWARE where file_path = ?";
 
-const std::string DEL_DETECTED_DEPRECATED_ON_DIR =
-	"delete from DETECTED_MALWARE where file_path like ? || '%' "
-	" and data_version != ?";
+const std::string DEL_DETECTED_DEPRECATED =
+	"delete from DETECTED_MALWARE where detected_time < ?";
+
+const std::string DEL_DETECTED_DEPRECATED_CLOUD =
+	"delete from DETECTED_MALWARE_CLOUD where detected_time < ?";
 
 } // namespace Query
 } // namespace Db

@@ -26,7 +26,6 @@
 
 #include "common/types.h"
 #include "common/cs-context.h"
-#include "common/dispatcher.h"
 #include "client/callback.h"
 #include "client/handle-ext.h"
 
@@ -55,8 +54,6 @@ private:
 
 	Callback m_cb;
 	void *m_userdata;
-
-	std::unique_ptr<Dispatcher> m_dispatcher;
 };
 
 template<typename T>

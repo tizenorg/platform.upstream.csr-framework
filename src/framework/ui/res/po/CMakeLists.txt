@@ -52,6 +52,8 @@ SET(POFILES
 	xh.po
 	zh_CN.po
 	zu.po
+	en_US.po
+	ms.po
 )
 
 SET(MSGFMT "${BIN_DIR}/msgfmt")

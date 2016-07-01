@@ -62,9 +62,6 @@ private:
 	CsDetectedPtr scanAppDelta(const std::string &pkgPath, const std::string &pkgId,
 							   std::string &riskiestPath);
 
-	RawBuffer scanFileWithoutDelta(const CsContext &context, const std::string &filepath,
-								   FilePtr &&fileptr);
-
 	CsDetected convert(csre_cs_detected_h &result, const std::string &targetName,
 					   time_t timestamp);
 	RawBuffer handleAskUser(const CsContext &c, CsDetected &d,

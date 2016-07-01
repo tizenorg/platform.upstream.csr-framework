@@ -381,33 +381,6 @@ RawBuffer CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr)
 	}
 }
 
-RawBuffer CsLogic::scanFileWithoutDelta(const CsContext &context,
-										const std::string &filepath, FilePtr &&fileptr)
-{
-	if (isInBlackList(filepath))
-		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-	CsEngineContext engineContext(this->m_loader);
-	auto &c = engineContext.get();
-
-	auto timestamp = ::time(nullptr);
-
-	csre_cs_detected_h result = nullptr;
-	this->m_loader->scanFile(c, filepath, &result);
-
-	// detected handle is null if it's safe
-	if (result == nullptr)
-		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
-
-	INFO("New malware detected on file: " << filepath);
-
-	auto d = this->convert(result, filepath, timestamp);
-
-	this->m_db->insertDetectedFile(d.targetName, d, this->m_dataVersion);
-
-	return this->handleAskUser(context, d, std::move(fileptr));
-}
-
 RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepath)
 {
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
@@ -427,26 +400,35 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 
 	DEBUG("Scan request on file: " << name);
 
-	CsEngineContext engineContext(this->m_loader);
-	auto since = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
-	auto history = this->m_db->getDetectedAllByNameOnPath(name, since);
-
-	if (history == nullptr) {
-		DEBUG("No history exist on target. Newly scan needed: " << name);
-		return this->scanFileWithoutDelta(context, name, std::move(target));
-	} else if (target->isModifiedSince(history->ts)) {
-		DEBUG("file[" << name << "] is modified since the detected time. "
-			  "let's remove history and re-scan");
-		this->m_db->deleteDetectedByNameOnPath(name);
-		return this->scanFileWithoutDelta(context, name, std::move(target));
-	}
-
-	DEBUG("Usable scan history exist on file: " << name);
-
-	if (history->isIgnored)
+	if (isInBlackList(name))
 		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
 
-	return this->handleAskUser(context, *history);
+	CsEngineContext engineContext(this->m_loader);
+	auto &c = engineContext.get();
+
+	auto timestamp = ::time(nullptr);
+
+	csre_cs_detected_h result = nullptr;
+	this->m_loader->scanFile(c, name, &result);
+
+	// detected handle is null if it's safe
+	if (result == nullptr)
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+
+	INFO("Malware detected on file: " << name);
+
+	auto d = this->convert(result, name, timestamp);
+
+	// check malware detected history for inherit ignored flag
+	auto since = this->m_loader->getEngineLatestUpdateTime(c);
+	auto history = this->m_db->getDetectedAllByNameOnPath(name, since);
+
+	this->m_db->insertDetectedFile(d.targetName, d, this->m_dataVersion);
+
+	if (history != nullptr && history->isIgnored && !(d > *history))
+		return BinaryQueue::Serialize(CSR_ERROR_NONE).pop();
+	else
+		return this->handleAskUser(context, d, std::move(target));
 }
 
 // Application in input param directory will be treated as one item.

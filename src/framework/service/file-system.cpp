@@ -309,11 +309,12 @@ void FsVisitor::run(const DirPtr &dirptr, const FilePtr &currentdir)
 				}
 			}
 
-			if (this->m_isBasedOnName && ncurrentdir->isInApp())
+			if (this->m_isBasedOnName && ncurrentdir->isInApp()) {
 				this->m_targetHandler(ncurrentdir);
-
-			DEBUG("recurse dir : " << fullpath);
-			this->run(ndirptr, ncurrentdir);
+			} else {
+				DEBUG("recurse dir : " << fullpath);
+				this->run(ndirptr, ncurrentdir);
+			}
 		} else if (result->d_type == DT_REG) {
 			try {
 				auto fileptr = File::createIfModified(fullpath, currentdir, this->m_since);

@@ -24,6 +24,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <chrono>
 
 #include <boost/test/unit_test.hpp>
 
@@ -43,6 +44,25 @@ void checkSameMalware(const CsDetected &d, const Db::Row &r)
 	ASSERT_IF(d.malwareName, r.malwareName);
 	ASSERT_IF(d.detailedUrl, r.detailedUrl);
 	ASSERT_IF(d.ts,          r.ts);
+}
+
+const char *appendIdxToStr(const char *str, int idx)
+{
+	return std::string(str + std::to_string(idx)).c_str();
+}
+
+using TimePoint = std::chrono::high_resolution_clock::time_point;
+
+TimePoint timeCheckStart()
+{
+	return std::chrono::high_resolution_clock::now();
+}
+
+void timeCheckEnd(TimePoint start)
+{
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> diff = end-start;
+	BOOST_MESSAGE("Elapsed time[" << diff.count() << "]. ");
 }
 
 } // namespace anonymous
@@ -217,6 +237,51 @@ BOOST_AUTO_TEST_CASE(detected_malware_file)
 	db.deleteDetectedByNameOnPath(malware4.targetName);
 	CHECK_IS_NULL(db.getDetectedAllByNameOnPath(malware3.targetName, 0));
 	CHECK_IS_NULL(db.getDetectedAllByNameOnPath(malware4.targetName, 0));
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(transaction_time)
+{
+	EXCEPTION_GUARD_START
+
+	Db::Manager db(TEST_DB_FILE, TEST_DB_SCRIPTS);
+	const int testSize = 500;
+	std::string dataVersion = "1.0.0";
+
+	// select test with vacant data
+	auto detectedList = db.getDetectedAllByNameOnDir("/opt", 0);
+	ASSERT_IF(detectedList.empty(), true);
+
+	BOOST_MESSAGE("Start to time check about insert DB");
+	auto start = timeCheckStart();
+	db.transactionBegin();
+	for(int i = 0; i < testSize; i++) {
+		CsDetected d;
+		d.targetName = appendIdxToStr("/opt/transmalware", i);
+		d.severity = CSR_CS_SEVERITY_LOW;
+		d.malwareName = appendIdxToStr("transmalware", i);
+		d.detailedUrl = appendIdxToStr("http://detailed.transmalware", i);
+		d.ts = 100;
+
+		db.insertDetectedFile(d.targetName, d, dataVersion);
+	}
+	db.transactionEnd();
+	timeCheckEnd(start);
+
+	BOOST_MESSAGE("Start to time check about insert DB");
+	auto start2 = timeCheckStart();
+	for(int i = 0; i < testSize; i++) {
+		CsDetected d;
+		d.targetName = appendIdxToStr("/opt/testmalware", i);
+		d.severity = CSR_CS_SEVERITY_LOW;
+		d.malwareName = appendIdxToStr("testmalware", i);
+		d.detailedUrl = appendIdxToStr("http://detailed.malware", i);
+		d.ts = 100;
+
+		db.insertDetectedFile(d.targetName, d, dataVersion);
+	}
+	timeCheckEnd(start2);
 
 	EXCEPTION_GUARD_END
 }

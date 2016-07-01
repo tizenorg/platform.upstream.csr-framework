@@ -87,7 +87,8 @@ const std::string SEL_WORST_BY_PKGPATH =
 	" where name = ? and detected_time >= ?";
 
 const std::string INS_NAME =
-	"insert or replace into NAMES(name) values(?)";
+	"insert into NAMES(name) select ? where not exists"
+	" (select 1 from NAMES where name = ?)";
 
 const std::string INS_DETECTED_CLOUD =
 	"insert or replace into DETECTED_MALWARE_CLOUD(idx, pkg_id, data_version,"

@@ -489,6 +489,7 @@ void Manager::insertName(const std::string &name)
 	Statement stmt(this->m_conn, Query::INS_NAME);
 
 	stmt.bind(name);
+	stmt.bind(name);
 	stmt.exec();
 }
 

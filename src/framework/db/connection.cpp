@@ -43,5 +43,14 @@ int Connection::exec(const std::string &query)
 	return ::sqlite3_changes(m_handle);
 }
 
+void Connection::transactionBegin()
+{
+	::sqlite3_exec(m_handle, "BEGIN TRANSACTION;", 0, 0, 0);
+}
+
+void Connection::transactionEnd()
+{
+	::sqlite3_exec(m_handle, "END TRANSACTION;", 0, 0, 0);
+}
 } // namespace Db
 } // namespace Csr

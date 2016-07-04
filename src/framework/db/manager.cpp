@@ -465,15 +465,6 @@ void Manager::insertDetectedFile(const CsDetected &d, const std::string &dataVer
 	this->insertDetected(d, d.targetName, dataVersion);
 }
 
-void Manager::insertDetectedFileInApp(const std::string &filepath,
-									  const CsDetected &d, const std::string &dataVersion)
-{
-	std::lock_guard<std::mutex> l(this->m_mutex);
-
-	this->insertName(d.targetName);
-	this->insertDetected(d, filepath, dataVersion);
-}
-
 void Manager::insertDetectedAppByCloud(const std::string &name, const std::string &pkgId,
 									   const CsDetected &d, const std::string &dataVersion)
 {
@@ -481,6 +472,15 @@ void Manager::insertDetectedAppByCloud(const std::string &name, const std::strin
 
 	this->insertName(name);
 	this->insertDetectedCloud(d, pkgId, name, dataVersion);
+}
+
+void Manager::insertCache(const Cache &c)
+{
+	std::lock_guard<std::mutex> l(this->m_mutex);
+
+	this->insertName(c.pkgPath);
+	for(std::vector<int>::size_type i = 0; i < c.detecteds.size(); i++)
+		this->insertDetected(c.detecteds[i], c.filePaths[i], c.dataVersion);
 }
 
 void Manager::insertName(const std::string &name)
@@ -579,6 +579,16 @@ void Manager::deleteDetectedDeprecated(time_t since)
 
 	stmt2.bind(static_cast<sqlite3_int64>(since));
 	stmt2.exec();
+}
+
+void Manager::transactionBegin()
+{
+	this->m_conn.transactionBegin();
+}
+
+void Manager::transactionEnd()
+{
+	this->m_conn.transactionEnd();
 }
 
 } // namespace Db

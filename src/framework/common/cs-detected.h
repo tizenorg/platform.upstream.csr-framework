@@ -44,6 +44,9 @@ struct API CsDetected : public IResult {
 	CsDetected(CsDetected &&) noexcept;
 	CsDetected &operator=(CsDetected &&) noexcept;
 
+	CsDetected(const CsDetected &) = delete;
+	CsDetected &operator=(const CsDetected &) = delete;
+
 	bool operator>(const CsDetected &other) const noexcept;
 	bool operator<(const CsDetected &other) const noexcept;
 

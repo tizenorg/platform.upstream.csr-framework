@@ -236,7 +236,7 @@ int CsLogic::scanAppOnCloud(const CsContext &context, const FilePtr &pkgPtr,
 	return this->handleAskUser(context, *malware, pkgPtr);
 }
 
-CsDetectedPtr CsLogic::scanAppDelta(const FilePtr &pkgPtr, std::string &riskiestPath)
+CsDetectedPtr CsLogic::scanAppDelta(const FilePtr &pkgPtr, std::string &riskiestPath, const std::function<void()> &isCancelled)
 {
 	const auto &pkgPath = pkgPtr->getName();
 	const auto &pkgId = pkgPtr->getAppPkgId();
@@ -252,6 +252,9 @@ CsDetectedPtr CsLogic::scanAppDelta(const FilePtr &pkgPtr, std::string &riskiest
 	CsDetectedPtr riskiest;
 	// traverse files in app and take which is more danger than riskiest
 	auto visitor = FsVisitor::create([&](const FilePtr &file) {
+		if (isCancelled != nullptr)
+			isCancelled();
+
 		DEBUG("Scan file by engine: " << file->getPath());
 
 		auto timestamp = ::time(nullptr);
@@ -288,7 +291,7 @@ CsDetectedPtr CsLogic::scanAppDelta(const FilePtr &pkgPtr, std::string &riskiest
 }
 
 int CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr,
-					 CsDetectedPtr &malware)
+					 CsDetectedPtr &malware, const std::function<void()> &isCancelled)
 {
 	const auto &pkgPath = pkgPtr->getName();
 	const auto &pkgId = pkgPtr->getAppPkgId();
@@ -303,7 +306,7 @@ int CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr,
 	auto history = this->m_db->getWorstByPkgPath(pkgPath, since);
 	// riskiest detected among newly scanned files
 	std::string riskiestPath;
-	auto riskiest = this->scanAppDelta(pkgPtr, riskiestPath);
+	auto riskiest = this->scanAppDelta(pkgPtr, riskiestPath, isCancelled);
 	// history after delta scan. if worst file is changed, it's rescanned in scanAppDelta
 	// and deleted from db if it's cured. if history != nullptr && after == nullptr,
 	// it means worst detected item is cured anyway.
@@ -426,10 +429,10 @@ int CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr,
 }
 
 int CsLogic::scanFileInternal(const CsContext &context, const FilePtr &target,
-							  CsDetectedPtr &malware)
+							  CsDetectedPtr &malware, const std::function<void()> &isCancelled)
 {
 	if (target->isInApp())
-		return this->scanApp(context, target, malware);
+		return this->scanApp(context, target, malware, isCancelled);
 
 	const auto &name = target->getName();
 
@@ -524,7 +527,7 @@ RawBuffer CsLogic::scanFilesAsync(const ConnShPtr &conn, const CsContext &contex
 		}
 
 		CsDetectedPtr malware;
-		auto retcode = this->scanFileInternal(context, target, malware);
+		auto retcode = this->scanFileInternal(context, target, malware, isCancelled);
 
 		switch (retcode) {
 		case CSR_ERROR_NONE:

@@ -58,11 +58,9 @@ void AsyncLogic::scanHelper(const CommandId &id, const StrSet &s)
 	if (ret != ASYNC_EVENT_START)
 		ThrowExc(ret, "Error on async scan. ret: " << ret);
 
-	bool isDone = false;
-
 	DEBUG("loop for waiting server event start!!");
 
-	while (!isDone) {
+	while (true) {
 		auto event = this->m_handle->revent<int>();
 
 		DEBUG("event received: " << event);
@@ -105,8 +103,11 @@ void AsyncLogic::scanHelper(const CommandId &id, const StrSet &s)
 
 		case ASYNC_EVENT_COMPLETE: {
 			DEBUG("Async operation completed");
-			isDone = true;
-			break;
+			return;
+		}
+
+		case ASYNC_EVENT_CANCEL: {
+			ThrowExcInfo(ASYNC_EVENT_CANCEL, "Async operation cancelled!");
 		}
 
 		default:

@@ -36,6 +36,9 @@ public:
 
 	int exec(const std::string &query);
 
+	void transactionBegin();
+	void transactionEnd();
+
 	inline long long getLastInsertRowId() const noexcept
 	{
 		return sqlite3_last_insert_rowid(m_handle);

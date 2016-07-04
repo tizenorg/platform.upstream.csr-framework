@@ -26,6 +26,8 @@
 
 #include "common/audit/logger.h"
 #include "common/binary-queue.h"
+#include "common/async-protocol.h"
+
 #include <csr-error.h>
 
 namespace Csr {
@@ -35,7 +37,11 @@ RawBuffer exceptionGuard(const std::function<RawBuffer()> &func)
 	try {
 		return func();
 	} catch (const Exception &e) {
-		ERROR("Exception caught. code: " << e.error() << " message: " << e.what());
+		if (e.error() == ASYNC_EVENT_CANCEL)
+			INFO("Async operation cancel exception: " << e.what());
+		else
+			ERROR("Exception caught. code: " << e.error() << " message: " << e.what());
+
 		return BinaryQueue::Serialize(e.error()).pop();
 	} catch (const std::invalid_argument &e) {
 		ERROR("Invalid argument: " << e.what());

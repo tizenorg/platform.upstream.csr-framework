@@ -16,6 +16,7 @@
 /*
  * @file        cs-logic.h
  * @author      Kyungwook Tak (k.tak@samsung.com)
+ * @author      Sangwan Kwon (sangwan.kwon@samsung.com)
  * @version     1.0
  * @brief
  */
@@ -30,6 +31,7 @@
 #include "common/cs-context.h"
 #include "common/cs-detected.h"
 #include "db/manager.h"
+#include "db/cache.h"
 #include "service/cs-loader.h"
 #include "service/file-system.h"
 #include "service/logic.h"
@@ -61,17 +63,36 @@ public:
 private:
 	int scanFileInternal(const CsContext &context, const FilePtr &target, CsDetectedPtr &malware, const CancelChecker &isCancelled = nullptr);
 	int scanApp(const CsContext &context, const FilePtr &pkgPtr, CsDetectedPtr &malware, const CancelChecker &isCancelled = nullptr);
+	Db::Cache scanAppDelta(const FilePtr &pkgPtr, const CancelChecker &isCancelled = nullptr);
 	int scanAppOnCloud(const CsContext &context, const FilePtr &pkgPtr, CsDetectedPtr &malware);
-	CsDetectedPtr scanAppDelta(const FilePtr &pkgPtr, std::string &riskiestPath, const CancelChecker &isCancelled = nullptr);
 
 	CsDetectedPtr convert(csre_cs_detected_h &result, const std::string &targetName,
 					   time_t timestamp);
 	int handleAskUser(const CsContext &c, CsDetected &d, const FilePtr &fileptr = nullptr);
 
+	Db::RowShPtr getWorseByPkgPath(const std::string &pkgPath, time_t since);
+
+	enum class ScanStage : int {
+		NEW_RISKIEST           = 0x1001,
+		NEW_RISKIEST_KEEP_FLAG = 0x1002,
+		HISTORY_RISKIEST       = 0x1003,
+		WORSE_RISKIEST         = 0x1004,
+		NO_DETECTED            = 0x1005
+	};
+
+	CsLogic::ScanStage judgeScanStage(
+			const Db::RowShPtr &history,
+			const Db::RowShPtr &after,
+			const CsDetectedPtr &riskiest,
+			Db::RowShPtr &jWorse,
+			Db::RowShPtr &jHistory,
+			time_t since);
+
 	std::shared_ptr<CsLoader> m_loader;
 	std::shared_ptr<Db::Manager> m_db;
 
 	std::string m_dataVersion;
+
 };
 
 }

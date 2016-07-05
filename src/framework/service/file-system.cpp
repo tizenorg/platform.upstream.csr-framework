@@ -246,8 +246,8 @@ FsVisitorPtr FsVisitor::create(TargetHandler &&targetHandler,
 										  isBasedOnName, modifiedSince));
 }
 
-FsVisitor::FsVisitor(TargetHandler &&targetHandler,
-					 const std::string &dirpath, bool isBasedOnName, time_t modifiedSince) :
+FsVisitor::FsVisitor(TargetHandler &&targetHandler, const std::string &dirpath,
+					 bool isBasedOnName, time_t modifiedSince) :
 	m_targetHandler(std::move(targetHandler)), m_path(dirpath),
 	m_since(modifiedSince), m_isDone(true), m_isBasedOnName(isBasedOnName),
 	m_entryBuf(static_cast<struct dirent *>(::malloc(offsetof(struct dirent, d_name) + NAME_MAX + 1)))
@@ -293,7 +293,7 @@ void FsVisitor::run(const DirPtr &dirptr, const FilePtr &currentdir)
 
 			auto ndirptr = openDir(fullpath);
 			if (ndirptr == nullptr) {
-				WARN("Failed to open dir: " << fullpath);
+				WARN("Failed to open dir: " << fullpath << " with errno: " << errno);
 				continue;
 			}
 
@@ -337,6 +337,20 @@ void FsVisitor::run(const DirPtr &dirptr, const FilePtr &currentdir)
 void FsVisitor::run()
 {
 	auto dirptr = openDir(this->m_path);
+
+	if (dirptr == nullptr) {
+		int err = errno;
+		WARN("Failed to open dir: " << this->m_path << " with errno: " << err <<
+			 ". let's retry.");
+		dirptr = openDir(this->m_path);
+		if (dirptr == nullptr) {
+			err = errno;
+			WARN("Failed to open dir again: " << this->m_path << " with errno: " << err <<
+				 ". let's skip.");
+			return;
+		}
+	}
+
 	auto currentdir = File::create(this->m_path, nullptr);
 
 	INFO("Visiting files start from dir: " << this->m_path);

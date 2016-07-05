@@ -23,6 +23,7 @@
 
 #include <string>
 #include <vector>
+#include <utility>
 #include <ctime>
 
 #include "common/cs-detected.h"
@@ -32,6 +33,9 @@ namespace Db {
 
 struct Cache {
 public:
+	// fileInAppPath and CsDetected struct
+	using MalwareInApp = std::pair<std::string, CsDetectedPtr>;
+
 	Cache() = default;
 	virtual ~Cache() = default;
 
@@ -43,10 +47,8 @@ public:
 	std::string pkgPath;
 	std::string pkgId;
 	std::string dataVersion;
-	std::string riskiestPath;
-	std::vector<std::string> filePaths;
-	std::vector<CsDetectedPtr> detecteds;
-	CsDetectedPtr riskiest;
+	std::vector<MalwareInApp> detecteds;
+	int riskiestIndex;
 	time_t scanTime;
 };
 

@@ -479,8 +479,8 @@ void Manager::insertCache(const Cache &c)
 	std::lock_guard<std::mutex> l(this->m_mutex);
 
 	this->insertName(c.pkgPath);
-	for (std::vector<int>::size_type i = 0; i < c.detecteds.size(); ++i)
-		this->insertDetected(*c.detecteds[i], c.filePaths[i], c.dataVersion);
+	for (const auto &malware : c.detecteds)
+		this->insertDetected(*malware.second, malware.first, c.dataVersion);
 }
 
 void Manager::insertName(const std::string &name)

@@ -287,16 +287,10 @@ Db::Cache CsLogic::scanAppDelta(const FilePtr &pkgPtr, const CancelChecker &isCa
 		candidate->isApp = true;
 		candidate->pkgId = pkgId;
 
-		if (!cache.riskiest) {
-			cache.riskiest.reset(new CsDetected(*candidate));
-			cache.riskiestPath = path;
-		} else if (*(cache.riskiest) < *candidate) {
-			*(cache.riskiest) = *candidate;
-			cache.riskiestPath = path;
-		}
+		if (cache.riskiestIndex == -1 || *cache.detecteds[cache.riskiestIndex].second < *candidate)
+			cache.riskiestIndex = cache.detecteds.size();
 
-		cache.filePaths.push_back(path);
-		cache.detecteds.emplace_back(std::move(candidate));
+		cache.detecteds.emplace_back(path, std::move(candidate));
 	}, pkgPath, false, lastScanTime);
 
 	visitor->run();
@@ -327,13 +321,14 @@ int CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr,
 	auto isHistoryDeleted = !this->m_db->getWorstByPkgPath(pkgPath, since);
 
 	Db::RowShPtr jWorse;
-	auto &riskiest = cache.riskiest;
+
+	auto &riskiest = cache.riskiest.second;
 	INFO("start to judge scan stage on pkg[" << pkgPath << "]");
 	switch (this->judgeScanStage(riskiest, history, isHistoryDeleted, since, jWorse)) {
-	case CsLogic::ScanStage::NEW_RISKIEST :
+	case CsLogic::ScanStage::NEW_RISKIEST:
 		this->m_db->transactionBegin();
 		this->m_db->insertCache(cache);
-		this->m_db->insertWorst(pkgId, pkgPath, cache.riskiestPath);
+		this->m_db->insertWorst(pkgId, pkgPath, cache.riskiest.first);
 		this->m_db->updateIgnoreFlag(pkgPath, false);
 		this->m_db->insertLastScanTime(pkgPath, cache.dataVersion, cache.scanTime);
 		this->m_db->transactionEnd();
@@ -341,10 +336,10 @@ int CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr,
 		malware = std::move(riskiest);
 		return this->handleAskUser(context, *malware, pkgPtr);
 
-	case CsLogic::ScanStage::NEW_RISKIEST_KEEP_FLAG :
+	case CsLogic::ScanStage::NEW_RISKIEST_KEEP_FLAG:
 		this->m_db->transactionBegin();
 		this->m_db->insertCache(cache);
-		this->m_db->insertWorst(pkgId, pkgPath, cache.riskiestPath);
+		this->m_db->insertWorst(pkgId, pkgPath, cache.riskiest.first);
 		this->m_db->insertLastScanTime(pkgPath, cache.dataVersion, cache.scanTime);
 		this->m_db->transactionEnd();
 		if (history->isIgnored)
@@ -353,7 +348,7 @@ int CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr,
 		malware = std::move(riskiest);
 		return this->handleAskUser(context, *malware, pkgPtr);
 
-	case CsLogic::ScanStage::HISTORY_RISKIEST :
+	case CsLogic::ScanStage::HISTORY_RISKIEST:
 		this->m_db->transactionBegin();
 		this->m_db->insertCache(cache);
 		this->m_db->insertWorst(pkgId, pkgPath, history->fileInAppPath);
@@ -366,7 +361,7 @@ int CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr,
 		*malware = *history;
 		return this->handleAskUser(context, *malware, pkgPtr);
 
-	case CsLogic::ScanStage::WORSE_RISKIEST :
+	case CsLogic::ScanStage::WORSE_RISKIEST:
 		this->m_db->transactionBegin();
 		this->m_db->insertCache(cache);
 		this->m_db->insertWorst(pkgId, pkgPath, jWorse->fileInAppPath);
@@ -379,7 +374,7 @@ int CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr,
 		*malware = *jWorse;
 		return this->handleAskUser(context, *malware, pkgPtr);
 
-	case CsLogic::ScanStage::NO_DETECTED :
+	case CsLogic::ScanStage::NO_DETECTED:
 		this->m_db->insertLastScanTime(pkgPath, cache.dataVersion, cache.scanTime);
 		return CSR_ERROR_NONE;
 

@@ -20,19 +20,20 @@
  * @brief       Cache for hold the data temporally before insert to DB
  */
 #include "db/cache.h"
-#include "common/audit/logger.h"
 
 namespace Csr {
 namespace Db {
+
+Cache::Cache() noexcept : riskiestIndex(-1)
+{
+}
 
 Cache::Cache(Cache &&rhs) noexcept :
 	pkgPath(std::move(rhs.pkgPath)),
 	pkgId(std::move(rhs.pkgId)),
 	dataVersion(std::move(rhs.dataVersion)),
-	riskiestPath(std::move(rhs.riskiestPath)),
-	filePaths(std::move(rhs.filePaths)),
 	detecteds(std::move(rhs.detecteds)),
-	riskiest(std::move(rhs.riskiest)),
+	riskiestIndex(rhs.riskiestIndex),
 	scanTime(rhs.scanTime)
 {
 }
@@ -45,10 +46,8 @@ Cache &Cache::operator=(Cache &&rhs) noexcept
 	this->pkgPath = std::move(rhs.pkgPath);
 	this->pkgId = std::move(rhs.pkgId);
 	this->dataVersion = std::move(rhs.dataVersion);
-	this->riskiestPath = std::move(rhs.riskiestPath);
-	this->filePaths = std::move(rhs.filePaths);
 	this->detecteds = std::move(rhs.detecteds);
-	this->riskiest = std::move(rhs.riskiest);
+	this->riskiestIndex = rhs.riskiestIndex;
 	this->scanTime = rhs.scanTime;
 
 	return *this;

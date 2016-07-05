@@ -1173,4 +1173,33 @@ BOOST_AUTO_TEST_CASE(scan_async_multiple)
 	EXCEPTION_GUARD_END
 }
 
+BOOST_AUTO_TEST_CASE(scan_async_no_perm_dirs)
+{
+	EXCEPTION_GUARD_START
+
+	std::string tmp_no_perm_media = std::string() + TEST_DIR_MEDIA() + "/tak";
+	BOOST_MESSAGE("This TC needs special directory(" << tmp_no_perm_media << ") "
+				  "which should be created manualy with special smack label to occur "
+				  "smack-deny to open.");
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+
+	const char *dirs[3] = {
+		"/tmp",
+		tmp_no_perm_media.c_str(),
+		TEST_DIR_APPS()
+	};
+
+	set_default_callback(context);
+
+	AsyncTestContext testCtx;
+
+	ASSERT_SUCCESS(csr_cs_scan_dirs_async(context, dirs, 3, &testCtx));
+
+	ASSERT_CALLBACK(testCtx, -1, -1, 1, 0, 0);
+
+	EXCEPTION_GUARD_END
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -514,8 +514,9 @@ RawBuffer CsLogic::scanFilesAsync(const ConnShPtr &conn, const CsContext &contex
 			canonicalized.insert(target->getName());
 		} catch (const Exception &e) {
 			if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST ||
-				e.error() == CSR_ERROR_FILE_SYSTEM) {
-				WARN("File-system related exception occured while getting "
+				e.error() == CSR_ERROR_FILE_SYSTEM ||
+				e.error() == CSR_ERROR_PERMISSION_DENIED) {
+				WARN("File-system & permission related exception occured while getting "
 					 "canonicalize path of path: " << path << " " << e.what() <<
 					 ". Ignore this exception.");
 				continue;
@@ -562,7 +563,7 @@ RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context
 
 	for (const auto &path : paths) {
 		try {
-			auto target = canonicalizePath(File::getPkgPath(path), true);
+			auto target = canonicalizePath(path, true);
 
 			if (dirs.find(target) == dirs.end()) {
 				INFO("Insert to canonicalized list: " << target);
@@ -570,8 +571,9 @@ RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context
 			}
 		} catch (const Exception &e) {
 			if (e.error() == CSR_ERROR_FILE_DO_NOT_EXIST ||
-				e.error() == CSR_ERROR_FILE_SYSTEM) {
-				WARN("File-system related exception occured while getting "
+				e.error() == CSR_ERROR_FILE_SYSTEM ||
+				e.error() == CSR_ERROR_PERMISSION_DENIED) {
+				WARN("File-system & permission related exception occured while getting "
 					 "canonicalize path of path: " << path << " " << e.what() <<
 					 ". Ignore this exception.");
 				continue;

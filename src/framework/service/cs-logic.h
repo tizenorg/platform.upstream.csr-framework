@@ -67,7 +67,7 @@ private:
 	int scanAppOnCloud(const CsContext &context, const FilePtr &pkgPtr, CsDetectedPtr &malware);
 
 	CsDetectedPtr convert(csre_cs_detected_h &result, const std::string &targetName,
-					   time_t timestamp);
+						  time_t timestamp);
 	int handleAskUser(const CsContext &c, CsDetected &d, const FilePtr &fileptr = nullptr);
 
 	Db::RowShPtr getWorseByPkgPath(const std::string &pkgPath, time_t since);
@@ -80,13 +80,9 @@ private:
 		NO_DETECTED            = 0x1005
 	};
 
-	CsLogic::ScanStage judgeScanStage(
-			const Db::RowShPtr &history,
-			const Db::RowShPtr &after,
-			const CsDetectedPtr &riskiest,
-			Db::RowShPtr &jWorse,
-			Db::RowShPtr &jHistory,
-			time_t since);
+	CsLogic::ScanStage judgeScanStage(const CsDetectedPtr &riskiest,
+									  const Db::RowShPtr &history, bool isHistoryDeleted,
+									  time_t since, Db::RowShPtr &jWorse);
 
 	std::shared_ptr<CsLoader> m_loader;
 	std::shared_ptr<Db::Manager> m_db;

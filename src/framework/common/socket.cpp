@@ -200,7 +200,7 @@ void Socket::write(const RawBuffer &data) const
 
 	auto bytes = ::write(this->m_fd, &size, sizeof(size));
 	if (bytes < 0)
-		ThrowExc(CSR_ERROR_SOCKET, "Socket data size write failed on fd[" << this->m_fd <<
+		ThrowExcWarn(CSR_ERROR_SOCKET, "Socket data size write failed on fd[" << this->m_fd <<
 				 "] with errno: " << errno);
 
 	while (total < size) {
@@ -210,7 +210,7 @@ void Socket::write(const RawBuffer &data) const
 			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 				continue;
 			else
-				ThrowExc(CSR_ERROR_SOCKET, "Socket write failed on fd[" << this->m_fd <<
+				ThrowExcWarn(CSR_ERROR_SOCKET, "Socket write failed on fd[" << this->m_fd <<
 						 "] with errno: " << errno);
 		}
 

@@ -37,11 +37,12 @@ RawBuffer exceptionGuard(const std::function<RawBuffer()> &func)
 	try {
 		return func();
 	} catch (const Exception &e) {
-		if (e.error() == ASYNC_EVENT_CANCEL)
+		if (e.error() == CSR_ERROR_SOCKET)
+			WARN("Socket error. Client might cancel async scan or crashed: " << e.what());
+		else if (e.error() == ASYNC_EVENT_CANCEL)
 			INFO("Async operation cancel exception: " << e.what());
 		else
 			ERROR("Exception caught. code: " << e.error() << " message: " << e.what());
-
 		return BinaryQueue::Serialize(e.error()).pop();
 	} catch (const std::invalid_argument &e) {
 		ERROR("Invalid argument: " << e.what());

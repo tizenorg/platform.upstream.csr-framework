@@ -21,9 +21,14 @@
  */
 #pragma once
 
+#include <memory>
+
 #include "common/types.h"
 #include "common/command-id.h"
+#include "common/dispatcher.h"
+#include "common/mainloop.h"
 #include "client/handle-ext.h"
+#include "client/eventfd.h"
 
 namespace Csr {
 namespace Client {
@@ -31,7 +36,7 @@ namespace Client {
 class AsyncLogic {
 public:
 	AsyncLogic(HandleExt *handle, void *userdata);
-	virtual ~AsyncLogic();
+	virtual ~AsyncLogic() = default;
 
 	void scanFiles(const StrSet &files);
 	void scanDirs(const StrSet &dirs);
@@ -42,8 +47,10 @@ private:
 	void scanHelper(const CommandId &id, const StrSet &s);
 
 	HandleExt *m_handle; // for registering results for auto-release
-
 	void *m_userdata;
+	Mainloop m_loop;
+	EventFd m_cancelSignal;
+	std::unique_ptr<Dispatcher> m_dispatcherAsync;
 };
 
 }

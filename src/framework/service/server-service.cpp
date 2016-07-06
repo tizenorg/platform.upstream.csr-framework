@@ -216,7 +216,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		auto fd = conn->getFd();
 		if (this->m_isCancelled.count(fd) == 1) {
 			this->m_isCancelled[fd] = true;
-			INFO("Turn on cancelled flag of fd: " << fd);
+			INFO("Turn on cancelled flag fn fd: " << fd);
 		} else {
 			WARN("Nothing to cancel... fd: " << fd);
 		}
@@ -428,6 +428,12 @@ void ServerService::onMessageProcess(const ConnShPtr &connection)
 
 			if (!outbuf.empty())
 				connection->send(outbuf);
+		} catch (const Exception &e) {
+			if (e.error() == CSR_ERROR_SOCKET)
+				WARN("The connection is closed by the peer. Client might cancel async "
+					 "scanning or crashed: " << e.what());
+			else
+				throw;
 		} catch (const std::exception &e) {
 			ERROR("exception on workqueue task: " << e.what());
 			try {

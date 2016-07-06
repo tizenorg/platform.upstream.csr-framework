@@ -40,6 +40,8 @@ public:
 	Dispatcher(Dispatcher &&) = delete;
 	Dispatcher &operator=(Dispatcher &&) = delete;
 
+	int getFd(void) const noexcept;
+
 	template<typename Type, typename ...Args>
 	Type methodCall(Args &&...args);
 

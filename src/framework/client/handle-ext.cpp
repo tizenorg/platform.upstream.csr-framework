@@ -41,17 +41,23 @@ HandleExt::~HandleExt()
 		this->m_worker.join();
 }
 
-void HandleExt::turnOnStopFlagOnly()
+void HandleExt::setStopFunc(std::function<void()> &&func)
 {
 	std::lock_guard<std::mutex> l(this->m_flagMutex);
-	this->m_stop = true;
+	this->m_stopFunc = std::move(func);
 }
 
 void HandleExt::stop()
 {
 	DEBUG("Stop & join worker...");
 
-	this->turnOnStopFlagOnly();
+	{
+		std::lock_guard<std::mutex> l(this->m_flagMutex);
+		this->m_stop = true;
+
+		if (this->m_stopFunc != nullptr)
+			this->m_stopFunc();
+	}
 
 	if (this->m_worker.joinable())
 		this->m_worker.join();

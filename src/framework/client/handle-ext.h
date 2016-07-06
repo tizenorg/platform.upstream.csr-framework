@@ -37,7 +37,7 @@ public:
 	virtual ~HandleExt();
 
 	void dispatchAsync(const std::shared_ptr<Task> &task);
-	void turnOnStopFlagOnly(void);
+	void setStopFunc(std::function<void()> &&func);
 	void stop(void);
 	bool isStopped(void) const;
 	bool isRunning(void) const;
@@ -52,6 +52,7 @@ private:
 	bool m_stop;
 	bool m_isRunning;
 	std::thread m_worker;
+	std::function<void()> m_stopFunc;
 	mutable std::mutex m_resultsMutex;
 	mutable std::mutex m_flagMutex;
 };

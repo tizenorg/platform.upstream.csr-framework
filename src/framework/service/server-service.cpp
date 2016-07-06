@@ -428,6 +428,12 @@ void ServerService::onMessageProcess(const ConnShPtr &connection)
 
 			if (!outbuf.empty())
 				connection->send(outbuf);
+		} catch (const Exception &e) {
+			if (e.error() == CSR_ERROR_SOCKET)
+				WARN("The connection is closed by the peer. Client might cancel async "
+					 "scanning or crashed: " << e.what());
+			else
+				throw;
 		} catch (const std::exception &e) {
 			ERROR("exception on workqueue task: " << e.what());
 			try {

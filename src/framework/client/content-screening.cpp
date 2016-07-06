@@ -400,10 +400,12 @@ int csr_cs_scan_files_async(csr_cs_context_h handle, const char *file_paths[],
 	auto task = std::make_shared<Task>([hExt, user_data, fileSet] {
 		EXCEPTION_ASYNC_SAFE_START(hExt->m_cb, user_data)
 
+		Client::AsyncLogic l(hExt, user_data);
+
+		hExt->setStopFunc([&l]() { l.stop(); });
+
 		if (hExt->isStopped())
 			ThrowExcInfo(ASYNC_EVENT_CANCEL, "Async operation cancelled!");
-
-		Client::AsyncLogic l(hExt, user_data);
 
 		l.scanFiles(*fileSet);
 
@@ -458,10 +460,12 @@ int csr_cs_scan_dirs_async(csr_cs_context_h handle, const char *dir_paths[],
 	auto task = std::make_shared<Task>([hExt, user_data, dirSet] {
 		EXCEPTION_ASYNC_SAFE_START(hExt->m_cb, user_data)
 
+		Client::AsyncLogic l(hExt, user_data);
+
+		hExt->setStopFunc([&l]() { l.stop(); });
+
 		if (hExt->isStopped())
 			ThrowExcInfo(ASYNC_EVENT_CANCEL, "Async operation cancelled!");
-
-		Client::AsyncLogic l(hExt, user_data);
 
 		l.scanDirs(*dirSet);
 
@@ -489,10 +493,6 @@ int csr_cs_cancel_scanning(csr_cs_context_h handle)
 
 	if (!hExt->isRunning() || hExt->isStopped())
 		return CSR_ERROR_NO_TASK;
-
-	hExt->turnOnStopFlagOnly();
-
-	hExt->ping(CommandId::CANCEL_OPERATION);
 
 	hExt->stop();
 

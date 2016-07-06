@@ -16,7 +16,7 @@
 /*
  * @file        create_schema.sql
  * @author      Kyungwook Tak (k.tak@samsung.com)
- * @version     1.0
+ * @version     2.0
  * @brief       DB schema
  */
 CREATE TABLE IF NOT EXISTS SCHEMA_INFO (
@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS DETECTED_MALWARE_CLOUD (
 	severity INTEGER NOT NULL,
 	detected_time INTEGER NOT NULL,
 
-	FOREIGN KEY(idx) REFERENCES NAMES(idx) ON DELETE CASCADE
+	FOREIGN KEY(idx) REFERENCES NAMES(idx) ON DELETE CASCADE,
+	UNIQUE(idx)
 );
 
 CREATE TABLE IF NOT EXISTS PACKAGE_INFO (

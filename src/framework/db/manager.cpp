@@ -37,7 +37,8 @@ namespace {
 enum SchemaVersion : int {
 	NOT_EXIST = 0,
 	_1        = 1,
-	LATEST    = _1
+	_2        = 2,
+	LATEST    = _2
 };
 
 const std::string SCRIPT_CREATE_SCHEMA  = "create_schema";
@@ -113,8 +114,12 @@ Manager::Manager(const std::string &dbfile, const std::string &scriptsDir) :
 			INFO("Database migration! from[" << sv <<
 				 "] to[" << SchemaVersion::LATEST << "]");
 
+			this->m_conn.exec("PRAGMA foreign_keys = OFF;");
+
 			for (int vi = sv; vi < SchemaVersion::LATEST; ++vi)
 				this->m_conn.exec(this->getMigrationScript(vi).c_str());
+
+			this->m_conn.exec("PRAGMA foreign_keys = ON;");
 
 			this->setSchemaVersion(SchemaVersion::LATEST);
 		}

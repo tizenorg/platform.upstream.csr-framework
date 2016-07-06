@@ -56,7 +56,6 @@ std::string cidToString(const CommandId &cid)
 	CID_TOSTRING(GET_IGNORED_LIST);
 	CID_TOSTRING(SCAN_DIRS_ASYNC);
 	CID_TOSTRING(SCAN_FILES_ASYNC);
-	CID_TOSTRING(CANCEL_OPERATION);
 	CID_TOSTRING(JUDGE_STATUS);
 
 	CID_TOSTRING(CHECK_URL);
@@ -162,25 +161,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		StrSet paths;
 		q.Deserialize(cptr, paths);
 
-		auto fd = conn->getFd();
-
-		{
-			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
-			this->m_isCancelled[fd] = false;
-			INFO("Turn off cancelled flag before start async. fd: " << fd);
-		}
-
-		Closer closer([this, fd]() {
-			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
-			this->m_isCancelled.erase(fd);
-			INFO("Erase cancelled flag in closer on fd: " << fd);
-		});
-
-		return this->m_cslogic->scanFilesAsync(conn, *cptr, paths, [this, fd]() {
-			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
-			if (this->m_isCancelled.count(fd) == 1 && this->m_isCancelled[fd])
-				ThrowExcInfo(ASYNC_EVENT_CANCEL, "operation cancelled on fd: " << fd);
-		});
+		return this->m_cslogic->scanFilesAsync(conn, *cptr, paths);
 	}
 
 	case CommandId::SCAN_DIRS_ASYNC: {
@@ -190,38 +171,7 @@ RawBuffer ServerService::processCs(const ConnShPtr &conn, RawBuffer &data)
 		StrSet paths;
 		q.Deserialize(cptr, paths);
 
-		auto fd = conn->getFd();
-
-		{
-			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
-			this->m_isCancelled[fd] = false;
-			INFO("Turn off cancelled flag before start async. fd: " << fd);
-		}
-
-		Closer closer([this, fd]() {
-			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
-			this->m_isCancelled.erase(fd);
-			INFO("Erase cancelled flag in closer on fd: " << fd);
-		});
-
-		return this->m_cslogic->scanDirsAsync(conn, *cptr, paths, [this, fd]() {
-			std::lock_guard<std::mutex> l(this->m_cancelledMutex);
-			if (this->m_isCancelled.count(fd) == 1 && this->m_isCancelled[fd])
-				ThrowExcInfo(ASYNC_EVENT_CANCEL, "operation cancelled on fd: " << fd);
-		});
-	}
-
-	case CommandId::CANCEL_OPERATION: {
-		std::lock_guard<std::mutex> l(this->m_cancelledMutex);
-		auto fd = conn->getFd();
-		if (this->m_isCancelled.count(fd) == 1) {
-			this->m_isCancelled[fd] = true;
-			INFO("Turn on cancelled flag of fd: " << fd);
-		} else {
-			WARN("Nothing to cancel... fd: " << fd);
-		}
-
-		return RawBuffer();
+		return this->m_cslogic->scanDirsAsync(conn, *cptr, paths);
 	}
 
 	case CommandId::JUDGE_STATUS: {
@@ -426,8 +376,13 @@ void ServerService::onMessageProcess(const ConnShPtr &connection)
 
 			CpuUsageManager::reset();
 
-			if (!outbuf.empty())
-				connection->send(outbuf);
+			connection->send(outbuf);
+		} catch (const Exception &e) {
+			if (e.error() == CSR_ERROR_SOCKET)
+				WARN("The connection is closed by the peer. Client might cancel async "
+					 "scanning or crashed: " << e.what());
+			else
+				throw;
 		} catch (const std::exception &e) {
 			ERROR("exception on workqueue task: " << e.what());
 			try {

@@ -237,7 +237,7 @@ int CsLogic::scanAppOnCloud(const CsContext &context, const FilePtr &pkgPtr,
 	return this->handleAskUser(context, *malware, pkgPtr);
 }
 
-Db::Cache CsLogic::scanAppDelta(const FilePtr &pkgPtr, const CancelChecker &isCancelled)
+Db::Cache CsLogic::scanAppDelta(const FilePtr &pkgPtr)
 {
 	const auto &pkgPath = pkgPtr->getName();
 	const auto &pkgId = pkgPtr->getAppPkgId();
@@ -257,9 +257,6 @@ Db::Cache CsLogic::scanAppDelta(const FilePtr &pkgPtr, const CancelChecker &isCa
 
 	// traverse files in app and take which is more danger than riskiest
 	auto visitor = FsVisitor::create([&](const FilePtr &file) {
-		if (isCancelled != nullptr)
-			isCancelled();
-
 		const auto &path = file->getPath();
 		DEBUG("Scan file by engine: " << path);
 
@@ -304,8 +301,7 @@ Db::Cache CsLogic::scanAppDelta(const FilePtr &pkgPtr, const CancelChecker &isCa
 	return cache;
 }
 
-int CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr,
-					 CsDetectedPtr &malware, const std::function<void()> &isCancelled)
+int CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr, CsDetectedPtr &malware)
 {
 	const auto &pkgPath = pkgPtr->getName();
 	const auto &pkgId = pkgPtr->getAppPkgId();
@@ -320,7 +316,7 @@ int CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr,
 	auto history = this->m_db->getWorstByPkgPath(pkgPath, since);
 
 	// riskiest detected among newly scanned files
-	auto cache = this->scanAppDelta(pkgPtr, isCancelled);
+	auto cache = this->scanAppDelta(pkgPtr);
 
 	// history after delta scan.
 	// if worst file is changed, it's rescanned in scanAppDelta and row deleted in db
@@ -463,10 +459,10 @@ CsLogic::ScanStage CsLogic::judgeScanStage(const CsDetectedPtr &riskiest,
 }
 
 int CsLogic::scanFileInternal(const CsContext &context, const FilePtr &target,
-							  CsDetectedPtr &malware, const std::function<void()> &isCancelled)
+							  CsDetectedPtr &malware)
 {
 	if (target->isInApp())
-		return this->scanApp(context, target, malware, isCancelled);
+		return this->scanApp(context, target, malware);
 
 	const auto &name = target->getName();
 
@@ -525,18 +521,14 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 }
 
 RawBuffer CsLogic::scanFilesAsync(const ConnShPtr &conn, const CsContext &context,
-								  StrSet &paths, const std::function<void()> &isCancelled)
+								  StrSet &paths)
 {
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
 		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
 
-	conn->send(BinaryQueue::Serialize(ASYNC_EVENT_START).pop());
-
 	StrSet canonicalized;
 
 	for (const auto &path : paths) {
-		isCancelled();
-
 		FilePtr target;
 		try {
 			target = canonicalizePathWithFile(path);
@@ -562,7 +554,7 @@ RawBuffer CsLogic::scanFilesAsync(const ConnShPtr &conn, const CsContext &contex
 		}
 
 		CsDetectedPtr malware;
-		auto retcode = this->scanFileInternal(context, target, malware, isCancelled);
+		auto retcode = this->scanFileInternal(context, target, malware);
 
 		switch (retcode) {
 		case CSR_ERROR_NONE:
@@ -588,7 +580,7 @@ RawBuffer CsLogic::scanFilesAsync(const ConnShPtr &conn, const CsContext &contex
 }
 
 RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context,
-								 StrSet &paths, const std::function<void()> &isCancelled)
+								 StrSet &paths)
 {
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
 		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
@@ -623,8 +615,6 @@ RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context
 
 	DEBUG("send error none to client before starting scanning");
 
-	conn->send(BinaryQueue::Serialize(ASYNC_EVENT_START).pop());
-
 	CsEngineContext engineContext(this->m_loader);
 	auto t = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
 
@@ -632,13 +622,9 @@ RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context
 
 	StrSet malwareList;
 	for (const auto &dir : dirs) {
-		isCancelled();
-
 		DEBUG("Start async scanning for dir: " << dir);
 
 		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir, t)) {
-			isCancelled();
-
 			try {
 				auto fileptr = File::create(row->targetName, nullptr);
 
@@ -680,8 +666,6 @@ RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context
 		auto startTime = ::time(nullptr);
 		auto lastScanTime = this->m_db->getLastScanTime(dir, t);
 		auto visitor = FsVisitor::create([&](const FilePtr &file) {
-			isCancelled();
-
 			CsDetectedPtr malware;
 			auto retcode = this->scanFileInternal(context, file, malware);
 

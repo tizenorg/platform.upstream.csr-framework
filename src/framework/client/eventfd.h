@@ -14,37 +14,37 @@
  *  limitations under the License
  */
 /*
- * @file        dispatcher.cpp
+ * @file        eventfd.h
  * @author      Jaemin Ryu (jm77.ryu@samsung.com)
  * @version     1.0
  * @brief
  */
-#include "common/dispatcher.h"
+#pragma once
 
-#include <utility>
-
-#include "common/socket.h"
+#include <sys/eventfd.h>
 
 namespace Csr {
+namespace Client {
 
-Dispatcher::Dispatcher(SockId sockId) noexcept : m_sockId(sockId)
-{
+class EventFd {
+public:
+	EventFd(unsigned int initval = 0, int flags = EFD_SEMAPHORE | EFD_CLOEXEC);
+	~EventFd();
+
+	EventFd(const EventFd &) = delete;
+	EventFd &operator=(const EventFd &) = delete;
+
+	void send();
+	void receive();
+
+	inline int getFd() const noexcept
+	{
+		return this->m_fd;
+	}
+
+private:
+	int m_fd;
+};
+
 }
-
-void Dispatcher::connect()
-{
-	std::lock_guard<std::mutex> l(this->m_connMutex);
-	if (this->m_connection == nullptr)
-		this->m_connection = std::make_shared<Connection>(
-				Socket::create(this->m_sockId, Socket::Type::CLIENT));
 }
-
-int Dispatcher::getFd() const noexcept
-{
-	if (this->m_connection == nullptr)
-		return -1;
-	else
-		return this->m_connection->getFd();
-}
-
-} // namespace Csr

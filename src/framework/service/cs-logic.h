@@ -24,7 +24,6 @@
 
 #include <memory>
 #include <string>
-#include <functional>
 #include <ctime>
 
 #include "common/types.h"
@@ -42,8 +41,6 @@ namespace Csr {
 
 class CsLogic : public Logic {
 public:
-	using CancelChecker = std::function<void()>;
-
 	CsLogic(const std::shared_ptr<CsLoader> &loader,
 			const std::shared_ptr<Db::Manager> &db);
 	virtual ~CsLogic() = default;
@@ -51,9 +48,9 @@ public:
 	RawBuffer scanData(const CsContext &context, const RawBuffer &data);
 	RawBuffer scanFile(const CsContext &context, const std::string &filepath);
 	RawBuffer scanFilesAsync(const ConnShPtr &conn, const CsContext &context,
-							 StrSet &paths, const CancelChecker &isCancelled);
+							 StrSet &paths);
 	RawBuffer scanDirsAsync(const ConnShPtr &conn, const CsContext &context,
-							StrSet &paths, const CancelChecker &isCancelled);
+							StrSet &paths);
 	RawBuffer judgeStatus(const std::string &filepath, csr_cs_action_e action);
 	RawBuffer getDetected(const std::string &filepath);
 	RawBuffer getDetectedList(const StrSet &dirSet);
@@ -61,9 +58,9 @@ public:
 	RawBuffer getIgnoredList(const StrSet &dirSet);
 
 private:
-	int scanFileInternal(const CsContext &context, const FilePtr &target, CsDetectedPtr &malware, const CancelChecker &isCancelled = nullptr);
-	int scanApp(const CsContext &context, const FilePtr &pkgPtr, CsDetectedPtr &malware, const CancelChecker &isCancelled = nullptr);
-	Db::Cache scanAppDelta(const FilePtr &pkgPtr, const CancelChecker &isCancelled = nullptr);
+	int scanFileInternal(const CsContext &context, const FilePtr &target, CsDetectedPtr &malware);
+	int scanApp(const CsContext &context, const FilePtr &pkgPtr, CsDetectedPtr &malware);
+	Db::Cache scanAppDelta(const FilePtr &pkgPtr);
 	int scanAppOnCloud(const CsContext &context, const FilePtr &pkgPtr, CsDetectedPtr &malware);
 
 	CsDetectedPtr convert(csre_cs_detected_h &result, const std::string &targetName,

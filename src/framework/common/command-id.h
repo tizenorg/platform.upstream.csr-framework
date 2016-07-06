@@ -35,7 +35,6 @@ enum class CommandId : int {
 	GET_IGNORED_LIST    = 0x1104,
 	SCAN_DIRS_ASYNC     = 0x1105,
 	SCAN_FILES_ASYNC    = 0x1106,
-	CANCEL_OPERATION    = 0x1108,
 	// handle result
 	JUDGE_STATUS        = 0x1201,
 

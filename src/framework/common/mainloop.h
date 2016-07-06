@@ -45,6 +45,9 @@ public:
 	// if timeout is negative value, no timeout on idle.
 	void run(int timeout);
 
+	// Moved to public to customize stop condition
+	void dispatch(int timeout);
+
 	void addEventSource(int fd, uint32_t event, Callback &&callback);
 	void removeEventSource(int fd);
 	size_t countEventSource(void) const;
@@ -52,7 +55,6 @@ public:
 	void setIdleChecker(std::function<bool()> &&idleChecker);
 
 private:
-	void dispatch(int timeout);
 
 	bool m_isTimedOut;
 	int m_pollfd;

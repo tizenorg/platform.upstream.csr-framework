@@ -305,7 +305,7 @@ Db::Cache CsLogic::scanAppDelta(const FilePtr &pkgPtr, const CancelChecker &isCa
 }
 
 int CsLogic::scanApp(const CsContext &context, const FilePtr &pkgPtr,
-					 CsDetectedPtr &malware, const std::function<void()> &isCancelled)
+					 CsDetectedPtr &malware, const CancelChecker &isCancelled)
 {
 	const auto &pkgPath = pkgPtr->getName();
 	const auto &pkgId = pkgPtr->getAppPkgId();
@@ -463,7 +463,7 @@ CsLogic::ScanStage CsLogic::judgeScanStage(const CsDetectedPtr &riskiest,
 }
 
 int CsLogic::scanFileInternal(const CsContext &context, const FilePtr &target,
-							  CsDetectedPtr &malware, const std::function<void()> &isCancelled)
+							  CsDetectedPtr &malware, const CancelChecker &isCancelled)
 {
 	if (target->isInApp())
 		return this->scanApp(context, target, malware, isCancelled);
@@ -525,12 +525,10 @@ RawBuffer CsLogic::scanFile(const CsContext &context, const std::string &filepat
 }
 
 RawBuffer CsLogic::scanFilesAsync(const ConnShPtr &conn, const CsContext &context,
-								  StrSet &paths, const std::function<void()> &isCancelled)
+								  StrSet &paths, const CancelChecker &isCancelled)
 {
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
 		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
-
-	conn->send(BinaryQueue::Serialize(ASYNC_EVENT_START).pop());
 
 	StrSet canonicalized;
 
@@ -588,7 +586,7 @@ RawBuffer CsLogic::scanFilesAsync(const ConnShPtr &conn, const CsContext &contex
 }
 
 RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context,
-								 StrSet &paths, const std::function<void()> &isCancelled)
+								 StrSet &paths, const CancelChecker &isCancelled)
 {
 	if (this->m_db->getEngineState(CSR_ENGINE_CS) != CSR_STATE_ENABLE)
 		ThrowExc(CSR_ERROR_ENGINE_DISABLED, "engine is disabled");
@@ -596,6 +594,8 @@ RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context
 	StrSet dirs;
 
 	for (const auto &path : paths) {
+		isCancelled();
+
 		try {
 			auto target = canonicalizePath(path, true);
 
@@ -621,20 +621,14 @@ RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context
 
 	eraseSubdirectories(dirs);
 
-	DEBUG("send error none to client before starting scanning");
-
-	conn->send(BinaryQueue::Serialize(ASYNC_EVENT_START).pop());
-
 	CsEngineContext engineContext(this->m_loader);
 	auto t = this->m_loader->getEngineLatestUpdateTime(engineContext.get());
 
-	DEBUG("Start async scanning!!!!!");
+	INFO("Start async scanning!!!!!");
 
 	StrSet malwareList;
 	for (const auto &dir : dirs) {
-		isCancelled();
-
-		DEBUG("Start async scanning for dir: " << dir);
+		INFO("Start async scanning for dir: " << dir);
 
 		for (auto &row : this->m_db->getDetectedAllByNameOnDir(dir, t)) {
 			isCancelled();
@@ -643,7 +637,7 @@ RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context
 				auto fileptr = File::create(row->targetName, nullptr);
 
 				CsDetectedPtr malware;
-				auto retcode = this->scanFileInternal(context, fileptr, malware);
+				auto retcode = this->scanFileInternal(context, fileptr, malware, isCancelled);
 
 				switch (retcode) {
 				case CSR_ERROR_NONE:
@@ -677,13 +671,15 @@ RawBuffer CsLogic::scanDirsAsync(const ConnShPtr &conn, const CsContext &context
 			}
 		}
 
+		INFO("detected malwares rescanning done from db.");
+
 		auto startTime = ::time(nullptr);
 		auto lastScanTime = this->m_db->getLastScanTime(dir, t);
 		auto visitor = FsVisitor::create([&](const FilePtr &file) {
 			isCancelled();
 
 			CsDetectedPtr malware;
-			auto retcode = this->scanFileInternal(context, file, malware);
+			auto retcode = this->scanFileInternal(context, file, malware, isCancelled);
 
 			DEBUG("scanFileInternal done. file: " << file->getName() <<
 				  " retcode: " << retcode);

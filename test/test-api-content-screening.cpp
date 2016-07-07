@@ -1296,6 +1296,7 @@ BOOST_AUTO_TEST_CASE(get_ignored_malwares_after_file_changed)
 
 // TODO: below test case needs response from UI. It'll be turned on as default after
 // write code of popup service stub
+// For measuring TC coverage, eneable these test cases.
 #if 0
 BOOST_AUTO_TEST_CASE(remove_failed_returns_detected_handle)
 {
@@ -1314,6 +1315,35 @@ BOOST_AUTO_TEST_CASE(remove_failed_returns_detected_handle)
 	ASSERT_DETECTED(malware, MALWARE_HIGH_NAME, MALWARE_HIGH_SEVERITY,
 					MALWARE_HIGH_DETAILED_URL);
 	ASSERT_DETECTED_EXT(malware, start_time, TEST_FILE_UNREMOVABLE, false, "");
+
+	EXCEPTION_GUARD_END
+}
+
+BOOST_AUTO_TEST_CASE(scan_file_wgt_dir_remove_app)
+{
+	EXCEPTION_GUARD_START
+
+	auto c = Test::Context<csr_cs_context_h>();
+	auto context = c.get();
+	csr_cs_malware_h detected;
+
+	Test::uninstall_app(TEST_WGT_PKG_ID);
+	ASSERT_INSTALL_APP(TEST_WGT_PATH, TEST_WGT_TYPE);
+
+	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_CORE_USAGE_DEFAULT));
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_WGT_MAL_FILE(), &detected));
+
+	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_CORE_USAGE_ALL));
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_WGT_MAL_FILE(), &detected));
+
+	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_CORE_USAGE_HALF));
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_WGT_MAL_FILE(), &detected));
+
+	ASSERT_SUCCESS(csr_cs_set_core_usage(context, CSR_CS_CORE_USAGE_SINGLE));
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_WGT_MAL_FILE(), &detected));
+
+	ASSERT_SUCCESS(csr_cs_set_ask_user(context, CSR_CS_ASK_USER_YES));
+	ASSERT_SUCCESS(csr_cs_scan_file(context, TEST_WGT_MAL_FILE(), &detected));
 
 	EXCEPTION_GUARD_END
 }

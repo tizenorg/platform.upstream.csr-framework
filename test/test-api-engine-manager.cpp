@@ -78,6 +78,9 @@ BOOST_AUTO_TEST_CASE(fields_getters)
 	ASSERT_SUCCESS(csr_engine_get_version(e.get(), &dataVersion.ptr));
 	ASSERT_IF(dataVersion.ptr, std::string("0.0.1"));
 
+	time_t updatedTime;
+	ASSERT_SUCCESS(csr_engine_get_latest_update_time(e.get(), &updatedTime));
+
 	csr_activated_e activated;
 	ASSERT_SUCCESS(csr_engine_get_activated(e.get(), &activated));
 	ASSERT_IF(activated, CSR_ACTIVATED);
@@ -87,6 +90,8 @@ BOOST_AUTO_TEST_CASE(fields_getters)
 
 	ASSERT_SUCCESS(csr_engine_get_state(e.get(), &state));
 	ASSERT_IF(state, CSR_STATE_ENABLE);
+
+
 
 	EXCEPTION_GUARD_END
 }
@@ -162,6 +167,9 @@ BOOST_AUTO_TEST_CASE(fields_getters)
 	Test::ScopedCstr dataVersion;
 	ASSERT_SUCCESS(csr_engine_get_version(e.get(), &dataVersion.ptr));
 	ASSERT_IF(dataVersion.ptr, std::string("0.0.1"));
+
+	time_t updatedTime;
+	ASSERT_SUCCESS(csr_engine_get_latest_update_time(e.get(), &updatedTime));
 
 	csr_activated_e activated;
 	ASSERT_SUCCESS(csr_engine_get_activated(e.get(), &activated));
